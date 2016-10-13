@@ -13,6 +13,14 @@
 #define FLOAT_UNDEFINED    3.40282347e+38F
 #define INT_UNDEFINED      2147483647
 
+#define YT_ABORT( ... )                                             \
+{                                                                   \
+   log_error( __VA_ARGS__ );                                        \
+   fprintf( stderr, "       file <%s>, line <%d>, function <%s>\n", \
+            __FILE__, __LINE__, __FUNCTION__ );                     \
+   return YT_FAIL;                                                  \
+}
+
 
 
 #endif // #ifndef __YT_MACRO_H__
