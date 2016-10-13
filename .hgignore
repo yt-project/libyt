@@ -2,4 +2,4 @@
 syntax: glob
 
 *.o
-libyt*
+libyt.so.1.*

@@ -2,10 +2,11 @@
 #include "yt.h"
 #include "yt_macro.h"
 #include "yt_type.h"
+#include "yt_prototype.h"
 
 
 // global variables
-yt_verbose_t verbose = YT_VERBOSE_INFO;
+yt_verbose_t verbose = YT_VERBOSE_BASIC;
 
 
 
@@ -18,22 +19,24 @@ yt_verbose_t verbose = YT_VERBOSE_INFO;
 //
 // Parameter   :  None
 //
-// Return      :  None
+// Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_init()
 {
 
    static bool initialized = false;
 
-// check whether libyt has been initialized already
-   if ( initialized )   return YT_SUCCESS;
+// nothing to do if libyt has been initialized
+   if ( initialized )
+   {
+      if ( verbose >= YT_VERBOSE_DETAIL )    log_warning( "libyt has been initialized already\n" );
 
-   if ( verbose )    fprintf( stdout, "%s ...\n", __FUNCTION__ );
+      return YT_SUCCESS;
+   }
 
+   if ( verbose )    log_info( "Initializing libyt ...\n" );
 
-
-   if ( verbose )    fprintf( stdout, "%s ... done\n", __FUNCTION__ );
-
+// init_python();
 
    initialized = true;
 

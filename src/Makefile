@@ -10,7 +10,9 @@
 
 # source files
 #######################################################################################################
-CC_FILE := init.cpp
+CC_FILE := yt_init.cpp
+
+CC_FILE += logging.cpp
 
 
 # library name
@@ -21,7 +23,8 @@ LIB_SONAME   := libyt.so.1
 
 # rules and targets
 #######################################################################################################
-CXX := icpc
+#CXX := icpc
+CXX := g++
 
 OBJ_PATH := ./obj
 
@@ -29,7 +32,8 @@ LIB :=
 
 INCLUDE := -I../include
 
-CXXWARN_FLAG := -w1
+#CXXWARN_FLAG := -w1
+CXXWARN_FLAG := -Wall
 
 CXXFLAG  := $(CXXWARN_FLAG) $(INCLUDE) $(SIMU_OPTION) -O2 -fPIC
 
