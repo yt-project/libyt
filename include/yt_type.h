@@ -2,8 +2,64 @@
 #define __YT_TYPE_H__
 
 
+// enumerate types
+// ===================================================================================
+enum yt_verbose { YT_VERBOSE_NONE=0, YT_VERBOSE_BASIC=1, YT_VERBOSE_WARNING=2, YT_VERBOSE_DEBUG=3 };
 
-enum yt_verbose_t { YT_VERBOSE_NONE=0, YT_VERBOSE_BASIC=1, YT_VERBOSE_DETAIL=2, YT_VERBOSE_DEBUG=3 };
+
+
+// structures used by libyt
+// ===================================================================================
+
+//-------------------------------------------------------------------------------------------------------
+// Structure   :  yt_param
+// Description :  Data structure of libyt runtime parameters
+//
+// Data Member :  verbose : Verbose level
+//                script  : Name of the YT Python script
+//
+// Method      :  yt_param : Constructor
+//               ~yt_param : Destructor
+//-------------------------------------------------------------------------------------------------------
+struct yt_param
+{
+
+// data members
+// ===================================================================================
+   yt_verbose verbose;
+   const char *script;
+
+
+   //===================================================================================
+   // Constructor :  yt_param
+   // Description :  Constructor of the structure "yt_param"
+   //
+   // Note        :  Initialize all data members
+   //
+   // Parameter   :  None
+   //===================================================================================
+   yt_param()
+   {
+
+      verbose = YT_VERBOSE_BASIC;
+      script  = "yt_script.py";
+
+   } // METHOD : yt_param
+
+
+
+   //===================================================================================
+   // Destructor  :  ~yt_param
+   // Description :  Destructor of the structure "yt_param"
+   //
+   // Note        :  Free memory
+   //===================================================================================
+   ~yt_param()
+   {
+
+   } // METHOD : ~yt_param
+
+}; // struct yt_param
 
 
 

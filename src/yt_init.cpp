@@ -5,10 +5,6 @@
 #include "yt_prototype.h"
 
 
-// global variables
-yt_verbose_t verbose = YT_VERBOSE_BASIC;
-
-
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -17,11 +13,11 @@ yt_verbose_t verbose = YT_VERBOSE_BASIC;
 //
 // Note        :  None
 //
-// Parameter   :  None
+// Parameter   :  param : libyt runtime parameters
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_init()
+int yt_init( const yt_param *param )
 {
 
    static bool initialized = false;
@@ -29,12 +25,18 @@ int yt_init()
 // nothing to do if libyt has been initialized
    if ( initialized )
    {
-      if ( verbose >= YT_VERBOSE_DETAIL )    log_warning( "libyt has been initialized already\n" );
+      if ( param->verbose >= YT_VERBOSE_WARNING )  log_warning( "libyt has been initialized already\n" );
 
       return YT_SUCCESS;
    }
 
-   if ( verbose )    log_info( "Initializing libyt ...\n" );
+   if ( param->verbose )   log_info( "Initializing libyt ...\n" );
+
+   if ( param->verbose == YT_VERBOSE_DEBUG )
+   {
+      log_info( "   verbose = %d\n", param->verbose );
+      log_info( "   script  = %s\n", param->script );
+   }
 
 // init_python();
 
