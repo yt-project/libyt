@@ -13,6 +13,8 @@
 #define FLOAT_UNDEFINED    3.40282347e+38F
 #define INT_UNDEFINED      2147483647
 
+
+// convenient macro for outputting error messages and returning YT_FAIL
 #define YT_ABORT( ... )                                             \
 {                                                                   \
    log_error( __VA_ARGS__ );                                        \

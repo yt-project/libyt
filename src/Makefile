@@ -11,8 +11,7 @@
 # source files
 #######################################################################################################
 CC_FILE := yt_init.cpp
-
-CC_FILE += logging.cpp
+CC_FILE += logging.cpp  init_python.cpp
 
 
 # library name
@@ -21,27 +20,31 @@ LIB_REALNAME := libyt.so.1.0.0
 LIB_SONAME   := libyt.so.1
 
 
-# rules and targets
+# different paths
+#######################################################################################################
+PYTHON_PATH := /home/hyschive/software/miniconda2
+OBJ_PATH := ./obj
+
+
+# flags
 #######################################################################################################
 #CXX := icpc
 CXX := g++
 
-OBJ_PATH := ./obj
+LIB := -L$(PYTHON_PATH)/lib -lpython2.7
 
-LIB :=
-
-INCLUDE := -I../include
+INCLUDE := -I../include -I$(PYTHON_PATH)/include/python2.7 \
+           -I$(PYTHON_PATH)/lib/python2.7/site-packages/numpy/core/include
 
 #CXXWARN_FLAG := -w1
-CXXWARN_FLAG := -Wall
+CXXWARN_FLAG := -Wall -Wno-write-strings
+CXXFLAG := $(CXXWARN_FLAG) $(INCLUDE) $(SIMU_OPTION) -O2 -fPIC
 
-CXXFLAG  := $(CXXWARN_FLAG) $(INCLUDE) $(SIMU_OPTION) -O2 -fPIC
 
+# rules and targets
+#######################################################################################################
 OBJ := $(patsubst %.cpp, $(OBJ_PATH)/%.o, $(CC_FILE))
 
-
-# implicit rules
-#######################################################################################################
 $(OBJ_PATH)/%.o : %.cpp
 	 $(CXX) $(CXXFLAG) -o $@ -c $<
 

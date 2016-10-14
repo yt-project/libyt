@@ -13,11 +13,13 @@
 //
 // Note        :  None
 //
-// Parameter   :  param : libyt runtime parameters
+// Parameter   :  argc  : Argument count
+//                argv  : Argument vector
+//                param : libyt runtime parameters
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_init( const yt_param *param )
+int yt_init( int argc, char *argv[], const yt_param *param )
 {
 
    static bool initialized = false;
@@ -25,23 +27,27 @@ int yt_init( const yt_param *param )
 // nothing to do if libyt has been initialized
    if ( initialized )
    {
-      if ( param->verbose >= YT_VERBOSE_WARNING )  log_warning( "libyt has been initialized already\n" );
+      if ( param->verbose >= YT_VERBOSE_WARNING )  log_warning( "libyt has already been initialized\n" );
 
       return YT_SUCCESS;
    }
 
    if ( param->verbose )   log_info( "Initializing libyt ...\n" );
 
+
+// print out runtime parameters
    if ( param->verbose == YT_VERBOSE_DEBUG )
    {
       log_info( "   verbose = %d\n", param->verbose );
       log_info( "   script  = %s\n", param->script );
    }
 
-// init_python();
+
+// initialize Python interpreter
+   if ( init_python(argc,argv,param) == YT_FAIL )  return YT_FAIL;
+
 
    initialized = true;
-
    return YT_SUCCESS;
 
 } // FUNCTION : yt_init
