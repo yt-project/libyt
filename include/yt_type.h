@@ -4,7 +4,7 @@
 
 // enumerate types
 // ===================================================================================
-enum yt_verbose { YT_VERBOSE_NONE=0, YT_VERBOSE_BASIC=1, YT_VERBOSE_WARNING=2, YT_VERBOSE_DEBUG=3 };
+enum yt_verbose { YT_VERBOSE_NONE=0, YT_VERBOSE_INFO=1, YT_VERBOSE_WARNING=2, YT_VERBOSE_DEBUG=3 };
 
 
 
@@ -41,7 +41,8 @@ struct yt_param
    yt_param()
    {
 
-      verbose = YT_VERBOSE_BASIC;
+//    set defaults
+      verbose = YT_VERBOSE_WARNING;
       script  = "yt_script.py";
 
    } // METHOD : yt_param

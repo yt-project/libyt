@@ -1,3 +1,6 @@
+// to get rid of the warning messages about using deprecated NumPy API
+#define NPY_NO_DEPRECATED_API NPY_API_VERSION
+
 #include <Python.h>
 #include "numpy/arrayobject.h"
 #include <stdio.h>
@@ -32,32 +35,33 @@ int init_python( int argc, char *argv[], const yt_param *param )
 // 0: kips initialization registration of signal handlers
    Py_InitializeEx( 0 );
 
-   if ( !Py_IsInitialized() ) {
+   if ( Py_IsInitialized() )
+      log_debug( "Initialize Python interpreter successfully\n" );
+   else {
       YT_ABORT( "Couldn't initialize Python!\n" ); }
-   else if ( param->verbose == YT_VERBOSE_DEBUG )
-      log_info( "Initialize Python interpreter successfully\n" );
 
 // set sys.argv
    PySys_SetArgv( argc, argv );
 
 
 // check numpy
-   if ( !check_numpy() )
+   if ( check_numpy() )
+      log_debug( "Import NumPy successfully\n" );
+   else
    {
 //    call _import_array and PyErr_PrintEx(0) to print out traceback error messages to stderr
       _import_array();
       PyErr_PrintEx( 0 );
-      YT_ABORT( "Couldn't import Numpy!" );
+      YT_ABORT( "Couldn't import NumPy!\n" );
    }
-   else if ( param->verbose == YT_VERBOSE_DEBUG )  log_info( "Import Numpy successfully\n" );
 
 
-// add the current location to the search path for modules (sys._parallel = True --> run yt in parallel )
+// add the current location to the module search path (sys._parallel = True --> run yt in parallel )
    PyRun_SimpleString( "import sys; sys.path.insert(0,'.'); sys._parallel = True" );
 
 
 // import the garbage collector interface
-   PyRun_SimpleString( "import gc\n" );
+   PyRun_SimpleString( "import gc" );
 
 
    return YT_SUCCESS;
@@ -68,7 +72,7 @@ int init_python( int argc, char *argv[], const yt_param *param )
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  check_numpy
-// Description :  Check if Numpy can be imported properly
+// Description :  Check if NumPy can be imported properly
 //
 // Note        :  1. Static function called by init_python
 //
