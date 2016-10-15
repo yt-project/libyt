@@ -3,7 +3,7 @@
 
 
 
-// includ necessary headers
+// include relevant headers
 #include "yt_type.h"
 
 
@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 int yt_init( int argc, char *argv[], const yt_param *param );
+int yt_finalize();
 
 #ifdef __cplusplus
 }

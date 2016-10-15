@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include "yt_type.h"
 #include "yt_global.h"
 
 

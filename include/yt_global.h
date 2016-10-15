@@ -3,6 +3,9 @@
 
 
 
+// include relevant headers
+#include "yt_type.h"
+
 extern bool     g_initialized;
 extern yt_param g_param;
 

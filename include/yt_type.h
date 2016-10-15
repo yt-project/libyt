@@ -2,6 +2,7 @@
 #define __YT_TYPE_H__
 
 
+
 // enumerate types
 // ===================================================================================
 enum yt_verbose { YT_VERBOSE_NONE=0, YT_VERBOSE_INFO=1, YT_VERBOSE_WARNING=2, YT_VERBOSE_DEBUG=3 };

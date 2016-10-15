@@ -3,6 +3,9 @@
 
 
 
+// include relevant headers
+#include "yt_type.h"
+
 void log_info   ( const char *Format, ... );
 void log_warning( const char *format, ... );
 void log_debug  ( const char *Format, ... );

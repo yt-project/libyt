@@ -1,9 +1,8 @@
 #include <stdio.h>
-#include "yt.h"
 #include "yt_macro.h"
-#include "yt_type.h"
-#include "yt_prototype.h"
 #include "yt_global.h"
+#include "yt_prototype.h"
+#include "yt.h"
 
 
 // all libyt global variables are defined here (with a prefix g_)
@@ -21,6 +20,8 @@ yt_param g_param;                // libyt runtime parameters
 // Description :  Initialize libyt
 //
 // Note        :  1. User-provided parameters "param" will be backed up to a libyt global variable
+//                2. This function should not be called more than once (even if yt_finalize has been called)
+//                   since some extensions (e.g., NumPy) may not work properly
 //
 // Parameter   :  argc  : Argument count
 //                argv  : Argument vector
@@ -31,13 +32,12 @@ yt_param g_param;                // libyt runtime parameters
 int yt_init( int argc, char *argv[], const yt_param *param )
 {
 
-// nothing to do if libyt has been initialized
-   if ( g_initialized )
-   {
-      log_warning( "libyt has already been initialized!\n" );
+// yt_init should only be called once
+   static int init_count = 0;
+   init_count ++;
 
-      return YT_SUCCESS;
-   }
+// still need to check init_count since yt_finalize will set g_initialized = false
+   if ( g_initialized  ||  init_count >= 2 )   YT_ABORT( "yt_init should not be called more than once!\n" );
 
 
 // store user-provided parameters to a libyt global variable
