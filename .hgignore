@@ -3,3 +3,4 @@ syntax: glob
 
 *.o
 libyt.so.1.*
+test
