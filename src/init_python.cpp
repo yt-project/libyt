@@ -57,11 +57,13 @@ int init_python( int argc, char *argv[], const yt_param *param )
 
 
 // add the current location to the module search path (sys._parallel = True --> run yt in parallel )
-   PyRun_SimpleString( "import sys; sys.path.insert(0,'.'); sys._parallel = True" );
+   if ( PyRun_SimpleString( "import sys; sys.path.insert(0,'.'); sys._parallel = True" ) != 0 )
+      YT_ABORT( "Couldn't import sys module properly!\n" );
 
 
 // import the garbage collector interface
-   PyRun_SimpleString( "import gc" );
+   if ( PyRun_SimpleString( "import gc" ) != 0 )
+      YT_ABORT( "Couldn't import Python garbage collector!\n" );
 
 
    return YT_SUCCESS;
