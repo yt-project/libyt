@@ -3,7 +3,7 @@
 
 
 
-extern int g_verbose;
+extern yt_param *g_param;
 
 
 

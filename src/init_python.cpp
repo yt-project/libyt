@@ -20,13 +20,12 @@ static int check_numpy();
 //
 // Note        :  1. Called by yt_init
 //
-// Parameter   :  argc  : Argument count
-//                argv  : Argument vector
-//                param : libyt runtime parameters
+// Parameter   :  argc : Argument count
+//                argv : Argument vector
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int init_python( int argc, char *argv[], const yt_param *param )
+int init_python( int argc, char *argv[] )
 {
 
 // initialize Python interpreter

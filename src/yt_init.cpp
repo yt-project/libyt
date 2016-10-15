@@ -6,13 +6,18 @@
 #include "yt_global.h"
 
 
+// all libyt global variables are defined here (with a prefix g_)
+// --> they must also be declared in "yt_global.h" with the keyword extern
+yt_param *g_param = NULL;
+
+
 
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_init
 // Description :  Initialize libyt
 //
-// Note        :  None
+// Note        :  1. User-provided parameters "param" will be backed up to a libyt global variable
 //
 // Parameter   :  argc  : Argument count
 //                argv  : Argument vector
@@ -25,9 +30,6 @@ int yt_init( int argc, char *argv[], const yt_param *param )
 
    static bool initialized = false;
 
-// set up the verbose level (note that g_verbose is a global variable)
-   g_verbose = param->verbose;
-
 
 // nothing to do if libyt has been initialized
    if ( initialized )
@@ -38,15 +40,18 @@ int yt_init( int argc, char *argv[], const yt_param *param )
    }
 
 
-   log_info( "Initializing libyt ...\n" );
+// store user-provided parameters to a libyt global variable
+// --> must do it **before** calling any log function
+   g_param = new yt_param;
+  *g_param = *param;
 
-// print out runtime parameters
-   log_info( "   verbose = %d\n", param->verbose );
-   log_info( "   script  = %s\n", param->script );
+   log_info( "Initializing libyt ...\n" );
+   log_debug( "   verbose = %d\n", g_param->verbose );
+   log_debug( "   script  = %s\n", g_param->script );
 
 
 // initialize Python interpreter
-   if ( init_python(argc,argv,param) == YT_FAIL )  return YT_FAIL;
+   if ( init_python(argc,argv) == YT_FAIL )   return YT_FAIL;
 
 
    initialized = true;

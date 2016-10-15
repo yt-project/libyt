@@ -7,7 +7,7 @@ void log_info   ( const char *Format, ... );
 void log_warning( const char *format, ... );
 void log_debug  ( const char *Format, ... );
 void log_error  ( const char *format, ... );
-int  init_python( int argc, char *argv[], const yt_param *param );
+int  init_python( int argc, char *argv[] );
 
 
 
