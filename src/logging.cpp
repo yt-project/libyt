@@ -31,7 +31,7 @@ void log_info( const char *format, ... )
 {
 
 // work only for verbose level >= YT_VERBOSE_INFO
-   if ( g_param->verbose < YT_VERBOSE_INFO )   return;
+   if ( g_param.verbose < YT_VERBOSE_INFO )   return;
 
 // flush previous messages
    fflush( stdout );
@@ -66,7 +66,7 @@ void log_warning( const char *format, ... )
 {
 
 // work only for verbose level >= YT_VERBOSE_WARNING
-   if ( g_param->verbose < YT_VERBOSE_WARNING )   return;
+   if ( g_param.verbose < YT_VERBOSE_WARNING )   return;
 
 // flush previous messages
    fflush( stderr );
@@ -101,7 +101,7 @@ void log_debug( const char *format, ... )
 {
 
 // work only for verbose level >= YT_VERBOSE_DEBUG
-   if ( g_param->verbose < YT_VERBOSE_DEBUG )   return;
+   if ( g_param.verbose < YT_VERBOSE_DEBUG )   return;
 
 // flush previous messages
    fflush( stdout );

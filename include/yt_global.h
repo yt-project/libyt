@@ -3,7 +3,8 @@
 
 
 
-extern yt_param *g_param;
+extern bool     g_initialized;
+extern yt_param g_param;
 
 
 
