@@ -10,7 +10,7 @@
 #define YT_SUCCESS         1
 #define YT_FAIL            0
 
-#define FLOAT_UNDEFINED    3.40282347e+38F
+#define FLT_UNDEFINED      3.40282347e+38F
 #define INT_UNDEFINED      2147483647
 
 

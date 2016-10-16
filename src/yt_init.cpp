@@ -11,7 +11,7 @@
 // Function    :  yt_init
 // Description :  Initialize libyt
 //
-// Note        :  1. User-provided parameters "param" will be backed up to a libyt global variable
+// Note        :  1. Input "param_libyt" will be backed up to a libyt global variable
 //                2. This function should not be called more than once (even if yt_finalize has been called)
 //                   since some extensions (e.g., NumPy) may not work properly
 //

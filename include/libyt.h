@@ -13,7 +13,9 @@
 
 
 // include relevant headers
+#include <stdio.h>
 #include "yt_type.h"
+
 
 // declare libyt API
 #ifdef __cplusplus
@@ -22,6 +24,7 @@ extern "C" {
 
 int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt );
 int yt_finalize();
+int yt_set_parameter( const yt_param_yt *param_yt );
 
 #ifdef __cplusplus
 }
