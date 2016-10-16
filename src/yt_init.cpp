@@ -1,16 +1,8 @@
+// define DEFINE_GLOBAL since this file **defines** all global variables
+#define DEFINE_GLOBAL
 #include "yt_combo.h"
+#undef DEFINE_GLOBAL
 #include "libyt.h"
-
-
-// all libyt global variables are defined here (with a prefix g_)
-// --> they must also be declared in "yt_global.h" with the keyword extern
-bool      g_initialized = false;    // record whether libyt has been initialized
-yt_param  g_param;                  // libyt runtime parameters
-                                    // --> do not defined as a pointer so that it is always initialized
-                                    //     --> log functions can be called safely everywhere
-PyObject *g_grid_data   = NULL;     // Python dictionary to store grid data
-PyObject *g_hierarchy   = NULL;     // Python dictionary to store hierachy information
-PyObject *g_parameter   = NULL;     // Python dictionary to store YT parameters
 
 
 
