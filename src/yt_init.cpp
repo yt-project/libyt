@@ -15,13 +15,13 @@
 //                2. This function should not be called more than once (even if yt_finalize has been called)
 //                   since some extensions (e.g., NumPy) may not work properly
 //
-// Parameter   :  argc  : Argument count
-//                argv  : Argument vector
-//                param : libyt runtime parameters
+// Parameter   :  argc        : Argument count
+//                argv        : Argument vector
+//                param_libyt : libyt runtime parameters
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_init( int argc, char *argv[], const yt_param *param )
+int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt )
 {
 
 // yt_init should only be called once
@@ -33,12 +33,12 @@ int yt_init( int argc, char *argv[], const yt_param *param )
 
 
 // store user-provided parameters to a libyt global variable
-// --> better do it **before** calling any log function since they will query g_param.verbose
-   g_param = *param;
+// --> better do it **before** calling any log function since they will query g_param_libyt.verbose
+   g_param_libyt = *param_libyt;
 
    log_info( "Initializing libyt ...\n" );
-   log_debug( "   verbose = %d\n", g_param.verbose );
-   log_debug( "   script  = %s\n", g_param.script );
+   log_debug( "   verbose = %d\n", g_param_libyt.verbose );
+   log_debug( "   script  = %s\n", g_param_libyt.script );
 
 
 // initialize Python interpreter

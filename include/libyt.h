@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-int yt_init( int argc, char *argv[], const yt_param *param );
+int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt );
 int yt_finalize();
 
 #ifdef __cplusplus

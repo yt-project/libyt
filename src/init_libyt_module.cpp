@@ -41,27 +41,29 @@ int init_libyt_module()
 
 
 // attach empty dictionaries
-   g_grid_data = PyDict_New();
-   g_hierarchy = PyDict_New();
-   g_parameter = PyDict_New();
+   g_grid_data  = PyDict_New();
+   g_hierarchy  = PyDict_New();
+   g_param_yt   = PyDict_New();
+   g_param_user = PyDict_New();
 
-   PyDict_SetItemString( libyt_module_dict, "grid_data", g_grid_data );
-   PyDict_SetItemString( libyt_module_dict, "hierarchy", g_hierarchy );
-   PyDict_SetItemString( libyt_module_dict, "parameter", g_parameter );
+   PyDict_SetItemString( libyt_module_dict, "grid_data",   g_grid_data  );
+   PyDict_SetItemString( libyt_module_dict, "hierarchy",   g_hierarchy  );
+   PyDict_SetItemString( libyt_module_dict, "paramm_yt",   g_param_yt   );
+   PyDict_SetItemString( libyt_module_dict, "paramm_user", g_param_user );
 
    log_debug( "Attaching empty dictionaries to libyt module ... done\n" );
 
 
 // import YT inline analysis script
-   const int CallYT_CommandWidth = 8 + strlen( g_param.script );   // 8 = "import " + '\0'
+   const int CallYT_CommandWidth = 8 + strlen( g_param_libyt.script );   // 8 = "import " + '\0'
    char *CallYT = (char*) malloc( CallYT_CommandWidth*sizeof(char) );
-   sprintf( CallYT, "import %s", g_param.script );
+   sprintf( CallYT, "import %s", g_param_libyt.script );
 
    if ( PyRun_SimpleString( CallYT ) == 0 )
-      log_debug( "Importing YT inline analysis script \"%s\" ... done\n", g_param.script );
+      log_debug( "Importing YT inline analysis script \"%s\" ... done\n", g_param_libyt.script );
    else
       YT_ABORT(  "Importing YT inline analysis script \"%s\" ... failed (please do not include the \".py\" extension)!\n",
-                g_param.script );
+                g_param_libyt.script );
 
    free( CallYT );
 
