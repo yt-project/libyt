@@ -2,5 +2,10 @@
 
 print "\nThis is the YT inline analysis script\n"
 
-def main():
-   print "Performing inline analysis ..."
+import libyt
+
+def yt_inline():
+   print "Performing YT inline analysis ..."
+
+   print libyt.__dict__
+   print libyt.param_yt.items()

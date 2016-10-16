@@ -36,8 +36,29 @@ int yt_set_parameter( const yt_param_yt *param_yt )
    param_yt->show();
 
 
-// store data into the Python module libyt.param_yt
+// export data to libyt.param_yt
+// convenient macros for converting data to Python objects
+// ==> Py_XDECREF is the same as Py_DECREF() except that it supports NULL input
+#  define TMP_PYINT( A )   Py_XDECREF( tmp_int ); tmp_int = PyLong_FromLong   ( (long  )A );
+#  define TMP_PYFLT( A )   Py_XDECREF( tmp_flt ); tmp_flt = PyFloat_FromDouble( (double)A );
 
+// scalars
+   PyObject *tmp_int=NULL, *tmp_flt=NULL;
+
+   TMP_PYFLT( param_yt->current_time );
+   PyDict_SetItemString( g_param_yt, "current_time", tmp_flt );
+
+
+
+// vectors (stored as Python tuples)
+// PyObject *tgd_tuple, *tgd0, *tgd1, *tgd2;
+
+
+// release resource
+   Py_XDECREF( tmp_int );
+   Py_XDECREF( tmp_flt );
+#  undef TMP_PYINT
+#  undef TMP_PYFLT
 
    return YT_SUCCESS;
 

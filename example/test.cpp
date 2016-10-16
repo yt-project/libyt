@@ -45,6 +45,10 @@ int main( int argc, char *argv[] )
    yt_set_parameter( &param_yt );
 
 
+// perform inline analysis
+   yt_inline();
+
+
 // exit libyt
    yt_finalize();
 

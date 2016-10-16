@@ -10,7 +10,7 @@
 
 # source files
 #######################################################################################################
-CC_FILE := yt_init.cpp  yt_finalize.cpp  yt_set_parameter.cpp
+CC_FILE := yt_init.cpp  yt_finalize.cpp  yt_set_parameter.cpp  yt_inline.cpp
 CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp
 
 
