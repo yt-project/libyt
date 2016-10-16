@@ -17,7 +17,7 @@ enum yt_verbose { YT_VERBOSE_NONE=0, YT_VERBOSE_INFO=1, YT_VERBOSE_WARNING=2, YT
 // Description :  Data structure of libyt runtime parameters
 //
 // Data Member :  verbose : Verbose level
-//                script  : Name of the YT inline analysis script
+//                script  : Name of the YT inline analysis script (without the .py extension)
 //
 // Method      :  yt_param : Constructor
 //               ~yt_param : Destructor

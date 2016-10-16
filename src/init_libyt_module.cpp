@@ -29,15 +29,15 @@ int init_libyt_module()
 
    libyt_module = Py_InitModule( "libyt", libyt_method_list );
    if ( libyt_module != NULL)
-      log_debug( "Create libyt module successfully\n" );
+      log_debug( "Creating libyt module ... done\n" );
    else
-      YT_ABORT( "Couldn't create the libyt module!\n" );
+      YT_ABORT(  "Creating libyt module ... failed!\n" );
 
    libyt_module_dict = PyModule_GetDict( libyt_module );
    if ( libyt_module_dict != NULL )
-      log_debug( "Obtain the __dict__ attribute of libyt successfully\n" );
+      log_debug( "Obtaining the __dict__ attribute of libyt ... done\n" );
    else
-      YT_ABORT( "Couldn't obtain the __dict__ attribute of the libyt module!\n" );
+      YT_ABORT(  "Obtaining the __dict__ attribute of libyt ... failed!\n" );
 
 
 // attach empty dictionaries
@@ -49,7 +49,7 @@ int init_libyt_module()
    PyDict_SetItemString( libyt_module_dict, "hierarchy", g_hierarchy );
    PyDict_SetItemString( libyt_module_dict, "parameter", g_parameter );
 
-   log_debug( "Attach empty dictionaries to libyt module successfully\n" );
+   log_debug( "Attaching empty dictionaries to libyt module ... done\n" );
 
 
 // import YT inline analysis script
@@ -57,11 +57,13 @@ int init_libyt_module()
    char *CallYT = (char*) malloc( CallYT_CommandWidth*sizeof(char) );
    sprintf( CallYT, "import %s", g_param.script );
 
-   if ( PyRun_SimpleString( CallYT ) != 0 )
-      YT_ABORT( "Importing YT inline analysis script \"%s\" failed!\n", g_param.script );
+   if ( PyRun_SimpleString( CallYT ) == 0 )
+      log_debug( "Importing YT inline analysis script \"%s\" ... done\n", g_param.script );
+   else
+      YT_ABORT(  "Importing YT inline analysis script \"%s\" ... failed (please do not include the \".py\" extension)!\n",
+                g_param.script );
 
    free( CallYT );
-   log_debug( "Import YT inline analysis script successfully\n" );
 
 
    return YT_SUCCESS;

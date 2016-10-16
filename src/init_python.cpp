@@ -29,9 +29,9 @@ int init_python( int argc, char *argv[] )
    Py_InitializeEx( 0 );
 
    if ( Py_IsInitialized() )
-      log_debug( "Initialize Python interpreter successfully\n" );
+      log_debug( "Initializing Python interpreter ... done\n" );
    else {
-      YT_ABORT( "Couldn't initialize Python!\n" ); }
+      YT_ABORT(  "Initializing Python interpreter ... failed!\n" ); }
 
 // set sys.argv
    PySys_SetArgv( argc, argv );
@@ -39,24 +39,28 @@ int init_python( int argc, char *argv[] )
 
 // import numpy
    if ( import_numpy() )
-      log_debug( "Import NumPy successfully\n" );
+      log_debug( "Importing NumPy ... done\n" );
    else
    {
 //    call _import_array and PyErr_PrintEx(0) to print out traceback error messages to stderr
       _import_array();
       PyErr_PrintEx( 0 );
-      YT_ABORT( "Couldn't import NumPy!\n" );
+      YT_ABORT(  "Importing NumPy ... failed!\n" );
    }
 
 
 // add the current location to the module search path (sys._parallel = True --> run yt in parallel )
-   if ( PyRun_SimpleString( "import sys; sys.path.insert(0,'.'); sys._parallel = True" ) != 0 )
-      YT_ABORT( "Couldn't import sys module properly!\n" );
+   if ( PyRun_SimpleString( "import sys; sys.path.insert(0,'.'); sys._parallel = True" ) == 0 )
+      log_debug( "Adding search path for modules ... done\n" );
+   else
+      YT_ABORT(  "Adding search path for modules ... failed!\n" );
 
 
 // import the garbage collector interface
-   if ( PyRun_SimpleString( "import gc" ) != 0 )
-      YT_ABORT( "Couldn't import Python garbage collector!\n" );
+   if ( PyRun_SimpleString( "import gc" ) == 0 )
+      log_debug( "Importing Python garbage collector ... done\n" );
+   else
+      YT_ABORT(  "Importing Python garbage collector ... failed!\n" );
 
 
    return YT_SUCCESS;
