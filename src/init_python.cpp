@@ -1,15 +1,9 @@
-// to get rid of the warning messages about using deprecated NumPy API
-#define NPY_NO_DEPRECATED_API NPY_API_VERSION
+// define CALL_IMPORT_ARRAY since this file will invoke import_array to import NumPy
+#define CALL_IMPORT_ARRAY
+#include "yt_combo.h"
+#undef CALL_IMPORT_ARRAY
 
-#include <Python.h>
-#include "numpy/arrayobject.h"
-#include <stdio.h>
-#include "yt.h"
-#include "yt_macro.h"
-#include "yt_type.h"
-#include "yt_prototype.h"
-
-static int check_numpy();
+static int import_numpy();
 
 
 
@@ -43,8 +37,8 @@ int init_python( int argc, char *argv[] )
    PySys_SetArgv( argc, argv );
 
 
-// check numpy
-   if ( check_numpy() )
+// import numpy
+   if ( import_numpy() )
       log_debug( "Import NumPy successfully\n" );
    else
    {
@@ -72,8 +66,8 @@ int init_python( int argc, char *argv[] )
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  check_numpy
-// Description :  Check if NumPy can be imported properly
+// Function    :  import_numpy
+// Description :  Import NumPy
 //
 // Note        :  1. Static function called by init_python
 //
@@ -81,7 +75,7 @@ int init_python( int argc, char *argv[] )
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int check_numpy()
+int import_numpy()
 {
 
 // import_array1() is a macro which calls _import_array() and returns the given value (YT_FAIL here) on error
@@ -89,4 +83,4 @@ int check_numpy()
 
    return YT_SUCCESS;
 
-} // FUNCTION : check_numpy
+} // FUNCTION : import_numpy

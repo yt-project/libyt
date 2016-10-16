@@ -1,16 +1,16 @@
-#include <stdio.h>
-#include "yt_macro.h"
-#include "yt_global.h"
-#include "yt_prototype.h"
-#include "yt.h"
+#include "yt_combo.h"
+#include "libyt.h"
 
 
 // all libyt global variables are defined here (with a prefix g_)
 // --> they must also be declared in "yt_global.h" with the keyword extern
-bool     g_initialized = false;  // record whether libyt has been initialized
-yt_param g_param;                // libyt runtime parameters
-                                 // --> do not defined as a pointer so that it is always initialized
-                                 //     --> log functions can be called safely everywhere
+bool      g_initialized = false;    // record whether libyt has been initialized
+yt_param  g_param;                  // libyt runtime parameters
+                                    // --> do not defined as a pointer so that it is always initialized
+                                    //     --> log functions can be called safely everywhere
+PyObject *g_grid_data   = NULL;     // Python dictionary to store grid data
+PyObject *g_hierarchy   = NULL;     // Python dictionary to store hierachy information
+PyObject *g_parameter   = NULL;     // Python dictionary to store YT parameters
 
 
 
@@ -51,6 +51,10 @@ int yt_init( int argc, char *argv[], const yt_param *param )
 
 // initialize Python interpreter
    if ( init_python(argc,argv) == YT_FAIL )   return YT_FAIL;
+
+
+// create libyt module
+   if ( init_libyt_module() == YT_FAIL )   return YT_FAIL;
 
 
    g_initialized = true;

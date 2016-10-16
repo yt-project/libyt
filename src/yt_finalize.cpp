@@ -1,9 +1,5 @@
-#include <Python.h>
-#include <stdio.h>
-#include "yt_macro.h"
-#include "yt_global.h"
-#include "yt_prototype.h"
-#include "yt.h"
+#include "yt_combo.h"
+#include "libyt.h"
 
 
 

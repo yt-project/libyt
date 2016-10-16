@@ -1,8 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
+#define NO_PYTHON
+#include "yt_combo.h"
+#undef NO_PYTHON
 #include <string.h>
 #include <stdarg.h>
-#include "yt_global.h"
 
 
 // width of log prefix ==> [LogPrefixWidth] messages

@@ -11,7 +11,7 @@
 # source files
 #######################################################################################################
 CC_FILE := yt_init.cpp  yt_finalize.cpp
-CC_FILE += logging.cpp  init_python.cpp
+CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp
 
 
 # library name
