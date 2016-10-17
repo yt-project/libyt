@@ -20,6 +20,8 @@ int main( int argc, char *argv[] )
    yt_param_yt param_yt;
 
 // set defaults
+   param_yt.frontend                = "yt_frontend";
+
    for (int d=0; d<3; d++)
    {
       param_yt.domain_left_edge [d] = 1.0 + d;

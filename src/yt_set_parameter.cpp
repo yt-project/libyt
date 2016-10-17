@@ -42,6 +42,9 @@ int yt_set_parameter( yt_param_yt *param_yt )
 
 
 // export data to libyt.param_yt
+// strings
+   add_dict_string(  g_param_yt, "frontend",                param_yt->frontend                );
+
 // scalars
    add_dict_scalar(  g_param_yt, "current_time",            param_yt->current_time            );
    add_dict_scalar(  g_param_yt, "current_redshift",        param_yt->current_redshift        );

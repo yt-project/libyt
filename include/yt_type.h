@@ -85,7 +85,8 @@ struct yt_param_libyt
 // Structure   :  yt_param_yt
 // Description :  Data structure to store YT-specific parameters (e.g., *Dataset.periodicity)
 //
-// Data Member :  domain_left_edge        : Simulation left edge in code units
+// Data Member :  frontend                : Name of the target simulation code
+//                domain_left_edge        : Simulation left edge in code units
 //                domain_right_edge       : Simulation right edge in code units
 //                dimensionality          : Dimensionality (1/2/3)
 //                domain_dimensions       : Number of cells along each dimension on the root AMR level
@@ -110,6 +111,8 @@ struct yt_param_yt
 
 // data members
 // ===================================================================================
+   const char *frontend;
+
    double domain_left_edge[3];
    double domain_right_edge[3];
    double current_time;
@@ -140,6 +143,8 @@ struct yt_param_yt
    {
 
 //    set defaults
+      frontend = NULL;
+
       for (int d=0; d<3; d++)
       {
          domain_left_edge [d] = FLT_UNDEFINED;
@@ -192,6 +197,8 @@ struct yt_param_yt
    int validate() const
    {
 
+      if ( frontend                == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "frontend" );
+
       for (int d=0; d<3; d++) {
       if ( domain_left_edge [d]    == FLT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_left_edge",  d );
       if ( domain_right_edge[d]    == FLT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_right_edge", d ); }
@@ -232,6 +239,7 @@ struct yt_param_yt
       const int width_scalar = 25;
       const int width_vector = width_scalar - 3;
 
+      log_debug( "   %-*s = %s\n",         width_scalar, "frontend",                frontend                );
       for (int d=0; d<3; d++) {
       log_debug( "   %-*s[%d] = %13.7e\n", width_vector, "domain_left_edge",  d,    domain_left_edge [d]    ); }
       for (int d=0; d<3; d++) {

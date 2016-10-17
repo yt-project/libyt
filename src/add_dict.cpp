@@ -121,6 +121,45 @@ int add_dict_vector3( PyObject *dict, const char *key, const T *vector )
 
 
 
+//-------------------------------------------------------------------------------------------------------
+// Function    :  add_dict_string
+// Description :  Auxiliary function for adding a string item to a Python dictionary
+//
+// Note        :  1. There is no function overloading here
+//
+// Parameter   :  dict   : Target Python dictionary
+//                key    : Dictionary key
+//                string : String to be inserted
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int add_dict_string( PyObject *dict, const char *key, const char *string )
+{
+
+// check if "dict" is indeeed a dict object
+   if ( !PyDict_Check(dict) )
+      YT_ABORT( "This is not a dict object (key = \"%s\", string = \"%s\")!\n",
+                key, string );
+
+
+// convert "string" to a Python object
+   PyObject *py_obj = PyString_FromString( string );
+
+
+// insert "string" into "dict" with "key"
+   if ( PyDict_SetItemString( dict, key, py_obj ) != 0 )
+      YT_ABORT( "Inserting a dictionary item with string \"%s\" and key \"%s\" ... failed!\n", string, key );
+
+
+// decrease the reference count
+   Py_XDECREF( py_obj );
+
+   return YT_SUCCESS;
+
+} // FUNCTION : add_dict_string
+
+
+
 // explicit template instantiation
 template int add_dict_scalar <float > ( PyObject *dict, const char *key, const float  value );
 template int add_dict_scalar <double> ( PyObject *dict, const char *key, const double value );
