@@ -24,7 +24,7 @@ extern "C" {
 
 int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt );
 int yt_finalize();
-int yt_set_parameter( const yt_param_yt *param_yt );
+int yt_set_parameter( yt_param_yt *param_yt );
 int yt_inline();
 
 #ifdef __cplusplus

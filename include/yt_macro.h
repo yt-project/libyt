@@ -3,6 +3,10 @@
 
 
 
+// include relevant headers/prototypes
+void log_error( const char *format, ... );
+
+
 #ifndef NULL
 #define NULL               0
 #endif

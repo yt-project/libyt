@@ -39,7 +39,8 @@ int main( int argc, char *argv[] )
       param_yt.periodicity      [d] = d%2;
       param_yt.domain_dimensions[d] = 100*(d+1);
    }
-   param_yt.cosmological_simulation = 0;
+// param_yt.cosmological_simulation = 0;
+   param_yt.cosmological_simulation = 1;
    param_yt.dimensionality          = 3;
 
    yt_set_parameter( &param_yt );

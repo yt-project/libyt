@@ -10,15 +10,20 @@
 ********************************************************************************/
 
 
-// include relevant headers
+// include relevant headers/prototypes
 #include "yt_macro.h"
-#include "yt_prototype.h"
+void log_debug( const char *Format, ... );
+
+
+// short names for unsigned types
+// ===================================================================================
+typedef unsigned int       uint;
+typedef unsigned long int  ulong;
 
 
 // enumerate types
 // ===================================================================================
 enum yt_verbose { YT_VERBOSE_NONE=0, YT_VERBOSE_INFO=1, YT_VERBOSE_WARNING=2, YT_VERBOSE_DEBUG=3 };
-
 
 
 // structures

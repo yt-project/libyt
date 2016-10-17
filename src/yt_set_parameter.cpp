@@ -14,7 +14,7 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_set_parameter( const yt_param_yt *param_yt )
+int yt_set_parameter( yt_param_yt *param_yt )
 {
 
 // check if libyt has been initialized
@@ -22,6 +22,11 @@ int yt_set_parameter( const yt_param_yt *param_yt )
       log_info( "Setting YT parameters ...\n" );
    else
       YT_ABORT( "Please invoke yt_init before calling %s!\n", __FUNCTION__ );
+
+
+// reset all cosmological parameters to zero for non-cosmological datasets
+   if ( !param_yt->cosmological_simulation ) {
+      param_yt->current_redshift = param_yt->omega_lambda = param_yt->omega_matter = param_yt->hubble_constant = 0.0; }
 
 
 // check if all parameters have been set properly
@@ -32,33 +37,38 @@ int yt_set_parameter( const yt_param_yt *param_yt )
 
 
 // print out all parameters
-   log_debug( "Listing all YT parameters ...\n" );
+   log_debug( "List of YT parameters:\n" );
    param_yt->show();
 
 
 // export data to libyt.param_yt
-// convenient macros for converting data to Python objects
-// ==> Py_XDECREF is the same as Py_DECREF() except that it supports NULL input
-#  define TMP_PYINT( A )   Py_XDECREF( tmp_int ); tmp_int = PyLong_FromLong   ( (long  )A );
-#  define TMP_PYFLT( A )   Py_XDECREF( tmp_flt ); tmp_flt = PyFloat_FromDouble( (double)A );
-
 // scalars
-   PyObject *tmp_int=NULL, *tmp_flt=NULL;
-
-   TMP_PYFLT( param_yt->current_time );
-   PyDict_SetItemString( g_param_yt, "current_time", tmp_flt );
-
+   add_dict_scalar( g_param_yt, "current_time",            param_yt->current_time            );
+   add_dict_scalar( g_param_yt, "current_redshift",        param_yt->current_redshift        );
+   add_dict_scalar( g_param_yt, "omega_lambda",            param_yt->omega_lambda            );
+   add_dict_scalar( g_param_yt, "omega_matter",            param_yt->omega_matter            );
+   add_dict_scalar( g_param_yt, "hubble_constant",         param_yt->hubble_constant         );
+   add_dict_scalar( g_param_yt, "length_unit",             param_yt->length_unit             );
+   add_dict_scalar( g_param_yt, "mass_unit",               param_yt->mass_unit               );
+   add_dict_scalar( g_param_yt, "time_unit",               param_yt->time_unit               );
+   add_dict_scalar( g_param_yt, "cosmological_simulation", param_yt->cosmological_simulation );
+   add_dict_scalar( g_param_yt, "dimensionality",          param_yt->dimensionality          );
 
 
 // vectors (stored as Python tuples)
-// PyObject *tgd_tuple, *tgd0, *tgd1, *tgd2;
+   /*
+   PyObject *tuple, *tuple0, *tuple1, *tuple2;
+
+   tgd0 = PyFloat_FromDouble((double) DomainLeftEdge[0]);
+   tgd1 = PyFloat_FromDouble((double) DomainLeftEdge[1]);
+   tgd2 = PyFloat_FromDouble((double) DomainLeftEdge[2]);
+   tgd_tuple = PyTuple_Pack(3, tgd0, tgd1, tgd2);
+   PyDict_SetItemString(yt_parameter_file, "DomainLeftEdge", tgd_tuple);
+   Py_XDECREF(tgd_tuple); Py_XDECREF(tgd0); Py_XDECREF(tgd1); Py_XDECREF(tgd2);
+  */
 
 
-// release resource
-   Py_XDECREF( tmp_int );
-   Py_XDECREF( tmp_flt );
-#  undef TMP_PYINT
-#  undef TMP_PYFLT
+   log_debug( "Inserting YT parameters ... done\n" );
 
    return YT_SUCCESS;
 
