@@ -48,6 +48,30 @@ int main( int argc, char *argv[] )
    yt_set_parameter( &param_yt );
 
 
+// add code-specific parameters
+   const  int   user_int        = 1;
+   const long   user_long       = 2;
+   const uint   user_uint       = 3;
+   const ulong  user_ulong      = 4;
+   const float  user_float      = 5.0;
+   const double user_double     = 6.0;
+   const char  *user_string     = "my_string";
+
+   const int    user_int3   [3] = { 7, 8, 9 };
+   const double user_double3[3] = { 10.0, 11.0, 12.0 };
+
+   yt_add_user_parameter_int   ( "user_int",     1, &user_int     );
+   yt_add_user_parameter_long  ( "user_long",    1, &user_long    );
+   yt_add_user_parameter_uint  ( "user_uint",    1, &user_uint    );
+   yt_add_user_parameter_ulong ( "user_ulong",   1, &user_ulong   );
+   yt_add_user_parameter_float ( "user_float",   1, &user_float   );
+   yt_add_user_parameter_double( "user_double",  1, &user_double  );
+   yt_add_user_parameter_string( "user_string",      user_string  );
+
+   yt_add_user_parameter_int   ( "user_int3",    3,  user_int3    );
+   yt_add_user_parameter_double( "user_double3", 3,  user_double3 );
+
+
 // perform inline analysis
    yt_inline();
 
