@@ -12,6 +12,7 @@ void log_debug  ( const char *Format, ... );
 void log_error  ( const char *format, ... );
 int  init_python( int argc, char *argv[] );
 int  init_libyt_module();
+int  allocate_hierarchy();
 #ifndef NO_PYTHON
 template <typename T>
 int  add_dict_scalar( PyObject *dict, const char *key, const T value );

@@ -48,7 +48,7 @@ int add_dict_scalar( PyObject *dict, const char *key, const T value )
 
 
 // decrease the reference count
-   Py_XDECREF( py_obj );
+   Py_DECREF( py_obj );
 
    return YT_SUCCESS;
 
@@ -112,8 +112,8 @@ int add_dict_vector3( PyObject *dict, const char *key, const T *vector )
 
 
 // decrease the reference count
-   Py_XDECREF( tuple );
-   for (int v=0; v<VecSize; v++)   Py_XDECREF( element[v] );
+   Py_DECREF( tuple );
+   for (int v=0; v<VecSize; v++)   Py_DECREF( element[v] );
 
    return YT_SUCCESS;
 
@@ -152,7 +152,7 @@ int add_dict_string( PyObject *dict, const char *key, const char *string )
 
 
 // decrease the reference count
-   Py_XDECREF( py_obj );
+   Py_DECREF( py_obj );
 
    return YT_SUCCESS;
 

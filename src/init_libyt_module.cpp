@@ -27,14 +27,12 @@ int init_libyt_module()
 // create module and obtain its __dict__ attribute
    PyObject *libyt_module=NULL, *libyt_module_dict=NULL;
 
-   libyt_module = Py_InitModule( "libyt", libyt_method_list );
-   if ( libyt_module != NULL)
+   if (  ( libyt_module = Py_InitModule( "libyt", libyt_method_list ) ) != NULL  )
       log_debug( "Creating libyt module ... done\n" );
    else
       YT_ABORT(  "Creating libyt module ... failed!\n" );
 
-   libyt_module_dict = PyModule_GetDict( libyt_module );
-   if ( libyt_module_dict != NULL )
+   if (  ( libyt_module_dict = PyModule_GetDict( libyt_module ) ) != NULL  )
       log_debug( "Obtaining the __dict__ attribute of libyt ... done\n" );
    else
       YT_ABORT(  "Obtaining the __dict__ attribute of libyt ... failed!\n" );
