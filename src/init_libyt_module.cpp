@@ -41,15 +41,15 @@ int init_libyt_module()
 
 
 // attach empty dictionaries
-   g_grid_data  = PyDict_New();
-   g_hierarchy  = PyDict_New();
-   g_param_yt   = PyDict_New();
-   g_param_user = PyDict_New();
+   g_py_grid_data  = PyDict_New();
+   g_py_hierarchy  = PyDict_New();
+   g_py_param_yt   = PyDict_New();
+   g_py_param_user = PyDict_New();
 
-   PyDict_SetItemString( libyt_module_dict, "grid_data",  g_grid_data  );
-   PyDict_SetItemString( libyt_module_dict, "hierarchy",  g_hierarchy  );
-   PyDict_SetItemString( libyt_module_dict, "param_yt",   g_param_yt   );
-   PyDict_SetItemString( libyt_module_dict, "param_user", g_param_user );
+   PyDict_SetItemString( libyt_module_dict, "grid_data",  g_py_grid_data  );
+   PyDict_SetItemString( libyt_module_dict, "hierarchy",  g_py_hierarchy  );
+   PyDict_SetItemString( libyt_module_dict, "param_yt",   g_py_param_yt   );
+   PyDict_SetItemString( libyt_module_dict, "param_user", g_py_param_user );
 
    log_debug( "Attaching empty dictionaries to libyt module ... done\n" );
 

@@ -12,7 +12,7 @@ static int import_numpy();
 // Function    :  init_python
 // Description :  Initialize Python interpreter
 //
-// Note        :  1. Called by yt_init
+// Note        :  1. Called by yt_init()
 //
 // Parameter   :  argc : Argument count
 //                argv : Argument vector

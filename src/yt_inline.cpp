@@ -26,10 +26,15 @@ int yt_inline()
 {
 
 // check if libyt has been initialized
-   if ( g_initialized )
+   if ( g_param_libyt.libyt_initialized )
       log_info( "Performing YT inline analysis ...\n" );
    else
-      YT_ABORT( "Please invoke yt_init before calling %s!\n", __FUNCTION__ );
+      YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
+
+
+
+// check if all grids have been set by users properly
+
 
 
 // execute YT script

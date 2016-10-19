@@ -112,7 +112,7 @@ struct yt_param_yt
 
    //===================================================================================
    // Destructor  :  ~yt_param_yt
-   // Description :  Destructor of the structure "yt_param"_yt
+   // Description :  Destructor of the structure "yt_param_yt"
    //
    // Note        :  Free memory
    //

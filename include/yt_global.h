@@ -33,16 +33,18 @@
 #include "yt_type.h"
 
 
-// add the prefix "g_" for all global variables
-SET_GLOBAL( bool,           g_initialized, false );   // record whether libyt has been initialized
-SET_GLOBAL( yt_param_libyt, g_param_libyt        );   // libyt runtime parameters
-                                                      // ==> do not defined as a pointer so that it is always initialized
-                                                      //     and thus log functions can be called safely everywhere
+// add the prefix "g_" for all global C variables
+SET_GLOBAL( yt_param_libyt, g_param_libyt           );   // libyt runtime parameters
+                                                         // ==> Do not defined it as a pointer so that it is
+                                                         //     initialized during compilation
+SET_GLOBAL( yt_param_yt,    g_param_yt              );   // YT parameters
+
+// add the prefix "g_py_" for all global Python objects
 #ifndef NO_PYTHON
-SET_GLOBAL( PyObject,      *g_grid_data,   NULL  );   // Python dictionary to store grid data
-SET_GLOBAL( PyObject,      *g_hierarchy,   NULL  );   // Python dictionary to store hierachy information
-SET_GLOBAL( PyObject,      *g_param_yt,    NULL  );   // Python dictionary to store YT parameters
-SET_GLOBAL( PyObject,      *g_param_user,  NULL  );   // Python dictionary to store code-specific parameters
+SET_GLOBAL( PyObject,      *g_py_grid_data,   NULL  );   // Python dictionary to store grid data
+SET_GLOBAL( PyObject,      *g_py_hierarchy,   NULL  );   // Python dictionary to store hierachy information
+SET_GLOBAL( PyObject,      *g_py_param_yt,    NULL  );   // Python dictionary to store YT parameters
+SET_GLOBAL( PyObject,      *g_py_param_user,  NULL  );   // Python dictionary to store code-specific parameters
 #endif
 
 

@@ -7,7 +7,7 @@
 /
 /  This is the API header to be included by simulation codes
 /
-/  All API files (i.e., yt_init) must include it as well to prevent name mangling
+/  All API files (i.e., yt_init.cpp) must include it as well to prevent name mangling
 /
 ********************************************************************************/
 
@@ -32,6 +32,7 @@ int yt_add_user_parameter_ulong ( const char *key, const int n, const ulong  *in
 int yt_add_user_parameter_float ( const char *key, const int n, const float  *input );
 int yt_add_user_parameter_double( const char *key, const int n, const double *input );
 int yt_add_user_parameter_string( const char *key,              const char   *input );
+int yt_add_grid( yt_grid *grid );
 int yt_inline();
 
 #ifdef __cplusplus

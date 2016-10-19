@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "libyt.h"
 
 
@@ -24,8 +25,8 @@ int main( int argc, char *argv[] )
 
    for (int d=0; d<3; d++)
    {
-      param_yt.domain_left_edge [d] = 1.0 + d;
-      param_yt.domain_right_edge[d] = 5.9 + d;
+      param_yt.domain_left_edge [d] = 0.0;
+      param_yt.domain_right_edge[d] = 100.0 + d;
    }
    param_yt.current_time            = 1.0;
    param_yt.current_redshift        = 2.0;
@@ -44,7 +45,15 @@ int main( int argc, char *argv[] )
 // param_yt.cosmological_simulation = 0;
    param_yt.cosmological_simulation = 1;
    param_yt.dimensionality          = 3;
-   param_yt.num_grids               = 8L;
+   param_yt.num_grids               = 5L;
+
+   yt_set_parameter( &param_yt );
+
+
+// overwrite existing parameter
+   param_yt.length_unit             = 1.1;
+   param_yt.mass_unit               = 1.2;
+   param_yt.time_unit               = 1.3;
 
    yt_set_parameter( &param_yt );
 
@@ -73,8 +82,37 @@ int main( int argc, char *argv[] )
    yt_add_user_parameter_double( "user_double3", 3,  user_double3 );
 
 
+// add grids
+   const int    seed      = 123;
+   const int    grid_size = 8;
+   const double dh        = 1.0;
+
+   srand( seed );
+
+   yt_grid *grids = new yt_grid [param_yt.num_grids];
+
+   for (int g=0; g<param_yt.num_grids; g++)
+   {
+      for (int d=0; d<3; d++)
+      {
+         grids[g].left_edge [d] = (double)rand()/RAND_MAX;
+         grids[g].right_edge[d] = grids[g].left_edge[d] + grid_size*dh;
+         grids[g].dimensions[d] = grid_size;
+      }
+
+      grids[g].particle_count = rand();
+      grids[g].id             = g;
+      grids[g].parent_id      = -1;
+      grids[g].level          = 0;
+
+      yt_add_grid( &grids[g] );
+   }
+
+
 // perform inline analysis
    yt_inline();
+
+   delete [] grids;
 
 
 // exit libyt

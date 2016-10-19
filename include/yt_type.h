@@ -22,6 +22,7 @@ enum yt_verbose { YT_VERBOSE_NONE=0, YT_VERBOSE_INFO=1, YT_VERBOSE_WARNING=2, YT
 // structures
 #include "yt_type_param_libyt.h"
 #include "yt_type_param_yt.h"
+#include "yt_type_grid.h"
 
 
 

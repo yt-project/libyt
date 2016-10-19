@@ -49,7 +49,8 @@ static int add_nonstring( const char *key, const int n, const T *input )
 {
 
 // check if libyt has been initialized
-   if ( !g_initialized )   YT_ABORT( "Please invoke yt_init before calling %s!\n", __FUNCTION__ );
+   if ( !g_param_libyt.libyt_initialized )
+      YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
 
 
 // export data to libyt.param_user
@@ -58,10 +59,10 @@ static int add_nonstring( const char *key, const int n, const T *input )
          typeid(T) == typeid( uint)  ||  typeid(T) == typeid( ulong)    )
    {
 //    scalar and 3-element array
-      if      ( n == 1 ) {   if ( add_dict_scalar ( g_param_user, key, *input ) == YT_FAIL )   return YT_FAIL;   }
-      else if ( n == 3 ) {   if ( add_dict_vector3( g_param_user, key,  input ) == YT_FAIL )   return YT_FAIL;   }
+      if      ( n == 1 ) {   if ( add_dict_scalar ( g_py_param_user, key, *input ) == YT_FAIL )   return YT_FAIL;   }
+      else if ( n == 3 ) {   if ( add_dict_vector3( g_py_param_user, key,  input ) == YT_FAIL )   return YT_FAIL;   }
       else
-         YT_ABORT( "Currently \"%s\" only supports loading a single scalar or a three-element array!\n",
+         YT_ABORT( "Currently %s() only supports loading a single scalar or a three-element array!\n",
                    __FUNCTION__ );
    }
 
@@ -85,11 +86,12 @@ static int add_string( const char *key, const char *input )
 {
 
 // check if libyt has been initialized
-   if ( !g_initialized )   YT_ABORT( "Please invoke yt_init before calling %s!\n", __FUNCTION__ );
+   if ( !g_param_libyt.libyt_initialized )
+      YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
 
 
 // export data to libyt.param_user
-   if ( add_dict_string( g_param_user, key, input ) == YT_FAIL )   return YT_FAIL;
+   if ( add_dict_string( g_py_param_user, key, input ) == YT_FAIL )   return YT_FAIL;
 
 
    log_debug( "Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key );

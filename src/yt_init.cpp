@@ -28,13 +28,15 @@ int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt )
    static int init_count = 0;
    init_count ++;
 
-// still need to check init_count since yt_finalize will set g_initialized = false
-   if ( g_initialized  ||  init_count >= 2 )   YT_ABORT( "yt_init should not be called more than once!\n" );
+// still need to check "init_count" since yt_finalize() will set "g_param_libyt.libyt_initialized = false"
+   if ( g_param_libyt.libyt_initialized  ||  init_count >= 2 )
+      YT_ABORT( "yt_init() should not be called more than once!\n" );
 
 
-// store user-provided parameters to a libyt global variable
+// store user-provided parameters to a libyt internal variable
 // --> better do it **before** calling any log function since they will query g_param_libyt.verbose
-   g_param_libyt = *param_libyt;
+   g_param_libyt.verbose = param_libyt->verbose;
+   g_param_libyt.script  = param_libyt->script;
 
    log_info( "Initializing libyt ...\n" );
    log_debug( "   verbose = %d\n", g_param_libyt.verbose );
@@ -49,7 +51,7 @@ int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt )
    if ( init_libyt_module() == YT_FAIL )   return YT_FAIL;
 
 
-   g_initialized = true;
+   g_param_libyt.libyt_initialized = true;
    return YT_SUCCESS;
 
 } // FUNCTION : yt_init
