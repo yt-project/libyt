@@ -56,6 +56,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
    add_dict_scalar(  g_param_yt, "time_unit",               param_yt->time_unit               );
    add_dict_scalar(  g_param_yt, "cosmological_simulation", param_yt->cosmological_simulation );
    add_dict_scalar(  g_param_yt, "dimensionality",          param_yt->dimensionality          );
+   add_dict_scalar(  g_param_yt, "num_grids",               param_yt->num_grids               );
 
 // vectors (stored as Python tuples)
    add_dict_vector3( g_param_yt, "domain_left_edge",        param_yt->domain_left_edge        );

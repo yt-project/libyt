@@ -44,6 +44,7 @@ int main( int argc, char *argv[] )
 // param_yt.cosmological_simulation = 0;
    param_yt.cosmological_simulation = 1;
    param_yt.dimensionality          = 3;
+   param_yt.num_grids               = 8L;
 
    yt_set_parameter( &param_yt );
 
