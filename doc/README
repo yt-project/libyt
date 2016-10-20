@@ -1,0 +1,80 @@
+
+*********************************
+** libyt README for developers **
+*********************************
+
+
+Description
+========================================
+libyt allows users to construct the Python module "libyt" with four dictionaries:
+
+(1) libyt.param_yt  : YT-specific parameters (e.g., "current_time", "mass_unit", ...)
+(2) libyt.param_user: Code-specific parameters (e.g., "mean_molecular_weight", ...)
+(3) libyt.hierarchy : Grid hierarchy information (e.g., "left_edge", "parent_id", ...)
+(4) libyt.grid_data : Grid data (e.g., "density", "temperature", ...)
+
+Next step is to connect it to YT. We should try to
+(1) minimize workload for existing frontends to support inline analysis,
+(2) utilize existing functionality in different frontends (e.g., calculating code-specific derived fields),
+(3) keep the flexibility to allow different frontends to customize their analysis
+
+
+
+API list
+========================================
+yt_init                   : Initialize libyt
+yt_finalize               : Exiting libyt
+yt_set_parameter          : Set libyt.param_yt
+yt_add_user_parameter_type: Set libyt.param_user
+yt_add_grid               : Set libyt.hierarchy and libyt.grid_data for a single grid
+yt_inline                 : Invoke inline analysis
+
+#function prototypes:
+int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt );
+int yt_finalize();
+int yt_set_parameter( yt_param_yt *param_yt );
+int yt_add_user_parameter_int   ( const char *key, const int n, const int    *input );
+int yt_add_user_parameter_long  ( const char *key, const int n, const long   *input );
+int yt_add_user_parameter_uint  ( const char *key, const int n, const uint   *input );
+int yt_add_user_parameter_ulong ( const char *key, const int n, const ulong  *input );
+int yt_add_user_parameter_float ( const char *key, const int n, const float  *input );
+int yt_add_user_parameter_double( const char *key, const int n, const double *input );
+int yt_add_user_parameter_string( const char *key,              const char   *input );
+int yt_add_grid( yt_grid *grid );
+int yt_inline();
+
+
+
+Key headers
+========================================
+libyt.h              : API header to be included by simulation codes
+yt_type_param_libyt.h: libyt runtime parameters
+yt_type_param_yt.h   : YT-specific parameters
+yt_type_grid.h       : Information and data of a single grid
+
+
+
+Naming convension
+=================================
+1. All global variables have the prefix "g_"
+2. All global python objects have the prefix "g_py"
+3. All libyt APIs and variables exposed to users have the prefix "yt" (except for the header "libyt.h")
+4. Distinguish the keywords "yt" and "libyt"
+
+
+
+Compile libyt
+=================================
+cd src
+make clean
+make
+
+
+
+Example code "example/test.cpp"
+=================================
+cd example
+source compile
+source set_ld_path.sh
+./test
+

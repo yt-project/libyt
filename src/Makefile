@@ -1,5 +1,5 @@
 
-# compilation options 
+# compilation options (NOT USED YET)
 #######################################################################################################
 # double precision
 #SIMU_OPTION += -DFLOAT8
@@ -58,7 +58,7 @@ $(LIB_REALNAME) : $(OBJ)
 
 # miscellaneous
 #######################################################################################################
-clean : 
+clean :
 	 rm -f $(OBJ)
 	 rm -f $(LIB_REALNAME)
 

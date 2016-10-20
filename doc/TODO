@@ -1,0 +1,13 @@
+
+To-do list for libyt:
+========================================
+1. Support loading grids with ghost zones
+2. Let user specify the output filename (or filename prefix)
+3. Support reloading the inline analysis script during the runtime
+4. Parallelism
+5. Support loading arrays with an arbitrary length in yt_add_user_parameter_type()
+
+
+To-do list for yt:
+========================================
+1. Connect libyt to yt
