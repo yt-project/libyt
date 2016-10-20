@@ -7,16 +7,29 @@ import libyt
 def yt_inline():
    print "\nPerforming YT inline analysis ..."
 
-   print ""
-   #print libyt.__dict__
+   print "\nYT-specific parameters:"
    print libyt.param_yt.items()
-   print ""
+
+   print "\nCode-specific parameters:"
    print libyt.param_user.items()
-   print ""
+
+   print "\nKeys in libyt.hierarchy:"
    print libyt.hierarchy.keys()
-   print ""
 
    for key in libyt.hierarchy.keys():
-      print "key \"%s\""%key
+      print "\nkey \"%s\":"%key
       print libyt.hierarchy[ key ]
-      print ""
+
+
+   print "\nKeys in libyt.grid_data:"
+   print libyt.grid_data.keys()
+
+   last_grid_id = libyt.param_yt['num_grids'] - 1
+   print "\nKeys in libyt.grid_data[%d]:" % last_grid_id
+   print libyt.grid_data[last_grid_id].keys()
+
+   for field in libyt.grid_data[last_grid_id].keys():
+      print "\nlibyt.grid_data[%d][%s]:" % ( last_grid_id, field )
+      print libyt.grid_data[last_grid_id][field]
+
+   print ""

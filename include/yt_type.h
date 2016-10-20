@@ -16,7 +16,8 @@ typedef unsigned long int  ulong;
 
 
 // enumerate types
-enum yt_verbose { YT_VERBOSE_NONE=0, YT_VERBOSE_INFO=1, YT_VERBOSE_WARNING=2, YT_VERBOSE_DEBUG=3 };
+enum yt_verbose { YT_VERBOSE_OFF=0, YT_VERBOSE_INFO=1, YT_VERBOSE_WARNING=2, YT_VERBOSE_DEBUG=3 };
+enum yt_ftype   { YT_FTYPE_UNKNOWN=0, YT_FLOAT=1, YT_DOUBLE=2 };
 
 
 // structures

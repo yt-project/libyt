@@ -57,7 +57,7 @@ struct yt_param_libyt
 
 //    set defaults
       verbose = YT_VERBOSE_WARNING;
-      script  = "yt_inline_script.py";
+      script  = "yt_inline_script";
 
       libyt_initialized = false;
       param_yt_set      = false;
