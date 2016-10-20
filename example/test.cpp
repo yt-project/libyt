@@ -98,8 +98,7 @@ int main( int argc, char *argv[] )
    const int grid_size   = grid_width*grid_width*grid_width;
    const int random_seed = 123;                               
 
-// const char *field_labels[num_fields] = { "density", "temperature" };
-         char *field_labels[num_fields] = { "density", "temperature" };   // field names
+   const char *field_labels[num_fields] = { "density", "temperature" };   // field names
 
    float (*field_data)[num_fields][grid_size]
       = new float [param_yt.num_grids][num_fields][grid_size];   // data of all fields in all grids

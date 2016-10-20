@@ -47,10 +47,10 @@ struct yt_grid
    int    dimensions[3];
    int    level;
 
-   int      num_fields;
-   char   **field_labels;
-   void   **field_data;
-   yt_ftype field_ftype;
+   int          num_fields;
+   const char **field_labels;
+   void       **field_data;
+   yt_ftype     field_ftype;
 
 
    //===================================================================================
