@@ -30,9 +30,7 @@ int yt_add_grid( yt_grid *grid )
 
 
 // check if all parameters have been set properly
-   if ( grid->validate() )
-      log_debug( "Validating input grid [%15ld] ... done\n", grid->id );
-   else
+   if ( !grid->validate() )
       YT_ABORT(  "Validating input grid [%ld] ... failed\n", grid->id );
 
 
@@ -59,18 +57,34 @@ int yt_add_grid( yt_grid *grid )
    }
 
 
+// check if this grid has been set previously
+
 
 // export data to libyt.hierarchy
-   /*
-// strings
-   add_dict_string(  g_param_yt, "frontend",                param_yt->frontend                );
+   PyArrayObject *py_array_obj;
 
-// scalars
-   add_dict_scalar(  g_param_yt, "current_time",            param_yt->current_time            );
+// convenient macro
+// note that PyDict_GetItemString() returns a **borrowed** reference ==> no need to call Py_DECREF
+#  define FILL_ARRAY( KEY, ARRAY, DIM, TYPE )                                                            \
+   {                                                                                                     \
+      for (int t=0; t<DIM; t++)                                                                          \
+      {                                                                                                  \
+         if (  ( py_array_obj = (PyArrayObject*)PyDict_GetItemString( g_py_hierarchy, KEY ) ) == NULL )  \
+            YT_ABORT( "Accessing the key \"%s\" from libyt.hierarchy ... failed!\n", KEY );              \
+                                                                                                         \
+         *(TYPE*)PyArray_GETPTR2( py_array_obj, grid->id, t ) = (TYPE)(ARRAY)[t];                        \
+      }                                                                                                  \
+   }
 
-// vectors (stored as Python tuples)
-   add_dict_vector3( g_param_yt, "domain_left_edge",        param_yt->domain_left_edge        );
-   */
+   FILL_ARRAY( "grid_left_edge",       grid->left_edge,      3, npy_double );
+   FILL_ARRAY( "grid_right_edge",      grid->right_edge,     3, npy_double );
+   FILL_ARRAY( "grid_dimensions",      grid->dimensions,     3, npy_long   );
+   FILL_ARRAY( "grid_particle_count", &grid->particle_count, 1, npy_long   );
+   FILL_ARRAY( "grid_id",             &grid->id,             1, npy_long   );
+   FILL_ARRAY( "grid_parent_id",      &grid->parent_id,      1, npy_long   );
+   FILL_ARRAY( "grid_level",          &grid->level,          1, npy_long   );
+
+   log_debug( "Inserting grid [%15ld] info to libyt.hierarchy ... done\n", grid->id );
 
 
    return YT_SUCCESS;

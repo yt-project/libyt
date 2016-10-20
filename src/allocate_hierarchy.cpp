@@ -33,15 +33,15 @@ int allocate_hierarchy()
    np_dim[0] = (npy_intp)g_param_yt.num_grids;
 
 // convenient macro
-#  define ADD_DICT( DIM1, KEY, TYPE )                                               \
-   {                                                                                \
-      np_dim[1] = (npy_intp)DIM1;                                                   \
-      py_obj    = PyArray_SimpleNew( 2, np_dim, TYPE );                             \
-                                                                                    \
-      if ( PyDict_SetItemString( g_py_hierarchy, KEY, py_obj ) != 0 )               \
-         YT_ABORT( "Inserting key \"%s\" to libyt.hierarchy ... failed!\n", KEY );  \
-                                                                                    \
-      Py_DECREF( py_obj );                                                          \
+#  define ADD_DICT( DIM1, KEY, TYPE )                                                  \
+   {                                                                                   \
+      np_dim[1] = (npy_intp)DIM1;                                                      \
+      py_obj    = PyArray_SimpleNew( 2, np_dim, TYPE );                                \
+                                                                                       \
+      if ( PyDict_SetItemString( g_py_hierarchy, KEY, py_obj ) != 0 )                  \
+         YT_ABORT( "Inserting the key \"%s\" to libyt.hierarchy ... failed!\n", KEY ); \
+                                                                                       \
+      Py_DECREF( py_obj );                                                             \
    }
 
    ADD_DICT( 3, "grid_left_edge",      NPY_DOUBLE );
@@ -51,6 +51,8 @@ int allocate_hierarchy()
    ADD_DICT( 1, "grid_id",             NPY_LONG );
    ADD_DICT( 1, "grid_parent_id",      NPY_LONG );
    ADD_DICT( 1, "grid_level",          NPY_LONG );
+
+#  undef ADD_DICT
 
 
    return YT_SUCCESS;

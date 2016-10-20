@@ -75,7 +75,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
    log_debug( "Inserting YT parameters to libyt.param_yt ... done\n" );
 
 
-// fill the libyt.hierarchy dictionary with NumPy arrays allocated but uninitialized
+// fill libyt.hierarchy with NumPy arrays allocated but uninitialized
    if ( allocate_hierarchy() )
       log_debug( "Allocating libyt.hierarchy ... done\n" );
    else
