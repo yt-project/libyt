@@ -13,6 +13,8 @@ def yt_inline():
    print ""
    print libyt.param_user.items()
    print ""
+   print libyt.hierarchy.keys()
+   print ""
 
    for key in libyt.hierarchy.keys():
       print "key \"%s\""%key

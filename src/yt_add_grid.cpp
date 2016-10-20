@@ -80,7 +80,6 @@ int yt_add_grid( yt_grid *grid )
    FILL_ARRAY( "grid_right_edge",      grid->right_edge,     3, npy_double );
    FILL_ARRAY( "grid_dimensions",      grid->dimensions,     3, npy_long   );
    FILL_ARRAY( "grid_particle_count", &grid->particle_count, 1, npy_long   );
-   FILL_ARRAY( "grid_id",             &grid->id,             1, npy_long   );
    FILL_ARRAY( "grid_parent_id",      &grid->parent_id,      1, npy_long   );
    FILL_ARRAY( "grid_level",          &grid->level,          1, npy_long   );
 
