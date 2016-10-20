@@ -58,6 +58,8 @@ int yt_add_grid( yt_grid *grid )
 
 
 // check if this grid has been set previously
+   if ( g_param_libyt.grid_set[ grid->id ] == true )
+      YT_ABORT( "Grid [%ld] has been set already!\n", grid->id );
 
 
 // export data to libyt.hierarchy
@@ -84,6 +86,10 @@ int yt_add_grid( yt_grid *grid )
    FILL_ARRAY( "grid_level",          &grid->level,          1, npy_long   );
 
    log_debug( "Inserting grid [%15ld] info to libyt.hierarchy ... done\n", grid->id );
+
+
+// record that grid->id has been set successfully
+   g_param_libyt.grid_set[ grid->id ] = true;
 
 
    return YT_SUCCESS;

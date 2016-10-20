@@ -32,9 +32,17 @@ int yt_inline()
       YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
 
 
+// check if YT parameters have been set
+   if ( !g_param_libyt.param_yt_set )
+      YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
+
 
 // check if all grids have been set by users properly
-
+   for (int g=0; g<g_param_yt.num_grids; g++)
+   {
+      if ( g_param_libyt.grid_set[g] == false )
+         YT_ABORT( "Grid [%ld] has not been set!\n", g );
+   }
 
 
 // execute YT script

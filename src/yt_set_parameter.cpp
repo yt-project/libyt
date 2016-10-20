@@ -75,15 +75,16 @@ int yt_set_parameter( yt_param_yt *param_yt )
    log_debug( "Inserting YT parameters to libyt.param_yt ... done\n" );
 
 
+// store user-provided parameters to a libyt internal variable
+// ==> must do this before calling allocate_hierarchy() since it will need "g_param_yt.num_grids"
+   g_param_yt = *param_yt;
+
+
 // fill libyt.hierarchy with NumPy arrays allocated but uninitialized
    if ( allocate_hierarchy() )
       log_debug( "Allocating libyt.hierarchy ... done\n" );
    else
       YT_ABORT(  "Allocating libyt.hierarchy ... failed!\n" );
-
-
-// store user-provided parameters to a libyt internal variable
-   g_param_yt = *param_yt;
 
 
    g_param_libyt.param_yt_set = true;

@@ -23,6 +23,9 @@ int allocate_hierarchy()
    {
       PyDict_Clear( g_py_hierarchy );
       log_warning( "Removing existing key-value pairs in libyt.hierarchy ... done\n" );
+
+//    also delete the grid status table allocated previously
+      delete [] g_param_libyt.grid_set;
    }
 
 
@@ -52,6 +55,12 @@ int allocate_hierarchy()
    ADD_DICT( 1, "grid_level",          NPY_LONG );
 
 #  undef ADD_DICT
+
+
+// allocate and initialize the table recording the status of each grid
+   g_param_libyt.grid_set = new bool [ g_param_yt.num_grids ];
+
+   for (int g=0; g<g_param_yt.num_grids; g++)   g_param_libyt.grid_set[g] = false;
 
 
    return YT_SUCCESS;
