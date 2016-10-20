@@ -71,7 +71,7 @@ struct yt_param_yt
 
 
    //===================================================================================
-   // Constructor :  yt_param_yt
+   // Method      :  yt_param_yt
    // Description :  Constructor of the structure "yt_param_yt"
    //
    // Note        :  Initialize all data members
@@ -79,6 +79,39 @@ struct yt_param_yt
    // Parameter   :  None
    //===================================================================================
    yt_param_yt()
+   {
+
+//    set default values for all data members
+      init();
+
+   } // METHOD : yt_param_yt
+
+
+   //===================================================================================
+   // Method      :  ~yt_param_yt
+   // Description :  Destructor of the structure "yt_param_yt"
+   //
+   // Note        :  Free memory
+   //
+   // Parameter   :  None
+   //===================================================================================
+   ~yt_param_yt()
+   {
+
+   } // METHOD : ~yt_param_yt
+
+
+   //===================================================================================
+   // Method      :  init
+   // Description :  Initialize all data members
+   //
+   // Note        :  1. Called by the constructor and yt_inline()
+   //                2. It's separate from the constructor since we want yt_inline() to be
+   //                   able to call it in order to reinitialize all data members
+   //
+   // Parameter   :  None
+   //===================================================================================
+   int init()
    {
 
 //    set defaults
@@ -107,25 +140,13 @@ struct yt_param_yt
       dimensionality          = INT_UNDEFINED;
       num_grids               = INT_UNDEFINED;
 
-   } // METHOD : yt_param_yt
+      return YT_SUCCESS;
+
+   } // METHOD : init
 
 
    //===================================================================================
-   // Destructor  :  ~yt_param_yt
-   // Description :  Destructor of the structure "yt_param_yt"
-   //
-   // Note        :  Free memory
-   //
-   // Parameter   :  None
-   //===================================================================================
-   ~yt_param_yt()
-   {
-
-   } // METHOD : ~yt_param_yt
-
-
-   //===================================================================================
-   // Destructor  :  validate
+   // Method      :  validate
    // Description :  Check if all data members have been set properly by users
    //
    // Note        :  1. Cosmological parameters are checked only if cosmological_simulation == 1
@@ -165,7 +186,7 @@ struct yt_param_yt
 
 
    //===================================================================================
-   // Destructor  :  show
+   // Method      :  show
    // Description :  Print out all data members if the verbose level >= YT_VERBOSE_DEBUG
    //
    // Note        :  None

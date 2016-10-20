@@ -152,6 +152,13 @@ int main( int argc, char *argv[] )
 // *** libyt API ***
    yt_inline();
 
+// one needs to repeat steps [2-4] before calling yt_inline() again
+   yt_set_parameter( &param_yt );
+   yt_add_user_parameter_double( "user_double3", 3,  user_double3 );
+   for (int g=0; g<param_yt.num_grids; g++)  yt_add_grid( &grids[g] );
+
+   yt_inline();
+
 
 // ==========================================
 // 6. exit libyt

@@ -58,6 +58,21 @@ int yt_inline()
    free( CallYT );
 
 
+// free resources to prepare for the next execution
+   g_param_yt.init();
+   g_param_libyt.param_yt_set = false;
+
+   delete [] g_param_libyt.grid_set;
+   g_param_libyt.grid_set = NULL;
+
+   PyDict_Clear( g_py_grid_data  );
+   PyDict_Clear( g_py_hierarchy  );
+   PyDict_Clear( g_py_param_yt   );
+   PyDict_Clear( g_py_param_user );
+
+   PyRun_SimpleString( "gc.collect()" );
+
+
    return YT_SUCCESS;
 
 } // FUNCTION : yt_inline

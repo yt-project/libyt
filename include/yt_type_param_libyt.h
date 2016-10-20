@@ -45,7 +45,7 @@ struct yt_param_libyt
 
 
    //===================================================================================
-   // Constructor :  yt_param_libyt
+   // Method      :  yt_param_libyt
    // Description :  Constructor of the structure "yt_param_libyt"
    //
    // Note        :  Initialize all data members
@@ -67,7 +67,7 @@ struct yt_param_libyt
 
 
    //===================================================================================
-   // Destructor  :  ~yt_param_libyt
+   // Method      :  ~yt_param_libyt
    // Description :  Destructor of the structure "yt_param"_libyt
    //
    // Note        :  Free memory

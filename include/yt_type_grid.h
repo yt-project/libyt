@@ -54,7 +54,7 @@ struct yt_grid
 
 
    //===================================================================================
-   // Constructor :  yt_grid
+   // Method      :  yt_grid
    // Description :  Constructor of the structure "yt_grid"
    //
    // Note        :  Initialize all data members
@@ -86,7 +86,7 @@ struct yt_grid
 
 
    //===================================================================================
-   // Destructor  :  ~yt_grid
+   // Method      :  ~yt_grid
    // Description :  Destructor of the structure "yt_grid"
    //
    // Note        :  1. Not used currently
@@ -102,7 +102,7 @@ struct yt_grid
 
 
    //===================================================================================
-   // Destructor  :  validate
+   // Method      :  validate
    // Description :  Check if all data members have been set properly by users
    //
    // Note        :  1. This function does not perform checks that depend on the input
