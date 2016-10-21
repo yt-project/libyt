@@ -6,6 +6,8 @@ To-do list for libyt:
 3. Support reloading the inline analysis script during the runtime
 4. Parallelism
 5. Support loading arrays with an arbitrary length in yt_add_user_parameter_type()
+6. Fortran API
+7. Load particles
 
 
 To-do list for yt:
