@@ -26,7 +26,11 @@ int main( int argc, char *argv[] )
    param_libyt.script  = "inline_script";
 
 // *** libyt API ***
-   yt_init( argc, argv, &param_libyt );
+   if ( yt_init( argc, argv, &param_libyt ) != YT_SUCCESS )
+   {
+      fprintf( stderr, "ERROR: yt_init() failed!\n" );
+      exit( EXIT_FAILURE );
+   }
 
 
 // ==========================================
@@ -59,7 +63,11 @@ int main( int argc, char *argv[] )
    param_yt.num_grids               = 3L;    // total number of grids
 
 // *** libyt API ***
-   yt_set_parameter( &param_yt );
+   if ( yt_set_parameter( &param_yt ) != YT_SUCCESS )
+   {
+      fprintf( stderr, "ERROR: yt_set_parameter() failed!\n" );
+      exit( EXIT_FAILURE );
+   }
 
 
 // ==========================================
@@ -77,6 +85,7 @@ int main( int argc, char *argv[] )
    const double user_double3[3] = { 10.0, 11.0, 12.0 };
 
 // *** libyt API ***
+// to be cautious, one should also check returns for all these calls
    yt_add_user_parameter_int   ( "user_int",     1, &user_int     );
    yt_add_user_parameter_long  ( "user_long",    1, &user_long    );
    yt_add_user_parameter_uint  ( "user_uint",    1, &user_uint    );
@@ -142,7 +151,11 @@ int main( int argc, char *argv[] )
       grids[g].field_ftype  = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
 
 //    *** libyt API ***
-      yt_add_grid( &grids[g] );
+      if ( yt_add_grid( &grids[g] ) != YT_SUCCESS )
+      {
+         fprintf( stderr, "ERROR: yt_add_grid() failed!\n" );
+         exit( EXIT_FAILURE );
+      }
    } //for (int g=0; g<param_yt.num_grids; g++)
 
 
@@ -150,7 +163,11 @@ int main( int argc, char *argv[] )
 // 5. perform inline analysis
 // ==========================================
 // *** libyt API ***
-   yt_inline();
+   if ( yt_inline() != YT_SUCCESS )
+   {
+      fprintf( stderr, "ERROR: yt_inline() failed!\n" );
+      exit( EXIT_FAILURE );
+   }
 
 // one needs to repeat steps [2-4] before calling yt_inline() again
    yt_set_parameter( &param_yt );
@@ -164,7 +181,11 @@ int main( int argc, char *argv[] )
 // 6. exit libyt
 // ==========================================
 // *** libyt API ***
-   yt_finalize();
+   if ( yt_finalize() != YT_SUCCESS )
+   {
+      fprintf( stderr, "ERROR: yt_finalize() failed!\n" );
+      exit( EXIT_FAILURE );
+   }
 
 
 // free resource
