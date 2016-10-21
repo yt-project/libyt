@@ -1,13 +1,18 @@
 
 To-do list for libyt:
 ========================================
-1. Support loading grids with ghost zones
-2. Let user specify the output filename (or filename prefix)
-3. Support reloading the inline analysis script during the runtime
-4. Parallelism
-5. Support loading arrays with an arbitrary length in yt_add_user_parameter_type()
-6. Fortran API
-7. Load particles
+01. Support loading grids with ghost zones
+02. Let user specify the output filename (or filename prefix)
+03. Support reloading the inline analysis script during the runtime
+04. Parallelism
+05. Support loading arrays with an arbitrary length in yt_add_user_parameter_type()
+06. Fortran API
+07. Load particles
+08. Replace "yt_add_user_parameter_type" by "yt_add_parameter_type"
+09. Sructure the example code in the context of a simulation evolution loop
+10. "grids[g].field_data = new void* [num_fields];" looks strange ...
+11. No implied brace and one-line loop
+12. Unit test
 
 
 To-do list for yt:
