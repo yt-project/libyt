@@ -37,6 +37,7 @@ void log_debug( const char *Format, ... );
 //                length_unit             : Simulation length unit in CGS
 //                mass_unit               : Simulation mass   unit in CGS
 //                time_unit               : Simulation time   unit in CGS
+//                refine_by               : Refinement factor between a grid and its subgrid
 //                num_grids               : Total number of grids
 //
 // Method      :  yt_param_yt : Constructor
@@ -67,6 +68,7 @@ struct yt_param_yt
    int    cosmological_simulation;
    int    dimensionality;
    int    domain_dimensions[3];
+   int    refine_by;
    long   num_grids;
 
 
@@ -138,6 +140,7 @@ struct yt_param_yt
       }
       cosmological_simulation = INT_UNDEFINED;
       dimensionality          = INT_UNDEFINED;
+      refine_by               = INT_UNDEFINED;
       num_grids               = INT_UNDEFINED;
 
       return YT_SUCCESS;
@@ -178,6 +181,7 @@ struct yt_param_yt
       if ( periodicity      [d]    == INT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "periodicity", d );
       if ( domain_dimensions[d]    == INT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_dimensions", d ); }
       if ( dimensionality          == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "dimensionality" );
+      if ( refine_by               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "refine_by" );
       if ( num_grids               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_grids" );
 
       return YT_SUCCESS;
@@ -221,6 +225,7 @@ struct yt_param_yt
       for (int d=0; d<3; d++) {
       log_debug( "   %-*s[%d] = %d\n",     width_vector, "domain_dimensions", d,    domain_dimensions[d]    ); }
       log_debug( "   %-*s = %d\n",         width_scalar, "dimensionality",          dimensionality          );
+      log_debug( "   %-*s = %d\n",         width_scalar, "refine_by",               refine_by               );
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids",               num_grids               );
 
       return YT_SUCCESS;

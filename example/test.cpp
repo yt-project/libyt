@@ -60,6 +60,7 @@ int main( int argc, char *argv[] )
 // param_yt.cosmological_simulation = 0;
    param_yt.cosmological_simulation = 1;
    param_yt.dimensionality          = 3;
+   param_yt.refine_by               = 2;
    param_yt.num_grids               = 3L;    // total number of grids
 
 // *** libyt API ***
