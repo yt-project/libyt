@@ -1,1 +1,1 @@
-g++ -g -Wall test.cpp -o test -I../include -L../src -lyt
+g++ -g -Wall example.cpp -o example -I../include -L../src -lyt

@@ -4,4 +4,4 @@ syntax: glob
 *.o
 *.pyc
 libyt.so.1.*
-test
+example/example
