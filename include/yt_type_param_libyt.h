@@ -42,6 +42,7 @@ struct yt_param_libyt
    bool  libyt_initialized;
    bool  param_yt_set;
    bool *grid_set;
+   long  counter;
 
 
    //===================================================================================
@@ -62,6 +63,7 @@ struct yt_param_libyt
       libyt_initialized = false;
       param_yt_set      = false;
       grid_set          = NULL;
+      counter           = 0;
 
    } // METHOD : yt_param_libyt
 

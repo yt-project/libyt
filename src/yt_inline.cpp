@@ -61,6 +61,7 @@ int yt_inline()
 // free resources to prepare for the next execution
    g_param_yt.init();
    g_param_libyt.param_yt_set = false;
+   g_param_libyt.counter ++;
 
    delete [] g_param_libyt.grid_set;
    g_param_libyt.grid_set = NULL;

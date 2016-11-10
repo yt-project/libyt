@@ -23,8 +23,8 @@ LIB_SONAME   := libyt.so.1
 
 # different paths
 #######################################################################################################
-#PYTHON_PATH := /home/hyschive/software/miniconda2
-PYTHON_PATH := /projects/ncsa/grav/softwares/miniconda2
+PYTHON_PATH := /home/hyschive/software/miniconda2
+#PYTHON_PATH := /projects/ncsa/grav/softwares/miniconda2
 OBJ_PATH := ./obj
 
 

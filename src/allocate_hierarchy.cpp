@@ -52,7 +52,7 @@ int allocate_hierarchy()
    ADD_DICT( 3, "grid_dimensions",     NPY_LONG );
    ADD_DICT( 1, "grid_particle_count", NPY_LONG );
    ADD_DICT( 1, "grid_parent_id",      NPY_LONG );
-   ADD_DICT( 1, "grid_level",          NPY_LONG );
+   ADD_DICT( 1, "grid_levels",         NPY_LONG );
 
 #  undef ADD_DICT
 

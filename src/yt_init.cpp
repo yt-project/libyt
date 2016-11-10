@@ -37,6 +37,7 @@ int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt )
 // --> better do it **before** calling any log function since they will query g_param_libyt.verbose
    g_param_libyt.verbose = param_libyt->verbose;
    g_param_libyt.script  = param_libyt->script;
+   g_param_libyt.counter = param_libyt->counter;   // useful during restart, where the initial counter can be non-zero
 
    log_info( "Initializing libyt ...\n" );
    log_debug( "   verbose = %d\n", g_param_libyt.verbose );

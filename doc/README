@@ -66,6 +66,7 @@ Naming convension
 Compile libyt
 =================================
 cd src
+set "PYTHON_PATH" in the Makefile
 make clean
 make
 
