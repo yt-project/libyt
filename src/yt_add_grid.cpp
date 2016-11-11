@@ -37,22 +37,26 @@ int yt_add_grid( yt_grid *grid )
 // additional checks that depend on input YT parameters
 // grid ID
    if ( grid->id >= g_param_yt.num_grids )
-      YT_ABORT( "Grid ID (%ld) >= total number of grids (%ld)!\n",
+      YT_ABORT( "Grid ID [%ld] >= total number of grids [%ld]!\n",
                 grid->id, g_param_yt.num_grids );
 
    if ( grid->parent_id >= g_param_yt.num_grids )
-      YT_ABORT( "Grid [%ld] parent ID (%ld) >= total number of grids (%ld)!\n",
+      YT_ABORT( "Grid [%ld] parent ID [%ld] >= total number of grids [%ld]!\n",
                 grid->id, grid->parent_id, g_param_yt.num_grids );
+
+   if ( grid->level > 0  &&  grid->parent_id < 0 )
+      YT_ABORT( "Grid [%ld] parent ID [%ld] < 0 at level [%d]!\n",
+                grid->id, grid->parent_id, grid->level );
 
 // edge
    for (int d=0; d<g_param_yt.dimensionality; d++)
    {
       if ( grid->left_edge[d] < g_param_yt.domain_left_edge[d] )
-         YT_ABORT( "Grid [%ld] left edge (%13.7e) < domain left edge (%13.7e) along the dimension %d!\n",
+         YT_ABORT( "Grid [%ld] left edge [%13.7e] < domain left edge [%13.7e] along the dimension [%d]!\n",
                    grid->id, grid->left_edge[d], g_param_yt.domain_left_edge[d], d );
 
       if ( grid->right_edge[d] > g_param_yt.domain_right_edge[d] )
-         YT_ABORT( "Grid [%ld] right edge (%13.7e) > domain right edge (%13.7e) along the dimension %d!\n",
+         YT_ABORT( "Grid [%ld] right edge [%13.7e] > domain right edge [%13.7e] along the dimension [%d]!\n",
                    grid->id, grid->right_edge[d], g_param_yt.domain_right_edge[d], d );
    }
 
