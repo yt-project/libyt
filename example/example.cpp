@@ -67,16 +67,16 @@ int main( int argc, char *argv[] )
 // **********************************************
 // following mimic the simulation evolution loop
 // **********************************************
-   const int    total_steps = 11;                              // total number of evolution steps
-   const double velocity    = 1.0;                             // velocity for setting the density field
-   const double dt          = 0.05;                            // evolution time-step
-   const double box_size    = 1.0;                             // simulation box size
-   const double dh0         = box_size / (NGRID_1D*GRID_DIM);  // cell size at level 0
-   const double dh1         = dh0 / REFINE_BY;                 // cell size at level 1
-   const int    num_fields  = 1;                               // number of fields
-   const int    num_grids   = CUBE(NGRID_1D)+CUBE(REFINE_BY);  // number of grids
-                                                               // here we refine one root grid
-   const char  *field_labels[num_fields] = { "density" };      // field names
+   const int    total_steps = 11;                               // total number of evolution steps
+   const double velocity    = 1.0;                              // velocity for setting the density field
+   const double dt          = 0.05;                             // evolution time-step
+   const double box_size    = 1.0;                              // simulation box size
+   const double dh0         = box_size / (NGRID_1D*GRID_DIM);   // cell size at level 0
+   const double dh1         = dh0 / REFINE_BY;                  // cell size at level 1
+   const int    num_fields  = 1;                                // number of fields
+   const int    num_grids   = CUBE(NGRID_1D)+CUBE(REFINE_BY);   // number of grids
+                                                                // here we refine one root grid
+   const char  *field_labels[num_fields] = { "Dens" };          // field names
 
    double time = 0.0;
 
@@ -91,7 +91,7 @@ int main( int argc, char *argv[] )
 //    ==========================================
       yt_param_yt param_yt;
 
-      param_yt.frontend                = "frontend_name";
+      param_yt.frontend                = "gamer";           // simulation frontend
 //    param_yt.fig_basename            = "fig_basename";    // figure base name (default=Fig%09d)
 
       param_yt.length_unit             = 3.0857e21;         // units are in cgs
