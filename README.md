@@ -1,2 +1,2 @@
 # libyt
-In-situ analysis with yt
+In-situ data analysis and visualization with yt
