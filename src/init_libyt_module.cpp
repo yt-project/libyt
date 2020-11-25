@@ -2,11 +2,22 @@
 #include "string.h"
 
 
-// list all libyt module methods here
+
+// Define functions in module, list all libyt module methods here
 static PyMethodDef libyt_method_list[] =
 {
 // { "method_name", c_function_name, METH_VARARGS, "Description"},
    { NULL, NULL, 0, NULL } // sentinel
+};
+
+// Declare the definition of libyt_module
+static struct PyModuleDef libyt_module_definition = 
+{
+    PyModuleDef_HEAD_INIT,
+    "libyt",
+    "libyt documentation",
+    -1,
+    libyt_method_list
 };
 
 
@@ -27,7 +38,7 @@ int init_libyt_module()
 // create module and obtain its __dict__ attribute
    PyObject *libyt_module=NULL, *libyt_module_dict=NULL;
 
-   if (  ( libyt_module = Py_InitModule( "libyt", libyt_method_list ) ) != NULL  )
+   if (  ( libyt_module = PyModule_Create( &libyt_module_definition ) ) != NULL  )
       log_debug( "Creating libyt module ... done\n" );
    else
       YT_ABORT(  "Creating libyt module ... failed!\n" );

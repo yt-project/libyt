@@ -143,7 +143,7 @@ int add_dict_string( PyObject *dict, const char *key, const char *string )
 
 
 // convert "string" to a Python object
-   PyObject *py_obj = PyString_FromString( string );
+   PyObject *py_obj = PyUnicode_FromString( string );
 
 
 // insert "string" into "dict" with "key"

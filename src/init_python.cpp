@@ -22,10 +22,11 @@ static int import_numpy();
 int init_python( int argc, char *argv[] )
 {
 
+// TODO: Where do we need this?
 // initialize Python interpreter
-   Py_SetProgramName( "yt_inline" );
+   Py_SetProgramName( Py_DecodeLocale("yt_inline", NULL) );
 
-// 0: kips initialization registration of signal handlers
+// 0: skips the initialization registration of signal handlers
    Py_InitializeEx( 0 );
 
    if ( Py_IsInitialized() )
@@ -33,8 +34,15 @@ int init_python( int argc, char *argv[] )
    else {
       YT_ABORT(  "Initializing Python interpreter ... failed!\n" ); }
 
+// TODO: What are argc, argv use for?
+//       Length is hardcoded, each argv string size cannot longer than 100.
 // set sys.argv
-   PySys_SetArgv( argc, argv );
+   wchar_t **wchar_t_argv = (wchar_t **) malloc(argc * sizeof(wchar_t *));
+   for (int i = 0; i < argc; i = i+1) {
+      wchar_t_argv[i] = (wchar_t *) malloc( 100 * sizeof( wchar_t ) );
+      mbtowc(wchar_t_argv[i], argv[i], 100);
+   }
+   PySys_SetArgv( argc, wchar_t_argv );
 
 
 // import numpy
@@ -82,6 +90,7 @@ int init_python( int argc, char *argv[] )
 int import_numpy()
 {
 
+// TODO: Cannot find import_array1, but compile success
 // import_array1() is a macro which calls _import_array() and returns the given value (YT_FAIL here) on error
    import_array1( YT_FAIL );
 

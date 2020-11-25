@@ -23,7 +23,7 @@ LIB_SONAME   := libyt.so.1
 
 # different paths
 #######################################################################################################
-PYTHON_PATH := /work1/cindytsai/Software/python/python2.7
+PYTHON_PATH := /work1/cindytsai/Software/python/python3.8
 #PYTHON_PATH := /projects/ncsa/grav/softwares/miniconda2
 OBJ_PATH := ./obj
 
@@ -33,10 +33,10 @@ OBJ_PATH := ./obj
 #CXX := icpc
 CXX := g++
 
-LIB := -L$(PYTHON_PATH)/lib -lpython2.7
+LIB := -L$(PYTHON_PATH)/lib -lpython3.8
 
-INCLUDE := -I../include -I$(PYTHON_PATH)/include/python2.7 \
-           -I$(PYTHON_PATH)/lib/python2.7/site-packages/numpy/core/include
+INCLUDE := -I../include -I$(PYTHON_PATH)/include/python3.8 \
+           -I$(PYTHON_PATH)/lib/python3.8/site-packages/numpy/core/include
 
 #CXXWARN_FLAG := -w1
 CXXWARN_FLAG := -Wall -Wno-write-strings
