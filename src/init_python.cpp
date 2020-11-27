@@ -35,12 +35,13 @@ int init_python( int argc, char *argv[] )
       YT_ABORT(  "Initializing Python interpreter ... failed!\n" ); }
 
 // TODO: What are argc, argv use for?
-//       Length is hardcoded, each argv string size cannot longer than 100.
+//       Length is hardcoded, each argv string size cannot longer than 1000.
 // set sys.argv
    wchar_t **wchar_t_argv = (wchar_t **) malloc(argc * sizeof(wchar_t *));
+   wchar_t wchar_temp[1000];
    for (int i = 0; i < argc; i = i+1) {
-      wchar_t_argv[i] = (wchar_t *) malloc( 100 * sizeof( wchar_t ) );
-      mbtowc(wchar_t_argv[i], argv[i], 100);
+      mbtowc(wchar_temp, argv[i], 100);
+      wchar_t_argv[i] = wchar_temp;
    }
    PySys_SetArgv( argc, wchar_t_argv );
 
