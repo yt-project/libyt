@@ -20,14 +20,37 @@ static struct PyModuleDef libyt_module_definition =
     libyt_method_list
 };
 
+// Create libyt python module
+static PyObject* PyInit_libyt(void)
+{
+  return PyModule_Create(&libyt_module_definition);
+}
 
+//-------------------------------------------------------------------------------------------------------
+// Function    :  init_libyt_module
+// Description :  Create the libyt module
+//
+// Note        :  1. Create libyt module, should be called before Py_Initialize().
+//                2. It is used for sharing data between simulation code and YT.
+//
+// Parameter   :  None
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int create_libyt_module()
+{
+  PyImport_AppendInittab("libyt", &PyInit_libyt);
+
+  return YT_SUCCESS;
+}
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  init_libyt_module
 // Description :  Initialize the libyt module
 //
-// Note        :  1. libyt module is used for sharing data between simulation code and YT
-//
+// Note        :  1. Append libyt python module parameters.
+//                2. It is used for sharing data between simulation code and YT.
+//                
 // Parameter   :  None
 //
 // Return      :  YT_SUCCESS or YT_FAIL
@@ -38,7 +61,7 @@ int init_libyt_module()
 // create module and obtain its __dict__ attribute
    PyObject *libyt_module=NULL, *libyt_module_dict=NULL;
 
-   if (  ( libyt_module = PyModule_Create( &libyt_module_definition ) ) != NULL  )
+   if (  ( libyt_module = PyImport_AddModule( "libyt" ) ) != NULL  )
       log_debug( "Creating libyt module ... done\n" );
    else
       YT_ABORT(  "Creating libyt module ... failed!\n" );
