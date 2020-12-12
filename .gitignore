@@ -2,5 +2,5 @@
 *.pyc
 libyt.so.1.*
 example/example
-.idea/*
+.idea/
 *.png

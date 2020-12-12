@@ -40,7 +40,7 @@ int init_python( int argc, char *argv[] )
    wchar_t **wchar_t_argv = (wchar_t **) malloc(argc * sizeof(wchar_t *));
    wchar_t wchar_temp[1000];
    for (int i = 0; i < argc; i = i+1) {
-      mbtowc(wchar_temp, argv[i], 100);
+      mbtowc(wchar_temp, argv[i], 1000);
       wchar_t_argv[i] = wchar_temp;
    }
    PySys_SetArgv( argc, wchar_t_argv );
