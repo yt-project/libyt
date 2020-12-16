@@ -1,14 +1,15 @@
+/*
+This example is to test how libyt can work with 
+yt python package with OpenMPI.
 
-
-// ==========================================
-// This example illustrates the basic usage
-// of libyt. Please follow steps 0 - 6.
-// ==========================================
-
+And also, to illustrates the basic usage of libyt.
+In steps 0 - 6.
+ */
 
 #include <stdlib.h>
 #include <math.h>
 #include <typeinfo>
+#include <mpi.h>
 // ==========================================
 // 0. include libyt header
 // ==========================================
@@ -39,6 +40,9 @@ real set_density( const double x, const double y, const double z, const double t
 //-------------------------------------------------------------------------------------------------------
 int main( int argc, char *argv[] )
 {
+   // Initialize OpenMPI
+   MPI_Init(&argc, &argv);
+   
 
 // ==========================================
 // 1. initialize libyt
