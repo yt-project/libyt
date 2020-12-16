@@ -4,3 +4,4 @@ libyt.so.1.*
 example/example
 .idea/
 *.png
+lib/*
