@@ -40,7 +40,10 @@ real set_density( const double x, const double y, const double z, const double t
 //-------------------------------------------------------------------------------------------------------
 int main( int argc, char *argv[] )
 {
-   // Initialize OpenMPI
+   /*
+   MPI Initialize, and settings
+    */
+   int myrank;
    MPI_Init(&argc, &argv);
    
 
