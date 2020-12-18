@@ -44,7 +44,9 @@ int init_python( int argc, char *argv[] )
       mbtowc(wchar_temp, argv[i], 1000);
       wchar_t_argv[i] = wchar_temp;
    }
-   PySys_SetArgv( argc, wchar_t_argv );
+// TODO: Comment out, since sometimes the typecasting cannot work
+//       and leads to error in OpenMPI.
+//   PySys_SetArgv( argc, wchar_t_argv );
 
 
 // import numpy
