@@ -45,7 +45,7 @@ int main( int argc, char *argv[] )
     */
    int myrank;
    MPI_Init(&argc, &argv);
-   
+   MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 
 // ==========================================
 // 1. initialize libyt
@@ -292,7 +292,10 @@ int main( int argc, char *argv[] )
       time += dt;
    } // for (int step=0; step<total_steps; step++)
 
-
+   /*
+   MPI Finalize
+    */
+   MPI_Finalize();
 
 // ==========================================
 // 6. exit libyt

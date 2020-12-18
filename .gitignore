@@ -5,3 +5,5 @@ example/example
 .idea/
 *.png
 lib/*
+stderr
+stdout
