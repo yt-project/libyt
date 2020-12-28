@@ -7,7 +7,9 @@ def yt_inline():
     # ProjectionPlot, Serial
     ######################################
     prjz = yt.ProjectionPlot(ds, 'z', 'density')
-    prjz.save()
+
+    if yt.is_root():
+        prjz.save()
     # SlicePlot, Serial
     ######################################
     #sz = yt.SlicePlot( ds, 'z', 'Dens', center='c' )
