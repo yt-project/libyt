@@ -44,14 +44,18 @@ int main( int argc, char *argv[] )
    MPI Initialize, and settings
     */
    int myrank;
+   int nrank;
    MPI_Init(&argc, &argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+   MPI_Comm_size(MPI_COMM_WORLD, &nrank );
 
 // ==========================================
 // 1. initialize libyt
 // ==========================================
 // libyt runtime parameters
    yt_param_libyt param_libyt;
+
+   printf("MPI rank = %d, &param_libyt = %p\n", myrank, &param_libyt);
 
 // verbose level
 // param_libyt.verbose = YT_VERBOSE_OFF;
@@ -188,6 +192,7 @@ int main( int argc, char *argv[] )
          libyt_grids[gid].id             = gid;    // 0-indexed
          libyt_grids[gid].parent_id      = -1;     // 0-indexed (-1 for grids on the root level)
          libyt_grids[gid].level          = 0;      // 0-indexed
+         libyt_grids[gid].proc_num       = gid / (param_yt.num_grids / nrank); // TODO: Cheating method XD
 
 //       in this example we arbitrarily set the field data of this grid
          for (int k=0; k<GRID_DIM; k++)
@@ -235,6 +240,8 @@ int main( int argc, char *argv[] )
          libyt_grids[gid].id             = gid;          // 0-indexed
          libyt_grids[gid].parent_id      = gid_refine;   // 0-indexed (-1 for grids on the root level)
          libyt_grids[gid].level          = 1;            // 0-indexed
+         
+         libyt_grids[gid].proc_num       = gid / (param_yt.num_grids / nrank); // TODO: Cheating method XD
 
 //       here we arbitrarily set the field data of this grid
          for (int k=0; k<GRID_DIM; k++)
@@ -253,11 +260,24 @@ int main( int argc, char *argv[] )
 
 
 //    set general grid attributes and invoke inline analysis
+
       for (int gid=0; gid<param_yt.num_grids; gid++)
       {
+         printf("Myrank = %d, NRank = %d, gid = %d\n", myrank, nrank, gid);
 //       set pointers pointing to different field data
          libyt_grids[gid].field_data = new void* [num_fields];
-         for (int v=0; v<num_fields; v++)   libyt_grids[gid].field_data[v] = field_data[gid][v];
+
+         if (gid / (param_yt.num_grids / nrank) == myrank){
+            for (int v=0; v<num_fields; v++){
+               libyt_grids[gid].field_data[v] = field_data[gid][v];
+            }
+            libyt_grids[gid].proc_num = myrank;
+         }
+         else {
+            for (int v=0; v<num_fields; v++){
+               libyt_grids[gid].field_data[v] = NULL;
+            }
+         }
 
 //       set other field parameters
          libyt_grids[gid].num_fields   = num_fields;
@@ -270,7 +290,9 @@ int main( int argc, char *argv[] )
             fprintf( stderr, "ERROR: yt_add_grid() failed!\n" );
             exit( EXIT_FAILURE );
          }
-      } // for (int gid=0; gid<param_yt.num_grids; gid++)
+      } // for (int gid=0; gid<param_yt.num_grids; gid++) 
+      MPI_Barrier(MPI_COMM_WORLD);        
+
 
 
 

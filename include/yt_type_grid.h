@@ -21,6 +21,7 @@
 //                right_edge     : Grid right edge in code units
 //                particle_count : Nunber of particles in this grid
 //                level          : AMR level (0 for the root level)
+//                proc_num       : An array of MPI rank that the grid belongs
 //                id             : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
 //                parent_id      : Parent grid ID (0-indexed, -1 for grids on the root level)
 //                num_fields     : Number of fields
@@ -46,6 +47,8 @@ struct yt_grid
 
    int    dimensions[3];
    int    level;
+
+   int    proc_num;
 
    int          num_fields;
    const char **field_labels;
@@ -76,6 +79,8 @@ struct yt_grid
       id             = INT_UNDEFINED;
       parent_id      = INT_UNDEFINED;
       level          = INT_UNDEFINED;
+
+      proc_num       = INT_UNDEFINED;
 
       num_fields     = INT_UNDEFINED;
       field_labels   = NULL;
@@ -126,6 +131,7 @@ struct yt_grid
       if ( id             == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "id",             id );
       if ( parent_id      == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "parent_id",      id );
       if ( level          == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "level",          id );
+      if ( proc_num       == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "proc_num",       id );
       if ( num_fields     == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "num_fields",     id );
       if ( field_labels   == NULL             )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "field_labels",   id );
       if ( field_data     == NULL             )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "field_data",     id );

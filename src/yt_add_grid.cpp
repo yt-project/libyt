@@ -88,7 +88,7 @@ int yt_add_grid( yt_grid *grid )
    FILL_ARRAY( "grid_particle_count", &grid->particle_count, 1, npy_long   );
    FILL_ARRAY( "grid_parent_id",      &grid->parent_id,      1, npy_long   );
    FILL_ARRAY( "grid_levels",         &grid->level,          1, npy_long   );
-
+   FILL_ARRAY( "proc_num",            &grid->proc_num,       1, npy_int    );
    log_debug( "Inserting grid [%15ld] info to libyt.hierarchy ... done\n", grid->id );
 
 
