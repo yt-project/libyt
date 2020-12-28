@@ -36,15 +36,18 @@ int yt_inline()
    if ( !g_param_libyt.param_yt_set )
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
 
-
+// TODO : Check that all the grids are be set, when working with MPI.
+//        Since it needs OpenMPI, move this part to other source file yt_check_grid.cpp
+// 
 // check if all grids have been set by users properly
-   for (int g=0; g<g_param_yt.num_grids; g++)
-   {
-      if ( g_param_libyt.grid_set[g] == false )
-         YT_ABORT( "Grid [%ld] has not been set!\n", g );
-   }
-
-
+   // for (int g=0; g<g_param_yt.num_grids; g++)
+   // {
+   //    if ( g_param_libyt.grid_set[g] == false )
+   //       YT_ABORT( "Grid [%ld] has not been set!\n", g );
+   // }
+// check if all grids have been set by users properly
+   if (!yt_check_grid(g_param_libyt))
+      YT_ABORT( "Grid [%ld] has not been set!\n", g );
 // execute YT script
    const int CallYT_CommandWidth = strlen( g_param_libyt.script ) + 13;   // 13 = ".yt_inline()" + '\0'
    char *CallYT = (char*) malloc( CallYT_CommandWidth*sizeof(char) );
