@@ -333,11 +333,6 @@ int main( int argc, char *argv[] )
       time += dt;
    } // for (int step=0; step<total_steps; step++)
 
-   /*
-   MPI Finalize
-    */
-   MPI_Finalize();
-
 // ==========================================
 // 6. exit libyt
 // ==========================================
@@ -350,7 +345,12 @@ int main( int argc, char *argv[] )
 
 
    delete [] field_data;
-
+   
+   /*
+   MPI Finalize
+    */
+   MPI_Finalize();
+   
    return EXIT_SUCCESS;
 
 } // FUNCTION : main
