@@ -46,8 +46,8 @@ int yt_inline()
    //       YT_ABORT( "Grid [%ld] has not been set!\n", g );
    // }
 // check if all grids have been set by users properly
-   if (!yt_check_grid(g_param_libyt))
-      YT_ABORT( "Grid [%ld] has not been set!\n", g );
+//   if (!yt_check_grid(g_param_libyt))
+//      YT_ABORT( "Grid [%ld] has not been set!\n", g );
 // execute YT script
    const int CallYT_CommandWidth = strlen( g_param_libyt.script ) + 13;   // 13 = ".yt_inline()" + '\0'
    char *CallYT = (char*) malloc( CallYT_CommandWidth*sizeof(char) );
