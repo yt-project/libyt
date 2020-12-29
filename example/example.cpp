@@ -2,6 +2,10 @@
 This example is to test how libyt can work with 
 yt python package with OpenMPI.
 
+1. Assign grids to one MPI rank
+2. Pass the grid to yt when that grid belongs to the MPI rank
+3. Each MPI rank will pass hierarchy to yt
+
 And also, to illustrates the basic usage of libyt.
 In steps 0 - 6.
  */
@@ -87,6 +91,9 @@ int main( int argc, char *argv[] )
    const int    num_fields  = 1;                                // number of fields
    const int    num_grids   = CUBE(NGRID_1D)+CUBE(REFINE_BY);   // number of grids
                                                                 // here we refine one root grid
+   
+   int *MPI_rank_array;                                         // Record MPI rank in each grids
+
    const char  *field_labels[num_fields] = { "Dens" };          // field names
 
    double time = 0.0;
@@ -94,6 +101,19 @@ int main( int argc, char *argv[] )
 // this array represents the simulation data stored in memory
    real (*field_data)[num_fields][ CUBE(GRID_DIM) ]
       = new real [num_grids][num_fields][ CUBE(GRID_DIM) ];
+
+// record MPI rank in each grids
+   MPI_rank_array = (int *) malloc(num_grids * sizeof(int));
+
+// TODO: I did this in a cheating way. Assign grid to MPI rank first.
+   for (int gid = 0; gid < num_grids; gid = gid+1){
+      if( gid / (num_grids / nrank) < nrank ) {
+         MPI_rank_array[gid] = gid / (num_grids / nrank);
+      }
+      else {
+         MPI_rank_array[gid] = 3;
+      }
+   }
 
    for (int step=0; step<total_steps; step++)
    {
@@ -192,7 +212,7 @@ int main( int argc, char *argv[] )
          libyt_grids[gid].id             = gid;    // 0-indexed
          libyt_grids[gid].parent_id      = -1;     // 0-indexed (-1 for grids on the root level)
          libyt_grids[gid].level          = 0;      // 0-indexed
-         libyt_grids[gid].proc_num       = gid / (param_yt.num_grids / nrank); // TODO: Cheating method XD
+         libyt_grids[gid].proc_num       = MPI_rank_array[gid]; // TODO: Cheating method XD
 
 //       in this example we arbitrarily set the field data of this grid
          for (int k=0; k<GRID_DIM; k++)
@@ -241,7 +261,7 @@ int main( int argc, char *argv[] )
          libyt_grids[gid].parent_id      = gid_refine;   // 0-indexed (-1 for grids on the root level)
          libyt_grids[gid].level          = 1;            // 0-indexed
          
-         libyt_grids[gid].proc_num       = gid / (param_yt.num_grids / nrank); // TODO: Cheating method XD
+         libyt_grids[gid].proc_num       = MPI_rank_array[gid]; // TODO: Cheating method XD
 
 //       here we arbitrarily set the field data of this grid
          for (int k=0; k<GRID_DIM; k++)
@@ -267,11 +287,10 @@ int main( int argc, char *argv[] )
 //       set pointers pointing to different field data
          libyt_grids[gid].field_data = new void* [num_fields];
 
-         if (gid / (param_yt.num_grids / nrank) == myrank){
+         if (MPI_rank_array[gid] == myrank){
             for (int v=0; v<num_fields; v++){
                libyt_grids[gid].field_data[v] = field_data[gid][v];
             }
-            libyt_grids[gid].proc_num = myrank;
          }
          else {
             for (int v=0; v<num_fields; v++){
