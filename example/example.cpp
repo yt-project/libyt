@@ -351,7 +351,6 @@ int main( int argc, char *argv[] )
 
    delete [] field_data;
 
-   MPI_Finalize();
    return EXIT_SUCCESS;
 
 } // FUNCTION : main
