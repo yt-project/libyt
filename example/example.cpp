@@ -280,7 +280,6 @@ int main( int argc, char *argv[] )
 
 
 //    set general grid attributes and invoke inline analysis
-
       for (int gid=0; gid<param_yt.num_grids; gid++)
       {
          printf("Myrank = %d, NRank = %d, gid = %d\n", myrank, nrank, gid);

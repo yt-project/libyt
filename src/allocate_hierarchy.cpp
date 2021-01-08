@@ -7,7 +7,7 @@
 // Function    :  allocate_hierarchy
 // Description :  Fill the libyt.hierarchy dictionary with NumPy arrays allocated but uninitialized
 //
-// Note        :  1. Called by yt_set_parameter()
+// Note        :  1. Called by yt_set_parameter(), since it needs num_grids in param_yt.
 //                2. These NumPy array will be set when calling yt_add_grid()
 //
 // Parameter   :  None
