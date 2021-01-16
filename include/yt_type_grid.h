@@ -134,6 +134,8 @@ struct yt_grid
       if ( proc_num       == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "proc_num",       id );
       if ( num_fields     == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "num_fields",     id );
       if ( field_labels   == NULL             )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "field_labels",   id );
+      // TODO: This one should be modified or commented out, since each ranks contains their data only.
+      //       And we will create an array to store each fields pointer, so this check isn't right.
       if ( field_data     == NULL             )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "field_data",     id );
       if ( field_ftype    == YT_FTYPE_UNKNOWN )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "field_ftype",    id );
 

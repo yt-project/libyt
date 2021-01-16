@@ -40,6 +40,7 @@ void log_debug( const char *Format, ... );
 //                time_unit               : Simulation time   unit in CGS
 //                refine_by               : Refinement factor between a grid and its subgrid
 //                num_grids               : Total number of grids
+//                num_fields              : Number of fields
 //
 // Method      :  yt_param_yt : Constructor
 //               ~yt_param_yt : Destructor
@@ -72,6 +73,7 @@ struct yt_param_yt
    int    domain_dimensions[3];
    int    refine_by;
    long   num_grids;
+   int    num_fields;
 
 
    //===================================================================================
@@ -145,6 +147,7 @@ struct yt_param_yt
       dimensionality          = INT_UNDEFINED;
       refine_by               = INT_UNDEFINED;
       num_grids               = INT_UNDEFINED;
+      num_fields              = INT_UNDEFINED;
 
       return YT_SUCCESS;
 
@@ -188,6 +191,7 @@ struct yt_param_yt
       if ( dimensionality          == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "dimensionality" );
       if ( refine_by               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "refine_by" );
       if ( num_grids               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_grids" );
+      if ( num_fields              == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_fields" );
 
       return YT_SUCCESS;
 
@@ -233,6 +237,7 @@ struct yt_param_yt
       log_debug( "   %-*s = %d\n",         width_scalar, "dimensionality",          dimensionality          );
       log_debug( "   %-*s = %d\n",         width_scalar, "refine_by",               refine_by               );
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids",               num_grids               );
+      log_debug( "   %-*s = %ld\n",        width_scalar, "num_fields",              num_fields              );
 
       return YT_SUCCESS;
 

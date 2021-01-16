@@ -35,6 +35,12 @@ int yt_add_grid( yt_grid *grid )
 
 
 // additional checks that depend on input YT parameters
+// number of fields
+// TODO: This seems redundant, probably can merge appending num_fields into libyt.
+   if ( grid->num_fields != g_param_yt.num_fields )
+      YT_ABORT( "Grid ID [%ld] number of fields = %ld, should be %ld!\n",
+                grid->id, grid->num_fields, g_param_yt.num_fields);
+
 // grid ID
    if ( grid->id >= g_param_yt.num_grids )
       YT_ABORT( "Grid ID [%ld] >= total number of grids [%ld]!\n",
@@ -62,7 +68,7 @@ int yt_add_grid( yt_grid *grid )
 
 
 // check if this grid has been set previously
-   if ( g_param_libyt.grid_set[ grid->id ] == true )
+   if ( g_param_libyt.grid_hierarchy_set[ grid->id ] == true )
       YT_ABORT( "Grid [%ld] has been set already!\n", grid->id );
 
 
@@ -91,6 +97,9 @@ int yt_add_grid( yt_grid *grid )
    FILL_ARRAY( "proc_num",            &grid->proc_num,       1, npy_int    );
    log_debug( "Inserting grid [%15ld] info to libyt.hierarchy ... done\n", grid->id );
 
+// record that the grid hierarchy for "grid->id" has been set successfully
+   g_param_libyt.grid_hierarchy_set[ grid->id ] = true;
+
 
 // export grid data to libyt.grid_data as "libyt.grid_data[grid_id][field_label][field_data]"
    int      grid_ftype   = (grid->field_ftype == YT_FLOAT ) ? NPY_FLOAT : NPY_DOUBLE;
@@ -114,6 +123,10 @@ int yt_add_grid( yt_grid *grid )
 
 //    call decref since PyDict_SetItemString() returns a new reference
       Py_DECREF( py_field_data );
+
+      if ( grid->field_data[v] != NULL ) {
+         g_param_libyt.grid_data_set[v*g_param_yt.num_grids+grid->id] = true;
+      }
    }
 
 // call decref since both PyLong_FromLong() and PyDict_New() return a new reference
@@ -121,11 +134,6 @@ int yt_add_grid( yt_grid *grid )
    Py_DECREF( py_field_labels );
 
    log_debug( "Inserting grid [%15ld] data to libyt.hierarchy ... done\n", grid->id );
-
-
-// record that the grid "grid->id" has been set successfully
-   g_param_libyt.grid_set[ grid->id ] = true;
-
 
    return YT_SUCCESS;
 

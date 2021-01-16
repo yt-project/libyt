@@ -133,6 +133,7 @@ int main( int argc, char *argv[] )
       param_yt.dimensionality          = 3;
       param_yt.refine_by               = REFINE_BY;
       param_yt.num_grids               = num_grids;
+      param_yt.num_fields              = num_fields;
 
       for (int d=0; d<3; d++)
       {
@@ -293,6 +294,7 @@ int main( int argc, char *argv[] )
          }
          else {
             for (int v=0; v<num_fields; v++){
+               // TODO: if no data, set it as NULL, so that libyt can check if data is set.
                libyt_grids[gid].field_data[v] = NULL;
             }
          }
@@ -309,6 +311,8 @@ int main( int argc, char *argv[] )
             exit( EXIT_FAILURE );
          }
       } // for (int gid=0; gid<param_yt.num_grids; gid++) 
+      
+//    Wait till every rank has done loading the grid
       MPI_Barrier(MPI_COMM_WORLD);        
 
 

@@ -21,9 +21,12 @@
 //                script  : Name of the YT inline analysis script (without the .py extension)
 //
 //                [private] ==> Set and used by libyt internally
-//                libyt_initialized : true ==> yt_init() has been called successfully
-//                param_yt_set      : true ==> yt_set_parameter() has been called successfully
-//                grid_set[x]       : true ==> grid[x] has been loaded into libyt successfully
+//                libyt_initialized           : true ==> yt_init() has been called successfully
+//                param_yt_set                : true ==> yt_set_parameter() has been called successfully
+//                grid_hierarchy_set[x]       : true ==> grid[x] has been loaded into libyt hierarchy successfully
+//                grid_data_set[field_id * num_grids + x]  
+//                                            : true ==> field, grid[x] data has been loaded into libyt successfully,
+//                                                       only data belongs to that rank, this table will be checked.
 //
 // Method      :  yt_param_libyt : Constructor
 //               ~yt_param_libyt : Destructor
@@ -41,7 +44,8 @@ struct yt_param_libyt
 // ===================================================================================
    bool  libyt_initialized;
    bool  param_yt_set;
-   bool *grid_set;
+   bool *grid_hierarchy_set;
+   bool *grid_data_set;
    long  counter;
 
 
@@ -60,10 +64,11 @@ struct yt_param_libyt
       verbose = YT_VERBOSE_WARNING;
       script  = "yt_inline_script";
 
-      libyt_initialized = false;
-      param_yt_set      = false;
-      grid_set          = NULL;
-      counter           = 0;
+      libyt_initialized  = false;
+      param_yt_set       = false;
+      grid_hierarchy_set = NULL;
+      grid_data_set      = NULL;
+      counter            = 0;
 
    } // METHOD : yt_param_libyt
 
@@ -77,7 +82,8 @@ struct yt_param_libyt
    ~yt_param_libyt()
    {
 
-      delete [] grid_set;
+      delete [] grid_hierarchy_set;
+      delete [] grid_data_set;
 
    } // METHOD : ~yt_param_libyt
 
