@@ -39,8 +39,6 @@ int yt_check_grid() {
 	MPI_Gather( g_param_libyt.grid_data_set, g_param_yt.num_grids, MPI_C_BOOL,
 				 collected_grid_data_set, g_param_yt.num_grids, MPI_C_BOOL, RootRank, MPI_COMM_WORLD);
 
-	printf("#FLAG, MPI_Gather success\n");
-
 	if ( MyRank == RootRank ) {
 		int field_id, grid_id;
 		int stride = g_param_yt.num_fields * g_param_yt.num_grids;
