@@ -33,7 +33,6 @@ int yt_add_user_parameter_float ( const char *key, const int n, const float  *in
 int yt_add_user_parameter_double( const char *key, const int n, const double *input );
 int yt_add_user_parameter_string( const char *key,              const char   *input );
 int yt_add_grid( yt_grid *grid );
-int yt_check_grid();
 int yt_inline();
 
 #ifdef __cplusplus

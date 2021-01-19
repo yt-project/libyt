@@ -37,7 +37,7 @@ int yt_inline()
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
 
 // check that all grids are set correctly
-   yt_check_grid();
+   check_grid();
 
 // execute YT script
    const int CallYT_CommandWidth = strlen( g_param_libyt.script ) + 13;   // 13 = ".yt_inline()" + '\0'

@@ -16,7 +16,7 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 
-int yt_check_grid() {
+int check_grid() {
 	
 	// Check that all the grids hierarchy are set.
 	for (int g=0; g<g_param_yt.num_grids; g++)
