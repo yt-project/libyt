@@ -258,7 +258,7 @@ struct yt_param_yt
       for (int d=0; d<num_grids; d++) {
       log_debug( "   %-*s[%d] in MPI rank %d\n", width_vector, "grid", d,           grids_MPI[d]            ); }
       for (int d=0; d<num_fields; d++) {
-      log_debug("    %-*s[%d] = %d\n",     width_vector, "field_labels", d,         field_labels[d]         ); }
+      log_debug("    %-*s[%d] = %s\n",     width_vector, "field_labels", d,         field_labels[d]         ); }
 
       return YT_SUCCESS;
 
