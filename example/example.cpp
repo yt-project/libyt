@@ -111,7 +111,7 @@ int main( int argc, char *argv[] )
          MPI_rank_array[gid] = gid / (num_grids / nrank);
       }
       else {
-         MPI_rank_array[gid] = 3;
+         MPI_rank_array[gid] = nrank - 1;
       }
    }
 
@@ -134,6 +134,8 @@ int main( int argc, char *argv[] )
       param_yt.refine_by               = REFINE_BY;
       param_yt.num_grids               = num_grids;
       param_yt.num_fields              = num_fields;
+      param_yt.grids_MPI               = MPI_rank_array;
+      param_yt.field_labels            = (char **)field_labels;
 
       for (int d=0; d<3; d++)
       {

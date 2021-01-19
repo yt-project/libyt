@@ -41,6 +41,8 @@ void log_debug( const char *Format, ... );
 //                refine_by               : Refinement factor between a grid and its subgrid
 //                num_grids               : Total number of grids
 //                num_fields              : Number of fields
+//                grids_MPI               : grids belongs to which MPI rank
+//                field_labels            : field labels
 //
 // Method      :  yt_param_yt : Constructor
 //               ~yt_param_yt : Destructor
@@ -73,7 +75,12 @@ struct yt_param_yt
    int    domain_dimensions[3];
    int    refine_by;
    long   num_grids;
+
+// variable later use when adding and checking grids
    int    num_fields;
+   int   *grids_MPI;
+   char **field_labels;
+
 
 
    //===================================================================================
@@ -147,7 +154,10 @@ struct yt_param_yt
       dimensionality          = INT_UNDEFINED;
       refine_by               = INT_UNDEFINED;
       num_grids               = INT_UNDEFINED;
+
       num_fields              = INT_UNDEFINED;
+      grids_MPI               = NULL;
+      field_labels            = NULL;
 
       return YT_SUCCESS;
 
@@ -191,7 +201,10 @@ struct yt_param_yt
       if ( dimensionality          == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "dimensionality" );
       if ( refine_by               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "refine_by" );
       if ( num_grids               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_grids" );
+      
       if ( num_fields              == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_fields" );
+      if ( grids_MPI               == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "grids_MPI");
+      if ( field_labels            == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "field_labels");
 
       return YT_SUCCESS;
 
@@ -210,6 +223,9 @@ struct yt_param_yt
    //===================================================================================
    int show() const
    {
+      if ( validate() != YT_SUCCESS ) {
+         YT_ABORT("yt_param_yt has not been set correctly.\n");
+      }
 
       const int width_scalar = 25;
       const int width_vector = width_scalar - 3;
@@ -237,7 +253,12 @@ struct yt_param_yt
       log_debug( "   %-*s = %d\n",         width_scalar, "dimensionality",          dimensionality          );
       log_debug( "   %-*s = %d\n",         width_scalar, "refine_by",               refine_by               );
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids",               num_grids               );
+      
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_fields",              num_fields              );
+      for (int d=0; d<num_grids; d++) {
+      log_debug( "   %-*s[%d] in MPI rank %d\n", width_vector, "grid", d,           grids_MPI[d]            ); }
+      for (int d=0; d<num_fields; d++) {
+      log_debug("    %-*s[%d] = %d\n",     width_vector, "field_labels", d,         field_labels[d]         ); }
 
       return YT_SUCCESS;
 
