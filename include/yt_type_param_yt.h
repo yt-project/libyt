@@ -42,6 +42,7 @@ void log_debug( const char *Format, ... );
 //                num_grids               : Total number of grids
 //                num_fields              : Number of fields
 //                grids_MPI               : grids belongs to which MPI rank
+//                num_grids_local         : Number of local grids in each rank
 //                field_labels            : field labels
 //
 // Method      :  yt_param_yt : Constructor
@@ -79,6 +80,7 @@ struct yt_param_yt
 // variable later use when adding and checking grids
    int    num_fields;
    int   *grids_MPI;
+   int    num_grids_local;
    char **field_labels;
 
 
@@ -157,6 +159,7 @@ struct yt_param_yt
 
       num_fields              = INT_UNDEFINED;
       grids_MPI               = NULL;
+      num_grids_local         = INT_UNDEFINED;
       field_labels            = NULL;
 
       return YT_SUCCESS;
@@ -203,7 +206,7 @@ struct yt_param_yt
       if ( num_grids               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_grids" );
       
       if ( num_fields              == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_fields" );
-      if ( grids_MPI               == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "grids_MPI");
+      if ( grids_MPI == NULL && num_grids_local == INT_UNDEFINED )  YT_ABORT( "Either grids_MPI or num_grids_local should be set!\n");
       if ( field_labels            == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "field_labels");
 
       return YT_SUCCESS;
@@ -255,8 +258,15 @@ struct yt_param_yt
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids",               num_grids               );
       
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_fields",              num_fields              );
+      
+      if (grids_MPI != NULL) {
       for (int d=0; d<num_grids; d++) {
-      log_debug( "   %-*s[%d] in MPI rank %d\n", width_vector, "grid", d,           grids_MPI[d]            ); }
+      log_debug( "   %-*s[%d] in MPI rank %d\n", width_vector, "grid", d,           grids_MPI[d]            ); }         
+      }
+      if (num_grids_local != INT_UNDEFINED){
+      log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids_local",         num_grids_local         );
+      }
+
       for (int d=0; d<num_fields; d++) {
       log_debug("    %-*s[%d] = %s\n",     width_vector, "field_labels", d,         field_labels[d]         ); }
 

@@ -8,9 +8,13 @@
 // Function    :  yt_set_parameter
 // Description :  Set YT-specific parameters
 //
-// Note        :  1. Store the input "param_yt" to libyt.param_yt
+// Note        :  1. Store yt relavent data in input "param_yt" to libyt.param_yt, not all the data are
+//                   passed in.
+//                2. Check the validaty of the data in param_yt.
+//                2. Should be called after yt_init().
 //
-// Parameter   :  param_yt : Structure storing all YT-specific parameters
+// Parameter   :  param_yt : Structure storing YT-specific parameters that will later pass to YT, and
+//                           other relavent data.
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
