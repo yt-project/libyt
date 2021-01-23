@@ -17,7 +17,7 @@
 //-------------------------------------------------------------------------------------------------------
 //
 
-int yt_get_gridsPtr( yt_grid *grids_local )
+int yt_get_gridsPtr( yt_grid * &grids_local )
 {
 	// check if yt_set_parameter() have been called
    	if ( g_param_libyt.param_yt_set ) {
@@ -27,12 +27,11 @@ int yt_get_gridsPtr( yt_grid *grids_local )
    		YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
    	}
 
-	// Use g_param_yt.num_grids_local directly
+	// If g_param_yt.num_grids_local is set, do nothing
 	if ( g_param_yt.num_grids_local != INT_UNDEFINED ) {
-		grids_local = new yt_grid [g_param_yt.num_grids_local];
 	}
 
-	// Count num_grids_local through grids_MPI
+	// If g_param_yt.num_grids_local not set, count num_grids_local through grids_MPI
 	else {
 		int MyRank;
 		int num_grids_local = 0;

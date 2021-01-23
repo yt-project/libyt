@@ -190,11 +190,11 @@ int main( int argc, char *argv[] )
 
 
 //    ==========================================
-//    4. add grids
+//    4. Get pointer to local grids array
 //    ==========================================
-//    allocate libyt grids for exchanging grid information between simulation codes and YT
-      yt_grid *libyt_grids = new yt_grid [param_yt.num_grids];
-
+      yt_grid *libyt_grids;
+      yt_get_gridsPtr(libyt_grids);
+      
 //    set level-0 grids
       int grid_order[3];
       for (grid_order[2]=0; grid_order[2]<NGRID_1D; grid_order[2]++)
@@ -286,8 +286,6 @@ int main( int argc, char *argv[] )
       for (int gid=0; gid<param_yt.num_grids; gid++)
       {
          printf("Myrank = %d, NRank = %d, gid = %d\n", myrank, nrank, gid);
-//       set pointers pointing to different field data
-         libyt_grids[gid].field_data = new void* [num_fields];
 
          if (MPI_rank_array[gid] == myrank){
             for (int v=0; v<num_fields; v++){
