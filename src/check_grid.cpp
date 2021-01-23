@@ -26,7 +26,7 @@ int check_grid() {
    	}
 	
 	// Check that data set are well collected.
-	// 		Notes: Collect and check at RootRank
+	// 		Notes: Collect and check at RootRank 
 	int     MyRank, NRank;
 	int     RootRank = 0;
 
@@ -40,23 +40,32 @@ int check_grid() {
 				 collected_grid_data_set, g_param_yt.num_grids, MPI_C_BOOL, RootRank, MPI_COMM_WORLD);
 
 	if ( MyRank == RootRank ) {
+		// DEBUG:
+		for( int i = 0; i < g_param_yt.num_grids * g_param_yt.num_fields; i++){
+			printf("%10d, ", i);
+			for ( int j = 0; j < NRank; j++) {
+				printf("%d  ", collected_grid_data_set[i + j * g_param_yt.num_fields * g_param_yt.num_grids]);
+			}
+			printf("\n");
+		}
+
+
 		int field_id, grid_id;
 		int stride = g_param_yt.num_fields * g_param_yt.num_grids;
 		
 		for ( int id=0; id<stride; id++ ) {
 			for ( int rid=0; rid<NRank; rid++ ) {
+				printf("collected_grid_data_set[id+rid*stride] = %d\n", collected_grid_data_set[id+rid*stride]);
 				// TODO: We should also check that it matches the proc_num
-				// TODO: Should proc_num be input as an array?
-				if ( collected_grid_data_set[id+rid*stride] == true ) {
-					break;
-				}
-				else {
-					field_id = id / g_param_yt.num_grids;
-					grid_id  = id % g_param_yt.num_grids;
-					// TODO: Should be output as field name, not field_id
-					// 		 Should pass field_label array in param_yt as well
-					YT_ABORT( "Grid [%ld] data %d has not been set!\n", grid_id, field_id );
-				}
+				// if ( collected_grid_data_set[id+rid*stride] == true ) {
+				// 	printf("Break!\n");
+				// }
+				// else {
+				// 	field_id = id / g_param_yt.num_grids;
+				// 	grid_id  = id % g_param_yt.num_grids;
+				// 	// TODO: Should be output as field name, not field_id
+				// 	YT_ABORT( "Grid [%ld][\"%s\"] , data has not been set!\n", grid_id, g_param_yt.field_labels[field_id] );
+				// }
 			}
 		}
 	}

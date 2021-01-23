@@ -1,7 +1,7 @@
 #include "yt_combo.h"
 #include "string.h"
 
-
+// TODO: This filename is a little bit misleading...
 
 // Define functions in module, list all libyt module methods here
 static PyMethodDef libyt_method_list[] =
