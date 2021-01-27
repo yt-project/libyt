@@ -309,7 +309,7 @@ int main( int argc, char *argv[] )
       } // for (int gid=0; gid<param_yt.num_grids; gid++) 
       
 //    Wait till every rank has done loading the grid
-      MPI_Barrier(MPI_COMM_WORLD);        
+      MPI_Barrier(MPI_COMM_WORLD);
 
 
 

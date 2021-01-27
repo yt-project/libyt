@@ -83,7 +83,7 @@ struct yt_param_yt
    int    num_grids_local;
    char **field_labels;
 
-
+   // TODO: Should also move field_ftype in yt_type_grid.h to here as well.
 
    //===================================================================================
    // Method      :  yt_param_yt

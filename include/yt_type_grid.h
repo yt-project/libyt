@@ -14,7 +14,7 @@
 
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_grid
-// Description :  Data structure to store a single grid
+// Description :  Data structure to store a full single grid with data pointer
 //
 // Data Member :  dimensions     : Number of cells along each direction
 //                left_edge      : Grid left  edge in code units
