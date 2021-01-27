@@ -172,6 +172,7 @@ struct yt_param_yt
    // Description :  Check if all data members have been set properly by users
    //
    // Note        :  1. Cosmological parameters are checked only if cosmological_simulation == 1
+   //                2. Only check if data are used, does not alter them.
    //
    // Parameter   :  None
    //
@@ -204,13 +205,11 @@ struct yt_param_yt
       if ( dimensionality          == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "dimensionality" );
       if ( refine_by               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "refine_by" );
       if ( num_grids               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_grids" );
-      
       if ( num_fields              == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_fields" );
-      if ( grids_MPI == NULL && num_grids_local == INT_UNDEFINED )  YT_ABORT( "Either grids_MPI or num_grids_local should be set!\n");
       if ( field_labels            == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "field_labels");
+      if ( grids_MPI == NULL && num_grids_local == INT_UNDEFINED )  YT_ABORT( "Either grids_MPI or num_grids_local should be set!\n");
 
       return YT_SUCCESS;
-
    } // METHOD : validate
 
 

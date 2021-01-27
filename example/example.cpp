@@ -188,9 +188,9 @@ int main( int argc, char *argv[] )
       yt_add_user_parameter_double( "user_double3", 3,  user_double3 );
 
 
-
 //    ==========================================
-//    4. Get pointer to local grids array
+//    4. Get pointer to local grids array, 
+//       then set up local grids
 //    ==========================================
       yt_grid *libyt_grids;
       yt_get_gridsPtr(libyt_grids);
@@ -215,7 +215,6 @@ int main( int argc, char *argv[] )
          libyt_grids[gid].id             = gid;    // 0-indexed
          libyt_grids[gid].parent_id      = -1;     // 0-indexed (-1 for grids on the root level)
          libyt_grids[gid].level          = 0;      // 0-indexed
-         libyt_grids[gid].proc_num       = MPI_rank_array[gid]; // TODO: Cheating method XD
 
 //       in this example we arbitrarily set the field data of this grid
          for (int k=0; k<GRID_DIM; k++)
@@ -264,7 +263,6 @@ int main( int argc, char *argv[] )
          libyt_grids[gid].parent_id      = gid_refine;   // 0-indexed (-1 for grids on the root level)
          libyt_grids[gid].level          = 1;            // 0-indexed
          
-         libyt_grids[gid].proc_num       = MPI_rank_array[gid]; // TODO: Cheating method XD
 
 //       here we arbitrarily set the field data of this grid
          for (int k=0; k<GRID_DIM; k++)
@@ -300,8 +298,6 @@ int main( int argc, char *argv[] )
          }
 
 //       set other field parameters
-         libyt_grids[gid].num_fields   = num_fields;
-         libyt_grids[gid].field_labels = field_labels;
          libyt_grids[gid].field_ftype  = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
 
 //       *** libyt API ***
