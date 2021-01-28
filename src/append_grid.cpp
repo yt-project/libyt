@@ -1,81 +1,19 @@
 #include "yt_combo.h"
 #include "libyt.h"
 
-
-
-
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_add_grid
-// Description :  Add a single grid to the libyt Python module
+// Function    :  append_grid
+// Description :  Add a single full grid to the libyt Python module
 //
-// Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data
-//                2. Must call yt_set_parameter() in advance, which will set the total number of grids and
-//                   preallocate memory for NumPy arrays
+// Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data to python
+//                2. Called and use by yt_add_grids().
 //
-// Parameter   :  grid : Structure storing all information of a single grid
+// Parameter   :  yt_grid *grid
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_add_grid( yt_grid *grid )
-{
 
-// check if libyt has been initialized
-   if ( !g_param_libyt.libyt_initialized )
-      YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
-
-
-// check if YT parameters have been set
-   if ( !g_param_libyt.param_yt_set )
-      YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
-
-// check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
-   if ( !g_param_libyt.get_gridsPtr )
-      YT_ABORT( "Please invoke yt_get_gridsPtr() before calling %s()!\n", __FUNCTION__ );
-
-// check if all parameters have been set properly
-   if ( !grid->validate() )
-      YT_ABORT(  "Validating input grid [%ld] ... failed\n", grid->id );
-
-
-// additional checks that depend on input YT parameters
-// number of fields, although we merge appending num_fields in yt_get_gridsPtr,
-// the user might alter them unintentionally.
-   if ( grid->num_fields != g_param_yt.num_fields )
-      YT_ABORT( "Grid ID [%ld] number of fields = %ld, should be %ld!\n",
-                grid->id, grid->num_fields, g_param_yt.num_fields);
-
-// grid ID
-   if ( grid->id >= g_param_yt.num_grids )
-      YT_ABORT( "Grid ID [%ld] >= total number of grids [%ld]!\n",
-                grid->id, g_param_yt.num_grids );
-
-   if ( grid->parent_id >= g_param_yt.num_grids )
-      YT_ABORT( "Grid [%ld] parent ID [%ld] >= total number of grids [%ld]!\n",
-                grid->id, grid->parent_id, g_param_yt.num_grids );
-
-   if ( grid->level > 0  &&  grid->parent_id < 0 )
-      YT_ABORT( "Grid [%ld] parent ID [%ld] < 0 at level [%d]!\n",
-                grid->id, grid->parent_id, grid->level );
-
-// edge
-   for (int d=0; d<g_param_yt.dimensionality; d++)
-   {
-      if ( grid->left_edge[d] < g_param_yt.domain_left_edge[d] )
-         YT_ABORT( "Grid [%ld] left edge [%13.7e] < domain left edge [%13.7e] along the dimension [%d]!\n",
-                   grid->id, grid->left_edge[d], g_param_yt.domain_left_edge[d], d );
-
-      if ( grid->right_edge[d] > g_param_yt.domain_right_edge[d] )
-         YT_ABORT( "Grid [%ld] right edge [%13.7e] > domain right edge [%13.7e] along the dimension [%d]!\n",
-                   grid->id, grid->right_edge[d], g_param_yt.domain_right_edge[d], d );
-   }
-
-
-/*
-Step 1: gather the grid hierarchy
-Step 2: boardcast them
-Step 3: ....
- */
-
+int append_grid( yt_grid *grid ){
 
 // export grid info to libyt.hierarchy
    PyArrayObject *py_array_obj;
@@ -141,5 +79,4 @@ Step 3: ....
    log_debug( "Inserting grid [%15ld] data to libyt.hierarchy ... done\n", grid->id );
 
    return YT_SUCCESS;
-
-} // FUNCTION : yt_add_grid
+}

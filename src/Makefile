@@ -11,9 +11,9 @@
 # source files
 #######################################################################################################
 CC_FILE := yt_init.cpp  yt_finalize.cpp  yt_set_parameter.cpp  yt_inline.cpp  yt_add_user_parameter.cpp \
-           yt_add_grid.cpp yt_get_gridsPtr.cpp
+           yt_add_grids.cpp yt_get_gridsPtr.cpp
 CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp    \
-		   check_grid.cpp
+		   check_grids.cpp append_grid.cpp
 
 
 # library name

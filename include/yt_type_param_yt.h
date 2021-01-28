@@ -46,6 +46,7 @@ void log_debug( const char *Format, ... );
 //                num_grids_local         : Number of local grids in each rank
 //                field_labels            : field labels
 //                grids_local             : Ptr to full information of local grids
+//                field_ftype             : Floating-point type of "field_data" ==> YT_FLOAT or YT_DOUBLE
 //
 // Method      :  yt_param_yt : Constructor
 //               ~yt_param_yt : Destructor
@@ -80,11 +81,16 @@ struct yt_param_yt
    long   num_grids;
 
 // variable for later runtime usage, but will not load into YT
-   int    num_fields;
-   int   *grids_MPI;
-   int    num_grids_local;
+// Loaded by user
+   int         num_fields;
+   int        *grids_MPI;
+   int        num_grids_local;
+   char      **field_labels;
+   yt_ftype    field_ftype;
+
+// Loaded by libyt
    yt_grid *grids_local;
-   char **field_labels;
+   int     *num_grids_local_MPI;
 
    // TODO: Should also move field_ftype in yt_type_grid.h to here as well.
 
@@ -164,6 +170,9 @@ struct yt_param_yt
       grids_MPI               = NULL;
       num_grids_local         = INT_UNDEFINED;
       field_labels            = NULL;
+      grids_local             = NULL;
+      num_grids_local_MPI     = NULL;
+      field_ftype             = YT_FTYPE_UNKNOWN;
 
       return YT_SUCCESS;
 
@@ -211,6 +220,7 @@ struct yt_param_yt
       if ( num_fields              == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_fields" );
       if ( field_labels            == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "field_labels");
       if ( grids_MPI == NULL && num_grids_local == INT_UNDEFINED )  YT_ABORT( "Either grids_MPI or num_grids_local should be set!\n");
+      if ( field_ftype != YT_FLOAT  &&  field_ftype != YT_DOUBLE )  YT_ABORT( "Unknown \"%s\" == %d !\n", "field_ftype", field_ftype);
 
       return YT_SUCCESS;
    } // METHOD : validate
