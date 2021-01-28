@@ -8,10 +8,7 @@
 // Function    :  yt_get_gridsPtr
 // Description :  Get pointer of the array of struct yt_grid with length num_grids_local.
 //
-// Note        :  1. User should call this function after yt_set_parameter(), since we need grids_MPI or 
-//                   num_grids_local.
-//                2. Compute num_grids_local from grids_MPI if it doesn't exist. Should I take this part
-//                   to yt_param_yt.h?
+// Note        :  1. User should call this function after yt_set_parameter(), since we need num_grids_local.
 //
 // Parameter   :  yt_grid *grids_local : Initialize and store the grid structure array under this pointer
 //
@@ -33,22 +30,6 @@ int yt_get_gridsPtr( yt_grid * &grids_local )
    	int MyRank;
    	MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
 
-   	// TODO: Should I move this step to struct yt_param_yt
-	// If g_param_yt.num_grids_local is set, do nothing
-	if ( g_param_yt.num_grids_local != INT_UNDEFINED ) {
-	}
-
-	// If g_param_yt.num_grids_local not set, count num_grids_local through grids_MPI
-	else {
-		int num_grids_local = 0;
-		for ( int i = 0; i < g_param_yt.num_grids; i = i+1 ){
-			if ( g_param_yt.grids_MPI[i] == MyRank ) {
-				num_grids_local = num_grids_local + 1;
-			}
-		}
-		g_param_yt.num_grids_local = num_grids_local;
-	}
-
 	// Initialize the grids_local array.
 	// Set the value if overlapped with g_param_yt,
 	// and each fields data are set to NULL, so that we can check if user input the data
@@ -63,6 +44,8 @@ int yt_get_gridsPtr( yt_grid * &grids_local )
 		}
 	}
 
+	// Store the grids_local to g_param_yt
+	g_param_yt.grids_local = grids_local;
 	g_param_libyt.get_gridsPtr = true;
 
 	return YT_SUCCESS;

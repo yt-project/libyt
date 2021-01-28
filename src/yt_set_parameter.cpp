@@ -110,6 +110,10 @@ int yt_set_parameter( yt_param_yt *param_yt )
    if ( g_param_yt.num_grids_local != INT_UNDEFINED ) {
    }
    else {
+      
+      int MyRank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
+
       int num_grids_local = 0;
       for ( int i = 0; i < g_param_yt.num_grids; i = i+1 ){
          if ( g_param_yt.grids_MPI[i] == MyRank ) {
