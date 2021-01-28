@@ -24,6 +24,7 @@
 //                proc_num       : An array of MPI rank that the grid belongs
 //                id             : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
 //                parent_id      : Parent grid ID (0-indexed, -1 for grids on the root level)
+//                proc_num       : Process number, grid belong to which MPI rank
 //                num_fields     : Number of fields
 //                field_labels   : Name of each field (e.g., density, temperature, ...)
 //                field_data     : Pointer arrays pointing to the data of each field

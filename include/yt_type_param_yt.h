@@ -14,6 +14,7 @@
 
 // include relevant headers/prototypes
 #include "yt_macro.h"
+#include "yt_type_grid.h"
 void log_debug( const char *Format, ... );
 
 
@@ -44,6 +45,7 @@ void log_debug( const char *Format, ... );
 //                grids_MPI               : grids belongs to which MPI rank
 //                num_grids_local         : Number of local grids in each rank
 //                field_labels            : field labels
+//                grids_local             : Ptr to full information of local grids
 //
 // Method      :  yt_param_yt : Constructor
 //               ~yt_param_yt : Destructor
@@ -77,10 +79,11 @@ struct yt_param_yt
    int    refine_by;
    long   num_grids;
 
-// variable later use when adding and checking grids
+// variable for later runtime usage, but will not load into YT
    int    num_fields;
    int   *grids_MPI;
    int    num_grids_local;
+   yt_grid *grids_local;
    char **field_labels;
 
    // TODO: Should also move field_ftype in yt_type_grid.h to here as well.

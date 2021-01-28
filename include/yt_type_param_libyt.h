@@ -23,6 +23,7 @@
 //                [private] ==> Set and used by libyt internally
 //                libyt_initialized           : true ==> yt_init() has been called successfully
 //                param_yt_set                : true ==> yt_set_parameter() has been called successfully
+//                get_gridsPtr                : true ==> yt_get_gridsPtr() has been called successfully
 //                grid_hierarchy_set[x]       : true ==> grid[x] has been loaded into libyt hierarchy successfully
 //                grid_data_set[field_id * num_grids + x]  
 //                                            : true ==> field, grid[x] data has been loaded into libyt successfully,
@@ -44,6 +45,7 @@ struct yt_param_libyt
 // ===================================================================================
    bool  libyt_initialized;
    bool  param_yt_set;
+   bool  get_gridsPtr;
    bool *grid_hierarchy_set;
    bool *grid_data_set;
    long  counter;
@@ -66,6 +68,7 @@ struct yt_param_libyt
 
       libyt_initialized  = false;
       param_yt_set       = false;
+      get_gridsPtr       = false;
       grid_hierarchy_set = NULL;
       grid_data_set      = NULL;
       counter            = 0;

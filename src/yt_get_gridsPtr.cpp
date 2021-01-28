@@ -63,5 +63,7 @@ int yt_get_gridsPtr( yt_grid * &grids_local )
 		}
 	}
 
+	g_param_libyt.get_gridsPtr = true;
+
 	return YT_SUCCESS;
 }
