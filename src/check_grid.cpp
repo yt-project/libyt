@@ -3,7 +3,7 @@
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_check_grid.cpp
+// Function    :  check_grid.cpp
 // Description :  Check that all the grids are loaded.
 //
 // Note        :  1. Check that all the grids (the hierarchy) are set, every MPI rank need to do this.
@@ -16,6 +16,7 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 
+// TODO: Rewrite this part to match the new structure.
 int check_grid() {
 	
 	// Check that all the grids hierarchy are set.

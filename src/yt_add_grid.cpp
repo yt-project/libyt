@@ -28,6 +28,9 @@ int yt_add_grid( yt_grid *grid )
    if ( !g_param_libyt.param_yt_set )
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
 
+// check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
+   if ( !g_param_libyt.get_gridsPtr )
+      YT_ABORT( "Please invoke yt_get_gridsPtr() before calling %s()!\n", __FUNCTION__ );
 
 // check if all parameters have been set properly
    if ( !grid->validate() )
@@ -35,8 +38,8 @@ int yt_add_grid( yt_grid *grid )
 
 
 // additional checks that depend on input YT parameters
-// number of fields
-// TODO: This seems redundant, probably can merge appending num_fields into libyt.
+// number of fields, although we merge appending num_fields in yt_get_gridsPtr,
+// the user might alter them unintentionally.
    if ( grid->num_fields != g_param_yt.num_fields )
       YT_ABORT( "Grid ID [%ld] number of fields = %ld, should be %ld!\n",
                 grid->id, grid->num_fields, g_param_yt.num_fields);
@@ -67,9 +70,11 @@ int yt_add_grid( yt_grid *grid )
    }
 
 
-// check if this grid has been set previously
-   if ( g_param_libyt.grid_hierarchy_set[ grid->id ] == true )
-      YT_ABORT( "Grid [%ld] has been set already!\n", grid->id );
+/*
+Step 1: gather the grid hierarchy
+Step 2: boardcast them
+Step 3: ....
+ */
 
 
 // export grid info to libyt.hierarchy
