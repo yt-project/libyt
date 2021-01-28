@@ -37,7 +37,8 @@ int yt_inline()
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
 
 // check that all grids are set correctly
-   check_grid();
+// TODO: Maybe we can move this part to yt_add_grids()
+   check_grids();
 
 // execute YT script
    const int CallYT_CommandWidth = strlen( g_param_libyt.script ) + 13;   // 13 = ".yt_inline()" + '\0'
@@ -52,6 +53,7 @@ int yt_inline()
    free( CallYT );
 
 
+// TODO: Check the resources should be freed!!!
 // free resources to prepare for the next execution
    g_param_yt.init();
    g_param_libyt.param_yt_set = false;
@@ -59,8 +61,10 @@ int yt_inline()
    g_param_libyt.counter ++;
 
    delete [] g_param_libyt.grid_hierarchy_set;
+   delete [] g_param_libyt.grid_data_set;
    g_param_libyt.grid_hierarchy_set = NULL;
-
+   g_param_libyt.grid_data_set = NULL;
+   
    PyDict_Clear( g_py_grid_data  );
    PyDict_Clear( g_py_hierarchy  );
    PyDict_Clear( g_py_param_yt   );

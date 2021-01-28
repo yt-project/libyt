@@ -10,8 +10,9 @@
 //
 // Note        :  1. Store yt relavent data in input "param_yt" to libyt.param_yt, not all the data are
 //                   passed in.
-//                2. Check the validaty of the data in param_yt.
 //                2. Should be called after yt_init().
+//                3. Check the validaty of the data in param_yt.
+//                4. Organize and generate other information, for later runtime usage.
 //
 // Parameter   :  param_yt : Structure storing YT-specific parameters that will later pass to YT, and
 //                           other relavent data.
@@ -104,6 +105,32 @@ int yt_set_parameter( yt_param_yt *param_yt )
       YT_ABORT(  "Allocating libyt.hierarchy ... failed!\n" );
 
 
+// Organize other information, for later runtime usage
+   // Make sure g_param_yt.num_grids_local is set, otherwise count from grids_MPI
+   if ( g_param_yt.num_grids_local != INT_UNDEFINED ) {
+   }
+   else {
+      int num_grids_local = 0;
+      for ( int i = 0; i < g_param_yt.num_grids; i = i+1 ){
+         if ( g_param_yt.grids_MPI[i] == MyRank ) {
+            num_grids_local = num_grids_local + 1;
+         }
+      }
+      g_param_yt.num_grids_local = num_grids_local;
+   }
+
+   // Gather num_grids_local in every rank, either from grids_MPI or with "MPI_Gather"
+   // We need num_grids_local_MPI in MPI_Gatherv in yt_add_grids()
+   int NRank;
+   int RootRank = 0;
+   MPI_Comm_size(MPI_COMM_WORLD, &NRank);
+   int *num_grids_local_MPI = new int [NRank];
+   g_param_yt.num_grids_local_MPI = num_grids_local_MPI;
+
+   MPI_Gather(&(g_param_yt.num_grids_local), 1, MPI_INT, num_grids_local_MPI, 1, MPI_INT, RootRank, MPI_COMM_WORLD);
+   MPI_Bcast(num_grids_local_MPI, NRank, MPI_INT, RootRank, MPI_COMM_WORLD);
+
+// If the above all works like charm.
    g_param_libyt.param_yt_set = true;
 
    return YT_SUCCESS;
