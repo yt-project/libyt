@@ -21,7 +21,6 @@
 //                right_edge     : Grid right edge in code units
 //                particle_count : Nunber of particles in this grid
 //                level          : AMR level (0 for the root level)
-//                proc_num       : An array of MPI rank that the grid belongs
 //                id             : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
 //                parent_id      : Parent grid ID (0-indexed, -1 for grids on the root level)
 //                proc_num       : Process number, grid belong to which MPI rank
@@ -113,7 +112,7 @@ struct yt_grid
    //
    // Note        :  1. This function does not perform checks that depend on the input
    //                   YT parameters (e.g., whether left_edge lies within the simulation domain)
-   //                   ==> These checks are performed in yt_add_grid()
+   //                   ==> These checks are performed in yt_add_grids()
    //
    // Parameter   :  None
    //
@@ -123,6 +122,7 @@ struct yt_grid
    {
 
       for (int d=0; d<3; d++) {
+      // TODO: Is it necessarly d is 0 ~ 3
       if ( left_edge [d]  == FLT_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid [%ld]!\n", "left_edge",  d,  id );
       if ( right_edge[d]  == FLT_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid [%ld]!\n", "right_edge", d,  id ); }
 

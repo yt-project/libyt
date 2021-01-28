@@ -33,7 +33,7 @@ int yt_add_user_parameter_ulong ( const char *key, const int n, const ulong  *in
 int yt_add_user_parameter_float ( const char *key, const int n, const float  *input );
 int yt_add_user_parameter_double( const char *key, const int n, const double *input );
 int yt_add_user_parameter_string( const char *key,              const char   *input );
-int yt_add_grid( yt_grid *grid );
+int yt_add_grids();
 int yt_inline();
 
 #ifdef __cplusplus

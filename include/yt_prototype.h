@@ -14,7 +14,8 @@ int  create_libyt_module();
 int  init_python( int argc, char *argv[] );
 int  init_libyt_module();
 int  allocate_hierarchy();
-int  check_grid();
+int append_grid( yt_grid *grid );
+int  check_grids();
 #ifndef NO_PYTHON
 template <typename T>
 int  add_dict_scalar( PyObject *dict, const char *key, const T value );
