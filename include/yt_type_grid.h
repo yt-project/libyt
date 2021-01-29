@@ -123,20 +123,20 @@ struct yt_grid
 
       for (int d=0; d<3; d++) {
       // TODO: Is it necessarly d is 0 ~ 3
-      if ( left_edge [d]  == FLT_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid [%ld]!\n", "left_edge",  d,  id );
-      if ( right_edge[d]  == FLT_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid [%ld]!\n", "right_edge", d,  id ); }
+      if ( left_edge [d]  == FLT_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "left_edge",  d,  id );
+      if ( right_edge[d]  == FLT_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "right_edge", d,  id ); }
 
       for (int d=0; d<3; d++) {
-      if ( dimensions[d]  == INT_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid [%ld]!\n", "dimensions", d,  id ); }
-      if ( particle_count == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "particle_count", id );
-      if ( id             == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "id",             id );
-      if ( parent_id      == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "parent_id",      id );
-      if ( level          == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "level",          id );
-      if ( proc_num       == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "proc_num",       id );
-      if ( num_fields     == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "num_fields",     id );
-      if ( field_labels   == NULL             )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "field_labels",   id );
-      if ( field_data     == NULL             )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "field_data",     id );
-      if ( field_ftype    == YT_FTYPE_UNKNOWN )   YT_ABORT(     "\"%s\" has not been set for grid [%ld]!\n", "field_ftype",    id );
+      if ( dimensions[d]  == INT_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "dimensions", d,  id ); }
+      if ( particle_count == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "particle_count", id );
+      if ( id             == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "id",             id );
+      if ( parent_id      == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "parent_id",      id );
+      if ( level          == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "level",          id );
+      if ( proc_num       == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "proc_num",       id );
+      if ( num_fields     == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "num_fields",     id );
+      if ( field_labels   == NULL             )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "field_labels",   id );
+      if ( field_data     == NULL             )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "field_data",     id );
+      if ( field_ftype    == YT_FTYPE_UNKNOWN )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "field_ftype",    id );
 
 //    additional checks
       for (int d=0; d<3; d++) {

@@ -31,14 +31,18 @@ int yt_inline()
    else
       YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
 
-
 // check if YT parameters have been set
    if ( !g_param_libyt.param_yt_set )
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
 
+// TODO: add check points
+
+// TODO: Not sure if we need this MPI_Barrier
+   MPI_Barrier(MPI_COMM_WORLD);
+
 // check that all grids are set correctly
 // TODO: Maybe we can move this part to yt_add_grids()
-   check_grids();
+   // check_grids();
 
 // execute YT script
    const int CallYT_CommandWidth = strlen( g_param_libyt.script ) + 13;   // 13 = ".yt_inline()" + '\0'

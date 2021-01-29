@@ -66,7 +66,7 @@ int yt_add_grids()
 
       // check if all parameters have been set properly
       if ( !(grid.validate()) )
-         YT_ABORT(  "Validating input grid [%ld] ... failed\n", grid.id );
+         YT_ABORT(  "Validating input grid ID [%ld] ... failed\n", grid.id );
 
       // additional checks that depend on input YT parameters
       // number of fields, although we merge appending num_fields in yt_get_gridsPtr,
@@ -149,14 +149,17 @@ int yt_add_grids()
 // free offsets at the end, since we need this when appending grids to YT!
    int *recv_counts = new int [NRank]; 
    int *offsets = new int [NRank];
-   memset(offsets, 0, NRank);
       
    for (int i = 0; i < NRank; i = i+1){
       recv_counts[i] = g_param_yt.num_grids_local_MPI[i];
+      offsets[i] = 0;
       for (int j = 0; j < i; j = j+1){
          offsets[i] = offsets[i] + recv_counts[j];
       }
    }
+
+// TODO: Not sure if we need this MPI_Barrier
+   MPI_Barrier(MPI_COMM_WORLD);
 
    MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type, 
                hierarchy_full, recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
@@ -164,11 +167,11 @@ int yt_add_grids()
 // TODO: Should check if every rank needs hierarchy in YT, if yes, this is redundant
    MPI_Bcast(hierarchy_full, g_param_yt.num_grids, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
    
-// We don't need them at all
-   delete [] lengths;
-   delete [] displacements;
-   delete [] hierarchy_local;
-   delete [] recv_counts;
+// // We don't need them at all
+//    delete [] lengths;
+//    delete [] displacements;
+//    delete [] hierarchy_local;
+//    delete [] recv_counts;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // check grids consistency between grids, when we have "all" the grids
@@ -211,6 +214,27 @@ int yt_add_grids()
       else {
          grid_combine.field_data   = NULL;
       }
+
+      // DEBUG
+      printf("#FLAG\n");
+      printf("i = %d, hierarchy_full[num_grids]\n", i);
+      printf("left_edge[0], left_edge[1], left_edge[2] = %lf, %lf, %lf\n", hierarchy_full[i].left_edge[0], hierarchy_full[i].left_edge[1], hierarchy_full[i].left_edge[2]);
+      printf("right_edge[0], right_edge[1], right_edge[2] = %lf, %lf, %lf\n", hierarchy_full[i].right_edge[0], hierarchy_full[i].right_edge[1], hierarchy_full[i].right_edge[2]);
+      printf("dimensions[0], dimensions[1], dimensions[2] = %d, %d, %d\n", hierarchy_full[i].dimensions[0], hierarchy_full[i].dimensions[1], hierarchy_full[i].dimensions[2]);
+      printf("particle_count = %ld\n", hierarchy_full[i].particle_count);
+      printf("id = %ld\n", hierarchy_full[i].id);
+      printf("parent_id = %ld\n", hierarchy_full[i].parent_id);
+      printf("level = %d\n", hierarchy_full[i].level);
+      printf("proc_num = %d\n", hierarchy_full[i].proc_num);
+
+      printf("grid_combine.num_fields = %d\n", grid_combine.num_fields);
+      printf("grid_combine.field_ftype = %d\n", grid_combine.field_ftype);
+      printf("grid_combine.field_labels = ");
+      for (int ni = 0; ni < g_param_yt.num_fields; ni = ni + 1){
+         printf("%s ", grid_combine.field_labels[ni]);
+      }
+      printf("\n");
+      printf("grid_combine.field_data = %p\n", grid_combine.field_data);
 
       // Append grid to YT
       append_grid(&grid_combine);
