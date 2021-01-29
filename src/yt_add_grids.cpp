@@ -209,10 +209,15 @@ int yt_add_grids()
       
       // From g_param_yt.grids_local
       if ( start_block <= i && i < end_block ) {
+         // Get the pointer to data from grids_local
          grid_combine.field_data   = g_param_yt.grids_local[i - start_block].field_data;
       }
       else {
-         grid_combine.field_data   = NULL;
+         // Append each field, and make them points to NULL
+         grid_combine.field_data = new void* [g_param_yt.num_fields];
+         for ( int v = 0; v < g_param_yt.num_fields; v = v+1 ) {
+            grid_combine.field_data[v]   = NULL;
+         }
       }
 
       // DEBUG

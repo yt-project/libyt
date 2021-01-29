@@ -40,7 +40,7 @@ int append_grid( yt_grid *grid ){
    FILL_ARRAY( "proc_num",            &grid->proc_num,       1, npy_int    );
    log_debug( "Inserting grid [%15ld] info to libyt.hierarchy ... done\n", grid->id );
 
-// Append data if ptr is not NULL, which means this rank contain data
+// Append if ptr is not NULL, since it reaches error if ptr = NULL
    if ( grid->field_data != NULL ){
    // record that the grid hierarchy for "grid->id" has been set successfully
       g_param_libyt.grid_hierarchy_set[ grid->id ] = true;
@@ -78,7 +78,7 @@ int append_grid( yt_grid *grid ){
       Py_DECREF( py_field_labels );
 
       log_debug( "Inserting grid [%15ld] data to libyt.hierarchy ... done\n", grid->id );
-      
+
    }
 
    return YT_SUCCESS;
