@@ -40,43 +40,46 @@ int append_grid( yt_grid *grid ){
    FILL_ARRAY( "proc_num",            &grid->proc_num,       1, npy_int    );
    log_debug( "Inserting grid [%15ld] info to libyt.hierarchy ... done\n", grid->id );
 
-// record that the grid hierarchy for "grid->id" has been set successfully
-   g_param_libyt.grid_hierarchy_set[ grid->id ] = true;
+// Append data if ptr is not NULL, which means this rank contain data
+   if ( grid->field_data != NULL ){
+   // record that the grid hierarchy for "grid->id" has been set successfully
+      g_param_libyt.grid_hierarchy_set[ grid->id ] = true;
 
+   // export grid data to libyt.grid_data as "libyt.grid_data[grid_id][field_label][field_data]"
+      int      grid_ftype   = (grid->field_ftype == YT_FLOAT ) ? NPY_FLOAT : NPY_DOUBLE;
+      npy_intp grid_dims[3] = { grid->dimensions[0], grid->dimensions[1], grid->dimensions[2] };
+      PyObject *py_grid_id, *py_field_labels, *py_field_data;
 
-// export grid data to libyt.grid_data as "libyt.grid_data[grid_id][field_label][field_data]"
-   int      grid_ftype   = (grid->field_ftype == YT_FLOAT ) ? NPY_FLOAT : NPY_DOUBLE;
-   npy_intp grid_dims[3] = { grid->dimensions[0], grid->dimensions[1], grid->dimensions[2] };
-   PyObject *py_grid_id, *py_field_labels, *py_field_data;
+   // allocate [grid_id][field_label]
+      py_grid_id      = PyLong_FromLong( grid->id );
+      py_field_labels = PyDict_New();
 
-// allocate [grid_id][field_label]
-   py_grid_id      = PyLong_FromLong( grid->id );
-   py_field_labels = PyDict_New();
+      PyDict_SetItem( g_py_grid_data, py_grid_id, py_field_labels );
 
-   PyDict_SetItem( g_py_grid_data, py_grid_id, py_field_labels );
+   // fill [grid_id][field_label][field_data]
+      for (int v=0; v<grid->num_fields; v++)
+      {
+   //    PyArray_SimpleNewFromData simply creates an array wrapper and does note allocate and own the array
+         py_field_data = PyArray_SimpleNewFromData( 3, grid_dims, grid_ftype, grid->field_data[v] );
 
-// fill [grid_id][field_label][field_data]
-   for (int v=0; v<grid->num_fields; v++)
-   {
-//    PyArray_SimpleNewFromData simply creates an array wrapper and does note allocate and own the array
-      py_field_data = PyArray_SimpleNewFromData( 3, grid_dims, grid_ftype, grid->field_data[v] );
+   //    add the field data to "libyt.grid_data[grid_id][field_label]"
+         PyDict_SetItemString( py_field_labels, grid->field_labels[v], py_field_data );
 
-//    add the field data to "libyt.grid_data[grid_id][field_label]"
-      PyDict_SetItemString( py_field_labels, grid->field_labels[v], py_field_data );
+   //    call decref since PyDict_SetItemString() returns a new reference
+         Py_DECREF( py_field_data );
 
-//    call decref since PyDict_SetItemString() returns a new reference
-      Py_DECREF( py_field_data );
-
-      if ( grid->field_data[v] != NULL ) {
-         g_param_libyt.grid_data_set[v*g_param_yt.num_grids+grid->id] = true;
+         if ( grid->field_data[v] != NULL ) {
+            g_param_libyt.grid_data_set[v*g_param_yt.num_grids+grid->id] = true;
+         }
       }
+
+   // call decref since both PyLong_FromLong() and PyDict_New() return a new reference
+      Py_DECREF( py_grid_id );
+      Py_DECREF( py_field_labels );
+
+      log_debug( "Inserting grid [%15ld] data to libyt.hierarchy ... done\n", grid->id );
+      
    }
-
-// call decref since both PyLong_FromLong() and PyDict_New() return a new reference
-   Py_DECREF( py_grid_id );
-   Py_DECREF( py_field_labels );
-
-   log_debug( "Inserting grid [%15ld] data to libyt.hierarchy ... done\n", grid->id );
 
    return YT_SUCCESS;
 }

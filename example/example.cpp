@@ -4,7 +4,9 @@ yt python package with OpenMPI.
 
 1. Assign grids to one MPI rank
 2. Pass the grid to yt when that grid belongs to the MPI rank
-3. Each MPI rank will pass hierarchy to yt
+3. Each MPI rank will only pass "its" hierarchy to yt
+   ---> Here, we calculate all the grids (libyt_grids) first, 
+        then distribute them to grids_local, to simulate the working process.
 
 And also, to illustrates the basic usage of libyt.
 In steps 0 - 6.
@@ -136,6 +138,7 @@ int main( int argc, char *argv[] )
       param_yt.num_fields              = num_fields;
       param_yt.grids_MPI               = MPI_rank_array;
       param_yt.field_labels            = (char **)field_labels;
+      param_yt.field_ftype             = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
 
       for (int d=0; d<3; d++)
       {
@@ -192,9 +195,13 @@ int main( int argc, char *argv[] )
 //    4. Get pointer to local grids array, 
 //       then set up local grids
 //    ==========================================
-      yt_grid *libyt_grids;
-      yt_get_gridsPtr(libyt_grids);
-      
+      yt_grid *grids_local;
+      yt_get_gridsPtr( grids_local );
+
+//    Here, we calculate all the grids (libyt_grids) first, 
+//    then distribute them to grids_local, to simulate the working process.
+      yt_grid *libyt_grids = new yt_grid [param_yt.num_grids];
+
 //    set level-0 grids
       int grid_order[3];
       for (grid_order[2]=0; grid_order[2]<NGRID_1D; grid_order[2]++)
@@ -215,6 +222,7 @@ int main( int argc, char *argv[] )
          libyt_grids[gid].id             = gid;    // 0-indexed
          libyt_grids[gid].parent_id      = -1;     // 0-indexed (-1 for grids on the root level)
          libyt_grids[gid].level          = 0;      // 0-indexed
+         libyt_grids[gid].proc_num       = myrank;
 
 //       in this example we arbitrarily set the field data of this grid
          for (int k=0; k<GRID_DIM; k++)
@@ -262,6 +270,7 @@ int main( int argc, char *argv[] )
          libyt_grids[gid].id             = gid;          // 0-indexed
          libyt_grids[gid].parent_id      = gid_refine;   // 0-indexed (-1 for grids on the root level)
          libyt_grids[gid].level          = 1;            // 0-indexed
+         libyt_grids[gid].proc_num       = myrank;
          
 
 //       here we arbitrarily set the field data of this grid
@@ -283,7 +292,9 @@ int main( int argc, char *argv[] )
 //    set general grid attributes and invoke inline analysis
       for (int gid=0; gid<param_yt.num_grids; gid++)
       {
+         // DEBUG:
          printf("Myrank = %d, NRank = %d, gid = %d\n", myrank, nrank, gid);
+         libyt_grids[gid].field_data = new void* [num_fields];
 
          if (MPI_rank_array[gid] == myrank){
             for (int v=0; v<num_fields; v++){
@@ -300,18 +311,42 @@ int main( int argc, char *argv[] )
 //       set other field parameters
          libyt_grids[gid].field_ftype  = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
 
-//       *** libyt API ***
-         if ( yt_add_grid( &libyt_grids[gid] ) != YT_SUCCESS )
-         {
-            fprintf( stderr, "ERROR: yt_add_grid() failed!\n" );
-            exit( EXIT_FAILURE );
-         }
       } // for (int gid=0; gid<param_yt.num_grids; gid++) 
-      
-//    Wait till every rank has done loading the grid
-      MPI_Barrier(MPI_COMM_WORLD);
 
 
+//    distribute libyt_grids to grids_local
+      int index_local = 0;
+      for (int gid = 0; gid < param_yt.num_grids; gid = gid + 1){
+
+         if (MPI_rank_array[gid] == myrank) {
+            // DEBUG:
+            printf("appending grid id = %d\n", gid);
+
+            for (int d = 0; d < param_yt.dimensionality; d = d+1) {
+               grids_local[index_local].left_edge[d]  = libyt_grids[gid].left_edge[d];
+               grids_local[index_local].right_edge[d] = libyt_grids[gid].right_edge[d];
+               grids_local[index_local].dimensions[d] = libyt_grids[gid].dimensions[d];
+            }
+            grids_local[index_local].particle_count = libyt_grids[gid].particle_count;
+            grids_local[index_local].id             = libyt_grids[gid].id;
+            grids_local[index_local].parent_id      = libyt_grids[gid].parent_id;
+            grids_local[index_local].level          = libyt_grids[gid].level;
+            // grids_local[index_local].proc_num       = libyt_grids[gid].proc_num;
+            // grids_local[index_local].num_fields     = libyt_grids[gid].num_fields;
+            // grids_local[index_local].field_labels   = libyt_grids[gid].field_labels;      
+            grids_local[index_local].field_ftype    = libyt_grids[gid].field_ftype;
+            grids_local[index_local].field_data     = libyt_grids[gid].field_data;
+
+            index_local = index_local + 1;
+         }
+
+      }
+
+//       *** libyt API ***
+      if ( yt_add_grids() != YT_SUCCESS ) {
+         fprintf( stderr, "ERROR: yt_add_grids() failed!\n" );
+         exit( EXIT_FAILURE );
+      }
 
 
 //    ==========================================
