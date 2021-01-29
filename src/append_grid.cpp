@@ -70,14 +70,13 @@ int append_grid( yt_grid *grid ){
 
          if ( grid->field_data[v] != NULL ) {
             g_param_libyt.grid_data_set[v*g_param_yt.num_grids+grid->id] = true;
+            log_debug( "Inserting grid [%15ld] data to libyt.hierarchy ... done\n", grid->id );
          }
       }
 
    // call decref since both PyLong_FromLong() and PyDict_New() return a new reference
       Py_DECREF( py_grid_id );
       Py_DECREF( py_field_labels );
-
-      log_debug( "Inserting grid [%15ld] data to libyt.hierarchy ... done\n", grid->id );
 
    }
 
