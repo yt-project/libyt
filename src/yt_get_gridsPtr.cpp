@@ -35,6 +35,7 @@ int yt_get_gridsPtr( yt_grid * &grids_local )
 	// and each fields data are set to NULL, so that we can check if user input the data
 	grids_local = new yt_grid [g_param_yt.num_grids_local];
 	for ( int id = 0; id < g_param_yt.num_grids_local; id = id+1 ){
+		// TODO: Some of them might seems redundant, c.f yt_add_grids() ex: g_param_yt.num_fields
 		grids_local[id].proc_num = MyRank;
 		grids_local[id].num_fields = g_param_yt.num_fields;
 		grids_local[id].field_labels = (const char **) g_param_yt.field_labels;
