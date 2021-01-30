@@ -61,8 +61,6 @@ int main( int argc, char *argv[] )
 // libyt runtime parameters
    yt_param_libyt param_libyt;
 
-   printf("MPI rank = %d, &param_libyt = %p\n", myrank, &param_libyt);
-
 // verbose level
 // param_libyt.verbose = YT_VERBOSE_OFF;
 // param_libyt.verbose = YT_VERBOSE_INFO;
@@ -160,7 +158,6 @@ int main( int argc, char *argv[] )
          fprintf( stderr, "ERROR: yt_set_parameter() failed!\n" );
          exit( EXIT_FAILURE );
       }
-
 
 
 //    ==========================================
@@ -292,8 +289,6 @@ int main( int argc, char *argv[] )
 //    set general grid attributes and invoke inline analysis
       for (int gid=0; gid<param_yt.num_grids; gid++)
       {
-         // DEBUG:
-         printf("Myrank = %d, NRank = %d, gid = %d\n", myrank, nrank, gid);
          libyt_grids[gid].field_data = new void* [num_fields];
 
          if (MPI_rank_array[gid] == myrank){
@@ -319,8 +314,6 @@ int main( int argc, char *argv[] )
       for (int gid = 0; gid < param_yt.num_grids; gid = gid + 1){
 
          if (MPI_rank_array[gid] == myrank) {
-            // DEBUG:
-            printf("appending grid id = %d\n", gid);
 
             for (int d = 0; d < param_yt.dimensionality; d = d+1) {
                grids_local[index_local].left_edge[d]  = libyt_grids[gid].left_edge[d];
