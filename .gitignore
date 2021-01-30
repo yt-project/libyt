@@ -1,6 +1,6 @@
 *.o
 *.pyc
-libyt.so.1.*
+libyt.so*
 example/example
 .idea/
 *.png
