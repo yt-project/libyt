@@ -105,7 +105,7 @@ int main( int argc, char *argv[] )
 // record MPI rank in each grids
    MPI_rank_array = (int *) malloc(num_grids * sizeof(int));
 
-// TODO: I did this in a cheating way. Assign grid to MPI rank first.
+// I did this in a cheating way. Assign grid to MPI rank first.
    for (int gid = 0; gid < num_grids; gid = gid+1){
       if( gid / (num_grids / nrank) < nrank ) {
          MPI_rank_array[gid] = gid / (num_grids / nrank);
@@ -298,7 +298,7 @@ int main( int argc, char *argv[] )
          }
          else {
             for (int v=0; v<num_fields; v++){
-               // TODO: if no data, set it as NULL, so that libyt can check if data is set.
+               // if no data, set it as NULL, so we can make sure each rank contains its own grids only
                libyt_grids[gid].field_data[v] = NULL;
             }
          }
@@ -335,7 +335,7 @@ int main( int argc, char *argv[] )
 
       }
 
-//       *** libyt API ***
+//    *** libyt API ***
       if ( yt_add_grids() != YT_SUCCESS ) {
          fprintf( stderr, "ERROR: yt_add_grids() failed!\n" );
          exit( EXIT_FAILURE );
