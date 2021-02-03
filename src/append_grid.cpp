@@ -42,6 +42,7 @@ int append_grid( yt_grid *grid ){
 
 // Append if ptr is not NULL, since it reaches error if ptr = NULL
    if ( grid->field_data != NULL ){
+      
    // record that the grid hierarchy for "grid->id" has been set successfully
       g_param_libyt.grid_hierarchy_set[ grid->id ] = true;
 

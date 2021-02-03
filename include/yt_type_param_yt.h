@@ -94,8 +94,6 @@ struct yt_param_yt
    yt_grid *grids_local;
    int     *num_grids_local_MPI;
 
-   // TODO: Should also move field_ftype in yt_type_grid.h to here as well.
-
    //===================================================================================
    // Method      :  yt_param_yt
    // Description :  Constructor of the structure "yt_param_yt"

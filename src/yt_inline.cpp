@@ -43,12 +43,8 @@ int yt_inline()
    if ( !g_param_libyt.add_grids )
       YT_ABORT( "Please invoke yt_add_grids() before calling %s()!\n", __FUNCTION__ );
 
-// TODO: Not sure if we need this MPI_Barrier
+// Not sure if we need this MPI_Barrier
    MPI_Barrier(MPI_COMM_WORLD);
-
-// check that all grids are set correctly
-// TODO: Maybe we can move this part to yt_add_grids()
-   // check_grids();
 
 // execute YT script
    const int CallYT_CommandWidth = strlen( g_param_libyt.script ) + 13;   // 13 = ".yt_inline()" + '\0'
