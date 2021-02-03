@@ -4,19 +4,16 @@
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  check_grids.cpp
-// Description :  Check that all the grids are loaded.
+// Description :  Check that we have all the grids data, and that they are loaded.
 //
-// Note        :  1. Check that all the grids (the hierarchy) are set, every MPI rank need to do this.
-// 				  2. Check that the hierarchy is correct.
-// 				  3. Use inside yt_inline(), before perform yt operation "def yt_inline():"
+// Note        :  1. Check that all the grids are loaded into YT, every MPI rank need to do this.
+// 				  2. Use inside yt_add_grids(), before perform yt operation "def yt_inline():"
 // 				  
-//
 // Parameter   :
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 
-// TODO: Rewrite this part to match the new structure.
 int check_grids() {
 	
 	// Check that all the grids hierarchy are set.
@@ -71,11 +68,8 @@ int check_grids() {
 		}
 	}
 
+	// Free resource
 	delete [] collected_grid_data_set;
-	
-	// TODO: Not yet done
-	// Check that the hierarchy relationship are correct.
-	// 		notes: there are already some check depends on YT parameter in yt_add_grids() . 
 
 	return YT_SUCCESS;
 }

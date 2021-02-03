@@ -1,44 +1,16 @@
 #include "yt_combo.h"
 #include "libyt.h"
 
-//-------------------------------------------------------------------------------------------------------
-// Structure   :  yt_hierarchy
-// Description :  Data structure for pass struct data in MPI process, it is meant to be temperary.
-//
-// Data Member :  dimensions     : Number of cells along each direction
-//                left_edge      : Grid left  edge in code units
-//                right_edge     : Grid right edge in code units
-//                particle_count : Nunber of particles in this grid
-//                level          : AMR level (0 for the root level)
-//                proc_num       : An array of MPI rank that the grid belongs
-//                id             : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
-//                parent_id      : Parent grid ID (0-indexed, -1 for grids on the root level)
-//                proc_num       : Process number, grid belong to which MPI rank
-//-------------------------------------------------------------------------------------------------------
-typedef struct yt_hierarchy{
-      double left_edge[3];
-      double right_edge[3];
-
-      long   particle_count;
-      long   id;
-      long   parent_id;
-
-      int    dimensions[3];
-      int    level;
-      int    proc_num;
-};
-
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_add_grids
-// Description :  Add a single grid to the libyt Python module
+// Description :  Add local grids to the libyt Python module
 //
 // Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data to python
-//                2. Must call yt_set_parameter() in advance, which will set the total number of grids and
-//                   preallocate memory for NumPy arrays.
+//                2. Must call yt_set_parameter() in advance, which will  preallocate memory for NumPy arrays.
 //                3. Must call yt_get_gridsPtr() in advance, so that g_param_yt knows the grids_local array
 //                   pointer.
-//                4. Pass the grid to YT in function append_grid()
+//                4. Pass the grids and hierarchy to YT in function append_grid()
 //
 // Parameter   :
 //
@@ -160,16 +132,25 @@ int yt_add_grids()
 // Not sure if we need this MPI_Barrier
    MPI_Barrier(MPI_COMM_WORLD);
 
+// Gather all the grids hierarchy
    MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type, 
                hierarchy_full, recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
 
+// Check that the hierarchy are correct, do the test on RootRank only
+   if ( MyRank == RootRank ){
+      if ( check_hierarchy( hierarchy_full ) == YT_SUCCESS ) {
+         log_debug("Validating the parent-children relationship ... done!\n");
+      }
+      else{
+         YT_ABORT("Validating the parent-children relationship ... failed!")
+      }
+   }
+
+// Not sure if we need this MPI_Barrier
+   MPI_Barrier(MPI_COMM_WORLD);
+
 // We pass hierarchy to each rank as well
    MPI_Bcast(hierarchy_full, g_param_yt.num_grids, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-// check grids consistency between grids, when we have "all" the grids
-// TODO: After I finish the add grids precedure
-   // check_grids();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // append grid to YT
@@ -214,6 +195,17 @@ int yt_add_grids()
 
       // Append grid to YT
       append_grid( &grid_combine );
+   }
+
+   MPI_Barrier( MPI_COMM_WORLD );
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// check we have all the grids data, when we have loaded all the grids
+   if ( check_grids() == YT_SUCCESS ){
+      log_debug( "Append grids to libyt.grid_data ... done!\n" );
+   }
+   else{
+      YT_ABORT(  "Append grids to libyt.grid_data ... failed!\n")
    }
 
    // Freed resource 

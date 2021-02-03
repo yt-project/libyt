@@ -15,6 +15,7 @@ int  init_python( int argc, char *argv[] );
 int  init_libyt_module();
 int  allocate_hierarchy();
 int append_grid( yt_grid *grid );
+int check_hierarchy(yt_hierarchy * &hierarchy);
 int  check_grids();
 #ifndef NO_PYTHON
 template <typename T>
