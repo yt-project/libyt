@@ -22,12 +22,14 @@ void log_debug( const char *Format, ... );
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_param_yt
 // Description :  Data structure to store YT-specific parameters (e.g., *Dataset.periodicity)
+// 
+// Notes       :  1. We assume that each element in array_name[3] are all in use.
 //
 // Data Member :  frontend                : Name of the target simulation code
 //                fig_basename            : Base name of the output figures
 //                domain_left_edge        : Simulation left edge in code units
 //                domain_right_edge       : Simulation right edge in code units
-//                dimensionality          : Dimensionality (1/2/3)
+//                dimensionality          : Dimensionality (1/2/3), this has nothing to do with array.
 //                domain_dimensions       : Number of cells along each dimension on the root AMR level
 //                periodicity             : Periodicity along each dimension (0/1 ==> No/Yes)
 //                current_time            : Simulation time in code units

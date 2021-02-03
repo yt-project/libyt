@@ -35,7 +35,13 @@ int yt_inline()
    if ( !g_param_libyt.param_yt_set )
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
 
-// TODO: add check points
+// check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
+   if ( !g_param_libyt.get_gridsPtr )
+      YT_ABORT( "Please invoke yt_get_gridsPtr() before calling %s()!\n", __FUNCTION__ );
+
+// check if user has call yt_add_grids(), so that grids are appended to YT.
+   if ( !g_param_libyt.add_grids )
+      YT_ABORT( "Please invoke yt_add_grids() before calling %s()!\n", __FUNCTION__ );
 
 // TODO: Not sure if we need this MPI_Barrier
    MPI_Barrier(MPI_COMM_WORLD);

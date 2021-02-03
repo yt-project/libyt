@@ -47,7 +47,9 @@ int yt_get_gridsPtr( yt_grid * &grids_local )
 
 	// Store the grids_local to g_param_yt
 	g_param_yt.grids_local = grids_local;
-	g_param_libyt.get_gridsPtr = true;
 
+	// Above all works like charm
+	g_param_libyt.get_gridsPtr = true;
+	
 	return YT_SUCCESS;
 }

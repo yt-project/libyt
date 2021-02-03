@@ -15,6 +15,8 @@
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_grid
 // Description :  Data structure to store a full single grid with data pointer
+// 
+// Notes       :  1. We assume that each element in array_name[3] are all in use.
 //
 // Data Member :  dimensions     : Number of cells along each direction
 //                left_edge      : Grid left  edge in code units
@@ -122,7 +124,6 @@ struct yt_grid
    {
 
       for (int d=0; d<3; d++) {
-      // TODO: Is it necessarly d is 0 ~ 3
       if ( left_edge [d]  == FLT_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "left_edge",  d,  id );
       if ( right_edge[d]  == FLT_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "right_edge", d,  id ); }
 

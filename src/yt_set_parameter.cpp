@@ -123,7 +123,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
       g_param_yt.num_grids_local = num_grids_local;
    }
 
-   // Gather num_grids_local in every rank, either from grids_MPI or with "MPI_Gather"
+   // Gather num_grids_local in every rank and store at num_grids_local_MPI, with "MPI_Gather"
    // We need num_grids_local_MPI in MPI_Gatherv in yt_add_grids()
    int NRank;
    int RootRank = 0;
@@ -133,6 +133,15 @@ int yt_set_parameter( yt_param_yt *param_yt )
 
    MPI_Gather(&(g_param_yt.num_grids_local), 1, MPI_INT, num_grids_local_MPI, 1, MPI_INT, RootRank, MPI_COMM_WORLD);
    MPI_Bcast(num_grids_local_MPI, NRank, MPI_INT, RootRank, MPI_COMM_WORLD);
+
+   // Check that sum of num_grids_local_MPI is equal to num_grids (total number of grids)
+   int num_grids = 0;
+   for (int rid = 0; rid < NRank; rid = rid+1){
+      num_grids = num_grids + num_grids_local_MPI[rid];
+   }
+   if (num_grids != g_param_yt.num_grids){
+      YT_ABORT("Sum of grids in each MPI rank are not equal to total number of grids!\n" );
+   }
 
 // If the above all works like charm.
    g_param_libyt.param_yt_set = true;
