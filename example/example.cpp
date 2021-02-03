@@ -315,7 +315,7 @@ int main( int argc, char *argv[] )
 
          if (MPI_rank_array[gid] == myrank) {
 
-            for (int d = 0; d < param_yt.dimensionality; d = d+1) {
+            for (int d = 0; d < 3; d = d+1) {
                grids_local[index_local].left_edge[d]  = libyt_grids[gid].left_edge[d];
                grids_local[index_local].right_edge[d] = libyt_grids[gid].right_edge[d];
                grids_local[index_local].dimensions[d] = libyt_grids[gid].dimensions[d];

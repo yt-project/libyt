@@ -131,7 +131,7 @@ int yt_add_grids()
 
       yt_grid grid = g_param_yt.grids_local[i];
 
-      for (int d = 0; d < g_param_yt.dimensionality; d = d+1) {
+      for (int d = 0; d < 3; d = d+1) {
          hierarchy_local[i].left_edge[d]  = grid.left_edge[d];
          hierarchy_local[i].right_edge[d] = grid.right_edge[d];
          hierarchy_local[i].dimensions[d] = grid.dimensions[d];
@@ -183,7 +183,7 @@ int yt_add_grids()
    for (int i = 0; i < g_param_yt.num_grids; i = i+1) {
 
       // From hierarchy_full
-      for (int d = 0; d < g_param_yt.dimensionality; d = d+1) {
+      for (int d = 0; d < 3; d = d+1) {
          grid_combine.left_edge[d]  = hierarchy_full[i].left_edge[d];
          grid_combine.right_edge[d] = hierarchy_full[i].right_edge[d];
          grid_combine.dimensions[d] = hierarchy_full[i].dimensions[d];

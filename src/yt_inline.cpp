@@ -68,6 +68,7 @@ int yt_inline()
    g_param_yt.init();
    g_param_libyt.param_yt_set = false;
    g_param_libyt.get_gridsPtr = false;
+   g_param_libyt.add_grids    = false;
    g_param_libyt.counter ++;
 
    delete [] g_param_libyt.grid_hierarchy_set;
@@ -81,7 +82,6 @@ int yt_inline()
    PyDict_Clear( g_py_param_user );
 
    PyRun_SimpleString( "gc.collect()" );
-
 
    return YT_SUCCESS;
 
