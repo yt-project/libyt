@@ -48,8 +48,8 @@ int yt_add_grids()
                      grid.id, grid.num_fields, g_param_yt.num_fields);
 
       // grid ID
-      if (grid.id >= g_param_yt.num_grids)
-         YT_ABORT(  "Grid ID [%ld] >= total number of grids [%ld]!\n", 
+      if ((grid.id < 0) || grid.id >= g_param_yt.num_grids)
+         YT_ABORT(  "Grid ID [%ld] not in the range between 0 ~ (number of grids [%ld] - 1)!\n", 
                      grid.id, g_param_yt.num_grids );
    
       if (grid.parent_id >= g_param_yt.num_grids)

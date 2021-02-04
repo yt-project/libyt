@@ -28,11 +28,12 @@ int check_hierarchy(yt_hierarchy * &hierarchy) {
             order[ hierarchy[i].id ] = i;
         }
         else {
-            YT_ABORT("Grid ID [ %d ] are not unique!\n", hierarchy[i].id);
+            YT_ABORT("Grid ID [ %d ] are not unique, both MPI rank %d and %d have use this grid id!\n", 
+                      hierarchy[i].id, hierarchy[i].proc_num, hierarchy[ order[ hierarchy[i].id ] ].proc_num);
         }
     }
 
-    // Check if all level > 0 have parent id, and that children's edges don't exceed parent's
+    // Check if all level > 0 have good parent id, and that children's edges don't exceed parent's
     for (int i = 0; i < g_param_yt.num_grids; i = i+1) {
 
         if ( hierarchy[i].level > 0 ) {
@@ -43,7 +44,7 @@ int check_hierarchy(yt_hierarchy * &hierarchy) {
                           hierarchy[i].id, hierarchy[i].level, hierarchy[i].parent_id, g_param_yt.num_grids - 1);
             }
             else {
-                // Check edges
+                // Check children's edges fall between parent's
                 double *parent_left_edge = hierarchy[order[hierarchy[i].parent_id]].left_edge;
                 double *parent_right_edge = hierarchy[order[hierarchy[i].parent_id]].right_edge;
                 for (int d = 0; d < 3; d = d+1){
@@ -55,6 +56,13 @@ int check_hierarchy(yt_hierarchy * &hierarchy) {
                         YT_ABORT("Grid ID [%ld], Parent ID [%ld], parent_right_edge[%d] < grid_right_edge[%d].\n", 
                                   hierarchy[i].id, hierarchy[i].parent_id, d, d);
                     }
+                }
+
+                // Check parent's level = children level - 1
+                int parent_level = hierarchy[order[hierarchy[i].parent_id]].level;
+                if ( !(parent_level == hierarchy[i].level - 1) ){
+                    YT_ABORT("Grid ID [%ld], Parent ID [%ld], parent level %d != children level %d - 1.\n", 
+                              hierarchy[i].id, hierarchy[i].parent_id, parent_level, hierarchy[i].level);
                 }
             }
         }
