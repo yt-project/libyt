@@ -61,11 +61,14 @@ int yt_inline()
 
 // TODO: Check the resources should be freed!!!
 // free resources to prepare for the next execution
-   g_param_yt.init();
    g_param_libyt.param_yt_set = false;
    g_param_libyt.get_gridsPtr = false;
    g_param_libyt.add_grids    = false;
    g_param_libyt.counter ++;
+
+   delete [] g_param_yt.grids_local;
+   delete [] g_param_yt.num_grids_local_MPI;
+   g_param_yt.init();
    
    PyDict_Clear( g_py_grid_data  );
    PyDict_Clear( g_py_hierarchy  );
