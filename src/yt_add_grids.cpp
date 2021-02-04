@@ -70,6 +70,9 @@ int yt_add_grids()
          if (grid.right_edge[d] > g_param_yt.domain_right_edge[d])
             YT_ABORT( "Grid [%ld] right edge [%13.7e] > domain right edge [%13.7e] along the dimension [%d]!\n",
                       grid.id, grid.right_edge[d], g_param_yt.domain_right_edge[d], d );
+         if (grid.right_edge[d] < grid.left_edge[d])
+            YT_ABORT( "Grid [%ld], right edge [%13.7e] < left edge [%13.7e]!\n", 
+                      grid.id, grid.right_edge[d], grid.left_edge[d]);
       }
    }
 

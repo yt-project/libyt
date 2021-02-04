@@ -39,7 +39,7 @@ int check_hierarchy(yt_hierarchy * &hierarchy) {
             
             // Check parent id
             if ( (hierarchy[i].parent_id < 0) || hierarchy[i].parent_id >= g_param_yt.num_grids ){
-                YT_ABORT("Grid ID [%d], level %d, parent_id %d, expect parent_id be 0 ~ %d.\n", 
+                YT_ABORT("Grid ID [%ld], Level %d, Parent ID [%ld], expect Parent ID be 0 ~ %d.\n", 
                           hierarchy[i].id, hierarchy[i].level, hierarchy[i].parent_id, g_param_yt.num_grids - 1);
             }
             else {
@@ -48,11 +48,11 @@ int check_hierarchy(yt_hierarchy * &hierarchy) {
                 double *parent_right_edge = hierarchy[order[hierarchy[i].parent_id]].right_edge;
                 for (int d = 0; d < 3; d = d+1){
                     if ( !(parent_left_edge[d] <= hierarchy[i].left_edge[d]) ) {
-                        YT_ABORT("Grid ID [%d], Parent ID [%d], grid_left_edge[%d] < parent_left_edge[%d].\n", 
+                        YT_ABORT("Grid ID [%ld], Parent ID [%ld], grid_left_edge[%d] < parent_left_edge[%d].\n", 
                                   hierarchy[i].id, hierarchy[i].parent_id, d, d);
                     }
                     if ( !(hierarchy[i].right_edge[d] <= parent_right_edge[d]) ) {
-                        YT_ABORT("Grid ID [%d], Parent ID [%d], parent_right_edge[%d] < grid_right_edge[%d].\n", 
+                        YT_ABORT("Grid ID [%ld], Parent ID [%ld], parent_right_edge[%d] < grid_right_edge[%d].\n", 
                                   hierarchy[i].id, hierarchy[i].parent_id, d, d);
                     }
                 }
