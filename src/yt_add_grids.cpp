@@ -70,10 +70,18 @@ int yt_add_grids()
          if (grid.right_edge[d] > g_param_yt.domain_right_edge[d])
             YT_ABORT( "Grid [%ld] right edge [%13.7e] > domain right edge [%13.7e] along the dimension [%d]!\n",
                       grid.id, grid.right_edge[d], g_param_yt.domain_right_edge[d], d );
+         
          if (grid.right_edge[d] < grid.left_edge[d])
             YT_ABORT( "Grid [%ld], right edge [%13.7e] < left edge [%13.7e]!\n", 
                       grid.id, grid.right_edge[d], grid.left_edge[d]);
       }
+
+      // data in each fields are not NULL
+      for (int v = 0; v < g_param_yt.num_fields; v = v+1){
+         if (grid.field_data[v] == NULL)
+            log_warning( "Grid [%ld], field_data [%s] is NULL, not set!", grid.id, g_param_yt.field_labels[v]);
+      }
+
    }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,7 +188,7 @@ int yt_add_grids()
 
       // From g_param_yt
       grid_combine.num_fields   = g_param_yt.num_fields;
-      grid_combine.field_labels = (const char **) g_param_yt.field_labels;      
+      grid_combine.field_labels = (const char **) g_param_yt.field_labels;
       grid_combine.field_ftype  = g_param_yt.field_ftype;
       
       // From g_param_yt.grids_local
@@ -200,16 +208,8 @@ int yt_add_grids()
       append_grid( &grid_combine );
    }
 
+   log_debug( "Append grids to libyt.grid_data ... done!\n" );
    MPI_Barrier( MPI_COMM_WORLD );
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-// check we have all the grids data, when we have loaded all the grids
-   if ( check_grids() == YT_SUCCESS ){
-      log_debug( "Append grids to libyt.grid_data ... done!\n" );
-   }
-   else{
-      YT_ABORT(  "Append grids to libyt.grid_data ... failed!\n")
-   }
 
    // Freed resource 
    delete [] hierarchy_local;

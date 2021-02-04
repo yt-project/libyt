@@ -25,10 +25,6 @@
 //                param_yt_set                : true ==> yt_set_parameter() has been called successfully
 //                get_gridsPtr                : true ==> yt_get_gridsPtr() has been called successfully
 //                add_grids                   : true ==> yt_add_grids() has been called successfully
-//                grid_hierarchy_set[x]       : true ==> grid[x] has been loaded into libyt hierarchy successfully
-//                grid_data_set[field_id * num_grids + x]  
-//                                            : true ==> field, grid[x] data has been loaded into libyt successfully,
-//                                                       only data belongs to that rank, this table will be checked.
 //
 // Method      :  yt_param_libyt : Constructor
 //               ~yt_param_libyt : Destructor
@@ -48,8 +44,6 @@ struct yt_param_libyt
    bool  param_yt_set;
    bool  get_gridsPtr;
    bool  add_grids;
-   bool *grid_hierarchy_set;
-   bool *grid_data_set;
    long  counter;
 
 
@@ -72,8 +66,6 @@ struct yt_param_libyt
       param_yt_set       = false;
       get_gridsPtr       = false;
       add_grids          = false;
-      grid_hierarchy_set = NULL;
-      grid_data_set      = NULL;
       counter            = 0;
 
    } // METHOD : yt_param_libyt
@@ -87,9 +79,6 @@ struct yt_param_libyt
    //===================================================================================
    ~yt_param_libyt()
    {
-
-      delete [] grid_hierarchy_set;
-      delete [] grid_data_set;
 
    } // METHOD : ~yt_param_libyt
 

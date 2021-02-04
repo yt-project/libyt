@@ -66,11 +66,6 @@ int yt_inline()
    g_param_libyt.get_gridsPtr = false;
    g_param_libyt.add_grids    = false;
    g_param_libyt.counter ++;
-
-   delete [] g_param_libyt.grid_hierarchy_set;
-   delete [] g_param_libyt.grid_data_set;
-   g_param_libyt.grid_hierarchy_set = NULL;
-   g_param_libyt.grid_data_set = NULL;
    
    PyDict_Clear( g_py_grid_data  );
    PyDict_Clear( g_py_hierarchy  );
