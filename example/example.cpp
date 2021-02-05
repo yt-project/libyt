@@ -193,8 +193,8 @@ int main( int argc, char *argv[] )
 //       then set up local grids
 //    ==========================================
       yt_grid *grids_local;
-      yt_get_gridsPtr( grids_local );
-
+      yt_get_gridsPtr( &grids_local );
+      
 //    Here, we calculate all the grids (libyt_grids) first, 
 //    then distribute them to grids_local, to simulate the working process.
       yt_grid *libyt_grids = new yt_grid [param_yt.num_grids];
