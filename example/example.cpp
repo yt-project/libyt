@@ -16,6 +16,8 @@ In steps 0 - 6.
 #include <math.h>
 #include <typeinfo>
 #include <mpi.h>
+#include <time.h>
+
 // ==========================================
 // 0. include libyt header
 // ==========================================
@@ -37,7 +39,7 @@ typedef double real;
 
 
 real set_density( const double x, const double y, const double z, const double t, const double v );
-
+void get_randArray(int *array, int length);
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -51,6 +53,7 @@ int main( int argc, char *argv[] )
     */
    int myrank;
    int nrank;
+   int RootRank = 0;
    MPI_Init(&argc, &argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
    MPI_Comm_size(MPI_COMM_WORLD, &nrank );
@@ -92,7 +95,7 @@ int main( int argc, char *argv[] )
    const int    num_grids   = CUBE(NGRID_1D)+CUBE(REFINE_BY);   // number of grids
                                                                 // here we refine one root grid
    
-   int *MPI_rank_array;                                         // Record MPI rank in each grids
+   int *grids_MPI = new int [num_grids];                        // Record MPI rank in each grids
 
    const char  *field_labels[num_fields] = { "Dens" };          // field names
 
@@ -101,19 +104,6 @@ int main( int argc, char *argv[] )
 // this array represents the simulation data stored in memory
    real (*field_data)[num_fields][ CUBE(GRID_DIM) ]
       = new real [num_grids][num_fields][ CUBE(GRID_DIM) ];
-
-// record MPI rank in each grids
-   MPI_rank_array = (int *) malloc(num_grids * sizeof(int));
-
-// I did this in a cheating way. Assign grid to MPI rank first.
-   for (int gid = 0; gid < num_grids; gid = gid+1){
-      if( gid / (num_grids / nrank) < nrank ) {
-         MPI_rank_array[gid] = gid / (num_grids / nrank);
-      }
-      else {
-         MPI_rank_array[gid] = nrank - 1;
-      }
-   }
 
    for (int step=0; step<total_steps; step++)
    {
@@ -134,7 +124,6 @@ int main( int argc, char *argv[] )
       param_yt.refine_by               = REFINE_BY;
       param_yt.num_grids               = num_grids;
       param_yt.num_fields              = num_fields;
-      param_yt.grids_MPI               = MPI_rank_array;
       param_yt.field_labels            = (char **)field_labels;
       param_yt.field_ftype             = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
 
@@ -151,6 +140,24 @@ int main( int argc, char *argv[] )
       param_yt.omega_lambda            = 0.7;
       param_yt.omega_matter            = 0.3;
       param_yt.hubble_constant         = 0.7;
+
+//    Distribute grids to MPI rank, to simulate simulation code process.
+      if (myrank == RootRank){
+         get_randArray(grids_MPI, num_grids);
+      }
+      MPI_Bcast(grids_MPI, num_grids, MPI_INT, RootRank, MPI_COMM_WORLD);
+
+//    Count the number of grids at local
+      int num_grids_local = 0;
+      for (int i = 0; i < num_grids; i = i+1){
+         if (grids_MPI[i] == myrank){
+            num_grids_local = num_grids_local + 1;
+         }
+      }
+
+//    We can either pass in param_yt.grids_MPI or param_yt.num_grids_local
+      // param_yt.grids_MPI               = grids_MPI;
+      param_yt.num_grids_local         = num_grids_local;
 
 //    *** libyt API ***
       if ( yt_set_parameter( &param_yt ) != YT_SUCCESS )
@@ -291,7 +298,7 @@ int main( int argc, char *argv[] )
       {
          libyt_grids[gid].field_data = new void* [num_fields];
 
-         if (MPI_rank_array[gid] == myrank){
+         if (grids_MPI[gid] == myrank){
             for (int v=0; v<num_fields; v++){
                libyt_grids[gid].field_data[v] = field_data[gid][v];
             }
@@ -313,7 +320,7 @@ int main( int argc, char *argv[] )
       int index_local = 0;
       for (int gid = 0; gid < param_yt.num_grids; gid = gid + 1){
 
-         if (MPI_rank_array[gid] == myrank) {
+         if (grids_MPI[gid] == myrank) {
 
             for (int d = 0; d < 3; d = d+1) {
                grids_local[index_local].left_edge[d]  = libyt_grids[gid].left_edge[d];
@@ -372,6 +379,7 @@ int main( int argc, char *argv[] )
 
 
    delete [] field_data;
+   delete [] grids_MPI;
    
    /*
    MPI Finalize
@@ -399,3 +407,19 @@ real set_density( const double x, const double y, const double z, const double t
    return amplitude*exp(  -0.5*( SQR(x-center[0]) + SQR(y-center[1]) + SQR(z-center[2]) ) / SQR(sigma)  ) + background;
 
 } // FUNCTION : set_density
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  get an array of random number in range 0 ~ NRank-1
+// Description :  To random distribute grids to MPI rank
+//-------------------------------------------------------------------------------------------------------
+void get_randArray(int *array, int length) {
+   
+   int NRank;
+   MPI_Comm_size(MPI_COMM_WORLD, &NRank);
+   
+   srand((unsigned) time(0));
+   
+   for (int i = 0; i < length; i = i+1){
+      array[i] = rand() % NRank;
+   }
+}

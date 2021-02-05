@@ -135,12 +135,13 @@ int yt_set_parameter( yt_param_yt *param_yt )
    MPI_Bcast(num_grids_local_MPI, NRank, MPI_INT, RootRank, MPI_COMM_WORLD);
 
    // Check that sum of num_grids_local_MPI is equal to num_grids (total number of grids)
-   int num_grids = 0;
+   long num_grids = 0;
    for (int rid = 0; rid < NRank; rid = rid+1){
-      num_grids = num_grids + num_grids_local_MPI[rid];
+      num_grids = num_grids + (long)num_grids_local_MPI[rid];
    }
    if (num_grids != g_param_yt.num_grids){
-      YT_ABORT("Sum of grids in each MPI rank are not equal to total number of grids!\n" );
+      YT_ABORT("Sum of grids in each MPI rank [%ld] are not equal to total number of grids [%ld]!\n", 
+                num_grids, g_param_yt.num_grids );
    }
 
 // If the above all works like charm.
