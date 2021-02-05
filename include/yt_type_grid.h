@@ -71,15 +71,15 @@ struct yt_grid
 
 //    set defaults
       for (int d=0; d<3; d++) {
-      left_edge [d]  = FLT_UNDEFINED;
-      right_edge[d]  = FLT_UNDEFINED; }
+      left_edge [d]  = DBL_UNDEFINED;
+      right_edge[d]  = DBL_UNDEFINED; }
 
       for (int d=0; d<3; d++) {
       dimensions[d]  = INT_UNDEFINED; }
 
-      particle_count = INT_UNDEFINED;
-      id             = INT_UNDEFINED;
-      parent_id      = INT_UNDEFINED;
+      particle_count = LNG_UNDEFINED;
+      id             = LNG_UNDEFINED;
+      parent_id      = LNG_UNDEFINED;
       level          = INT_UNDEFINED;
 
       proc_num       = INT_UNDEFINED;
@@ -124,14 +124,14 @@ struct yt_grid
    {
 
       for (int d=0; d<3; d++) {
-      if ( left_edge [d]  == FLT_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "left_edge",  d,  id );
-      if ( right_edge[d]  == FLT_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "right_edge", d,  id ); }
+      if ( left_edge [d]  == DBL_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "left_edge",  d,  id );
+      if ( right_edge[d]  == DBL_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "right_edge", d,  id ); }
 
       for (int d=0; d<3; d++) {
       if ( dimensions[d]  == INT_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "dimensions", d,  id ); }
-      if ( particle_count == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "particle_count", id );
-      if ( id             == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "id",             id );
-      if ( parent_id      == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "parent_id",      id );
+      if ( particle_count == LNG_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "particle_count", id );
+      if ( id             == LNG_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "id",             id );
+      if ( parent_id      == LNG_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "parent_id",      id );
       if ( level          == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "level",          id );
       if ( proc_num       == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "proc_num",       id );
       if ( num_fields     == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "num_fields",     id );

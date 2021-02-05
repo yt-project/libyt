@@ -84,15 +84,15 @@ struct yt_param_yt
 
 // variable for later runtime usage, but will not load into YT
 // Loaded by user
-   int         num_fields;
-   int        *grids_MPI;
-   int        num_grids_local;
-   char      **field_labels;
-   yt_ftype    field_ftype;
+   int          num_fields;
+   int         *grids_MPI;
+   int          num_grids_local;
+   char       **field_labels;
+   yt_ftype     field_ftype;
 
-// Loaded by libyt
-   yt_grid *grids_local;
-   int     *num_grids_local_MPI;
+// Loaded and controlled by libyt
+   yt_grid     *grids_local;
+   int         *num_grids_local_MPI;
 
    //===================================================================================
    // Method      :  yt_param_yt
@@ -144,17 +144,17 @@ struct yt_param_yt
 
       for (int d=0; d<3; d++)
       {
-         domain_left_edge [d] = FLT_UNDEFINED;
-         domain_right_edge[d] = FLT_UNDEFINED;
+         domain_left_edge [d] = DBL_UNDEFINED;
+         domain_right_edge[d] = DBL_UNDEFINED;
       }
-      current_time            = FLT_UNDEFINED;
-      current_redshift        = FLT_UNDEFINED;
-      omega_lambda            = FLT_UNDEFINED;
-      omega_matter            = FLT_UNDEFINED;
-      hubble_constant         = FLT_UNDEFINED;
-      length_unit             = FLT_UNDEFINED;
-      mass_unit               = FLT_UNDEFINED;
-      time_unit               = FLT_UNDEFINED;
+      current_time            = DBL_UNDEFINED;
+      current_redshift        = DBL_UNDEFINED;
+      omega_lambda            = DBL_UNDEFINED;
+      omega_matter            = DBL_UNDEFINED;
+      hubble_constant         = DBL_UNDEFINED;
+      length_unit             = DBL_UNDEFINED;
+      mass_unit               = DBL_UNDEFINED;
+      time_unit               = DBL_UNDEFINED;
 
       for (int d=0; d<3; d++)
       {
@@ -164,15 +164,17 @@ struct yt_param_yt
       cosmological_simulation = INT_UNDEFINED;
       dimensionality          = INT_UNDEFINED;
       refine_by               = INT_UNDEFINED;
-      num_grids               = INT_UNDEFINED;
+      num_grids               = LNG_UNDEFINED;
 
       num_fields              = INT_UNDEFINED;
       grids_MPI               = NULL;
       num_grids_local         = INT_UNDEFINED;
       field_labels            = NULL;
+      field_ftype             = YT_FTYPE_UNKNOWN;
+
+   // Loaded and controlled by libyt
       grids_local             = NULL;
       num_grids_local_MPI     = NULL;
-      field_ftype             = YT_FTYPE_UNKNOWN;
 
       return YT_SUCCESS;
 
@@ -198,25 +200,25 @@ struct yt_param_yt
 //    if ( fig_basename            == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "fig_basename" );
 
       for (int d=0; d<3; d++) {
-      if ( domain_left_edge [d]    == FLT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_left_edge",  d );
-      if ( domain_right_edge[d]    == FLT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_right_edge", d ); }
-      if ( current_time            == FLT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "current_time" );
+      if ( domain_left_edge [d]    == DBL_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_left_edge",  d );
+      if ( domain_right_edge[d]    == DBL_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_right_edge", d ); }
+      if ( current_time            == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "current_time" );
       if ( cosmological_simulation == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "cosmological_simulation" );
       if ( cosmological_simulation ) {
-      if ( current_redshift        == FLT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "current_redshift" );
-      if ( omega_lambda            == FLT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "omega_lambda" );
-      if ( omega_matter            == FLT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "omega_matter" );
-      if ( hubble_constant         == FLT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "hubble_constant" ); }
-      if ( length_unit             == FLT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "length_unit" );
-      if ( mass_unit               == FLT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "mass_unit" );
-      if ( time_unit               == FLT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "time_unit" );
+      if ( current_redshift        == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "current_redshift" );
+      if ( omega_lambda            == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "omega_lambda" );
+      if ( omega_matter            == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "omega_matter" );
+      if ( hubble_constant         == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "hubble_constant" ); }
+      if ( length_unit             == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "length_unit" );
+      if ( mass_unit               == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "mass_unit" );
+      if ( time_unit               == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "time_unit" );
 
       for (int d=0; d<3; d++) {
       if ( periodicity      [d]    == INT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "periodicity", d );
       if ( domain_dimensions[d]    == INT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_dimensions", d ); }
       if ( dimensionality          == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "dimensionality" );
       if ( refine_by               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "refine_by" );
-      if ( num_grids               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_grids" );
+      if ( num_grids               == LNG_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_grids" );
       if ( num_fields              == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_fields" );
       if ( field_labels            == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "field_labels");
       if ( grids_MPI == NULL && num_grids_local == INT_UNDEFINED )  YT_ABORT( "Either grids_MPI or num_grids_local should be set!\n");
