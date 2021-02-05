@@ -26,10 +26,7 @@
 //                id             : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
 //                parent_id      : Parent grid ID (0-indexed, -1 for grids on the root level)
 //                proc_num       : Process number, grid belong to which MPI rank
-//                num_fields     : Number of fields
-//                field_labels   : Name of each field (e.g., density, temperature, ...)
 //                field_data     : Pointer arrays pointing to the data of each field
-//                field_ftype    : Floating-point type of "field_data" ==> YT_FLOAT or YT_DOUBLE
 //
 // Method      :  yt_grid  : Constructor
 //               ~yt_grid  : Destructor
@@ -49,14 +46,9 @@ struct yt_grid
 
    int    dimensions[3];
    int    level;
-
    int    proc_num;
 
-   int          num_fields;
-   const char **field_labels;
    void       **field_data;
-   yt_ftype     field_ftype;
-
 
    //===================================================================================
    // Method      :  yt_grid
@@ -84,10 +76,7 @@ struct yt_grid
 
       proc_num       = INT_UNDEFINED;
 
-      num_fields     = INT_UNDEFINED;
-      field_labels   = NULL;
       field_data     = NULL;
-      field_ftype    = YT_FTYPE_UNKNOWN;
 
    } // METHOD : yt_grid
 
@@ -134,10 +123,7 @@ struct yt_grid
       if ( parent_id      == LNG_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "parent_id",      id );
       if ( level          == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "level",          id );
       if ( proc_num       == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "proc_num",       id );
-      if ( num_fields     == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "num_fields",     id );
-      if ( field_labels   == NULL             )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "field_labels",   id );
       if ( field_data     == NULL             )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "field_data",     id );
-      if ( field_ftype    == YT_FTYPE_UNKNOWN )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "field_ftype",    id );
 
 //    additional checks
       for (int d=0; d<3; d++) {
@@ -145,9 +131,6 @@ struct yt_grid
       if ( particle_count < 0 )   YT_ABORT( "\"%s\" == %d < 0 for grid [%ld]!\n", "particle_count", particle_count, id );
       if ( id < 0 )               YT_ABORT( "\"%s\" == %d < 0!\n", "id", id );
       if ( level < 0 )            YT_ABORT( "\"%s\" == %d < 0 for grid [%ld]!\n", "level", level, id );
-      if ( num_fields <= 0 )      YT_ABORT( "\"%s\" == %d <= 0 for grid [%ld]!\n", "num_fields", num_fields, id );
-      if ( field_ftype != YT_FLOAT  &&  field_ftype != YT_DOUBLE )
-         YT_ABORT( "Unknown \"%s\" == %d for grid [%ld]!\n", "field_ftype", field_ftype, id );
 
       return YT_SUCCESS;
 

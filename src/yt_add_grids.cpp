@@ -41,12 +41,6 @@ int yt_add_grids()
          YT_ABORT(  "Validating input grid ID [%ld] ... failed\n", grid.id );
 
       // additional checks that depend on input YT parameters, and grid itself only.
-      // number of fields, although we merge appending num_fields in yt_get_gridsPtr,
-      // the user might alter them unintentionally.
-      if (grid.num_fields != g_param_yt.num_fields)
-         YT_ABORT(  "Grid ID [%ld] number of fields = %ld, should be %ld!\n", 
-                     grid.id, grid.num_fields, g_param_yt.num_fields);
-
       // grid ID
       if ((grid.id < 0) || grid.id >= g_param_yt.num_grids)
          YT_ABORT(  "Grid ID [%ld] not in the range between 0 ~ (number of grids [%ld] - 1)!\n", 
@@ -71,6 +65,7 @@ int yt_add_grids()
             YT_ABORT( "Grid [%ld] right edge [%13.7e] > domain right edge [%13.7e] along the dimension [%d]!\n",
                       grid.id, grid.right_edge[d], g_param_yt.domain_right_edge[d], d );
          
+         // Not sure if periodic condition will need this test
          if (grid.right_edge[d] < grid.left_edge[d])
             YT_ABORT( "Grid [%ld], right edge [%13.7e] < left edge [%13.7e]!\n", 
                       grid.id, grid.right_edge[d], grid.left_edge[d]);
@@ -79,7 +74,7 @@ int yt_add_grids()
       // data in each fields are not NULL
       for (int v = 0; v < g_param_yt.num_fields; v = v+1){
          if (grid.field_data[v] == NULL)
-            log_warning( "Grid [%ld], field_data [%s] is NULL, not set!", grid.id, g_param_yt.field_labels[v]);
+            log_warning( "Grid [%ld], field_data [%s] is NULL, not set yet!", grid.id, g_param_yt.field_labels[v]);
       }
 
    }
@@ -174,7 +169,7 @@ int yt_add_grids()
 
    for (int i = 0; i < g_param_yt.num_grids; i = i+1) {
 
-      // From hierarchy_full
+      // Load from hierarchy_full
       for (int d = 0; d < 3; d = d+1) {
          grid_combine.left_edge[d]  = hierarchy_full[i].left_edge[d];
          grid_combine.right_edge[d] = hierarchy_full[i].right_edge[d];
@@ -185,13 +180,8 @@ int yt_add_grids()
       grid_combine.parent_id      = hierarchy_full[i].parent_id;
       grid_combine.level          = hierarchy_full[i].level;
       grid_combine.proc_num       = hierarchy_full[i].proc_num;
-
-      // From g_param_yt
-      grid_combine.num_fields   = g_param_yt.num_fields;
-      grid_combine.field_labels = (const char **) g_param_yt.field_labels;
-      grid_combine.field_ftype  = g_param_yt.field_ftype;
       
-      // From g_param_yt.grids_local
+      // load from g_param_yt.grids_local
       if ( start_block <= i && i < end_block ) {
          // Get the pointer to data from grids_local
          grid_combine.field_data   = g_param_yt.grids_local[i - start_block].field_data;

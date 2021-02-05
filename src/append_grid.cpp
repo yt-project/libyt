@@ -40,7 +40,7 @@ int append_grid( yt_grid *grid ){
    log_debug( "Inserting grid [%15ld] info to libyt.hierarchy ... done\n", grid->id );
 
 // export grid data to libyt.grid_data as "libyt.grid_data[grid_id][field_label][field_data]"
-   int      grid_ftype   = (grid->field_ftype == YT_FLOAT ) ? NPY_FLOAT : NPY_DOUBLE;
+   int      grid_ftype   = (g_param_yt.field_ftype == YT_FLOAT ) ? NPY_FLOAT : NPY_DOUBLE;
    npy_intp grid_dims[3] = { grid->dimensions[0], grid->dimensions[1], grid->dimensions[2] };
    PyObject *py_grid_id, *py_field_labels, *py_field_data;
 

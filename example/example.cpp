@@ -226,7 +226,6 @@ int main( int argc, char *argv[] )
          libyt_grids[gid].id             = gid;    // 0-indexed
          libyt_grids[gid].parent_id      = -1;     // 0-indexed (-1 for grids on the root level)
          libyt_grids[gid].level          = 0;      // 0-indexed
-         libyt_grids[gid].proc_num       = myrank;
 
 //       in this example we arbitrarily set the field data of this grid
          for (int k=0; k<GRID_DIM; k++)
@@ -274,8 +273,6 @@ int main( int argc, char *argv[] )
          libyt_grids[gid].id             = gid;          // 0-indexed
          libyt_grids[gid].parent_id      = gid_refine;   // 0-indexed (-1 for grids on the root level)
          libyt_grids[gid].level          = 1;            // 0-indexed
-         libyt_grids[gid].proc_num       = myrank;
-         
 
 //       here we arbitrarily set the field data of this grid
          for (int k=0; k<GRID_DIM; k++)
@@ -310,9 +307,6 @@ int main( int argc, char *argv[] )
             }
          }
 
-//       set other field parameters
-         libyt_grids[gid].field_ftype  = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
-
       } // for (int gid=0; gid<param_yt.num_grids; gid++) 
 
 
@@ -331,10 +325,6 @@ int main( int argc, char *argv[] )
             grids_local[index_local].id             = libyt_grids[gid].id;
             grids_local[index_local].parent_id      = libyt_grids[gid].parent_id;
             grids_local[index_local].level          = libyt_grids[gid].level;
-            // grids_local[index_local].proc_num       = libyt_grids[gid].proc_num;
-            // grids_local[index_local].num_fields     = libyt_grids[gid].num_fields;
-            // grids_local[index_local].field_labels   = libyt_grids[gid].field_labels;      
-            grids_local[index_local].field_ftype    = libyt_grids[gid].field_ftype;
             grids_local[index_local].field_data     = libyt_grids[gid].field_data;
 
             index_local = index_local + 1;
