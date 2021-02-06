@@ -106,18 +106,37 @@ int yt_set_parameter( yt_param_yt *param_yt )
 
 
 // Organize other information, for later runtime usage
+   int MyRank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
+
    // Make sure g_param_yt.num_grids_local is set, otherwise count from grids_MPI
    if ( g_param_yt.num_grids_local != INT_UNDEFINED ) {
+      
+      // Prevent input long type, exceed int storage
+      if ( g_param_yt.num_grids_local < 0 ){
+         YT_ABORT("Number of local grids = %d at MPI rank %d, probably because of exceeding int storage or wrong input!\n",
+                   g_param_yt.num_grids_local, MyRank);
+      }
+   
    }
    else {
-      
-      int MyRank;
-      MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
 
       int num_grids_local = 0;
-      for ( int i = 0; i < g_param_yt.num_grids; i = i+1 ){
+      int flag = 0;
+      for ( long i = 0; i < g_param_yt.num_grids; i = i+1 ){
          if ( g_param_yt.grids_MPI[i] == MyRank ) {
+
             num_grids_local = num_grids_local + 1;
+            
+            // Prevent exceed int storage
+            if ( num_grids_local == INT_MAX ){
+               log_warning("Number of local grids at MPI rank %d reach its maximum [%d]!\n", MyRank, INT_MAX);
+               flag = 1;
+            }
+            if (flag == 1){
+               YT_ABORT("Number of local grids at MPI rank %d exceed its maximum!\n", MyRank);
+            }
+
          }
       }
       g_param_yt.num_grids_local = num_grids_local;

@@ -23,24 +23,24 @@ int check_hierarchy(yt_hierarchy * &hierarchy) {
     }
     
     // Check every grid id are unique, and also filled in the search table
-    for (int i = 0; i < g_param_yt.num_grids; i = i+1) {
+    for (long i = 0; i < g_param_yt.num_grids; i = i+1) {
         if (order[ hierarchy[i].id ] == -1) {
             order[ hierarchy[i].id ] = i;
         }
         else {
-            YT_ABORT("Grid ID [ %d ] are not unique, both MPI rank %d and %d have use this grid id!\n", 
+            YT_ABORT("Grid ID [ %ld ] are not unique, both MPI rank %d and %d are using this grid id!\n", 
                       hierarchy[i].id, hierarchy[i].proc_num, hierarchy[ order[ hierarchy[i].id ] ].proc_num);
         }
     }
 
     // Check if all level > 0 have good parent id, and that children's edges don't exceed parent's
-    for (int i = 0; i < g_param_yt.num_grids; i = i+1) {
+    for (long i = 0; i < g_param_yt.num_grids; i = i+1) {
 
         if ( hierarchy[i].level > 0 ) {
             
             // Check parent id
             if ( (hierarchy[i].parent_id < 0) || hierarchy[i].parent_id >= g_param_yt.num_grids ){
-                YT_ABORT("Grid ID [%ld], Level %d, Parent ID [%ld], expect Parent ID be 0 ~ %d.\n", 
+                YT_ABORT("Grid ID [%ld], Level %d, Parent ID [%ld], expect Parent ID to be 0 ~ %ld.\n", 
                           hierarchy[i].id, hierarchy[i].level, hierarchy[i].parent_id, g_param_yt.num_grids - 1);
             }
             else {

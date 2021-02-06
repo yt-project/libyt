@@ -132,6 +132,11 @@ int yt_add_grids()
       offsets[i] = 0;
       for (int j = 0; j < i; j = j+1){
          offsets[i] = offsets[i] + recv_counts[j];
+
+         // Prevent exceeding int storage.
+         if ( offsets[i] < 0 ){
+            YT_ABORT("Exceeding int storage, libyt not support number of grids larger than %d yet.\n", INT_MAX);
+         }
       }
    }
 
@@ -155,7 +160,11 @@ int yt_add_grids()
 // Not sure if we need this MPI_Barrier
    MPI_Barrier(MPI_COMM_WORLD);
 
-// We pass hierarchy to each rank as well
+// We pass hierarchy to each rank as well, support only when num_grids <= INT_MAX
+   if (g_param_yt.num_grids > INT_MAX){
+      YT_ABORT("Number of grids = %ld, libyt not support number of grids larger than %d yet.\n", 
+                g_param_yt.num_grids, INT_MAX);
+   }
    MPI_Bcast(hierarchy_full, g_param_yt.num_grids, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -167,7 +176,7 @@ int yt_add_grids()
    int start_block = offsets[MyRank];
    int end_block = start_block + g_param_yt.num_grids_local;
 
-   for (int i = 0; i < g_param_yt.num_grids; i = i+1) {
+   for (long i = 0; i < g_param_yt.num_grids; i = i+1) {
 
       // Load from hierarchy_full
       for (int d = 0; d < 3; d = d+1) {

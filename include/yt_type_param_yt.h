@@ -82,7 +82,7 @@ struct yt_param_yt
    int    refine_by;
    long   num_grids;
 
-// variable for later runtime usage, but will not load into YT
+// variable for later runtime usage
 // Loaded by user
    int          num_fields;
    int         *grids_MPI;
