@@ -15,10 +15,10 @@ void log_error( const char *format, ... );
 #define YT_SUCCESS         1
 #define YT_FAIL            0
 
-#define FLT_UNDEFINED      FLT_MAX
-#define DBL_UNDEFINED      DBL_MAX
-#define INT_UNDEFINED      INT_MAX
-#define LNG_UNDEFINED      LONG_MAX
+#define FLT_UNDEFINED      FLT_MIN
+#define DBL_UNDEFINED      DBL_MIN
+#define INT_UNDEFINED      INT_MIN
+#define LNG_UNDEFINED      LONG_MIN
 
 // convenient macro to deal with errors
 #define YT_ABORT( ... )                                              \
