@@ -36,7 +36,7 @@ int check_hierarchy(yt_hierarchy * &hierarchy) {
     // DEBUG:
     printf("#FLAG\n");
     for (int i = 0; i < g_param_yt.num_grids; i = i+1){
-        printf("i = %d\n");
+        printf("i = %d\n", i);
         printf("id = %ld\n", hierarchy[i].id);
         printf("parent_id = %ld\n", hierarchy[i].parent_id);
         printf("level = %d\n", hierarchy[i].level);
