@@ -33,6 +33,24 @@ int check_hierarchy(yt_hierarchy * &hierarchy) {
         }
     }
 
+    // DEBUG:
+    printf("#FLAG\n");
+    for (int i = 0; i < g_param_yt.num_grids; i = i+1){
+        printf("i = %d\n");
+        printf("id = %ld\n", hierarchy[i].id);
+        printf("parent_id = %ld\n", hierarchy[i].parent_id);
+        printf("level = %d\n", hierarchy[i].level);
+        printf("proc_num = %d\n", hierarchy[i].proc_num);
+        printf("left_edge[0], left_edge[1], left_edge[2] = %lf, %lf, %lf\n", 
+                hierarchy[i].left_edge[0], hierarchy[i].left_edge[1], hierarchy[i].left_edge[2]);
+        printf("right_edge[0], right_edge[1], right_edge[2] = %lf, %lf, %lf\n", 
+                hierarchy[i].right_edge[0], hierarchy[i].right_edge[1], hierarchy[i].right_edge[2]);
+        printf("particle_count = %ld\n", hierarchy[i].particle_count);
+        printf("dimensions[0], dimensions[1], dimensions[2] = %d, %d, %d\n", 
+                hierarchy[i].dimensions[0], hierarchy[i].dimensions[1], hierarchy[i].dimensions[2]);
+        printf("=========================================================\n");
+    }
+
     // Check if all level > 0 have good parent id, and that children's edges don't exceed parent's
     for (long i = 0; i < g_param_yt.num_grids; i = i+1) {
 
