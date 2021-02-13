@@ -47,6 +47,7 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 
 	// Above all works like charm
 	g_param_libyt.get_gridsPtr = true;
+	log_info( "Getting pointer to local grids array  ... done.\n" );
 	
 	return YT_SUCCESS;
 }
