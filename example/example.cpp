@@ -351,7 +351,7 @@ int main( int argc, char *argv[] )
 
 
 //    free resources
-      for (int g=0; g<num_grids; g++)  delete [] libyt_grids[g].field_data;
+      // for (int g=0; g<num_grids; g++)  delete [] libyt_grids[g].field_data;
       delete [] libyt_grids;
 
       time += dt;
