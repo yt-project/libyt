@@ -59,7 +59,6 @@ int yt_inline()
    free( CallYT );
 
 
-// TODO: Check the resources should be freed!!!
 // free resources to prepare for the next execution
    g_param_libyt.param_yt_set = false;
    g_param_libyt.get_gridsPtr = false;
