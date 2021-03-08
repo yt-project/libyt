@@ -65,7 +65,6 @@ int yt_inline()
    g_param_libyt.add_grids    = false;
    g_param_libyt.counter ++;
 
-// TODO: Reconsider who should free this pointer
    for (int i = 0; i < g_param_yt.num_grids_local; i = i+1){
       delete [] g_param_yt.grids_local[i].field_data;
    }
