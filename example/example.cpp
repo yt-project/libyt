@@ -325,7 +325,10 @@ int main( int argc, char *argv[] )
             grids_local[index_local].id             = libyt_grids[gid].id;
             grids_local[index_local].parent_id      = libyt_grids[gid].parent_id;
             grids_local[index_local].level          = libyt_grids[gid].level;
-            grids_local[index_local].field_data     = libyt_grids[gid].field_data;
+
+            for (int v = 0; v < param_yt.num_fields; v = v + 1){
+               grids_local[index_local].field_data[v]     = libyt_grids[gid].field_data[v];
+            }
 
             index_local = index_local + 1;
          }
@@ -351,7 +354,7 @@ int main( int argc, char *argv[] )
 
 
 //    free resources
-      // for (int g=0; g<num_grids; g++)  delete [] libyt_grids[g].field_data;
+      for (int g=0; g<num_grids; g++)  delete [] libyt_grids[g].field_data;
       delete [] libyt_grids;
 
       time += dt;
