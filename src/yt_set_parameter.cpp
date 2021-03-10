@@ -155,7 +155,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
    }
 
    // Gather num_grids_local in every rank and store at num_grids_local_MPI, with "MPI_Gather"
-   // We need num_grids_local_MPI in MPI_Gatherv in yt_add_grids()
+   // We need num_grids_local_MPI in MPI_Gatherv in yt_commit_grids()
    int NRank;
    int RootRank = 0;
    MPI_Comm_size(MPI_COMM_WORLD, &NRank);

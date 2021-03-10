@@ -345,8 +345,8 @@ int main( int argc, char *argv[] )
       }
 
 //    *** libyt API ***
-      if ( yt_add_grids() != YT_SUCCESS ) {
-         fprintf( stderr, "ERROR: yt_add_grids() failed!\n" );
+      if ( yt_commit_grids() != YT_SUCCESS ) {
+         fprintf( stderr, "ERROR: yt_commit_grids() failed!\n" );
          exit( EXIT_FAILURE );
       }
 

@@ -6,7 +6,7 @@
 // Function    :  check_hierarchy.cpp
 // Description :  Check that the hierarchy, parent-children relationships are correct
 //
-// Note        :  1. Use inside yt_add_grids()
+// Note        :  1. Use inside yt_commit_grids()
 // 			      2. Check that the hierarchy is correct, even though we didn't build a parent-children 
 //                   map.
 // 				  

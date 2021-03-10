@@ -24,7 +24,7 @@
 //                libyt_initialized           : true ==> yt_init() has been called successfully
 //                param_yt_set                : true ==> yt_set_parameter() has been called successfully
 //                get_gridsPtr                : true ==> yt_get_gridsPtr() has been called successfully
-//                add_grids                   : true ==> yt_add_grids() has been called successfully
+//                add_grids                   : true ==> yt_commit_grids() has been called successfully
 //
 // Method      :  yt_param_libyt : Constructor
 //               ~yt_param_libyt : Destructor

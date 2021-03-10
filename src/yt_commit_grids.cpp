@@ -3,7 +3,7 @@
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_add_grids
+// Function    :  yt_commit_grids
 // Description :  Add local grids to the libyt Python module
 //
 // Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data to python
@@ -16,7 +16,7 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_add_grids()
+int yt_commit_grids()
 {
 
 // check if libyt has been initialized
@@ -221,4 +221,4 @@ int yt_add_grids()
 
    return YT_SUCCESS;
 
-} // FUNCTION : yt_add_grids
+} // FUNCTION : yt_commit_grids

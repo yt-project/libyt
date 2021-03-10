@@ -39,9 +39,9 @@ int yt_inline()
    if ( !g_param_libyt.get_gridsPtr )
       YT_ABORT( "Please invoke yt_get_gridsPtr() before calling %s()!\n", __FUNCTION__ );
 
-// check if user has call yt_add_grids(), so that grids are appended to YT.
+// check if user has call yt_commit_grids(), so that grids are appended to YT.
    if ( !g_param_libyt.add_grids )
-      YT_ABORT( "Please invoke yt_add_grids() before calling %s()!\n", __FUNCTION__ );
+      YT_ABORT( "Please invoke yt_commit_grids() before calling %s()!\n", __FUNCTION__ );
 
 // Not sure if we need this MPI_Barrier
    MPI_Barrier(MPI_COMM_WORLD);
