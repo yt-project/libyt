@@ -217,7 +217,7 @@ int yt_commit_grids()
    delete [] offsets;
 
    // Above all works like charm
-   g_param_libyt.add_grids = true;
+   g_param_libyt.commit_grids = true;
 
    return YT_SUCCESS;
 

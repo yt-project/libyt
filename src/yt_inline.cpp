@@ -40,7 +40,7 @@ int yt_inline()
       YT_ABORT( "Please invoke yt_get_gridsPtr() before calling %s()!\n", __FUNCTION__ );
 
 // check if user has call yt_commit_grids(), so that grids are appended to YT.
-   if ( !g_param_libyt.add_grids )
+   if ( !g_param_libyt.commit_grids )
       YT_ABORT( "Please invoke yt_commit_grids() before calling %s()!\n", __FUNCTION__ );
 
 // Not sure if we need this MPI_Barrier
@@ -64,7 +64,7 @@ int yt_inline()
 // free resources to prepare for the next execution
    g_param_libyt.param_yt_set = false;
    g_param_libyt.get_gridsPtr = false;
-   g_param_libyt.add_grids    = false;
+   g_param_libyt.commit_grids    = false;
    g_param_libyt.counter ++;
 
    for (int i = 0; i < g_param_yt.num_grids_local; i = i+1){
