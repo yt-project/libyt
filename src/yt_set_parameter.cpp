@@ -69,6 +69,11 @@ int yt_set_parameter( yt_param_yt *param_yt )
       g_param_yt.fig_basename = fig_basename;
    }
 
+// set the default execute python function name if it's not set by users
+   if ( param_yt->inline_function_name == NULL ){
+      g_param_yt.inline_function_name = "yt_inline";
+   }
+
 
 // export data to libyt.param_yt
 // strings

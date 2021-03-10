@@ -27,6 +27,7 @@ void log_debug( const char *Format, ... );
 //
 // Data Member :  frontend                : Name of the target simulation code
 //                fig_basename            : Base name of the output figures
+//                inline_function_name    : Execute inline_script python function name 
 //                domain_left_edge        : Simulation left edge in code units
 //                domain_right_edge       : Simulation right edge in code units
 //                dimensionality          : Dimensionality (1/2/3), this has nothing to do with array.
@@ -62,6 +63,7 @@ struct yt_param_yt
 // ===================================================================================
    const char *frontend;
    const char *fig_basename;
+   const char *inline_function_name;
 
    double domain_left_edge[3];
    double domain_right_edge[3];
@@ -139,8 +141,9 @@ struct yt_param_yt
    {
 
 //    set defaults
-      frontend     = NULL;
-      fig_basename = NULL;
+      frontend      = NULL;
+      fig_basename  = NULL;
+      inline_function_name = NULL;
 
       for (int d=0; d<3; d++)
       {
@@ -196,9 +199,6 @@ struct yt_param_yt
    {
 
       if ( frontend                == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "frontend" );
-//    fig_basename will be set to default if it's not set by users
-//    if ( fig_basename            == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "fig_basename" );
-
       for (int d=0; d<3; d++) {
       if ( domain_left_edge [d]    == DBL_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_left_edge",  d );
       if ( domain_right_edge[d]    == DBL_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_right_edge", d ); }
@@ -249,6 +249,7 @@ struct yt_param_yt
 
       log_debug( "   %-*s = %s\n",         width_scalar, "frontend",                frontend                );
       log_debug( "   %-*s = %s\n",         width_scalar, "fig_basename",            fig_basename            );
+      log_debug( "   %-*s = %s\n",         width_scalar, "inline_function_name",    inline_function_name    );
       for (int d=0; d<3; d++) {
       log_debug( "   %-*s[%d] = %13.7e\n", width_vector, "domain_left_edge",  d,    domain_left_edge [d]    ); }
       for (int d=0; d<3; d++) {

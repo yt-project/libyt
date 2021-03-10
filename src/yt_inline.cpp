@@ -47,9 +47,11 @@ int yt_inline()
    MPI_Barrier(MPI_COMM_WORLD);
 
 // execute YT script
-   const int CallYT_CommandWidth = strlen( g_param_libyt.script ) + 13;   // 13 = ".yt_inline()" + '\0'
+// TODO: Change the execute function name to arbitrary
+   int InlineFunctionWidth = strlen(g_param_yt.inline_function_name) + 4; // width = .<function_name>() + '\0'
+   const int CallYT_CommandWidth = strlen( g_param_libyt.script ) + InlineFunctionWidth;
    char *CallYT = (char*) malloc( CallYT_CommandWidth*sizeof(char) );
-   sprintf( CallYT, "%s.yt_inline()", g_param_libyt.script );
+   sprintf( CallYT, "%s.%s()", g_param_libyt.script, g_param_yt.inline_function_name );
 
    if ( PyRun_SimpleString( CallYT ) == 0 )
       log_debug( "Invoking \"%s\" ... done\n", CallYT );
