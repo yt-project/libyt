@@ -115,6 +115,13 @@ int main( int argc, char *argv[] )
       param_yt.frontend                = "gamer";           // simulation frontend
 //    param_yt.fig_basename            = "fig_basename";    // figure base name (default=Fig%09d)
 
+      if (step < total_steps / 2){
+         param_yt.inline_function_name = "yt_inline_ProjectionPlot";
+      }
+      else {
+         param_yt.inline_function_name = "yt_inline_ProfilePlot";
+      }
+
       param_yt.length_unit             = 3.0857e21;         // units are in cgs
       param_yt.mass_unit               = 1.9885e33;
       param_yt.time_unit               = 3.1557e13;
