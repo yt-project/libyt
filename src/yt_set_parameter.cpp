@@ -60,11 +60,18 @@ int yt_set_parameter( yt_param_yt *param_yt )
    g_param_yt = *param_yt;
 
 
-// set the default figure base name if it's not set by users
+// set the default figure base name if it's not set by users.
    if ( param_yt->fig_basename == NULL )
    {
       char fig_basename[15];
       sprintf( fig_basename, "Fig%09ld", g_param_libyt.counter );
+
+      g_param_yt.fig_basename = fig_basename;
+   }
+// append g_param_libyt.counter to prevent over-written
+   else {
+      char fig_basename[1000];
+      sprintf( fig_basename, "%s%09ld", param_yt->fig_basename, g_param_libyt.counter );
 
       g_param_yt.fig_basename = fig_basename;
    }

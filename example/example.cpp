@@ -113,8 +113,10 @@ int main( int argc, char *argv[] )
       yt_param_yt param_yt;
 
       param_yt.frontend                = "gamer";           // simulation frontend
-//    param_yt.fig_basename            = "fig_basename";    // figure base name (default=Fig%09d)
+      param_yt.fig_basename            = "FigName";         // figure base name (default=Fig), will append number of calls to libyt
+                                                            // at the end
 
+      // execute different inline function in inline python script at different time step
       if (step < total_steps / 2){
          param_yt.inline_function_name = "yt_inline_ProjectionPlot";
       }
