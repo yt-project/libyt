@@ -8,21 +8,14 @@
 // Function    :  yt_inline
 // Description :  Execute the YT inline analysis script
 //
-// Note        :  1. Script name is stored in "g_param_libyt.script"
-//                2. This script must first import yt and then put all YT commands in a method named
-//                   "yt_inline". Example:
+// Note        :  1. Python script name is stored in "g_param_libyt.script"
+//                2. This python script must contain function of <function_name> you called.
 //
-//                   import yt
-//
-//                   def yt_inline():
-//                      #your YT commands
-//                      # ...
-//
-// Parameter   :  None
+// Parameter   :  char *function_name : the function inside python script that you want to execute.
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_inline()
+int yt_inline( char *function_name )
 {
 
 // check if libyt has been initialized
@@ -46,12 +39,11 @@ int yt_inline()
 // Not sure if we need this MPI_Barrier
    MPI_Barrier(MPI_COMM_WORLD);
 
-// execute YT script
-// TODO: Change the execute function name to arbitrary
-   int InlineFunctionWidth = strlen(g_param_yt.inline_function_name) + 4; // width = .<function_name>() + '\0'
+// execute function in python script
+   int InlineFunctionWidth = strlen(function_name) + 4; // width = .<function_name>() + '\0'
    const int CallYT_CommandWidth = strlen( g_param_libyt.script ) + InlineFunctionWidth;
    char *CallYT = (char*) malloc( CallYT_CommandWidth*sizeof(char) );
-   sprintf( CallYT, "%s.%s()", g_param_libyt.script, g_param_yt.inline_function_name );
+   sprintf( CallYT, "%s.%s()", g_param_libyt.script, function_name );
 
    if ( PyRun_SimpleString( CallYT ) == 0 )
       log_debug( "Invoking \"%s\" ... done\n", CallYT );
@@ -59,27 +51,6 @@ int yt_inline()
       YT_ABORT(  "Invoking \"%s\" ... failed\n", CallYT );
 
    free( CallYT );
-
-
-// free resources to prepare for the next execution
-   g_param_libyt.param_yt_set = false;
-   g_param_libyt.get_gridsPtr = false;
-   g_param_libyt.commit_grids    = false;
-   g_param_libyt.counter ++;
-
-   for (int i = 0; i < g_param_yt.num_grids_local; i = i+1){
-      delete [] g_param_yt.grids_local[i].field_data;
-   }
-   delete [] g_param_yt.grids_local;
-   delete [] g_param_yt.num_grids_local_MPI;
-   g_param_yt.init();
-   
-   PyDict_Clear( g_py_grid_data  );
-   PyDict_Clear( g_py_hierarchy  );
-   PyDict_Clear( g_py_param_yt   );
-   PyDict_Clear( g_py_param_user );
-
-   PyRun_SimpleString( "gc.collect()" );
 
    return YT_SUCCESS;
 
