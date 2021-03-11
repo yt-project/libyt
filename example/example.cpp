@@ -115,15 +115,6 @@ int main( int argc, char *argv[] )
       param_yt.frontend                = "gamer";           // simulation frontend
       param_yt.fig_basename            = "FigName";         // figure base name (default=Fig), will append number of calls to libyt
                                                             // at the end
-
-      // execute different inline function in inline python script at different time step
-      if (step < total_steps / 2){
-         param_yt.inline_function_name = "yt_inline_ProjectionPlot";
-      }
-      else {
-         param_yt.inline_function_name = "yt_inline_ProfilePlot";
-      }
-
       param_yt.length_unit             = 3.0857e21;         // units are in cgs
       param_yt.mass_unit               = 1.9885e33;
       param_yt.time_unit               = 3.1557e13;
@@ -204,10 +195,9 @@ int main( int argc, char *argv[] )
       yt_add_user_parameter_double( "user_double3", 3,  user_double3 );
 
 
-//    ==========================================
-//    4. Get pointer to local grids array, 
-//       then set up local grids
-//    ==========================================
+//    ============================================================
+//    4. Get pointer to local grids array, then set up local grids
+//    ============================================================
       yt_grid *grids_local;
       yt_get_gridsPtr( &grids_local );
       
@@ -344,6 +334,9 @@ int main( int argc, char *argv[] )
 
       }
 
+//    ==============================================
+//    5. tell libyt that you have done loading grids
+//    ==============================================
 //    *** libyt API ***
       if ( yt_commit_grids() != YT_SUCCESS ) {
          fprintf( stderr, "ERROR: yt_commit_grids() failed!\n" );
@@ -351,13 +344,29 @@ int main( int argc, char *argv[] )
       }
 
 
-//    ==========================================
-//    5. perform inline analysis
-//    ==========================================
+//    =============================================================
+//    6. perform inline analysis, execute function in python script
+//    =============================================================
 //    *** libyt API ***
-      if ( yt_inline() != YT_SUCCESS )
+      if ( yt_inline( "yt_inline_ProjectionPlot" ) != YT_SUCCESS )
       {
          fprintf( stderr, "ERROR: yt_inline() failed!\n" );
+         exit( EXIT_FAILURE );
+      }
+
+      if ( yt_inline( "yt_inline_ProfilePlot" ) != YT_SUCCESS )
+      {
+         fprintf( stderr, "ERROR: yt_inline() failed!\n" );
+         exit( EXIT_FAILURE );
+      }
+
+//    =============================================================================
+//    7. free grid info loaded into python, end of the inline-analysis at this step
+//    =============================================================================
+//    *** libyt API ***
+      if ( yt_free_gridsPtr() != YT_SUCCESS )
+      {
+         fprintf( stderr, "ERROR: yt_free_gridsPtr() failed!\n" );
          exit( EXIT_FAILURE );
       }
 
@@ -370,7 +379,7 @@ int main( int argc, char *argv[] )
    } // for (int step=0; step<total_steps; step++)
 
 // ==========================================
-// 6. exit libyt
+// 8. exit libyt
 // ==========================================
 // *** libyt API ***
    if ( yt_finalize() != YT_SUCCESS )
@@ -424,4 +433,4 @@ void get_randArray(int *array, int length) {
    for (int i = 0; i < length; i = i+1){
       array[i] = rand() % NRank;
    }
-}
+} // FUNCTION : get_randArray
