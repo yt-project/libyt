@@ -4,8 +4,6 @@ yt.enable_parallelism()
 
 def yt_inline_ProjectionPlot():
     ds = yt.frontends.libyt.libytDataset()
-    # ProjectionPlot, Serial
-    ######################################
     prjz = yt.ProjectionPlot(ds, 'z', 'density')
 
     if yt.is_root():
