@@ -23,11 +23,16 @@ int yt_set_parameter( yt_param_yt *param_yt )
 {
 
 // check if libyt has been initialized
-   if ( g_param_libyt.libyt_initialized )
-      log_info( "Setting YT parameters ...\n" );
-   else
+   if ( !g_param_libyt.libyt_initialized ){
       YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
+   }
 
+// check if libyt has free all the resource in previous inline-analysis
+   if ( !g_param_libyt.free_gridsPtr ){
+      YT_ABORT( "Please invoke yt_free_gridsPtr() before calling %s() for next iteration!\n", __FUNCTION__ );
+   }
+
+   log_info( "Setting YT parameters ...\n" );
 
 // check if this function has been called previously
    if ( g_param_libyt.param_yt_set )
@@ -170,7 +175,9 @@ int yt_set_parameter( yt_param_yt *param_yt )
    }
 
 // If the above all works like charm.
-   g_param_libyt.param_yt_set = true;
+   g_param_libyt.param_yt_set  = true;
+   g_param_libyt.free_gridsPtr = false;
+   log_info( "Setting YT parameters ... done.\n" );
 
    return YT_SUCCESS;
 

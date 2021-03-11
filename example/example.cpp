@@ -9,7 +9,7 @@ yt python package with OpenMPI.
         then distribute them to grids_local, to simulate the working process.
 
 And also, to illustrates the basic usage of libyt.
-In steps 0 - 6.
+In steps 0 - 8.
  */
 
 #include <stdlib.h>
@@ -361,7 +361,7 @@ int main( int argc, char *argv[] )
       }
 
 //    =============================================================================
-//    7. free grid info loaded into python, end of the inline-analysis at this step
+//    7. end of the inline-analysis at this step, free grid info loaded into python
 //    =============================================================================
 //    *** libyt API ***
       if ( yt_free_gridsPtr() != YT_SUCCESS )

@@ -25,6 +25,7 @@
 //                param_yt_set                : true ==> yt_set_parameter() has been called successfully
 //                get_gridsPtr                : true ==> yt_get_gridsPtr() has been called successfully
 //                commit_grids                : true ==> yt_commit_grids() has been called successfully
+//                free_gridsPtr               : true ==> yt_free_gridsPtr() has been called successfully, everything is reset.
 //
 // Method      :  yt_param_libyt : Constructor
 //               ~yt_param_libyt : Destructor
@@ -44,6 +45,7 @@ struct yt_param_libyt
    bool  param_yt_set;
    bool  get_gridsPtr;
    bool  commit_grids;
+   bool  free_gridsPtr;
    long  counter;
 
 
@@ -66,6 +68,7 @@ struct yt_param_libyt
       param_yt_set       = false;
       get_gridsPtr       = false;
       commit_grids       = false;
+      free_gridsPtr      = true;
       counter            = 0;
 
    } // METHOD : yt_param_libyt

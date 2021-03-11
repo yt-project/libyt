@@ -18,13 +18,17 @@
 //
 int yt_get_gridsPtr( yt_grid **grids_local )
 {
+	// check if libyt has been initialized
+   	if ( !g_param_libyt.libyt_initialized ){
+    	YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );     	
+   	}
+
 	// check if yt_set_parameter() have been called
-   	if ( g_param_libyt.param_yt_set ) {
-    	log_info( "Getting pointer to local grids array  ...\n" );
-   	}
-   	else {
-   		YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
-   	}
+   	if ( !g_param_libyt.param_yt_set ) {
+    	YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
+    }
+
+   	log_info( "Getting pointer to local grids information ...\n" );
 
    	// Get the MPI rank
    	int MyRank;
@@ -47,7 +51,7 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 
 	// Above all works like charm
 	g_param_libyt.get_gridsPtr = true;
-	log_info( "Getting pointer to local grids array  ... done.\n" );
+	log_info( "Getting pointer to local grids information  ... done.\n" );
 	
 	return YT_SUCCESS;
 }

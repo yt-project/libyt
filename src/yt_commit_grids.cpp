@@ -20,16 +20,21 @@ int yt_commit_grids()
 {
 
 // check if libyt has been initialized
-   if ( !g_param_libyt.libyt_initialized )
+   if ( !g_param_libyt.libyt_initialized ){
       YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
+   }
 
 // check if YT parameters have been set
-   if ( !g_param_libyt.param_yt_set )
+   if ( !g_param_libyt.param_yt_set ){
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
+   }
 
 // check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
-   if ( !g_param_libyt.get_gridsPtr )
+   if ( !g_param_libyt.get_gridsPtr ){
       YT_ABORT( "Please invoke yt_get_gridsPtr() before calling %s()!\n", __FUNCTION__ );
+   }
+
+   log_info("Loading grids to yt ...\n");
 
 // check each grids individually
    for (int i = 0; i < g_param_yt.num_grids_local; i = i+1) {
@@ -218,6 +223,7 @@ int yt_commit_grids()
 
    // Above all works like charm
    g_param_libyt.commit_grids = true;
+   log_info("Loading grids to yt ... done.\n");
 
    return YT_SUCCESS;
 

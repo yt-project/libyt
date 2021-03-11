@@ -18,7 +18,27 @@
 //
 int yt_free_gridsPtr()
 {
-// free resources to prepare for the next round
+// check if libyt has been initialized
+   if ( !g_param_libyt.libyt_initialized ){
+      YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
+   }
+
+// check if YT parameters have been set
+   if ( !g_param_libyt.param_yt_set ){
+      YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
+   }
+
+// check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
+   if ( !g_param_libyt.get_gridsPtr ){
+      YT_ABORT( "Please invoke yt_get_gridsPtr() before calling %s()!\n", __FUNCTION__ );
+   }
+
+// check if user has call yt_commit_grids(), so that grids are appended to YT.
+   if ( !g_param_libyt.commit_grids ){
+      YT_ABORT( "Please invoke yt_commit_grids() before calling %s()!\n", __FUNCTION__ );
+   }
+
+   // free resources to prepare for the next round
    g_param_libyt.param_yt_set = false;
    g_param_libyt.get_gridsPtr = false;
    g_param_libyt.commit_grids = false;
@@ -37,6 +57,8 @@ int yt_free_gridsPtr()
    PyDict_Clear( g_py_param_user );
 
    PyRun_SimpleString( "gc.collect()" );
+
+   g_param_libyt.free_gridsPtr = true;
 
    return YT_SUCCESS;
 } // FUNCTION: yt_free_gridsPtr()
