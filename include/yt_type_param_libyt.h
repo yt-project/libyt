@@ -25,7 +25,8 @@
 //                param_yt_set                : true ==> yt_set_parameter() has been called successfully
 //                get_gridsPtr                : true ==> yt_get_gridsPtr() has been called successfully
 //                commit_grids                : true ==> yt_commit_grids() has been called successfully
-//                free_gridsPtr               : true ==> yt_free_gridsPtr() has been called successfully, everything is reset.
+//                free_gridsPtr               : true ==> yt_free_gridsPtr() has been called successfully, 
+//                                                       everything is reset and freed.
 //
 // Method      :  yt_param_libyt : Constructor
 //               ~yt_param_libyt : Destructor

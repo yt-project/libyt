@@ -41,7 +41,7 @@ int yt_inline( char *function_name )
 // Not sure if we need this MPI_Barrier
    MPI_Barrier(MPI_COMM_WORLD);
 
-   log_info( "Performing YT inline analysis ...\n" );
+   log_info( "Performing YT inline analysis %s.%s() ...\n", g_param_libyt.script, function_name );
 
 // execute function in python script
    int InlineFunctionWidth = strlen(function_name) + 4; // width = .<function_name>() + '\0'
@@ -56,7 +56,7 @@ int yt_inline( char *function_name )
 
    free( CallYT );
 
-   log_info( "Performing YT inline analysis ... done.\n" );
+   log_info( "Performing YT inline analysis %s.%s() ... done.\n", g_param_libyt.script, function_name );
 
    return YT_SUCCESS;
 

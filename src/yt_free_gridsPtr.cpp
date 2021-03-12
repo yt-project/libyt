@@ -38,6 +38,9 @@ int yt_free_gridsPtr()
       YT_ABORT( "Please invoke yt_commit_grids() before calling %s()!\n", __FUNCTION__ );
    }
 
+   // Make sure every rank has reach to this point
+   MPI_Barrier( MPI_COMM_WORLD );
+
    // free resources to prepare for the next round
    g_param_libyt.param_yt_set = false;
    g_param_libyt.get_gridsPtr = false;
