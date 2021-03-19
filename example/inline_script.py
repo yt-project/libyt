@@ -2,9 +2,9 @@ import yt
 
 yt.enable_parallelism()
 
-def yt_inline_ProjectionPlot():
+def yt_inline_ProjectionPlot( fields ):
     ds = yt.frontends.libyt.libytDataset()
-    prjz = yt.ProjectionPlot(ds, 'z', 'density')
+    prjz = yt.ProjectionPlot(ds, 'z', fields)
 
     if yt.is_root():
         prjz.save()

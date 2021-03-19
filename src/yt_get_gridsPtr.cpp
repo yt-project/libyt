@@ -1,9 +1,6 @@
 #include "yt_combo.h"
 #include "libyt.h"
 
-// TODO: Function name a little bit misleading..., name a new one later.
-
-
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_get_gridsPtr
 // Description :  Get pointer of the array of struct yt_grid with length num_grids_local.
