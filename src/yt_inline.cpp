@@ -87,8 +87,8 @@ int yt_inline( char *function_name, int argc, ... ){
       }
       strcat( CallYT, ")");
 
-      // DEBUG:
-      printf("#FLAG, %s\n", CallYT);
+      va_end(Args_len);
+      va_end(Args);
 
       if ( PyRun_SimpleString( CallYT ) == 0 ){
          log_debug( "Invoking \"%s\" ... done\n", CallYT );
