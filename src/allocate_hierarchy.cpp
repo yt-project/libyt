@@ -1,7 +1,5 @@
 #include "yt_combo.h"
 
-// TODO: Function name and filename misleading...
-
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  allocate_hierarchy

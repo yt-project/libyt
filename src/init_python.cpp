@@ -22,7 +22,6 @@ static int import_numpy();
 int init_python( int argc, char *argv[] )
 {
 
-// TODO: Where do we need this?
 // initialize Python interpreter
    Py_SetProgramName( Py_DecodeLocale("yt_inline", NULL) );
 
@@ -35,6 +34,7 @@ int init_python( int argc, char *argv[] )
       YT_ABORT(  "Initializing Python interpreter ... failed!\n" ); }
 
 // TODO: What are argc, argv use for?
+//       Probably can encode some settings, that must do before initialize Python.
 //       Length is hardcoded, each argv string size cannot longer than 1000.
 // set sys.argv
    wchar_t **wchar_t_argv = (wchar_t **) malloc(argc * sizeof(wchar_t *));
