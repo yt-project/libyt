@@ -348,13 +348,13 @@ int main( int argc, char *argv[] )
 //    6. perform inline analysis, execute function in python script
 //    =============================================================
 //    *** libyt API ***
-      if ( yt_inline( "yt_inline_ProjectionPlot", 1, "\'density\'" ) != YT_SUCCESS )
+      if ( yt_inline_argument( "yt_inline_ProjectionPlot", 1, "\'density\'" ) != YT_SUCCESS )
       {
          fprintf( stderr, "ERROR: yt_inline() failed!\n" );
          exit( EXIT_FAILURE );
       }
 
-      if ( yt_inline( "yt_inline_ProfilePlot", 0 ) != YT_SUCCESS )
+      if ( yt_inline( "yt_inline_ProfilePlot" ) != YT_SUCCESS )
       {
          fprintf( stderr, "ERROR: yt_inline() failed!\n" );
          exit( EXIT_FAILURE );

@@ -35,7 +35,8 @@ int yt_add_user_parameter_double( const char *key, const int n, const double *in
 int yt_add_user_parameter_string( const char *key,              const char   *input );
 int yt_commit_grids();
 int yt_free_gridsPtr();
-int yt_inline( char *function_name, int argc, ... );
+int yt_inline_argument( char *function_name, int argc, ... );
+int yt_inline( char *function_name );
 
 #ifdef __cplusplus
 }
