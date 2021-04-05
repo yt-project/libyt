@@ -95,6 +95,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
    add_dict_scalar(  g_py_param_yt, "length_unit",             g_param_yt.length_unit             );
    add_dict_scalar(  g_py_param_yt, "mass_unit",               g_param_yt.mass_unit               );
    add_dict_scalar(  g_py_param_yt, "time_unit",               g_param_yt.time_unit               );
+   add_dict_scalar(  g_py_param_yt, "magnetic_unit",           g_param_yt.magnetic_unit           );
    add_dict_scalar(  g_py_param_yt, "cosmological_simulation", g_param_yt.cosmological_simulation );
    add_dict_scalar(  g_py_param_yt, "dimensionality",          g_param_yt.dimensionality          );
    add_dict_scalar(  g_py_param_yt, "refine_by",               g_param_yt.refine_by               );

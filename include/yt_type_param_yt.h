@@ -16,7 +16,7 @@
 #include "yt_macro.h"
 #include "yt_type_grid.h"
 void log_debug( const char *Format, ... );
-
+void log_warning(const char *Format, ...);
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -38,9 +38,10 @@ void log_debug( const char *Format, ... );
 //                omega_lambda            : Dark energy mass density
 //                omega_matter            : Dark matter mass density
 //                hubble_constant         : Dimensionless Hubble parameter at the present day
-//                length_unit             : Simulation length unit in CGS
-//                mass_unit               : Simulation mass   unit in CGS
-//                time_unit               : Simulation time   unit in CGS
+//                length_unit             : Simulation length unit in cm (CGS)
+//                mass_unit               : Simulation mass   unit in g  (CGS)
+//                time_unit               : Simulation time   unit in s  (CGS)
+//                magnetic_unit           : Simulation magnetic unit in gauss
 //                refine_by               : Refinement factor between a grid and its subgrid
 //                num_grids               : Total number of grids
 //                num_fields              : Number of fields
@@ -73,6 +74,7 @@ struct yt_param_yt
    double length_unit;
    double mass_unit;
    double time_unit;
+   double magnetic_unit;
 
 // declare all boolean variables as int so that we can check whether they have been set by users
    int    periodicity[3];
@@ -155,6 +157,7 @@ struct yt_param_yt
       length_unit             = DBL_UNDEFINED;
       mass_unit               = DBL_UNDEFINED;
       time_unit               = DBL_UNDEFINED;
+      magnetic_unit           = DBL_UNDEFINED;
 
       for (int d=0; d<3; d++)
       {
@@ -209,7 +212,8 @@ struct yt_param_yt
       if ( length_unit             == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "length_unit" );
       if ( mass_unit               == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "mass_unit" );
       if ( time_unit               == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "time_unit" );
-
+      if ( magnetic_unit           == DBL_UNDEFINED )   log_warning( "\"%s\" has not been set!\n",  "magnetic_unit" );
+      
       for (int d=0; d<3; d++) {
       if ( periodicity      [d]    == INT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "periodicity", d );
       if ( domain_dimensions[d]    == INT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_dimensions", d ); }
@@ -257,9 +261,17 @@ struct yt_param_yt
       log_debug( "   %-*s = %13.7e\n",     width_scalar, "omega_lambda",            omega_lambda            );
       log_debug( "   %-*s = %13.7e\n",     width_scalar, "omega_matter",            omega_matter            );
       log_debug( "   %-*s = %13.7e\n",     width_scalar, "hubble_constant",         hubble_constant         ); }
+
       log_debug( "   %-*s = %13.7e\n",     width_scalar, "length_unit",             length_unit             );
       log_debug( "   %-*s = %13.7e\n",     width_scalar, "mass_unit",               mass_unit               );
       log_debug( "   %-*s = %13.7e\n",     width_scalar, "time_unit",               time_unit               );
+      if ( magnetic_unit == DBL_UNDEFINED ){
+         log_debug( "   %-*s = %s\n",      width_scalar, "magnetic_unit",           "NOT SET"               );
+      }
+      else{
+         log_debug( "   %-*s = %13.7e\n",     width_scalar, "magnetic_unit",        magnetic_unit           );
+      }
+      
       for (int d=0; d<3; d++) {
       log_debug( "   %-*s[%d] = %d\n",     width_vector, "periodicity", d,          periodicity[d]          ); }
       for (int d=0; d<3; d++) {
