@@ -360,6 +360,12 @@ int main( int argc, char *argv[] )
          exit( EXIT_FAILURE );
       }
 
+	  if ( yt_inline("test_user_parameter") != YT_SUCCESS )
+	  {
+		 fprintf( stderr, "ERROR: yt_inline() failed!\n" );
+		 exit( EXIT_FAILURE );
+	  }
+
 //    =============================================================================
 //    7. end of the inline-analysis at this step, free grid info loaded into python
 //    =============================================================================

@@ -16,3 +16,6 @@ def yt_inline_ProfilePlot():
     if yt.is_root():
         profile.save()
 
+def test_user_parameter():
+    import libyt
+    print("user_int = ", libyt.param_user['user_int'])
