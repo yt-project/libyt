@@ -290,8 +290,9 @@ struct yt_param_yt
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids_local",         num_grids_local         );
       }
 
+// TODO: Pretty print multiple field_labels
       for (int d=0; d<num_fields; d++) {
-      log_debug("    %-*s[%d] = %s\n",     width_vector, "field_labels", d,         field_labels[d]         ); }
+      log_debug( "   %-*s[%d] = %s\n",     width_vector, "field_labels", d,         field_labels[d]         ); }
 
       return YT_SUCCESS;
 
