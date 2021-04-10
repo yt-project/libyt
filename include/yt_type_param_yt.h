@@ -294,7 +294,7 @@ struct yt_param_yt
 
 // TODO: Pretty print multiple field_labels
       for (int d=0; d<num_fields; d++) {
-      log_debug( "   %-*s[%d] = (%s,%s)\n",     width_vector, "field_labels", d,    field_labels[d].field_name, field_labels[d].field_type); }
+      log_debug( "   %-*s[%d] = (%s,%s)\n",     width_vector, "field_labels", d,    field_labels[d].field_name, field_labels[d].field_define_type); }
 
       return YT_SUCCESS;
 

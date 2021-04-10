@@ -97,8 +97,8 @@ int main( int argc, char *argv[] )
    
    int *grids_MPI = new int [num_grids];                        // Record MPI rank in each grids
 
-// Declare a yt_field array to store field labels and field type (ex: cell-centered)
-   yt_field  *field_labels = new yt_field [1];                  // field labels {field_name, field_type}
+// Declare a yt_field array to store field labels and field define type (ex: cell-centered)
+   yt_field  *field_labels = new yt_field [1];                  // field labels {field_name, field_define_type}
    field_labels[0].field_name = "Dens";
 
    double time = 0.0;
