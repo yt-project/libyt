@@ -57,7 +57,8 @@ int append_grid( yt_grid *grid ){
       py_field_data = PyArray_SimpleNewFromData( 3, grid_dims, grid_ftype, grid->field_data[v] );
 
 //    add the field data to "libyt.grid_data[grid_id][field_label]"
-      PyDict_SetItemString( py_field_labels, g_param_yt.field_labels[v], py_field_data );
+//    TODO: field_labels is now yt_field struct
+      PyDict_SetItemString( py_field_labels, g_param_yt.field_labels[v].field_name, py_field_data );
 
 //    call decref since PyDict_SetItemString() returns a new reference
       Py_DECREF( py_field_data );
@@ -65,7 +66,7 @@ int append_grid( yt_grid *grid ){
 //    we assume that field data of specific range are not disperse, they contain in one MPI rank only
       if ( grid->field_data[v] != NULL ) {
          log_debug( "Inserting grid [%15ld] field data [%s] to libyt.grid_data ... done\n", 
-                     grid->id, g_param_yt.field_labels[v] );
+                     grid->id, g_param_yt.field_labels[v].field_name );
       }
    }
 

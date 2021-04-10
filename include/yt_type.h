@@ -24,6 +24,7 @@ enum yt_ftype   { YT_FTYPE_UNKNOWN=0, YT_FLOAT=1, YT_DOUBLE=2 };
 #include "yt_type_param_libyt.h"
 #include "yt_type_param_yt.h"
 #include "yt_type_grid.h"
+#include "yt_type_field.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_hierarchy

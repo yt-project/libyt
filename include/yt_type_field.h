@@ -22,7 +22,6 @@ void log_debug( const char *Format, ... );
 //
 // Method      :  yt_field  : Constructor
 //               ~yt_field  : Destructor
-//                show      : Show the value
 //-------------------------------------------------------------------------------------------------------
 struct yt_field
 {
@@ -58,19 +57,6 @@ struct yt_field
 
 	} // METHOD : ~yt_field
 
-//=======================================================================================================
-// Method      : show
-// Description : Print out all data members if the verbose level >= YT_VERBOSE_DEBUG
-// 
-// Note        : 1. Will be used in yt_type_param_yt.h (struct yt_param_yt show())
-// 
-// Parameter   : None
-// 
-// Return      : YT_SUCCESS
-//=======================================================================================================
-	int show() const
-	{
-		log_debug("(%s, %s)", field_name, field_type);
-	}
-
 };
+
+#endif // #ifndef __YT_TYPE_FIELD_H__

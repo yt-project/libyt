@@ -15,6 +15,7 @@
 // include relevant headers/prototypes
 #include "yt_macro.h"
 #include "yt_type_grid.h"
+#include "yt_type_field.h"
 void log_debug( const char *Format, ... );
 void log_warning(const char *Format, ...);
 
@@ -61,6 +62,7 @@ struct yt_param_yt
 
 // data members
 // ===================================================================================
+// variables that will be passed to yt
    const char *frontend;
    const char *fig_basename;
 
@@ -89,7 +91,7 @@ struct yt_param_yt
    int          num_fields;
    int         *grids_MPI;
    int          num_grids_local;
-   char       **field_labels;
+   yt_field    *field_labels;
    yt_ftype     field_ftype;
 
 // Loaded and controlled by libyt
@@ -292,7 +294,7 @@ struct yt_param_yt
 
 // TODO: Pretty print multiple field_labels
       for (int d=0; d<num_fields; d++) {
-      log_debug( "   %-*s[%d] = %s\n",     width_vector, "field_labels", d,         field_labels[d]         ); }
+      log_debug( "   %-*s[%d] = (%s,%s)\n",     width_vector, "field_labels", d,    field_labels[d].field_name, field_labels[d].field_type); }
 
       return YT_SUCCESS;
 
