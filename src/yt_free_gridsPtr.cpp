@@ -47,6 +47,8 @@ int yt_free_gridsPtr()
    g_param_libyt.commit_grids = false;
    g_param_libyt.counter ++;
 
+   // TODO: Should we free yt_field array g_param_yt.field_list here?
+   //       For now, user declare and input yt_field array's pointer to libyt.
    for (int i = 0; i < g_param_yt.num_grids_local; i = i+1){
       delete [] g_param_yt.grids_local[i].field_data;
    }

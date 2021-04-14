@@ -9,9 +9,6 @@
 /
 ********************************************************************************/
 
-// include relevant headers/prototypes
-void log_debug( const char *Format, ... );
-
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_field
 // Description :  Data structure to store a field's label and its definition of data representation.

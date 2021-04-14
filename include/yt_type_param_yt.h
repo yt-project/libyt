@@ -48,7 +48,7 @@ void log_warning(const char *Format, ...);
 //                num_fields              : Number of fields
 //                grids_MPI               : grids belongs to which MPI rank
 //                num_grids_local         : Number of local grids in each rank
-//                field_labels            : field labels
+//                field_list              : field list, including {field_name, field_define_type}
 //                grids_local             : Ptr to full information of local grids
 //                field_ftype             : Floating-point type of "field_data" ==> YT_FLOAT or YT_DOUBLE
 //
@@ -91,7 +91,7 @@ struct yt_param_yt
    int          num_fields;
    int         *grids_MPI;
    int          num_grids_local;
-   yt_field    *field_labels;
+   yt_field    *field_list;
    yt_ftype     field_ftype;
 
 // Loaded and controlled by libyt
@@ -174,7 +174,7 @@ struct yt_param_yt
       num_fields              = INT_UNDEFINED;
       grids_MPI               = NULL;
       num_grids_local         = INT_UNDEFINED;
-      field_labels            = NULL;
+      field_list              = NULL;
       field_ftype             = YT_FTYPE_UNKNOWN;
 
    // Loaded and controlled by libyt
@@ -223,7 +223,7 @@ struct yt_param_yt
       if ( refine_by               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "refine_by" );
       if ( num_grids               == LNG_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_grids" );
       if ( num_fields              == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_fields" );
-      if ( field_labels            == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "field_labels");
+      if ( field_list              == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "field_list");
       if ( grids_MPI == NULL && num_grids_local == INT_UNDEFINED )  YT_ABORT( "Either grids_MPI or num_grids_local should be set!\n");
       if ( field_ftype != YT_FLOAT  &&  field_ftype != YT_DOUBLE )  YT_ABORT( "Unknown \"%s\" == %d !\n", "field_ftype", field_ftype);
 
@@ -292,9 +292,9 @@ struct yt_param_yt
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids_local",         num_grids_local         );
       }
 
-// TODO: Pretty print multiple field_labels
+// TODO: Pretty print multiple field_list
       for (int d=0; d<num_fields; d++) {
-      log_debug( "   %-*s[%d] = (%s,%s)\n",     width_vector, "field_labels", d,    field_labels[d].field_name, field_labels[d].field_define_type); }
+      log_debug( "   %-*s[%d] = (%s,%s)\n",     width_vector, "field_list", d,    field_list[d].field_name, field_list[d].field_define_type); }
 
       return YT_SUCCESS;
 

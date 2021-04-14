@@ -79,7 +79,7 @@ int yt_commit_grids()
       // data in each fields are not NULL
       for (int v = 0; v < g_param_yt.num_fields; v = v+1){
          if (grid.field_data[v] == NULL)
-            log_warning( "Grid [%ld], field_data [%s] is NULL, not set yet!", grid.id, g_param_yt.field_labels[v]);
+            log_warning( "Grid [%ld], field_data [%s] is NULL, not set yet!", grid.id, g_param_yt.field_list[v].field_name);
       }
 
    }

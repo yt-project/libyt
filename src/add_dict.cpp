@@ -175,3 +175,41 @@ template int add_dict_vector3 <long  > ( PyObject *dict, const char *key, const 
 template int add_dict_vector3 <uint  > ( PyObject *dict, const char *key, const uint   *vector );
 template int add_dict_vector3 <ulong > ( PyObject *dict, const char *key, const ulong  *vector );
 
+//-------------------------------------------------------------------------------------------------------
+// Function    :  add_dict_field_list
+// Description :  Function for adding a dictionary item to a Python dictionary
+//
+// Note        :  1. Add a series of key-value pair to libyt.dict, with key and value both as string.
+//                2. Used in yt_set_parameter() on setting field_list = { field_name: field_define_type}
+//                3. PyUnicode_FromString is Python-API >= 3.5
+//
+// Parameter   :  dict        : Target Python dictionary
+//                field_num   : Number of field
+//                field_list  : yt_field array to be added to dict
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int add_dict_field_list(){
+
+   PyObject *dict = PyDict_New();
+   PyObject *key, *val;
+
+   for (int i = 0; i < g_param_yt.num_fields; i++){
+      key = PyUnicode_FromString((g_param_yt.field_list)[i].field_name);
+      val = PyUnicode_FromString((g_param_yt.field_list)[i].field_define_type);
+      if ( PyDict_SetItem(dict, key, val) != 0 ){
+         YT_ABORT("On setting dictionary field_list in libyt, key-value pair [%s]-[%s] failed!\n", 
+                   (g_param_yt.field_list)[i].field_name, (g_param_yt.field_list)[i].field_define_type);
+      }
+   }
+
+   if ( PyDict_SetItemString( g_py_param_yt, "field_list", dict) != 0 ){
+      YT_ABORT( "Inserting a dictionary field_list item ... failed!\n");
+   }
+
+   Py_DECREF( key );
+   Py_DECREF( val );
+   Py_DECREF( dict );
+
+   return YT_SUCCESS;
+}

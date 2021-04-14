@@ -107,6 +107,9 @@ int yt_set_parameter( yt_param_yt *param_yt )
    add_dict_vector3( g_py_param_yt, "periodicity",             g_param_yt.periodicity             );
    add_dict_vector3( g_py_param_yt, "domain_dimensions",       g_param_yt.domain_dimensions       );
 
+// add field_list as dictionary
+   add_dict_field_list();
+
    log_debug( "Inserting YT parameters to libyt.param_yt ... done\n" );
 
 

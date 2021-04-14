@@ -39,26 +39,26 @@ int append_grid( yt_grid *grid ){
    FILL_ARRAY( "proc_num",            &grid->proc_num,       1, npy_int    );
    log_debug( "Inserting grid [%15ld] info to libyt.hierarchy ... done\n", grid->id );
 
-// export grid data to libyt.grid_data as "libyt.grid_data[grid_id][field_label][field_data]"
+// export grid data to libyt.grid_data as "libyt.grid_data[grid_id][field_list.field_name][field_data]"
    int      grid_ftype   = (g_param_yt.field_ftype == YT_FLOAT ) ? NPY_FLOAT : NPY_DOUBLE;
    npy_intp grid_dims[3] = { grid->dimensions[0], grid->dimensions[1], grid->dimensions[2] };
    PyObject *py_grid_id, *py_field_labels, *py_field_data;
 
-// allocate [grid_id][field_label]
+// allocate [grid_id][field_list.field_name]
    py_grid_id      = PyLong_FromLong( grid->id );
    py_field_labels = PyDict_New();
 
    PyDict_SetItem( g_py_grid_data, py_grid_id, py_field_labels );
 
-// fill [grid_id][field_label][field_data]
+// fill [grid_id][field_list.field_name][field_data]
    for (int v=0; v<g_param_yt.num_fields; v++)
    {
 //    PyArray_SimpleNewFromData simply creates an array wrapper and does note allocate and own the array
       py_field_data = PyArray_SimpleNewFromData( 3, grid_dims, grid_ftype, grid->field_data[v] );
 
-//    add the field data to "libyt.grid_data[grid_id][field_label]"
-//    TODO: field_labels is now yt_field struct
-      PyDict_SetItemString( py_field_labels, g_param_yt.field_labels[v].field_name, py_field_data );
+//    add the field data to "libyt.grid_data[grid_id][field_list.field_name]"
+//    TODO: field_list is now yt_field struct
+      PyDict_SetItemString( py_field_labels, g_param_yt.field_list[v].field_name, py_field_data );
 
 //    call decref since PyDict_SetItemString() returns a new reference
       Py_DECREF( py_field_data );
@@ -66,7 +66,7 @@ int append_grid( yt_grid *grid ){
 //    we assume that field data of specific range are not disperse, they contain in one MPI rank only
       if ( grid->field_data[v] != NULL ) {
          log_debug( "Inserting grid [%15ld] field data [%s] to libyt.grid_data ... done\n", 
-                     grid->id, g_param_yt.field_labels[v].field_name );
+                     grid->id, g_param_yt.field_list[v].field_name );
       }
    }
 

@@ -98,8 +98,8 @@ int main( int argc, char *argv[] )
    int *grids_MPI = new int [num_grids];                        // Record MPI rank in each grids
 
 // Declare a yt_field array to store field labels and field define type (ex: cell-centered)
-   yt_field  *field_labels = new yt_field [1];                  // field labels {field_name, field_define_type}
-   field_labels[0].field_name = "Dens";
+   yt_field  *field_list = new yt_field [1];                  // field labels {field_name, field_define_type}
+   field_list[0].field_name = "Dens";
 
    double time = 0.0;
 
@@ -126,7 +126,7 @@ int main( int argc, char *argv[] )
       param_yt.refine_by               = REFINE_BY;
       param_yt.num_grids               = num_grids;
       param_yt.num_fields              = num_fields;
-      param_yt.field_labels            = field_labels;
+      param_yt.field_list              = field_list;
       param_yt.field_ftype             = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
 
       for (int d=0; d<3; d++)
