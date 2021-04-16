@@ -53,6 +53,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
    else
       YT_ABORT(  "Validating YT parameters ... failed\n" );
 
+// TODO: check if yt_field field_list has all the field_name unique
 
 // print out all parameters
    log_debug( "List of YT parameters:\n" );

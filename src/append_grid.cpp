@@ -57,7 +57,6 @@ int append_grid( yt_grid *grid ){
       py_field_data = PyArray_SimpleNewFromData( 3, grid_dims, grid_ftype, grid->field_data[v] );
 
 //    add the field data to "libyt.grid_data[grid_id][field_list.field_name]"
-//    TODO: field_list is now yt_field struct
       PyDict_SetItemString( py_field_labels, g_param_yt.field_list[v].field_name, py_field_data );
 
 //    call decref since PyDict_SetItemString() returns a new reference

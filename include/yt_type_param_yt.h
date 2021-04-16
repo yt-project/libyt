@@ -292,7 +292,6 @@ struct yt_param_yt
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids_local",         num_grids_local         );
       }
 
-// TODO: Pretty print multiple field_list
       for (int d=0; d<num_fields; d++) {
       log_debug( "   %-*s[%d] = (%s,%s)\n",     width_vector, "field_list", d,    field_list[d].field_name, field_list[d].field_define_type); }
 
