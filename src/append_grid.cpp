@@ -41,7 +41,7 @@ int append_grid( yt_grid *grid ){
 
 // export grid data to libyt.grid_data as "libyt.grid_data[grid_id][field_list.field_name][field_data]"
    int      grid_ftype   = (g_param_yt.field_ftype == YT_FLOAT ) ? NPY_FLOAT : NPY_DOUBLE;
-   npy_intp grid_dims[3] = { grid->dimensions[0], grid->dimensions[1], grid->dimensions[2] };
+   
    PyObject *py_grid_id, *py_field_labels, *py_field_data;
 
 // allocate [grid_id][field_list.field_name]
@@ -53,6 +53,14 @@ int append_grid( yt_grid *grid ){
 // fill [grid_id][field_list.field_name][field_data]
    for (int v=0; v<g_param_yt.num_fields; v++)
    {
+//    get the grids dimension, use default (grid->dimension) if field_list.field_dimension not set.
+      npy_intp grid_dims[3] = { grid->dimensions[0], grid->dimensions[1], grid->dimensions[2] };
+      if ( g_param_yt.field_list[v].field_dimension[0] > 0 && g_param_yt.field_list[v].field_dimension[1] > 0 && g_param_yt.field_list[v].field_dimension[2] > 0){
+         grid_dims[0] = g_param_yt.field_list[v].field_dimension[0];
+         grid_dims[1] = g_param_yt.field_list[v].field_dimension[1];
+         grid_dims[2] = g_param_yt.field_list[v].field_dimension[2];
+      }
+      
 //    PyArray_SimpleNewFromData simply creates an array wrapper and does note allocate and own the array
       py_field_data = PyArray_SimpleNewFromData( 3, grid_dims, grid_ftype, grid->field_data[v] );
 
