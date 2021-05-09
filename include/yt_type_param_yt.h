@@ -293,6 +293,7 @@ struct yt_param_yt
       }
 
       for (int d=0; d<num_fields; d++) {
+      // TODO: Pretty print
       log_debug( "   %-*s[%d] = (%s,%s)\n",     width_vector, "field_list", d,    field_list[d].field_name, field_list[d].field_define_type); }
 
       return YT_SUCCESS;

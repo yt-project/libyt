@@ -62,10 +62,23 @@ struct yt_field
 		field_unit = "NOT SET";
 		field_name_alias_num = 0;
 		field_name_alias = NULL;
-		field_display_name = NULL;
+		field_display_name = "NOT SET";
 	} // METHOD : yt_field
 
-// TODO: Pretty Print, show the yt_field
+//=======================================================================================================
+// Method      : show
+// Description : Print out all data members
+// 
+// Note        : 1. Print out "NOT SET" if the pointers are NULL.
+// 
+// Parameter   : None
+// ======================================================================================================
+   int show() const {
+   // TODO: Pretty Print, show the yt_field
+      
+      return YT_SUCCESS;
+   }
+
 
 //=======================================================================================================
 // Method      : ~yt_field
