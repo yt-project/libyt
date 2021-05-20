@@ -24,7 +24,7 @@
 //                int    field_dimension[3]   : Field dimension, use to pass in array to yt, set as default 
 //                                              value if undefined.
 //                char  *field_unit           : Set field_unit if needed.
-//                int    field_name_alias_num : Set fields to alias, number of the aliases.
+//                int    num_field_name_alias : Set fields to alias, number of the aliases.
 //                char **field_name_alias     : Aliases.
 //                char  *field_display_name   : Set display name on the plottings.
 //
@@ -39,7 +39,7 @@ struct yt_field
 	char  *field_define_type;
 	int    field_dimension[3];
 	char  *field_unit;
-	int    field_name_alias_num;
+	int    num_field_name_alias;
 	char **field_name_alias;
 	char  *field_display_name;
 
@@ -60,7 +60,7 @@ struct yt_field
 			field_dimension[d] = INT_UNDEFINED;
 		}
 		field_unit = "NOT SET";
-		field_name_alias_num = 0;
+		num_field_name_alias = 0;
 		field_name_alias = NULL;
 		field_display_name = "NOT SET";
 	} // METHOD : yt_field

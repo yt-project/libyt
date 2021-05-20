@@ -196,55 +196,68 @@ template int add_dict_vector3 <ulong > ( PyObject *dict, const char *key, const 
 int add_dict_field_list(){
 
    PyObject  *field_list_dict = PyDict_New();
+   PyObject  *key, *val;
    PyObject **field_info_dict = new PyObject* [g_param_yt.num_fields];
-   for (int i = 0; i < g_param_yt.num_fields; i++) { field_info_dict[i] = PyDict_New(); }
-   PyObject *key, *val;
-
-   key = PyUnicode_FromString("NOT SET");
-   val = PyUnicode_FromString("NOT SET");
+   PyObject **name_alias_list = new PyObject* [g_param_yt.num_fields];
+   for (int i = 0; i < g_param_yt.num_fields; i++) { 
+      field_info_dict[i] = PyDict_New( );
+      name_alias_list[i] = PyList_New(0);
+   }
+   key = PyUnicode_FromString("");
+   val = PyUnicode_FromString("");
 
    for (int i = 0; i < g_param_yt.num_fields; i++){
       // Load "field_define_type", "field_unit", "field_name_alias", "field_display_name" to "field_info_dict".
       val = PyUnicode_FromString((g_param_yt.field_list)[i].field_define_type);
       if ( PyDict_SetItemString(field_info_dict[i], "field_define_type", val) != 0 ){
-         YT_ABORT("On setting dictionary field_list in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n", 
+         YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n", 
                    (g_param_yt.field_list)[i].field_name, "field_define_type", (g_param_yt.field_list)[i].field_define_type);
       }
 
       val = PyUnicode_FromString((g_param_yt.field_list)[i].field_unit);
       if ( PyDict_SetItemString(field_info_dict[i], "field_unit", val) != 0 ){
-         YT_ABORT("On setting dictionary field_list in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n", 
+         YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n", 
                    (g_param_yt.field_list)[i].field_name, "field_unit", (g_param_yt.field_list)[i].field_unit);
       }
 
-      // TODO: Add list to field_name_alias
+      for (int j = 0; j < (g_param_yt.field_list)[i].num_field_name_alias; j++){
+         val = PyUnicode_FromString((g_param_yt.field_list)[i].field_name_alias[j]);
+         if ( PyList_Append(name_alias_list[i], val) != 0 ){
+            YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ list item %s ] failed!\n",
+                      (g_param_yt.field_list)[i].field_name, "field_name_alias", (g_param_yt.field_list)[i].field_name_alias[j]);
+         }
+      }
+      if( PyDict_SetItemString(field_info_dict[i], "field_name_alias", name_alias_list[i]) != 0 ){
+         YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n",
+                   (g_param_yt.field_list)[i].field_name, "field_name_alias", "list of names");
+      }
 
 
       val = PyUnicode_FromString((g_param_yt.field_list)[i].field_display_name);
       if ( PyDict_SetItemString(field_info_dict[i], "field_display_name", val) != 0 ){
-         YT_ABORT("On setting dictionary field_list in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n", 
+         YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n", 
                    (g_param_yt.field_list)[i].field_name, "field_display_name", (g_param_yt.field_list)[i].field_display_name);
       }
 
       // Load "field_info_dict" to "field_list_dict", with key-value pair {field_name : field_info_dict}
       key = PyUnicode_FromString((g_param_yt.field_list)[i].field_name);
       if ( PyDict_SetItem(field_list_dict, key, field_info_dict[i]) != 0 ){
-         YT_ABORT("On setting dictionary field_list in libyt, field_name [%s] failed to add dictionary!\n", (g_param_yt.field_list)[i].field_name);
+         YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s] failed to add dictionary!\n", (g_param_yt.field_list)[i].field_name);
       }
 
-      // TODO: Check if we need this.
-      // Clear the "field_info_dict"
-      // PyDict_Clear( field_info_dict );
    }
 
    if ( PyDict_SetItemString( g_py_param_yt, "field_list", field_list_dict) != 0 ){
-      YT_ABORT( "Inserting a dictionary field_list item ... failed!\n");
+      YT_ABORT( "Inserting dictionary [field_list] item to libyt ... failed!\n");
    }
 
    Py_DECREF( key );
    Py_DECREF( val );
    Py_DECREF( field_list_dict );
-   for (int i = 0; i < g_param_yt.num_fields; i++) { Py_DECREF(field_info_dict[i]); }
+   for (int i = 0; i < g_param_yt.num_fields; i++) {
+      Py_DECREF(field_info_dict[i]);
+      Py_DECREF(name_alias_list[i]);
+   }
 
    return YT_SUCCESS;
 }
