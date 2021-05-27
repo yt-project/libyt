@@ -100,6 +100,9 @@ int main( int argc, char *argv[] )
 // Declare a yt_field array to store field labels and field define type (ex: cell-centered)
    yt_field  *field_list = new yt_field [1];                  // field labels {field_name, field_define_type}
    field_list[0].field_name = "Dens";
+   char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
+   field_list[0].field_name_alias = field_name_alias;
+   field_list[0].num_field_name_alias = 3;
 
    double time = 0.0;
 
