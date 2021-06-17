@@ -1,11 +1,25 @@
 #include "yt_combo.h"
 #include "string.h"
 
+//-------------------------------------------------------------------------------------------------------
+// Description :  List of libyt C extension python methods
+//
+// Note        :  1. List of python C extension methods functions.
+// 
+// Lists       :  libyt_method
+//-------------------------------------------------------------------------------------------------------
+static PyObject* libyt_method(PyObject *self, PyObject *args){
+  printf("Inside libyt_method!!!\n");
+  Py_INCREF(Py_None);
+  return Py_None; // return nothing in pthon function
+}
+
 
 // Define functions in module, list all libyt module methods here
 static PyMethodDef libyt_method_list[] =
 {
 // { "method_name", c_function_name, METH_VARARGS, "Description"},
+   {"method1", libyt_method, METH_VARARGS, "test method"},
    { NULL, NULL, 0, NULL } // sentinel
 };
 

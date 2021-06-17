@@ -18,4 +18,5 @@ def yt_inline_ProfilePlot():
 
 def test_user_parameter():
     import libyt
+    libyt.method1()
     print("user_int = ", libyt.param_user['user_int'])
