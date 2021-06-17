@@ -44,7 +44,7 @@ int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt )
    log_debug( "   script  = %s\n", g_param_libyt.script );
 
 // create libyt module, should be before init_python
-   if (create_libyt_module() == YT_FAIL) {
+   if ( create_libyt_module() == YT_FAIL ) {
       return YT_FAIL;
    }
 

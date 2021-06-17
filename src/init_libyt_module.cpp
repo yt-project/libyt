@@ -22,11 +22,33 @@ static struct PyModuleDef libyt_module_definition =
 // Create libyt python module
 static PyObject* PyInit_libyt(void)
 {
-  return PyModule_Create(&libyt_module_definition);
+  // Create libyt module
+  PyObject *libyt_module = PyModule_Create( &libyt_module_definition );
+  if ( libyt_module != NULL ){
+    log_debug( "Creating libyt module ... done\n" );
+  }
+  else {
+    YT_ABORT(  "Creating libyt module ... failed!\n");
+  }
+
+  // Add objects dictionary
+  g_py_grid_data  = PyDict_New();
+  g_py_hierarchy  = PyDict_New();
+  g_py_param_yt   = PyDict_New();
+  g_py_param_user = PyDict_New();
+
+  PyModule_AddObject(libyt_module, "grid_data",  g_py_grid_data );
+  PyModule_AddObject(libyt_module, "hierarchy",  g_py_hierarchy );
+  PyModule_AddObject(libyt_module, "param_yt",   g_py_param_yt  );
+  PyModule_AddObject(libyt_module, "param_user", g_py_param_user);
+
+  log_debug( "Attaching empty dictionaries to libyt module ... done\n" );
+
+  return libyt_module;
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  init_libyt_module
+// Function    :  create_libyt_module
 // Description :  Create the libyt module
 //
 // Note        :  1. Create libyt module, should be called before Py_Initialize().
@@ -47,8 +69,8 @@ int create_libyt_module()
 // Function    :  init_libyt_module
 // Description :  Initialize the libyt module
 //
-// Note        :  1. Append libyt python module parameters.
-//                2. It is used for sharing data between simulation code and YT.
+// Note        :  1. Import newly created libyt module.
+//                2. Load user script to python.
 //                
 // Parameter   :  None
 //
@@ -57,32 +79,11 @@ int create_libyt_module()
 int init_libyt_module()
 {
 
-// create module and obtain its __dict__ attribute
-   PyObject *libyt_module=NULL, *libyt_module_dict=NULL;
-
-   if (  ( libyt_module = PyImport_AddModule( "libyt" ) ) != NULL  )
-      log_debug( "Creating libyt module ... done\n" );
+// import newly created libyt module
+   if ( PyRun_SimpleString("import libyt\n") == 0 )
+      log_debug( "Import libyt module ... done\n" );
    else
-      YT_ABORT(  "Creating libyt module ... failed!\n" );
-
-   if (  ( libyt_module_dict = PyModule_GetDict( libyt_module ) ) != NULL  )
-      log_debug( "Obtaining the __dict__ attribute of libyt ... done\n" );
-   else
-      YT_ABORT(  "Obtaining the __dict__ attribute of libyt ... failed!\n" );
-
-
-// attach empty dictionaries
-   g_py_grid_data  = PyDict_New();
-   g_py_hierarchy  = PyDict_New();
-   g_py_param_yt   = PyDict_New();
-   g_py_param_user = PyDict_New();
-
-   PyDict_SetItemString( libyt_module_dict, "grid_data",  g_py_grid_data  );
-   PyDict_SetItemString( libyt_module_dict, "hierarchy",  g_py_hierarchy  );
-   PyDict_SetItemString( libyt_module_dict, "param_yt",   g_py_param_yt   );
-   PyDict_SetItemString( libyt_module_dict, "param_user", g_py_param_user );
-
-   log_debug( "Attaching empty dictionaries to libyt module ... done\n" );
+      YT_ABORT(  "Import libyt module ... failed!\n" );
 
 
 // import YT inline analysis script
@@ -97,7 +98,6 @@ int init_libyt_module()
                 g_param_libyt.script );
 
    free( CallYT );
-
 
    return YT_SUCCESS;
 
