@@ -20,7 +20,10 @@
 //                   ( "name", ("units", ["fields", "to", "alias"], # "display_name"))
 //
 // Data Member :  char  *field_name           : Field name
-//                char  *field_define_type    : Define type, ex: cell-centered
+//                char  *field_define_type    : Define type, for now, we have these types
+//                                              (1) "cell-centered"
+//                                              (2) "face-centered"
+//                                              (3) "derived_func"
 //                int    field_dimension[3]   : Field dimension, use to pass in array to yt, set as default 
 //                                              value if undefined.
 //                char  *field_unit           : Set field_unit if needed.

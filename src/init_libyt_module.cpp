@@ -37,7 +37,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     char *field_name;
 
     if ( !PyArg_ParseTuple(args, "ls", &gid, &field_name) ){
-        PyErr_SetString(PyExc_ValueError, "Wrong input type, expect to be libyt.derived_func(int, str).");
+        PyErr_SetString(PyExc_TypeError, "Wrong input type, expect to be libyt.derived_func(int, str).");
         return NULL;
     }
 
@@ -54,7 +54,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
                 derived_func = g_param_yt.field_list[v].derived_func;
             }
             else {
-                PyErr_Format(PyExc_AttributeError, "In field_list, field_name [ %s ], derived_func does not set properly.\n", 
+                PyErr_Format(PyExc_NotImplementedError, "In field_list, field_name [ %s ], derived_func does not set properly.\n", 
                              g_param_yt.field_list[v].field_name);
                 return NULL;
             }
@@ -63,7 +63,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     }
 
     if ( !have_FieldName ) {
-        PyErr_Format(PyExc_AttributeError, "Cannot find field_name [ %s ] in field_list.\n", field_name);
+        PyErr_Format(PyExc_ValueError, "Cannot find field_name [ %s ] in field_list.\n", field_name);
         return NULL;
     }
 
@@ -86,7 +86,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     if ( !have_Grid ){
         int MyRank;
         MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
-        PyErr_Format(PyExc_AttributeError, "Cannot find grid with GID [ %ld ] on MPI rank [%d].\n", gid, MyRank);
+        PyErr_Format(PyExc_ValueError, "Cannot find grid with GID [ %ld ] on MPI rank [%d].\n", gid, MyRank);
         return NULL;
     }
 
