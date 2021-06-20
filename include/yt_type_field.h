@@ -28,6 +28,8 @@
 //                char **field_name_alias     : Aliases.
 //                char  *field_display_name   : Set display name on the plottings.
 //
+//                (func pointer) derived_func : pointer to function that has argument int, and double **
+//
 // Method      :  yt_field  : Constructor
 //               ~yt_field  : Destructor
 //-------------------------------------------------------------------------------------------------------
@@ -42,6 +44,8 @@ struct yt_field
 	int    num_field_name_alias;
 	char **field_name_alias;
 	char  *field_display_name;
+
+	void (*derived_func) (long, double *);
 
 
 //=======================================================================================================
@@ -63,6 +67,8 @@ struct yt_field
 		num_field_name_alias = 0;
 		field_name_alias = NULL;
 		field_display_name = "NOT SET";
+
+		derived_func = NULL;
 	} // METHOD : yt_field
 
 //=======================================================================================================
