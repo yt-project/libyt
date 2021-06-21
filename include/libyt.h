@@ -22,6 +22,7 @@
 extern "C" {
 #endif
 
+// For libyt workflow
 int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt );
 int yt_finalize();
 int yt_set_parameter( yt_param_yt *param_yt );
@@ -37,6 +38,11 @@ int yt_commit_grids();
 int yt_free_gridsPtr();
 int yt_inline_argument( char *function_name, int argc, ... );
 int yt_inline( char *function_name );
+
+// For derived_func to get grid information by GID and by field_name.
+// These APIs is meant to be used inside user defined derived_func(long GID, double *output)
+int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] );
+int yt_getGridInfo_FieldData( const long gid, const char *field_name, void **field_data );
 
 #ifdef __cplusplus
 }

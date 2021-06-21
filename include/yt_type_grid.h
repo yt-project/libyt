@@ -48,7 +48,7 @@ struct yt_grid
    int    level;
    int    proc_num;
 
-   void       **field_data;
+   void   **field_data;
 
    //===================================================================================
    // Method      :  yt_grid
