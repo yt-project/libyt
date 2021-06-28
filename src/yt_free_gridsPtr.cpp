@@ -28,6 +28,11 @@ int yt_free_gridsPtr()
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
    }
 
+// check if user has call yt_get_fieldsPtr()
+   if ( !g_param_libyt.get_fieldsPtr ){
+      YT_ABORT( "Please invode yt_get_fieldsPtr() before calling %s()!\n", __FUNCTION__ );
+   }
+
 // check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
    if ( !g_param_libyt.get_gridsPtr ){
       YT_ABORT( "Please invoke yt_get_gridsPtr() before calling %s()!\n", __FUNCTION__ );
@@ -42,18 +47,21 @@ int yt_free_gridsPtr()
    MPI_Barrier( MPI_COMM_WORLD );
 
    // free resources to prepare for the next round
-   g_param_libyt.param_yt_set = false;
-   g_param_libyt.get_gridsPtr = false;
-   g_param_libyt.commit_grids = false;
+   g_param_libyt.param_yt_set  = false;
+   g_param_libyt.get_fieldsPtr = false;
+   g_param_libyt.get_gridsPtr  = false;
+   g_param_libyt.commit_grids  = false;
    g_param_libyt.counter ++;
 
-   // TODO: Should we free yt_field array g_param_yt.field_list here?
-   //       For now, user declare and input yt_field array's pointer to libyt.
+   // Free grids_local, num_grids_local_MPI, field_list
    for (int i = 0; i < g_param_yt.num_grids_local; i = i+1){
       delete [] g_param_yt.grids_local[i].field_data;
    }
    delete [] g_param_yt.grids_local;
    delete [] g_param_yt.num_grids_local_MPI;
+   delete [] g_param_yt.field_list;
+
+   // Reset g_param_yt
    g_param_yt.init();
    
    PyDict_Clear( g_py_grid_data  );

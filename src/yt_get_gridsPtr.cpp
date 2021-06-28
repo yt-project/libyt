@@ -25,6 +25,11 @@ int yt_get_gridsPtr( yt_grid **grids_local )
     	YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
     }
 
+    // check if yt_get_fieldsPtr() have been called
+    if ( !g_param_libyt.get_fieldsPtr ) {
+    	YT_ABORT( "Please invoke yt_get_fieldsPtr() before calling %s()!\n", __FUNCTION__ );
+    }
+
    	log_info( "Getting pointer to local grids information ...\n" );
 
    	// Get the MPI rank

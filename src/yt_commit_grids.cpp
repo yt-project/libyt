@@ -8,9 +8,10 @@
 //
 // Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data to python
 //                2. Must call yt_set_parameter() in advance, which will  preallocate memory for NumPy arrays.
-//                3. Must call yt_get_gridsPtr() in advance, so that g_param_yt knows the grids_local array
+//                3. Must call yt_get_fieldsPtr() in advance, so that g_param_yt knows the field_list array
+//                4. Must call yt_get_gridsPtr() in advance, so that g_param_yt knows the grids_local array
 //                   pointer.
-//                4. Pass the grids and hierarchy to YT in function append_grid()
+//                5. Pass the grids and hierarchy to YT in function append_grid()
 //
 // Parameter   :
 //
@@ -27,6 +28,11 @@ int yt_commit_grids()
 // check if YT parameters have been set
    if ( !g_param_libyt.param_yt_set ){
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
+   }
+
+// check if user has call yt_get_fieldsPtr()
+   if ( !g_param_libyt.get_fieldsPtr ){
+      YT_ABORT( "Please invode yt_get_fieldsPtr() before calling %s()!\n", __FUNCTION__ );
    }
 
 // check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.

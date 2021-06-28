@@ -28,6 +28,11 @@ int yt_inline_argument( char *function_name, int argc, ... ){
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
    }
 
+// check if user has call yt_get_fieldsPtr()
+   if ( !g_param_libyt.get_fieldsPtr ){
+      YT_ABORT( "Please invode yt_get_fieldsPtr() before calling %s()!\n", __FUNCTION__ );
+   }
+
 // check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
    if ( !g_param_libyt.get_gridsPtr ){
       YT_ABORT( "Please invoke yt_get_gridsPtr() before calling %s()!\n", __FUNCTION__ );
@@ -108,6 +113,11 @@ int yt_inline( char *function_name ){
 // check if YT parameters have been set
    if ( !g_param_libyt.param_yt_set ){
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
+   }
+
+// check if user has call yt_get_fieldsPtr()
+   if ( !g_param_libyt.get_fieldsPtr ){
+      YT_ABORT( "Please invode yt_get_fieldsPtr() before calling %s()!\n", __FUNCTION__ );
    }
 
 // check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
