@@ -180,7 +180,7 @@ template int add_dict_vector3 <ulong > ( PyObject *dict, const char *key, const 
 // Description :  Function for adding a dictionary item to a Python dictionary
 //
 // Note        :  1. Add a series of key-value pair to libyt.dict.
-//                2. Used in yt_set_parameter() on loading field_list structure to python.
+//                2. Used in yt_commit_grids() on loading field_list structure to python.
 //                3. PyUnicode_FromString is Python-API >= 3.5, and it returns a new reference.
 //                4. Dictionary structure loaded in python:
 //                   { <field_name>: {"field_define_type" :  <field_define_type>, 

@@ -53,7 +53,6 @@ int yt_set_parameter( yt_param_yt *param_yt )
    else
       YT_ABORT(  "Validating YT parameters ... failed\n" );
 
-// TODO: check if yt_field field_list has all the field_name unique
 
 // print out all parameters
    log_debug( "List of YT parameters:\n" );
@@ -107,9 +106,6 @@ int yt_set_parameter( yt_param_yt *param_yt )
    add_dict_vector3( g_py_param_yt, "domain_right_edge",       g_param_yt.domain_right_edge       );
    add_dict_vector3( g_py_param_yt, "periodicity",             g_param_yt.periodicity             );
    add_dict_vector3( g_py_param_yt, "domain_dimensions",       g_param_yt.domain_dimensions       );
-
-// add field_list as dictionary
-   add_dict_field_list();
 
    log_debug( "Inserting YT parameters to libyt.param_yt ... done\n" );
 

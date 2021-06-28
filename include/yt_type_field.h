@@ -9,6 +9,11 @@
 /
 ********************************************************************************/
 
+// include relevant headers/prototypes
+#include <string.h>
+void log_debug( const char *Format, ... );
+void log_warning(const char *Format, ...);
+
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_field
 // Description :  Data structure to store a field's label and its definition of data representation.
@@ -31,10 +36,12 @@
 //                char **field_name_alias     : Aliases.
 //                char  *field_display_name   : Set display name on the plottings.
 //
-//                (func pointer) derived_func : pointer to function that has argument int, and double **
+//                (func pointer) derived_func : pointer to function that has argument (int, double *)
 //
 // Method      :  yt_field  : Constructor
 //               ~yt_field  : Destructor
+//                show      : Print data member value
+//                validate  : Validate data member in struct
 //-------------------------------------------------------------------------------------------------------
 struct yt_field
 {
@@ -61,7 +68,7 @@ struct yt_field
 // ======================================================================================================
 	yt_field()
 	{
-		field_name = "NOT SET";
+		field_name = NULL;
 		field_define_type = "cell-centered";
 		for ( int d=0; d<3; d++ ){
 			field_dimension[d] = INT_UNDEFINED;
@@ -84,6 +91,58 @@ struct yt_field
 // ======================================================================================================
    int show() const {
    // TODO: Pretty Print, show the yt_field
+      
+      return YT_SUCCESS;
+   }
+
+//=======================================================================================================
+// Method      : validate
+// Description : Validate data member in the struct.
+// 
+// Note        : 1. Validate data member value in one yt_field struct.
+//                  (0) field_name is set != NULL.
+//                  (1) field_define_type can only be : "cell-centered", "face-centered", "derived_func".
+//                  (2) field_dimension[3] should be greater than 0.
+//                  (3) Raise warning if derived_func == NULL and field_define_type is set to "derived_func".
+//               2. Used in yt_commit_grids()
+// 
+// Parameter   : None
+// ======================================================================================================
+   int validate() const {
+   	// field name is set.
+   	if ( field_name == NULL ){
+   		YT_ABORT("field_name is not set!\n");
+   		return YT_FAIL;
+   	}
+
+   	// field_define_type can only be : "cell-centered", "face-centered", "derived_func".
+   	bool check1 = false;
+   	int   num_type = 3;
+   	char *type[3]  = {"cell-centered", "face-centered", "derived_func"};
+   	for ( int i = 0; i < num_type; i++ ){
+   		if ( strcmp(field_define_type, type[i]) == 0 ) {
+   			check1 = true;
+   			break;
+   		}
+   	}
+   	if ( check1 == false ){
+   		YT_ABORT("In field [%s], unknown field_define_type [%s]!\n", field_name, field_define_type);
+   		return YT_FAIL;
+   	}
+
+   	// field_dimension[3] should be greater than 0.
+   	for ( int i = 0; i < 3; i++ ){
+   		if ( field_dimension[i] <= 0 ){
+   			YT_ABORT("In field [%s], field_dimension[%d] should be greater than 0!\n", field_name, i);
+   			return YT_FAIL;
+   		}
+   	}
+
+   	// Raise warning if derived_func == NULL and field_define_type is set to "derived_func".
+   	if ( strcmp(field_define_type, "derived_func") == 0 && derived_func == NULL ){
+   		log_warning("In field [%s], field_define_type == %s, but derived_func not set!\n", 
+   			          field_name, field_define_type);
+   	}
       
       return YT_SUCCESS;
    }

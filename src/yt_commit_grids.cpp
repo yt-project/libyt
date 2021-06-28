@@ -4,14 +4,16 @@
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_commit_grids
-// Description :  Add local grids to the libyt Python module
+// Description :  Add local grids and append field list info to the libyt Python module.
 //
 // Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data to python
 //                2. Must call yt_set_parameter() in advance, which will  preallocate memory for NumPy arrays.
 //                3. Must call yt_get_fieldsPtr() in advance, so that g_param_yt knows the field_list array
 //                4. Must call yt_get_gridsPtr() in advance, so that g_param_yt knows the grids_local array
 //                   pointer.
-//                5. Pass the grids and hierarchy to YT in function append_grid()
+//                5. Append field list info to libyt python module.
+//                6. Pass the grids and hierarchy to YT in function append_grid().
+//                7. Check the local grids and field list.
 //
 // Parameter   :
 //
@@ -89,6 +91,26 @@ int yt_commit_grids()
       }
 
    }
+
+// check if each elements in yt_field field_list has correct value.
+   for ( int v = 0; v < g_param_yt.num_fields; v++ ){
+      yt_field field = g_param_yt.field_list[v];
+      if ( !(field.validate()) ){
+         YT_ABORT("Validating input field list element [%d] ... failed\n", v);
+      }
+   }
+
+// check if yt_field field_list has all the field_name unique
+   for ( int v1 = 0; v1 < g_param_yt.num_fields; v1++ ){
+      for ( int v2 = v1+1; v2 < g_param_yt.num_fields; v2++ ){
+         if ( strcmp(g_param_yt.field_list[v1].field_name, g_param_yt.field_list[v2].field_name) == 0 ){
+            YT_ABORT("field_name in field_list[%d] and field_list[%d] not unique!\n", v1, v2);
+         }
+      }
+   }
+
+// add field_list as dictionary
+   add_dict_field_list();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Prepare to gather full hierarchy from different rank to root rank.

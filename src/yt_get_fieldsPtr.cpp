@@ -13,7 +13,7 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 //
-int yt_get_gridsPtr( yt_field **field_list )
+int yt_get_fieldsPtr( yt_field **field_list )
 {
 	// check if libyt has been initialized
    	if ( !g_param_libyt.libyt_initialized ){

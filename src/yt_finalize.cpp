@@ -10,7 +10,7 @@
 //
 // Note        :  1. Do not reinitialize libyt (i.e., calling yt_init()) after calling this function
 //                   ==> Some extensions (e.g., NumPy) may not work properly
-//                2. Make sure that the user has follow the libyt workflow.
+//                2. Make sure that the user has follow the full libyt workflow.
 //
 // Parameter   :  None
 //

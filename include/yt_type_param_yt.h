@@ -223,7 +223,6 @@ struct yt_param_yt
       if ( refine_by               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "refine_by" );
       if ( num_grids               == LNG_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_grids" );
       if ( num_fields              == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_fields" );
-      if ( field_list              == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "field_list");
       if ( grids_MPI == NULL && num_grids_local == INT_UNDEFINED )  YT_ABORT( "Either grids_MPI or num_grids_local should be set!\n");
       if ( field_ftype != YT_FLOAT  &&  field_ftype != YT_DOUBLE )  YT_ABORT( "Unknown \"%s\" == %d !\n", "field_ftype", field_ftype);
 
@@ -291,11 +290,7 @@ struct yt_param_yt
       if (num_grids_local != INT_UNDEFINED){
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids_local",         num_grids_local         );
       }
-
-      for (int d=0; d<num_fields; d++) {
-      // TODO: Pretty print
-      log_debug( "   %-*s[%d] = (%s,%s)\n",     width_vector, "field_list", d,    field_list[d].field_name, field_list[d].field_define_type); }
-
+      
       return YT_SUCCESS;
 
    } // METHOD : show
