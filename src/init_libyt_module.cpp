@@ -36,6 +36,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     // If not in the format libyt.derived_func( int , str ), raise an error
     long  gid;
     char *field_name;
+    int   field_id;
 
     if ( !PyArg_ParseTuple(args, "ls", &gid, &field_name) ){
         PyErr_SetString(PyExc_TypeError, "Wrong input type, expect to be libyt.derived_func(int, str).");
@@ -51,6 +52,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     for (int v = 0; v < g_param_yt.num_fields; v++){
         if ( strcmp(g_param_yt.field_list[v].field_name, field_name) == 0 ){
             have_FieldName = true;
+            field_id = v;
             if ( g_param_yt.field_list[v].derived_func != NULL ){
                 derived_func = g_param_yt.field_list[v].derived_func;
             }
@@ -105,9 +107,22 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     (*derived_func) (gid, output);
 
     // Wrapping the C allocated 1D array into 3D numpy array.
+    // grid_dimensions[3] is in [x][y][z] coordinate, 
+    // thus we have to check if the field has swap_axes == true or false.
     int      nd = 3;
-    npy_intp dims[3] = {grid_dimensions[0], grid_dimensions[1], grid_dimensions[2]};
     int      typenum = NPY_DOUBLE;
+    npy_intp dims[3];
+    if ( g_param_yt.field_list[field_id].swap_axes == true ){
+        dims[0] = grid_dimensions[2];
+        dims[1] = grid_dimensions[1];
+        dims[2] = grid_dimensions[0];
+    }
+    else{
+        dims[0] = grid_dimensions[0];
+        dims[1] = grid_dimensions[1];
+        dims[2] = grid_dimensions[2];
+    }
+
     PyObject *derived_NpArray = PyArray_SimpleNewFromData(nd, dims, typenum, output);
     PyArray_ENABLEFLAGS( (PyArrayObject*) derived_NpArray, NPY_ARRAY_OWNDATA);
 
