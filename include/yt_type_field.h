@@ -31,6 +31,8 @@ void log_warning(const char *Format, ...);
 //                                              (1) "cell-centered"
 //                                              (2) "face-centered"
 //                                              (3) "derived_func"
+//                bool   swap_axes            : true  ==> [z][y][x], x address alter-first, default value.
+//                                              false ==> [x][y][z], z address alter-first
 //                int    field_dimension[3]   : Field dimension, use to pass in array to python.
 //                                              Define as C_array[ fd[0] ][ fd[1] ][ fd[2] ]
 //                char  *field_unit           : Set field_unit if needed.
@@ -52,6 +54,7 @@ struct yt_field
 // ======================================================================================================
 	char  *field_name;
 	char  *field_define_type;
+	bool   swap_axes;
 	int    field_dimension[3];
 	char  *field_unit;
 	int    num_field_name_alias;
@@ -73,6 +76,7 @@ struct yt_field
 	{
 		field_name = NULL;
 		field_define_type = "cell-centered";
+		swap_axes = true;
 		for ( int d=0; d<3; d++ ){
 			field_dimension[d] = INT_UNDEFINED;
 		}

@@ -188,7 +188,8 @@ template int add_dict_vector3 <ulong > ( PyObject *dict, const char *key, const 
 //                   { <field_name>: {"field_define_type" :  <field_define_type>, 
 //                                    "field_unit"        :  <field_unit>,
 //                                    "field_name_alias"  : [<field_name_alias>, ],
-//                                    "field_display_name":  <field_display_name>   } }
+//                                    "field_display_name":  <field_display_name> , 
+//                                    "swap_axes"         :  true / false          } }
 //
 // Parameter   :  None
 //
@@ -252,6 +253,20 @@ int add_dict_field_list(){
                       (g_param_yt.field_list)[i].field_name, "field_display_name", (g_param_yt.field_list)[i].field_display_name);
          }
          Py_DECREF( val );
+      }
+
+      // Load "swap_axes" to "field_info_dict".
+      if ( (g_param_yt.field_list)[i].swap_axes == true ){
+         if ( PyDict_SetItemString( field_info_dict[i], "swap_axes", Py_True) != 0 ){
+            YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ true ] failed!\n", 
+                      (g_param_yt.field_list)[i].field_name, "swap_axes");
+         }
+      } 
+      else {
+         if ( PyDict_SetItemString( field_info_dict[i], "swap_axes", Py_False) != 0 ){
+            YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ false ] failed!\n", 
+                      (g_param_yt.field_list)[i].field_name, "swap_axes");
+         }
       }
 
 
