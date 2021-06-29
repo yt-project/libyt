@@ -59,8 +59,7 @@ int check_procedure( const char *callFunc ){
 int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] ){
 
 	if ( check_procedure( __FUNCTION__ ) != YT_SUCCESS ){
-		log_error( "Please follow the libyt procedure, terminating the process.\n" );
-		abort();
+		YT_ABORT( "Please follow the libyt procedure.\n" );
 	}
 
 	bool have_Grid = false;
@@ -108,8 +107,7 @@ int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] ){
 int yt_getGridInfo_FieldData( const long gid, const char *field_name, void **field_data){
 
 	if ( check_procedure( __FUNCTION__ ) != YT_SUCCESS ){
-		log_error( "Please follow the libyt procedure, terminating the process.\n" );
-		abort();
+		YT_ABORT( "Please follow the libyt procedure.\n" );
 	}
 
 	bool have_Grid  = false;
