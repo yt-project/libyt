@@ -20,7 +20,8 @@ void log_warning(const char *Format, ...);
 // 
 // Notes       :  1. The data representation type will be initialize as "cell-centered".
 //                2. "field_dimension" is used for fields like MHD, they did not have the same dimension
-//                   as in the other field, though they are in the same patch. This is used in append_grid.cpp.
+//                   as in the other field, though they are in the same patch. This is used in 
+//                   append_grid.cpp.
 //                3. "field_unit", "field_name_alias", "field_display_name", are set corresponding to yt 
 //                   ( "name", ("units", ["fields", "to", "alias"], # "display_name"))
 //
@@ -29,12 +30,13 @@ void log_warning(const char *Format, ...);
 //                                              (1) "cell-centered"
 //                                              (2) "face-centered"
 //                                              (3) "derived_func"
-//                int    field_dimension[3]   : Field dimension, use to pass in array to yt, set as default 
-//                                              value if undefined.
+//                int    field_dimension[3]   : Field dimension, use to pass in array to python.
+//                                              Define as C_array[ fd[0] ][ fd[1] ][ fd[2] ]
 //                char  *field_unit           : Set field_unit if needed.
 //                int    num_field_name_alias : Set fields to alias, number of the aliases.
 //                char **field_name_alias     : Aliases.
-//                char  *field_display_name   : Set display name on the plottings.
+//                char  *field_display_name   : Set display name on the plottings, if not set, yt will 
+//                                              use field_name as display name.
 //
 //                (func pointer) derived_func : pointer to function that has argument (int, double *)
 //
@@ -76,7 +78,7 @@ struct yt_field
 		field_unit = "NOT SET";
 		num_field_name_alias = 0;
 		field_name_alias = NULL;
-		field_display_name = "NOT SET";
+		field_display_name = NULL;
 
 		derived_func = NULL;
 	} // METHOD : yt_field
