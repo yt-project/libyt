@@ -9,7 +9,7 @@ yt python package with OpenMPI.
         then distribute them to grids_local, to simulate the working process.
 
 And also, to illustrates the basic usage of libyt.
-In steps 0 - 8.
+In steps 0 - 9.
  */
 
 #include <stdlib.h>
@@ -97,13 +97,6 @@ int main( int argc, char *argv[] )
    
    int *grids_MPI = new int [num_grids];                        // Record MPI rank in each grids
 
-// Declare a yt_field array to store field labels and field define type (ex: cell-centered)
-   yt_field  *field_list = new yt_field [1];                  // field labels {field_name, field_define_type}
-   field_list[0].field_name = "Dens";
-   char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
-   field_list[0].field_name_alias = field_name_alias;
-   field_list[0].num_field_name_alias = 3;
-
    double time = 0.0;
 
 // this array represents the simulation data stored in memory
@@ -129,7 +122,6 @@ int main( int argc, char *argv[] )
       param_yt.refine_by               = REFINE_BY;
       param_yt.num_grids               = num_grids;
       param_yt.num_fields              = num_fields;
-      param_yt.field_list              = field_list;
       param_yt.field_ftype             = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
 
       for (int d=0; d<3; d++)
@@ -199,9 +191,24 @@ int main( int argc, char *argv[] )
       yt_add_user_parameter_int   ( "user_int3",    3,  user_int3    );
       yt_add_user_parameter_double( "user_double3", 3,  user_double3 );
 
+//    ============================================================
+//    4. Get pointer to field list array, then set up field list
+//    ============================================================
+      yt_field *field_list;
+      yt_get_fieldsPtr( &field_list );
+
+//    We only have one field in this example.
+      field_list[0].field_name = "Dens";
+      field_list[0].field_define_type = "cell-centered";
+      field_list[0].field_dimension[0] = GRID_DIM;
+      field_list[0].field_dimension[1] = GRID_DIM;
+      field_list[0].field_dimension[2] = GRID_DIM;
+      char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
+      field_list[0].field_name_alias = field_name_alias;
+      field_list[0].num_field_name_alias = 3;
 
 //    ============================================================
-//    4. Get pointer to local grids array, then set up local grids
+//    5. Get pointer to local grids array, then set up local grids
 //    ============================================================
       yt_grid *grids_local;
       yt_get_gridsPtr( &grids_local );
@@ -340,7 +347,7 @@ int main( int argc, char *argv[] )
       }
 
 //    ==============================================
-//    5. tell libyt that you have done loading grids
+//    6. tell libyt that you have done loading grids
 //    ==============================================
 //    *** libyt API ***
       if ( yt_commit_grids() != YT_SUCCESS ) {
@@ -350,7 +357,7 @@ int main( int argc, char *argv[] )
 
 
 //    =============================================================
-//    6. perform inline analysis, execute function in python script
+//    7. perform inline analysis, execute function in python script
 //    =============================================================
 //    *** libyt API ***
       if ( yt_inline_argument( "yt_inline_ProjectionPlot", 1, "\'density\'" ) != YT_SUCCESS )
@@ -372,7 +379,7 @@ int main( int argc, char *argv[] )
 	  }
 
 //    =============================================================================
-//    7. end of the inline-analysis at this step, free grid info loaded into python
+//    8. end of the inline-analysis at this step, free grid info loaded into python
 //    =============================================================================
 //    *** libyt API ***
       if ( yt_free_gridsPtr() != YT_SUCCESS )
@@ -390,7 +397,7 @@ int main( int argc, char *argv[] )
    } // for (int step=0; step<total_steps; step++)
 
 // ==========================================
-// 8. exit libyt
+// 9. exit libyt
 // ==========================================
 // *** libyt API ***
    if ( yt_finalize() != YT_SUCCESS )
