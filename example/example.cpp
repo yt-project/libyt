@@ -230,7 +230,7 @@ int main( int argc, char *argv[] )
          {
             libyt_grids[gid].left_edge [d] = grid_order[d]*GRID_DIM*dh0;
             libyt_grids[gid].right_edge[d] = libyt_grids[gid].left_edge[d] + GRID_DIM*dh0;
-            libyt_grids[gid].dimensions[d] = GRID_DIM;   // this example assumes cubic grids
+            libyt_grids[gid].grid_dimensions[d] = GRID_DIM;   // this example assumes cubic grids
          }
 
          libyt_grids[gid].particle_count = 0;      // particles are not supported yet
@@ -277,7 +277,7 @@ int main( int argc, char *argv[] )
          {
             libyt_grids[gid].left_edge [d] = libyt_grids[gid_refine].left_edge[d] + grid_order[d]*GRID_DIM*dh1;
             libyt_grids[gid].right_edge[d] = libyt_grids[gid].left_edge[d] + GRID_DIM*dh1;
-            libyt_grids[gid].dimensions[d] = GRID_DIM;   // this example assumes cubic grids
+            libyt_grids[gid].grid_dimensions[d] = GRID_DIM;   // this example assumes cubic grids
          }
 
          libyt_grids[gid].particle_count = 0;            // particles are not supported yet
@@ -330,7 +330,7 @@ int main( int argc, char *argv[] )
             for (int d = 0; d < 3; d = d+1) {
                grids_local[index_local].left_edge[d]  = libyt_grids[gid].left_edge[d];
                grids_local[index_local].right_edge[d] = libyt_grids[gid].right_edge[d];
-               grids_local[index_local].dimensions[d] = libyt_grids[gid].dimensions[d];
+               grids_local[index_local].grid_dimensions[d] = libyt_grids[gid].grid_dimensions[d];
             }
             grids_local[index_local].particle_count = libyt_grids[gid].particle_count;
             grids_local[index_local].id             = libyt_grids[gid].id;

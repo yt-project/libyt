@@ -23,6 +23,7 @@
 //                   grids. So we can always find one grid with id = gid inside grids_local.
 //                   (Maybe we can add feature get grids data from other rank in the future!)
 //                3. The returned numpy array data type is numpy.double.
+//                4. grid_dimensions[3] is in [x][y][z] coordinate.
 //                
 // Parameter   :  int : GID of the grid
 //                str : field name
@@ -76,9 +77,9 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     for (int lid = 0; lid < g_param_yt.num_grids_local; lid++){
         if ( g_param_yt.grids_local[lid].id == gid ){
             have_Grid = true;
-            grid_dimensions[0] = g_param_yt.grids_local[lid].dimensions[0];
-            grid_dimensions[1] = g_param_yt.grids_local[lid].dimensions[1];
-            grid_dimensions[2] = g_param_yt.grids_local[lid].dimensions[2];
+            grid_dimensions[0] = g_param_yt.grids_local[lid].grid_dimensions[0];
+            grid_dimensions[1] = g_param_yt.grids_local[lid].grid_dimensions[1];
+            grid_dimensions[2] = g_param_yt.grids_local[lid].grid_dimensions[2];
             break;
         }
     }

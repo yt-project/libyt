@@ -68,7 +68,7 @@ int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] ){
 		if ( g_param_yt.grids_local[lid].id == gid ){
 			have_Grid = true;
 			for ( int d = 0; d < 3; d++ ){
-				(*dimensions)[d] = g_param_yt.grids_local[lid].dimensions[d];
+				(*dimensions)[d] = g_param_yt.grids_local[lid].grid_dimensions[d];
 			}
 			break;
 		}
