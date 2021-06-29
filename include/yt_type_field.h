@@ -26,7 +26,8 @@ void log_warning(const char *Format, ...);
 //                   ( "name", ("units", ["fields", "to", "alias"], # "display_name"))
 //
 // Data Member :  char  *field_name           : Field name
-//                char  *field_define_type    : Define type, for now, we have these types
+//                char  *field_define_type    : Define type, for now, we have these types, define in 
+//                                              validate():
 //                                              (1) "cell-centered"
 //                                              (2) "face-centered"
 //                                              (3) "derived_func"
@@ -118,7 +119,7 @@ struct yt_field
    	}
 
    	// field_define_type can only be : "cell-centered", "face-centered", "derived_func".
-   	bool check1 = false;
+   	bool  check1 = false;
    	int   num_type = 3;
    	char *type[3]  = {"cell-centered", "face-centered", "derived_func"};
    	for ( int i = 0; i < num_type; i++ ){

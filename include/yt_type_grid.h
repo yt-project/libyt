@@ -18,7 +18,7 @@
 // 
 // Notes       :  1. We assume that each element in array_name[3] are all in use.
 //
-// Data Member :  dimensions     : Number of cells along each direction
+// Data Member :  dimensions     : Number of cells along each direction in [x][y][z] coordinate.
 //                left_edge      : Grid left  edge in code units
 //                right_edge     : Grid right edge in code units
 //                particle_count : Nunber of particles in this grid
