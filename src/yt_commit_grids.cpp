@@ -14,6 +14,8 @@
 //                5. Append field list info to libyt python module.
 //                6. Pass the grids and hierarchy to YT in function append_grid().
 //                7. Check the local grids and field list.
+//                8. Force the "cell-centered" field data_dim read from grid_dimensions.
+//                9. We assume that one grid contains all the fields belong to that grid.
 //
 // Parameter   :
 //
@@ -44,6 +46,25 @@ int yt_commit_grids()
 
    log_info("Loading grids to yt ...\n");
 
+// Checking yt_field field_list
+// check if each elements in yt_field field_list has correct value.
+   for ( int v = 0; v < g_param_yt.num_fields; v++ ){
+      yt_field field = g_param_yt.field_list[v];
+      if ( !(field.validate()) ){
+         YT_ABORT("Validating input field list element [%d] ... failed\n", v);
+      }
+   }
+
+// check if yt_field field_list has all the field_name unique
+   for ( int v1 = 0; v1 < g_param_yt.num_fields; v1++ ){
+      for ( int v2 = v1+1; v2 < g_param_yt.num_fields; v2++ ){
+         if ( strcmp(g_param_yt.field_list[v1].field_name, g_param_yt.field_list[v2].field_name) == 0 ){
+            YT_ABORT("field_name in field_list[%d] and field_list[%d] not unique!\n", v1, v2);
+         }
+      }
+   }
+
+// Checking grids
 // check each grids individually
    for (int i = 0; i < g_param_yt.num_grids_local; i = i+1) {
 
@@ -84,29 +105,57 @@ int yt_commit_grids()
                       grid.id, grid.right_edge[d], grid.left_edge[d]);
       }
 
-      // data in each fields are not NULL
+      // check field_data in each individual grid
       for (int v = 0; v < g_param_yt.num_fields; v = v+1){
-         if (grid.field_data[v] == NULL)
-            log_warning( "Grid [%ld], field_data [%s] is NULL, not set yet!", grid.id, g_param_yt.field_list[v].field_name);
-      }
+         
+         // If field_define_type == "cell-centered"
+         if ( strcmp(g_param_yt.field_list[v].field_define_type, "cell-centered") == 0 ) {
+            // check if data_ptr is set
+            if ( grid.field_data[v].data_ptr == NULL ){
+               log_warning( "Grid [%ld], field_data [%s], data_ptr is NULL, not set yet!", grid.id, g_param_yt.field_list[v].field_name);
+            }
+            // set the field_data data_dim, base on grid_dimensions and swap_axes
+            if ( g_param_yt.field_list[v].swap_axes == true ){
+               grid.field_data[v].data_dim[0] = grid.grid_dimensions[2];
+               grid.field_data[v].data_dim[1] = grid.grid_dimensions[1];
+               grid.field_data[v].data_dim[2] = grid.grid_dimensions[0];
+            }
+            else {
+               grid.field_data[v].data_dim[0] = grid.grid_dimensions[0];
+               grid.field_data[v].data_dim[1] = grid.grid_dimensions[1];
+               grid.field_data[v].data_dim[2] = grid.grid_dimensions[2];
+            }
+         }
 
-   }
+         // If field_define_type == "face-centered"
+         if ( strcmp(g_param_yt.field_list[v].field_define_type, "face-centered") == 0 ) {
+            // check if data_ptr is set
+            if ( grid.field_data[v].data_ptr == NULL ){
+               log_warning( "Grid [%ld], field_data [%s], data_ptr is NULL, not set yet!", grid.id, g_param_yt.field_list[v].field_name);
+            }
+            // check that dimension is greater than 0
+            for ( int d = 0; d < 3; d++ ){
+               if ( grid.field_data[v].data_dim[d] <= 0 ){
+                  log_warning("Grid [%ld], field_data [%s], data_dim[%d] == %d <= 0, should be > 0!\n", 
+                               grid.id, g_param_yt.field_list[v].field_name, d, grid.field_data[v].data_dim[d]);
+               }
+            }
+         }
 
-// check if each elements in yt_field field_list has correct value.
-   for ( int v = 0; v < g_param_yt.num_fields; v++ ){
-      yt_field field = g_param_yt.field_list[v];
-      if ( !(field.validate()) ){
-         YT_ABORT("Validating input field list element [%d] ... failed\n", v);
-      }
-   }
-
-// check if yt_field field_list has all the field_name unique
-   for ( int v1 = 0; v1 < g_param_yt.num_fields; v1++ ){
-      for ( int v2 = v1+1; v2 < g_param_yt.num_fields; v2++ ){
-         if ( strcmp(g_param_yt.field_list[v1].field_name, g_param_yt.field_list[v2].field_name) == 0 ){
-            YT_ABORT("field_name in field_list[%d] and field_list[%d] not unique!\n", v1, v2);
+         // If field_define_type == "derived_func"
+         if ( strcmp(g_param_yt.field_list[v].field_define_type, "derived_func") == 0 ) {
+            // check if data_ptr is set != NULL, then dimension should be greater than 0
+            if ( grid.field_data[v].data_ptr != NULL ){
+               for ( int d = 0; d < 3; d++ ){
+                  if ( grid.field_data[v].data_dim[d] <= 0 ){
+                     log_warning("Grid [%ld], field_data [%s], data_dim[%d] == %d <= 0, should be > 0!\n", 
+                                  grid.id, g_param_yt.field_list[v].field_name, d, grid.field_data[v].data_dim[d]);
+                  }
+               }
+            }
          }
       }
+
    }
 
 // add field_list as dictionary
@@ -229,11 +278,8 @@ int yt_commit_grids()
          grid_combine.field_data   = g_param_yt.grids_local[i - start_block].field_data;
       }
       else {
-         // Append each field, and make them points to NULL
-         grid_combine.field_data = new void* [g_param_yt.num_fields];
-         for ( int v = 0; v < g_param_yt.num_fields; v = v+1 ) {
-            grid_combine.field_data[v]   = NULL;
-         }
+         // Make it points to NULL
+         grid_combine.field_data = NULL;
       }
 
       // Append grid to YT

@@ -11,22 +11,39 @@
 /
 ********************************************************************************/
 
+//-------------------------------------------------------------------------------------------------------
+// Structure   :  yt_data
+// Description :  Data structure to store a field data's pointer and its array dimensions.
+// 
+// Notes       :  1. This struct will be use in yt_grid data member field_data.
+// 
+// Data Member :  data_ptr    : field data pointer
+//                data_dim[3] : dimension of the field data to be passed to python.
+//                              Def => fieldData[ dim[0] ][ dim[1] ][ dim[2] ]
+//-------------------------------------------------------------------------------------------------------
+struct yt_data
+{
+   void *data_ptr;
+   int   data_dim[3];
+};
 
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_grid
 // Description :  Data structure to store a full single grid with data pointer
 // 
-// Notes       :  1. We assume that each element in array_name[3] are all in use.
+// Notes       :  1. We assume that each element in array[3] are all in use, which is we only supports 
+//                   dim 3 for now.
 //
-// Data Member :  grid_dimensions: Number of cells along each direction in [x][y][z] coordinate.
-//                left_edge      : Grid left  edge in code units
-//                right_edge     : Grid right edge in code units
-//                particle_count : Nunber of particles in this grid
-//                level          : AMR level (0 for the root level)
-//                id             : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
-//                parent_id      : Parent grid ID (0-indexed, -1 for grids on the root level)
-//                proc_num       : Process number, grid belong to which MPI rank
-//                field_data     : Pointer arrays pointing to the data of each field
+// Data Member :  grid_dimensions : Number of cells along each direction in [x][y][z] coordinate.
+//                left_edge       : Grid left  edge in code units
+//                right_edge      : Grid right edge in code units
+//                particle_count  : Nunber of particles in this grid
+//                level           : AMR level (0 for the root level)
+//                id              : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
+//                parent_id       : Parent grid ID (0-indexed, -1 for grids on the root level)
+//                proc_num        : Process number, grid belong to which MPI rank
+//                field_data      : Pointer pointing to yt_data array, which stored data pointer 
+//                                  and data dimensions.
 //
 // Method      :  yt_grid  : Constructor
 //               ~yt_grid  : Destructor
@@ -37,18 +54,18 @@ struct yt_grid
 
 // data members
 // ===================================================================================
-   double left_edge[3];
-   double right_edge[3];
+   double    left_edge[3];
+   double    right_edge[3];
 
-   long   particle_count;
-   long   id;
-   long   parent_id;
+   long      particle_count;
+   long      id;
+   long      parent_id;
 
-   int    grid_dimensions[3];
-   int    level;
-   int    proc_num;
+   int       grid_dimensions[3];
+   int       level;
+   int       proc_num;
 
-   void   **field_data;
+   yt_data  *field_data;
 
    //===================================================================================
    // Method      :  yt_grid
@@ -104,6 +121,7 @@ struct yt_grid
    // Note        :  1. This function does not perform checks that depend on the input
    //                   YT parameters (e.g., whether left_edge lies within the simulation domain)
    //                   ==> These checks are performed in yt_commit_grids()
+   //                2. If check needs information other than grid info, we will do it elsewhere.
    //
    // Parameter   :  None
    //

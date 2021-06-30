@@ -19,10 +19,7 @@ void log_warning(const char *Format, ...);
 // Description :  Data structure to store a field's label and its definition of data representation.
 // 
 // Notes       :  1. The data representation type will be initialize as "cell-centered".
-//                2. "field_dimension" is used for fields like MHD, they did not have the same dimension
-//                   as in the other field, though they are in the same patch. This is used in 
-//                   append_grid.cpp.
-//                3. "field_unit", "field_name_alias", "field_display_name", are set corresponding to yt 
+//                2. "field_unit", "field_name_alias", "field_display_name", are set corresponding to yt 
 //                   ( "name", ("units", ["fields", "to", "alias"], # "display_name"))
 //
 // Data Member :  char  *field_name           : Field name
@@ -33,8 +30,6 @@ void log_warning(const char *Format, ...);
 //                                              (3) "derived_func"
 //                bool   swap_axes            : true  ==> [z][y][x], x address alter-first, default value.
 //                                              false ==> [x][y][z], z address alter-first
-//                int    field_dimension[3]   : Field dimension, use to pass in array to python.
-//                                              Define as C_array[ fd[0] ][ fd[1] ][ fd[2] ]
 //                char  *field_unit           : Set field_unit if needed.
 //                int    num_field_name_alias : Set fields to alias, number of the aliases.
 //                char **field_name_alias     : Aliases.
@@ -55,7 +50,6 @@ struct yt_field
 	char  *field_name;
 	char  *field_define_type;
 	bool   swap_axes;
-	int    field_dimension[3];
 	char  *field_unit;
 	int    num_field_name_alias;
 	char **field_name_alias;
@@ -77,9 +71,6 @@ struct yt_field
 		field_name = NULL;
 		field_define_type = "cell-centered";
 		swap_axes = true;
-		for ( int d=0; d<3; d++ ){
-			field_dimension[d] = INT_UNDEFINED;
-		}
 		field_unit = "NOT SET";
 		num_field_name_alias = 0;
 		field_name_alias = NULL;
@@ -107,9 +98,8 @@ struct yt_field
 // Description : Validate data member in the struct.
 // 
 // Note        : 1. Validate data member value in one yt_field struct.
-//                  (0) field_name is set != NULL.
-//                  (1) field_define_type can only be : "cell-centered", "face-centered", "derived_func".
-//                  (2) field_dimension[3] should be greater than 0.
+//                  (1) field_name is set != NULL.
+//                  (2) field_define_type can only be : "cell-centered", "face-centered", "derived_func".
 //                  (3) Raise warning if derived_func == NULL and field_define_type is set to "derived_func".
 //               2. Used in yt_commit_grids()
 // 
@@ -135,14 +125,6 @@ struct yt_field
    	if ( check1 == false ){
    		YT_ABORT("In field [%s], unknown field_define_type [%s]!\n", field_name, field_define_type);
    		return YT_FAIL;
-   	}
-
-   	// field_dimension[3] should be greater than 0.
-   	for ( int i = 0; i < 3; i++ ){
-   		if ( field_dimension[i] <= 0 ){
-   			YT_ABORT("In field [%s], field_dimension[%d] should be greater than 0!\n", field_name, i);
-   			return YT_FAIL;
-   		}
    	}
 
    	// Raise warning if derived_func == NULL and field_define_type is set to "derived_func".

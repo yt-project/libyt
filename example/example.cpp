@@ -200,9 +200,6 @@ int main( int argc, char *argv[] )
 //    We only have one field in this example.
       field_list[0].field_name = "Dens";
       field_list[0].field_define_type = "cell-centered";
-      field_list[0].field_dimension[0] = GRID_DIM;
-      field_list[0].field_dimension[1] = GRID_DIM;
-      field_list[0].field_dimension[2] = GRID_DIM;
       char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
       field_list[0].field_name_alias = field_name_alias;
       field_list[0].num_field_name_alias = 3;
@@ -212,9 +209,11 @@ int main( int argc, char *argv[] )
 //    ============================================================
       yt_grid *grids_local;
       yt_get_gridsPtr( &grids_local );
-      
+
+//    ============================================================
 //    Here, we calculate all the grids (libyt_grids) first, 
 //    then distribute them to grids_local, to simulate the working process.
+//    ============================================================
       yt_grid *libyt_grids = new yt_grid [param_yt.num_grids];
 
 //    set level-0 grids
@@ -304,17 +303,17 @@ int main( int argc, char *argv[] )
 //    set general grid attributes and invoke inline analysis
       for (int gid=0; gid<param_yt.num_grids; gid++)
       {
-         libyt_grids[gid].field_data = new void* [num_fields];
+         libyt_grids[gid].field_data = new yt_data [num_fields];
 
          if (grids_MPI[gid] == myrank){
             for (int v=0; v<num_fields; v++){
-               libyt_grids[gid].field_data[v] = field_data[gid][v];
+               libyt_grids[gid].field_data[v].data_ptr = field_data[gid][v];
             }
          }
          else {
             for (int v=0; v<num_fields; v++){
                // if no data, set it as NULL, so we can make sure each rank contains its own grids only
-               libyt_grids[gid].field_data[v] = NULL;
+               libyt_grids[gid].field_data[v].data_ptr = NULL;
             }
          }
 
@@ -338,7 +337,7 @@ int main( int argc, char *argv[] )
             grids_local[index_local].level          = libyt_grids[gid].level;
 
             for (int v = 0; v < param_yt.num_fields; v = v + 1){
-               grids_local[index_local].field_data[v]     = libyt_grids[gid].field_data[v];
+               grids_local[index_local].field_data[v].data_ptr = libyt_grids[gid].field_data[v].data_ptr;
             }
 
             index_local = index_local + 1;

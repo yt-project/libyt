@@ -5,7 +5,11 @@
 // Function    :  yt_get_gridsPtr
 // Description :  Get pointer of the array of struct yt_grid with length num_grids_local.
 //
-// Note        :  1. User should call this function after yt_set_parameter(), since we need num_grids_local.
+// Note        :  1. User should call this function after yt_set_parameter() and yt_get_fieldsPtr, 
+//                   since we need num_grids_local, and field info.
+//                2. Initialize field_data in one grid with
+//                   (1) data_dim[3] = {0, 0, 0}
+//                   (2) data_ptr    = NULL
 //
 // Parameter   :  yt_grid **grids_local : Initialize and store the grid structure array under this 
 //                                        pointer points to.
@@ -41,10 +45,16 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 	// and each fields data are set to NULL, so that we can check if user input the data
 	*grids_local = new yt_grid [g_param_yt.num_grids_local];
 	for ( int id = 0; id < g_param_yt.num_grids_local; id = id+1 ){
+		
 		(*grids_local)[id].proc_num     = MyRank;
-		(*grids_local)[id].field_data   = new void* [g_param_yt.num_fields];
-		for ( int fid = 0; fid < g_param_yt.num_fields; fid = fid+1){
-			(*grids_local)[id].field_data[fid] = NULL;
+		(*grids_local)[id].field_data   = new yt_data [g_param_yt.num_fields];
+		
+		// Dealing with individual field in one grid
+		for ( int fid = 0; fid < g_param_yt.num_fields; fid = fid+1 ){
+			for ( int d = 0; d < 3; d++ ){
+				(*grids_local)[id].field_data[fid].data_dim[d] = 0;
+			}
+			(*grids_local)[id].field_data[fid].data_ptr = NULL;
 		}
 	}
 
