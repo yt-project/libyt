@@ -96,15 +96,15 @@ int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] ){
 //
 // Parameter   :  const long   gid              : Target grid id.
 //                const char  *field_name       : Target field name.
-//                void       **field_data       : Store the field_data pointer to here.
+//                yt_data     *field_data       : Store the yt_data struct pointer that points to data here.
 //                
-// Example     :  void *Data;
+// Example     :  yt_data Data;
 //                yt_getGridInfo_FieldData( gid, "field_name", &Data );
-//                double *FieldData = (double *) Data;
+//                double *FieldData = (double *) Data.data_ptr;
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_getGridInfo_FieldData( const long gid, const char *field_name, void **field_data){
+int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *field_data){
 
 	if ( check_procedure( __FUNCTION__ ) != YT_SUCCESS ){
 		YT_ABORT( "Please follow the libyt procedure.\n" );
@@ -119,7 +119,12 @@ int yt_getGridInfo_FieldData( const long gid, const char *field_name, void **fie
 			for ( int v = 0; v < g_param_yt.num_fields; v++ ){
 				if ( strcmp(g_param_yt.field_list[v].field_name, field_name) == 0 ){
 					have_Field = true;
-					*field_data = g_param_yt.grids_local[lid].field_data[v];
+
+					(*field_data).data_ptr = g_param_yt.grids_local[lid].field_data[v].data_ptr;
+					for ( int d = 0; d < 3; d++ ){
+						(*field_data).data_dim[d] = g_param_yt.grids_local[lid].field_data[v].data_dim[d];
+					}
+					
 					break;
 				}
 			}

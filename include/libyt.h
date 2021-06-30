@@ -43,7 +43,7 @@ int yt_inline( char *function_name );
 // For derived_func to get grid information by GID and by field_name.
 // These APIs is meant to be used inside user defined derived_func(long GID, double *output)
 int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] );
-int yt_getGridInfo_FieldData( const long gid, const char *field_name, void **field_data );
+int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *field_data);
 
 #ifdef __cplusplus
 }
