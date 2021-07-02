@@ -60,24 +60,35 @@ int append_grid( yt_grid *grid ){
          PyDict_SetItemString( py_field_labels, g_param_yt.field_list[v].field_name, Py_None );
       }
 
-//    Else grid->field_data != NULL, append the data
+//    Else grid->field_data != NULL, append the data. 
+//    Or else append Py_None. So that we avoid dealing with numpy scalar.
       else {
-         // get the dimension of the input array from the (grid->field_data)[v]
-         npy_intp grid_dims[3] = { (grid->field_data)[v].data_dim[0],
-                                   (grid->field_data)[v].data_dim[1],
-                                   (grid->field_data)[v].data_dim[2]};
-         
-         // PyArray_SimpleNewFromData simply creates an array wrapper and does not allocate and own the array
-         py_field_data = PyArray_SimpleNewFromData( 3, grid_dims, grid_ftype, (grid->field_data)[v].data_ptr );
+         if ( (grid->field_data)[v].data_ptr == NULL ){
+            // add Py_None to dict "libyt.grid_data[grid_id][field_list.field_name]"
+            PyDict_SetItemString( py_field_labels, g_param_yt.field_list[v].field_name, Py_None );
 
-         // add the field data to dict "libyt.grid_data[grid_id][field_list.field_name]"
-         PyDict_SetItemString( py_field_labels, g_param_yt.field_list[v].field_name, py_field_data );
+            log_debug( "Inserting [ None ] to grid [%15ld] field data [%s] to libyt.grid_data, since data_ptr == NULL\n", 
+                        grid->id, g_param_yt.field_list[v].field_name );
+         }
+         else {
+            // get the dimension of the input array from the (grid->field_data)[v]
+            npy_intp grid_dims[3] = { (grid->field_data)[v].data_dim[0],
+                                      (grid->field_data)[v].data_dim[1],
+                                      (grid->field_data)[v].data_dim[2]};
+            
+            // PyArray_SimpleNewFromData simply creates an array wrapper and does not allocate and own the array
+            py_field_data = PyArray_SimpleNewFromData( 3, grid_dims, grid_ftype, (grid->field_data)[v].data_ptr );
 
-         // call decref since PyDict_SetItemString() returns a new reference
-         Py_DECREF( py_field_data );
+            // add the field data to dict "libyt.grid_data[grid_id][field_list.field_name]"
+            PyDict_SetItemString( py_field_labels, g_param_yt.field_list[v].field_name, py_field_data );
 
-         log_debug( "Inserting grid [%15ld] field data [%s] to libyt.grid_data ... done\n", 
-                     grid->id, g_param_yt.field_list[v].field_name );
+            // call decref since PyDict_SetItemString() returns a new reference
+            Py_DECREF( py_field_data );
+
+            log_debug( "Inserting grid [%15ld] field data [%s] to libyt.grid_data ... done\n", 
+                        grid->id, g_param_yt.field_list[v].field_name );
+         }
+
       }
 
    }
