@@ -1,10 +1,4 @@
 *.o
 *.pyc
-libyt.so.1.0.0
+libyt.so.1.*
 example/example
-.idea/
-*.png
-lib/*
-stderr
-stdout
-.BAK/
