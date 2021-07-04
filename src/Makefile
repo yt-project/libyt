@@ -25,10 +25,7 @@ LIB_SONAME   := libyt.so.1
 
 # different paths
 #######################################################################################################
-#PYTHON_PATH := /work1/cindytsai/Software/python/python3.8
-#PYTHON_PATH := /projects/ncsa/grav/softwares/miniconda2
-PYTHON_PATH := /home/cindytsai/software/python/python3.8
-#PYTHON_PATH := /home/calab912/software/python/python3.8
+PYTHON_PATH := $(YOUR_PYTHON_PATH)
 OBJ_PATH := ./obj
 
 
