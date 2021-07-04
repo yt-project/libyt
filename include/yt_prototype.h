@@ -10,15 +10,20 @@ void log_info   ( const char *Format, ... );
 void log_warning( const char *format, ... );
 void log_debug  ( const char *Format, ... );
 void log_error  ( const char *format, ... );
+int  create_libyt_module();
 int  init_python( int argc, char *argv[] );
 int  init_libyt_module();
 int  allocate_hierarchy();
+int  append_grid( yt_grid *grid );
+int  check_hierarchy(yt_hierarchy * &hierarchy);
 #ifndef NO_PYTHON
 template <typename T>
 int  add_dict_scalar( PyObject *dict, const char *key, const T value );
 template <typename T>
 int  add_dict_vector3( PyObject *dict, const char *key, const T *vector );
 int  add_dict_string( PyObject *dict, const char *key, const char *string );
+
+int  add_dict_field_list( );
 #endif
 
 

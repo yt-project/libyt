@@ -1,14 +1,23 @@
+/*
+This example is to test how libyt can work with 
+yt python package with OpenMPI.
 
+1. Assign grids to one MPI rank
+2. Pass the grid to yt when that grid belongs to the MPI rank
+3. Each MPI rank will only pass "its" hierarchy to yt
+   ---> Here, we calculate all the grids (libyt_grids) first, 
+        then distribute them to grids_local, to simulate the working process.
 
-// ==========================================
-// This example illustrates the basic usage
-// of libyt. Please follow steps 0 - 6.
-// ==========================================
-
+And also, to illustrates the basic usage of libyt.
+In steps 0 - 9.
+ */
 
 #include <stdlib.h>
 #include <math.h>
 #include <typeinfo>
+#include <mpi.h>
+#include <time.h>
+
 // ==========================================
 // 0. include libyt header
 // ==========================================
@@ -30,7 +39,7 @@ typedef double real;
 
 
 real set_density( const double x, const double y, const double z, const double t, const double v );
-
+void get_randArray(int *array, int length);
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -39,6 +48,15 @@ real set_density( const double x, const double y, const double z, const double t
 //-------------------------------------------------------------------------------------------------------
 int main( int argc, char *argv[] )
 {
+   /*
+   MPI Initialize, and settings
+    */
+   int myrank;
+   int nrank;
+   int RootRank = 0;
+   MPI_Init(&argc, &argv);
+   MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+   MPI_Comm_size(MPI_COMM_WORLD, &nrank );
 
 // ==========================================
 // 1. initialize libyt
@@ -76,7 +94,8 @@ int main( int argc, char *argv[] )
    const int    num_fields  = 1;                                // number of fields
    const int    num_grids   = CUBE(NGRID_1D)+CUBE(REFINE_BY);   // number of grids
                                                                 // here we refine one root grid
-   const char  *field_labels[num_fields] = { "Dens" };          // field names
+   
+   int *grids_MPI = new int [num_grids];                        // Record MPI rank in each grids
 
    double time = 0.0;
 
@@ -92,8 +111,8 @@ int main( int argc, char *argv[] )
       yt_param_yt param_yt;
 
       param_yt.frontend                = "gamer";           // simulation frontend
-//    param_yt.fig_basename            = "fig_basename";    // figure base name (default=Fig%09d)
-
+      param_yt.fig_basename            = "FigName";         // figure base name (default=Fig), will append number of calls to libyt
+                                                            // at the end
       param_yt.length_unit             = 3.0857e21;         // units are in cgs
       param_yt.mass_unit               = 1.9885e33;
       param_yt.time_unit               = 3.1557e13;
@@ -102,6 +121,8 @@ int main( int argc, char *argv[] )
       param_yt.dimensionality          = 3;
       param_yt.refine_by               = REFINE_BY;
       param_yt.num_grids               = num_grids;
+      param_yt.num_fields              = num_fields;
+      param_yt.field_ftype             = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
 
       for (int d=0; d<3; d++)
       {
@@ -117,13 +138,30 @@ int main( int argc, char *argv[] )
       param_yt.omega_matter            = 0.3;
       param_yt.hubble_constant         = 0.7;
 
+//    Distribute grids to MPI rank, to simulate simulation code process.
+      if (myrank == RootRank){
+         get_randArray(grids_MPI, num_grids);
+      }
+      MPI_Bcast(grids_MPI, num_grids, MPI_INT, RootRank, MPI_COMM_WORLD);
+
+//    Count the number of grids at local
+      int num_grids_local = 0;
+      for (int i = 0; i < num_grids; i = i+1){
+         if (grids_MPI[i] == myrank){
+            num_grids_local = num_grids_local + 1;
+         }
+      }
+
+//    We can either pass in param_yt.grids_MPI or param_yt.num_grids_local
+      // param_yt.grids_MPI               = grids_MPI;
+      param_yt.num_grids_local         = num_grids_local;
+
 //    *** libyt API ***
       if ( yt_set_parameter( &param_yt ) != YT_SUCCESS )
       {
          fprintf( stderr, "ERROR: yt_set_parameter() failed!\n" );
          exit( EXIT_FAILURE );
       }
-
 
 
 //    ==========================================
@@ -153,12 +191,29 @@ int main( int argc, char *argv[] )
       yt_add_user_parameter_int   ( "user_int3",    3,  user_int3    );
       yt_add_user_parameter_double( "user_double3", 3,  user_double3 );
 
+//    ============================================================
+//    4. Get pointer to field list array, then set up field list
+//    ============================================================
+      yt_field *field_list;
+      yt_get_fieldsPtr( &field_list );
 
+//    We only have one field in this example.
+      field_list[0].field_name = "Dens";
+      field_list[0].field_define_type = "cell-centered";
+      char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
+      field_list[0].field_name_alias = field_name_alias;
+      field_list[0].num_field_name_alias = 3;
 
-//    ==========================================
-//    4. add grids
-//    ==========================================
-//    allocate libyt grids for exchanging grid information between simulation codes and YT
+//    ============================================================
+//    5. Get pointer to local grids array, then set up local grids
+//    ============================================================
+      yt_grid *grids_local;
+      yt_get_gridsPtr( &grids_local );
+
+//    ============================================================
+//    Here, we calculate all the grids (libyt_grids) first, 
+//    then distribute them to grids_local, to simulate the working process.
+//    ============================================================
       yt_grid *libyt_grids = new yt_grid [param_yt.num_grids];
 
 //    set level-0 grids
@@ -174,7 +229,7 @@ int main( int argc, char *argv[] )
          {
             libyt_grids[gid].left_edge [d] = grid_order[d]*GRID_DIM*dh0;
             libyt_grids[gid].right_edge[d] = libyt_grids[gid].left_edge[d] + GRID_DIM*dh0;
-            libyt_grids[gid].dimensions[d] = GRID_DIM;   // this example assumes cubic grids
+            libyt_grids[gid].grid_dimensions[d] = GRID_DIM;   // this example assumes cubic grids
          }
 
          libyt_grids[gid].particle_count = 0;      // particles are not supported yet
@@ -221,7 +276,7 @@ int main( int argc, char *argv[] )
          {
             libyt_grids[gid].left_edge [d] = libyt_grids[gid_refine].left_edge[d] + grid_order[d]*GRID_DIM*dh1;
             libyt_grids[gid].right_edge[d] = libyt_grids[gid].left_edge[d] + GRID_DIM*dh1;
-            libyt_grids[gid].dimensions[d] = GRID_DIM;   // this example assumes cubic grids
+            libyt_grids[gid].grid_dimensions[d] = GRID_DIM;   // this example assumes cubic grids
          }
 
          libyt_grids[gid].particle_count = 0;            // particles are not supported yet
@@ -248,47 +303,100 @@ int main( int argc, char *argv[] )
 //    set general grid attributes and invoke inline analysis
       for (int gid=0; gid<param_yt.num_grids; gid++)
       {
-//       set pointers pointing to different field data
-         libyt_grids[gid].field_data = new void* [num_fields];
-         for (int v=0; v<num_fields; v++)   libyt_grids[gid].field_data[v] = field_data[gid][v];
+         libyt_grids[gid].field_data = new yt_data [num_fields];
 
-//       set other field parameters
-         libyt_grids[gid].num_fields   = num_fields;
-         libyt_grids[gid].field_labels = field_labels;
-         libyt_grids[gid].field_ftype  = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
-
-//       *** libyt API ***
-         if ( yt_add_grid( &libyt_grids[gid] ) != YT_SUCCESS )
-         {
-            fprintf( stderr, "ERROR: yt_add_grid() failed!\n" );
-            exit( EXIT_FAILURE );
+         if (grids_MPI[gid] == myrank){
+            for (int v=0; v<num_fields; v++){
+               libyt_grids[gid].field_data[v].data_ptr = field_data[gid][v];
+            }
          }
-      } // for (int gid=0; gid<param_yt.num_grids; gid++)
+         else {
+            for (int v=0; v<num_fields; v++){
+               // if no data, set it as NULL, so we can make sure each rank contains its own grids only
+               libyt_grids[gid].field_data[v].data_ptr = NULL;
+            }
+         }
+
+      } // for (int gid=0; gid<param_yt.num_grids; gid++) 
 
 
+//    distribute libyt_grids to grids_local
+      int index_local = 0;
+      for (int gid = 0; gid < param_yt.num_grids; gid = gid + 1){
 
-//    ==========================================
-//    5. perform inline analysis
-//    ==========================================
+         if (grids_MPI[gid] == myrank) {
+
+            for (int d = 0; d < 3; d = d+1) {
+               grids_local[index_local].left_edge[d]  = libyt_grids[gid].left_edge[d];
+               grids_local[index_local].right_edge[d] = libyt_grids[gid].right_edge[d];
+               grids_local[index_local].grid_dimensions[d] = libyt_grids[gid].grid_dimensions[d];
+            }
+            grids_local[index_local].particle_count = libyt_grids[gid].particle_count;
+            grids_local[index_local].id             = libyt_grids[gid].id;
+            grids_local[index_local].parent_id      = libyt_grids[gid].parent_id;
+            grids_local[index_local].level          = libyt_grids[gid].level;
+
+            for (int v = 0; v < param_yt.num_fields; v = v + 1){
+               grids_local[index_local].field_data[v].data_ptr = libyt_grids[gid].field_data[v].data_ptr;
+            }
+
+            index_local = index_local + 1;
+         }
+
+      }
+
+//    ==============================================
+//    6. tell libyt that you have done loading grids
+//    ==============================================
 //    *** libyt API ***
-      if ( yt_inline() != YT_SUCCESS )
+      if ( yt_commit_grids() != YT_SUCCESS ) {
+         fprintf( stderr, "ERROR: yt_commit_grids() failed!\n" );
+         exit( EXIT_FAILURE );
+      }
+
+
+//    =============================================================
+//    7. perform inline analysis, execute function in python script
+//    =============================================================
+//    *** libyt API ***
+      if ( yt_inline_argument( "yt_inline_ProjectionPlot", 1, "\'density\'" ) != YT_SUCCESS )
       {
          fprintf( stderr, "ERROR: yt_inline() failed!\n" );
          exit( EXIT_FAILURE );
       }
 
+      if ( yt_inline( "yt_inline_ProfilePlot" ) != YT_SUCCESS )
+      {
+         fprintf( stderr, "ERROR: yt_inline() failed!\n" );
+         exit( EXIT_FAILURE );
+      }
+
+	  if ( yt_inline("test_user_parameter") != YT_SUCCESS )
+	  {
+		 fprintf( stderr, "ERROR: yt_inline() failed!\n" );
+		 exit( EXIT_FAILURE );
+	  }
+
+//    =============================================================================
+//    8. end of the inline-analysis at this step, free grid info loaded into python
+//    =============================================================================
+//    *** libyt API ***
+      if ( yt_free_gridsPtr() != YT_SUCCESS )
+      {
+         fprintf( stderr, "ERROR: yt_free_gridsPtr() failed!\n" );
+         exit( EXIT_FAILURE );
+      }
+
 
 //    free resources
-      for (int g=0; g<param_yt.num_grids; g++)  delete [] libyt_grids[g].field_data;
+      for (int g=0; g<num_grids; g++)  delete [] libyt_grids[g].field_data;
       delete [] libyt_grids;
 
       time += dt;
    } // for (int step=0; step<total_steps; step++)
 
-
-
 // ==========================================
-// 6. exit libyt
+// 9. exit libyt
 // ==========================================
 // *** libyt API ***
    if ( yt_finalize() != YT_SUCCESS )
@@ -299,7 +407,13 @@ int main( int argc, char *argv[] )
 
 
    delete [] field_data;
-
+   delete [] grids_MPI;
+   
+   /*
+   MPI Finalize
+    */
+   MPI_Finalize();
+   
    return EXIT_SUCCESS;
 
 } // FUNCTION : main
@@ -321,3 +435,19 @@ real set_density( const double x, const double y, const double z, const double t
    return amplitude*exp(  -0.5*( SQR(x-center[0]) + SQR(y-center[1]) + SQR(z-center[2]) ) / SQR(sigma)  ) + background;
 
 } // FUNCTION : set_density
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  get an array of random number in range 0 ~ NRank-1
+// Description :  To random distribute grids to MPI rank
+//-------------------------------------------------------------------------------------------------------
+void get_randArray(int *array, int length) {
+   
+   int NRank;
+   MPI_Comm_size(MPI_COMM_WORLD, &NRank);
+   
+   srand((unsigned) time(0));
+   
+   for (int i = 0; i < length; i = i+1){
+      array[i] = rand() % NRank;
+   }
+} // FUNCTION : get_randArray

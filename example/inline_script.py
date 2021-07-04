@@ -1,12 +1,27 @@
 import yt
 
-def yt_inline():
+# Must include this line, if you are running in parallel.
+yt.enable_parallelism()
+
+def yt_inline_ProjectionPlot( fields ):
+    
+    # Load the data, just like using yt.load()
     ds = yt.frontends.libyt.libytDataset()
-    sz = yt.SlicePlot( ds, 'z', 'Dens', center='c' )
+    
+    # Do yt operation
+    prjz = yt.ProjectionPlot(ds, 'z', fields)
 
-    sz.set_unit( 'Dens', 'msun/kpc**3' )
-    sz.set_zlim( 'Dens', 1.0e0, 1.0e6 )
-    sz.annotate_grids( periodic=False )
+    # Include this line, otherwise yt will save one copy in each rank.
+    if yt.is_root():
+        prjz.save()
+    
+def yt_inline_ProfilePlot():
+    ds = yt.frontends.libyt.libytDataset()
+    profile = yt.ProfilePlot(ds, "x", ["density"])
 
-    sz.save()
+    if yt.is_root():
+        profile.save()
 
+def test_user_parameter():
+    import libyt
+    print("user_int = ", libyt.param_user['user_int'])

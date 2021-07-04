@@ -11,8 +11,10 @@
 # source files
 #######################################################################################################
 CC_FILE := yt_init.cpp  yt_finalize.cpp  yt_set_parameter.cpp  yt_inline.cpp  yt_add_user_parameter.cpp \
-           yt_add_grid.cpp
-CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp
+           yt_commit_grids.cpp yt_get_gridsPtr.cpp yt_get_fieldsPtr.cpp yt_free_gridsPtr.cpp            \
+           yt_getGridInfo.cpp
+CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp    \
+		   check_hierarchy.cpp append_grid.cpp
 
 
 # library name
@@ -23,20 +25,19 @@ LIB_SONAME   := libyt.so.1
 
 # different paths
 #######################################################################################################
-PYTHON_PATH := /home/hyschive/software/miniconda2
-#PYTHON_PATH := /projects/ncsa/grav/softwares/miniconda2
+PYTHON_PATH := $(YOUR_PYTHON_PATH)
 OBJ_PATH := ./obj
 
 
 # flags
 #######################################################################################################
 #CXX := icpc
-CXX := g++
+CXX := mpic++
 
-LIB := -L$(PYTHON_PATH)/lib -lpython2.7
+LIB := -L$(PYTHON_PATH)/lib -lpython3.8
 
-INCLUDE := -I../include -I$(PYTHON_PATH)/include/python2.7 \
-           -I$(PYTHON_PATH)/lib/python2.7/site-packages/numpy/core/include
+INCLUDE := -I../include -I$(PYTHON_PATH)/include/python3.8 \
+           -I$(PYTHON_PATH)/lib/python3.8/site-packages/numpy/core/include
 
 #CXXWARN_FLAG := -w1
 CXXWARN_FLAG := -Wall -Wno-write-strings

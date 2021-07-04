@@ -43,15 +43,21 @@ int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt )
    log_debug( "   verbose = %d\n", g_param_libyt.verbose );
    log_debug( "   script  = %s\n", g_param_libyt.script );
 
+// create libyt module, should be before init_python
+   if ( create_libyt_module() == YT_FAIL ) {
+      return YT_FAIL;
+   }
 
 // initialize Python interpreter
-   if ( init_python(argc,argv) == YT_FAIL )   return YT_FAIL;
+   if ( init_python(argc,argv) == YT_FAIL ) {
+      return YT_FAIL;
+   }  
 
-
-// create libyt module
-   if ( init_libyt_module() == YT_FAIL )   return YT_FAIL;
-
-
+// initialize libyt python module such as parameters.
+   if ( init_libyt_module() == YT_FAIL ) {
+      return YT_FAIL;
+   }
+   
    g_param_libyt.libyt_initialized = true;
    return YT_SUCCESS;
 
