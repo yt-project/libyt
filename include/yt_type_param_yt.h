@@ -16,6 +16,7 @@
 #include "yt_macro.h"
 #include "yt_type_grid.h"
 #include "yt_type_field.h"
+#include "yt_type_particle.h"
 void log_debug( const char *Format, ... );
 void log_warning(const char *Format, ...);
 
@@ -46,9 +47,11 @@ void log_warning(const char *Format, ...);
 //                refine_by               : Refinement factor between a grid and its subgrid
 //                num_grids               : Total number of grids
 //                num_fields              : Number of fields
+//                num_species             : Number of particle species, initialized as 0.
 //                grids_MPI               : grids belongs to which MPI rank
 //                num_grids_local         : Number of local grids in each rank
-//                field_list              : field list, including {field_name, field_define_type}
+//                field_list              : field list, including {field_name, field_define_type, field_unit ,...}
+//                particle_list           : particle list, including {species_name, attr_list, ...}, pointer
 //                grids_local             : Ptr to full information of local grids
 //                field_ftype             : Floating-point type of "field_data" ==> YT_FLOAT or YT_DOUBLE
 //
@@ -89,12 +92,15 @@ struct yt_param_yt
 // variable for later runtime usage
 // Loaded by user
    int          num_fields;
+   int          num_species;
+   yt_species  *species_list;
    int         *grids_MPI;
    int          num_grids_local;
-   yt_field    *field_list;
    yt_ftype     field_ftype;
 
 // Loaded and controlled by libyt
+   yt_field    *field_list;
+   yt_particle *particle_list;
    yt_grid     *grids_local;
    int         *num_grids_local_MPI;
 
@@ -171,10 +177,13 @@ struct yt_param_yt
       refine_by               = INT_UNDEFINED;
       num_grids               = LNG_UNDEFINED;
 
-      num_fields              = INT_UNDEFINED;
+      num_fields              = 0;
+      num_species             = 0;
       grids_MPI               = NULL;
       num_grids_local         = INT_UNDEFINED;
       field_list              = NULL;
+      particle_list           = NULL;
+      species_list            = NULL;
       field_ftype             = YT_FTYPE_UNKNOWN;
 
    // Loaded and controlled by libyt
@@ -222,7 +231,7 @@ struct yt_param_yt
       if ( dimensionality          == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "dimensionality" );
       if ( refine_by               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "refine_by" );
       if ( num_grids               == LNG_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_grids" );
-      if ( num_fields              == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_fields" );
+      if ( num_species > 0 && species_list == NULL  )   YT_ABORT( "Particle species info species_list and num_species have not been set!\n");
       if ( grids_MPI == NULL && num_grids_local == INT_UNDEFINED )  YT_ABORT( "Either grids_MPI or num_grids_local should be set!\n");
       if ( field_ftype != YT_FLOAT  &&  field_ftype != YT_DOUBLE )  YT_ABORT( "Unknown \"%s\" == %d !\n", "field_ftype", field_ftype);
 
@@ -282,7 +291,8 @@ struct yt_param_yt
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids",               num_grids               );
       
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_fields",              num_fields              );
-      
+      log_debug( "   %-*s = %ld\n",        width_scalar, "num_species",             num_species             );
+
       if (grids_MPI != NULL) {
       for (int d=0; d<num_grids; d++) {
       log_debug( "   %-*s[%d] in MPI rank %d\n", width_vector, "grid", d,           grids_MPI[d]            ); }         

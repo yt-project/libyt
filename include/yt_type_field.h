@@ -20,7 +20,7 @@ void log_warning(const char *Format, ...);
 // 
 // Notes       :  1. The data representation type will be initialize as "cell-centered".
 //                2. "field_unit", "field_name_alias", "field_display_name", are set corresponding to yt 
-//                   ( "name", ("units", ["fields", "to", "alias"], # "display_name"))
+//                   ( "name", ("units", ["fields", "to", "alias"], "display_name"))
 //
 // Data Member :  char  *field_name           : Field name
 //                char  *field_define_type    : Define type, for now, we have these types, define in 
@@ -36,7 +36,8 @@ void log_warning(const char *Format, ...);
 //                char  *field_display_name   : Set display name on the plottings, if not set, yt will 
 //                                              use field_name as display name.
 //
-//                (func pointer) derived_func : pointer to function that has argument (int, double *)
+//                (func pointer) derived_func : pointer to function that has argument (long, double *)
+//                                              and no return.
 //
 // Method      :  yt_field  : Constructor
 //               ~yt_field  : Destructor
@@ -63,7 +64,9 @@ struct yt_field
 // Description : Constructor of the structure "yt_field"
 // 
 // Note        : 1. Initialize field_define_type as "cell-centered"
-// 
+//               2. Initialize attr_unit as "NOT SET", if it is not set by user, then yt will use the 
+//                  particle unit set by the frontend in yt_set_parameter(). If there still isn't one,
+//                  then it will display "NOT SET" in graph. 
 // Parameter   : None
 // ======================================================================================================
 	yt_field()
@@ -109,7 +112,6 @@ struct yt_field
    	// field name is set.
    	if ( field_name == NULL ){
    		YT_ABORT("field_name is not set!\n");
-   		return YT_FAIL;
    	}
 
    	// field_define_type can only be : "cell-centered", "face-centered", "derived_func".
@@ -124,7 +126,6 @@ struct yt_field
    	}
    	if ( check1 == false ){
    		YT_ABORT("In field [%s], unknown field_define_type [%s]!\n", field_name, field_define_type);
-   		return YT_FAIL;
    	}
 
    	// Raise warning if derived_func == NULL and field_define_type is set to "derived_func".
