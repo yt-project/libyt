@@ -11,8 +11,8 @@
 # source files
 #######################################################################################################
 CC_FILE := yt_init.cpp  yt_finalize.cpp  yt_set_parameter.cpp  yt_inline.cpp  yt_add_user_parameter.cpp \
-           yt_commit_grids.cpp yt_get_gridsPtr.cpp yt_get_fieldsPtr.cpp yt_free_gridsPtr.cpp            \
-           yt_getGridInfo.cpp
+           yt_commit_grids.cpp yt_get_gridsPtr.cpp yt_get_fieldsPtr.cpp yt_get_particlesPtr.cpp         \
+           yt_free_gridsPtr.cpp yt_getGridInfo.cpp
 CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp    \
 		   check_hierarchy.cpp append_grid.cpp
 

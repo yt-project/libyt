@@ -27,6 +27,12 @@ struct yt_species
 {
 	char *species_name;
 	int   num_attr;
+
+	yt_species()
+	{
+		species_name = NULL;
+		num_attr     = INT_UNDEFINED;
+	}
 };
 
 //-------------------------------------------------------------------------------------------------------

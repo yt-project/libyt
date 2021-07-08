@@ -232,6 +232,9 @@ struct yt_param_yt
       if ( refine_by               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "refine_by" );
       if ( num_grids               == LNG_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_grids" );
       if ( num_species > 0 && species_list == NULL  )   YT_ABORT( "Particle species info species_list and num_species have not been set!\n");
+      for (int s=0; s<num_species; s++) {
+      if ( species_list[s].species_name == NULL || species_list[s].num_attr < 0 ) YT_ABORT( "species_list element [ %d ] is not set properly!\n", s);
+      }
       if ( grids_MPI == NULL && num_grids_local == INT_UNDEFINED )  YT_ABORT( "Either grids_MPI or num_grids_local should be set!\n");
       if ( field_ftype != YT_FLOAT  &&  field_ftype != YT_DOUBLE )  YT_ABORT( "Unknown \"%s\" == %d !\n", "field_ftype", field_ftype);
 
