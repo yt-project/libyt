@@ -59,7 +59,16 @@ int yt_free_gridsPtr()
    }
    delete [] g_param_yt.grids_local;
    delete [] g_param_yt.num_grids_local_MPI;
-   delete [] g_param_yt.field_list;
+
+   if ( g_param_yt.field_list != NULL ){
+      delete [] g_param_yt.field_list;
+   }
+   if ( g_param_yt.particle_list != NULL ){
+      for ( int i = 0; i < g_param_yt.num_species; i++ ){
+         delete [] g_param_yt.particle_list[i].attr_list;
+      }
+      delete [] g_param_yt.particle_list;
+   }
 
    // Reset g_param_yt
    g_param_yt.init();
