@@ -51,6 +51,7 @@ int  add_dict_vector3( PyObject *dict, const char *key, const T *vector );
 int  add_dict_string( PyObject *dict, const char *key, const char *string );
 
 int  add_dict_field_list( );
+int  add_dict_particle_list( );
 #endif
 
 

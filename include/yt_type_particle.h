@@ -260,7 +260,8 @@ struct yt_particle
    		for ( int i = 0; i < num_attr; i++ ){
    			for ( int j = i+1; j < num_attr; j++ ){
    				if ( strcmp(attr_list[i].attr_name, attr_list[j].attr_name) == 0 ){
-   					YT_ABORT("attr_list element [ %d ] and [ %d ] have same attr_name, expect them to be unique!\n", i, j);
+   					YT_ABORT("In particle species [ %s ], attr_list element [ %d ] and [ %d ] have same attr_name, expect them to be unique!\n", 
+   						      species_name, i, j);
    				}
    			}
    		}
