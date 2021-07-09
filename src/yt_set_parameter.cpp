@@ -127,10 +127,10 @@ int yt_set_parameter( yt_param_yt *param_yt )
       yt_particle *particle_list = new yt_particle [ g_param_yt.num_species ];
       for ( int s = 0; s < g_param_yt.num_species; s++ ){
          particle_list[s].species_name = g_param_yt.species_list[s].species_name;
-         particle_list[s].num_species  = g_param_yt.species_list[s].num_species;
-         particle_list[s].attr_list    = new yt_attribute [ particle_list[s].num_species ];
+         particle_list[s].num_attr     = g_param_yt.species_list[s].num_attr;
+         particle_list[s].attr_list    = new yt_attribute [ particle_list[s].num_attr ];
       }
-      g_param_yt.particle_list   = particle_list;      
+      g_param_yt.particle_list   = particle_list;
    }
    else {
       // don't need to load particle, set as NULL.
