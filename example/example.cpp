@@ -5,7 +5,7 @@ yt python package with OpenMPI.
 1. Assign grids to one MPI rank
 2. Pass the grid to yt when that grid belongs to the MPI rank
 3. Each MPI rank will only pass "its" hierarchy to yt
-   ---> Here, we calculate all the grids (libyt_grids) first, 
+   ---> Here, we calculate all the grids (sim_grids) first, 
         then distribute them to grids_local, to simulate the working process.
 
 And also, to illustrates the basic usage of libyt.
@@ -41,6 +41,12 @@ typedef double real;
 real set_density( const double x, const double y, const double z, const double t, const double v );
 void get_randArray(int *array, int length);
 
+void par_io_get_attr(long gid, char *attribute, void *data);   // Must have for yt to get particle's attribute.
+                                                               // One particle type need to setup one get_attr.
+void getPositionByGID( long gid, real (*Pos)[3] );  // These function is for getting particle position and level info.
+void getLevelByGID( long gid, int *Level );
+yt_grid *gridsPtr;
+long     num_total_grids;
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  main
@@ -93,11 +99,16 @@ int main( int argc, char *argv[] )
    const double dh1         = dh0 / REFINE_BY;                  // cell size at level 1
    const int    num_fields  = 1;                                // number of fields
    const int    num_grids   = CUBE(NGRID_1D)+CUBE(REFINE_BY);   // number of grids
-                                                                // here we refine one root grid
+   const int    num_species = 1;                                // number of particle species
+   yt_species  *species_list = new yt_species [num_species];    // define species list, so that libyt knows particle species name,
+                                                                // and their number of attribute in each of them.
+   species_list[0].species_name = "io";                         // particle species "io", with 4 attributes
+   species_list[0].num_attr     = 4;
    
    int *grids_MPI = new int [num_grids];                        // Record MPI rank in each grids
 
    double time = 0.0;
+   num_total_grids = (long) num_grids;
 
 // this array represents the simulation data stored in memory
    real (*field_data)[num_fields][ CUBE(GRID_DIM) ]
@@ -122,6 +133,8 @@ int main( int argc, char *argv[] )
       param_yt.refine_by               = REFINE_BY;
       param_yt.num_grids               = num_grids;
       param_yt.num_fields              = num_fields;
+      param_yt.num_species             = num_species;
+      param_yt.species_list            = species_list;
       param_yt.field_ftype             = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
 
       for (int d=0; d<3; d++)
@@ -192,11 +205,12 @@ int main( int argc, char *argv[] )
       yt_add_user_parameter_double( "user_double3", 3,  user_double3 );
 
 //    ============================================================
-//    4. Get pointer to field list array, then set up field list
+//    4. Get pointer to field list array and particle list array, 
+//       and set them up
 //    ============================================================
+//    Set up field list
       yt_field *field_list;
       yt_get_fieldsPtr( &field_list );
-
 //    We only have one field in this example.
       field_list[0].field_name = "Dens";
       field_list[0].field_define_type = "cell-centered";
@@ -204,17 +218,53 @@ int main( int argc, char *argv[] )
       field_list[0].field_name_alias = field_name_alias;
       field_list[0].num_field_name_alias = 3;
 
+//    Set up particle list
+      yt_particle *particle_list;
+      yt_get_particlesPtr( &particle_list );
+//    We have one particle species, with 4 attributes in this example, so the case is simple.
+//    Be careful that the order you filled in particle_list, should be the same yt_species *species_list.
+      particle_list[0].species_name = "io";     // This two line is redundant, since libyt has already filled in.
+      particle_list[0].num_attr     = 4;        // I type it here just to make things clear.
+      
+      char     *attr_name[]  = {"ParPosX", "ParPosY", "ParPosZ", "Level"}; // Attribute name
+      for ( int v=0; v < 4; v++ ){
+         
+         particle_list[0].attr_list[v].attr_name  = attr_name[v];    // Must fill in attribute name.
+         
+         if ( v == 3 ){
+            particle_list[0].attr_list[v].attr_dtype = YT_INT;       // Must fill in attribute data type.
+            particle_list[0].attr_list[v].attr_unit  = "";           // [Optional] if not filled in, libyt will use XXXFieldInfo 
+                                                                     // set by param_yt.frontend if it exists.
+            // particle_list[0].attr_list[v].num_attr_name_alias = 1;   // [Optional] set name alias of this attribute.
+            // char *attr_name_alias[] = {"grid_level"};
+            // particle_list[0].attr_list[v].attr_name_alias     = attr_name_alias;
+            particle_list[0].attr_list[v].attr_display_name   = "Level of the Grid"; // [Optional] if not fill in, libyt will 
+                                                                                     // display attr_name. 
+         }   
+         else{ 
+            particle_list[0].attr_list[v].attr_dtype = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE; 
+         }
+      }
+
+      particle_list[0].coor_x = attr_name[0];  // Must fill in this to tell libyt how to find the position attributes
+      particle_list[0].coor_y = attr_name[1];  // for this type of particle.
+      particle_list[0].coor_z = attr_name[2];
+
+      particle_list[0].get_attr = par_io_get_attr;   // par_io_get_attr is a function ptr that takes arguments (long, char* void*)
+                                                     // and returns void.
+
 //    ============================================================
 //    5. Get pointer to local grids array, then set up local grids
 //    ============================================================
       yt_grid *grids_local;
       yt_get_gridsPtr( &grids_local );
 
-//    ============================================================
-//    Here, we calculate all the grids (libyt_grids) first, 
-//    then distribute them to grids_local, to simulate the working process.
-//    ============================================================
-      yt_grid *libyt_grids = new yt_grid [param_yt.num_grids];
+//    ========================================================================================
+//    Here, we calculate all the grids (sim_grids) first, which is grids in simulation code.
+//    Then distribute them to (grids_local), to simulate the working process.
+//    ========================================================================================
+      yt_grid *sim_grids = new yt_grid [param_yt.num_grids];
+      gridsPtr = sim_grids;
 
 //    set level-0 grids
       int grid_order[3];
@@ -227,24 +277,24 @@ int main( int argc, char *argv[] )
 //       set the hierarchy information of this grid
          for (int d=0; d<3; d++)
          {
-            libyt_grids[gid].left_edge [d] = grid_order[d]*GRID_DIM*dh0;
-            libyt_grids[gid].right_edge[d] = libyt_grids[gid].left_edge[d] + GRID_DIM*dh0;
-            libyt_grids[gid].grid_dimensions[d] = GRID_DIM;   // this example assumes cubic grids
+            sim_grids[gid].left_edge [d] = grid_order[d]*GRID_DIM*dh0;
+            sim_grids[gid].right_edge[d] = sim_grids[gid].left_edge[d] + GRID_DIM*dh0;
+            sim_grids[gid].grid_dimensions[d] = GRID_DIM;   // this example assumes cubic grids
          }
 
-         libyt_grids[gid].particle_count = 0;      // particles are not supported yet
-         libyt_grids[gid].id             = gid;    // 0-indexed
-         libyt_grids[gid].parent_id      = -1;     // 0-indexed (-1 for grids on the root level)
-         libyt_grids[gid].level          = 0;      // 0-indexed
+         sim_grids[gid].particle_count = 1;      // particles are not supported yet
+         sim_grids[gid].id             = gid;    // 0-indexed
+         sim_grids[gid].parent_id      = -1;     // 0-indexed (-1 for grids on the root level)
+         sim_grids[gid].level          = 0;      // 0-indexed
 
 //       in this example we arbitrarily set the field data of this grid
          for (int k=0; k<GRID_DIM; k++)
          for (int j=0; j<GRID_DIM; j++)
          for (int i=0; i<GRID_DIM; i++)
          {
-            const double x = libyt_grids[gid].left_edge[0] + (i+0.5)*dh0;
-            const double y = libyt_grids[gid].left_edge[1] + (j+0.5)*dh0;
-            const double z = libyt_grids[gid].left_edge[2] + (k+0.5)*dh0;
+            const double x = sim_grids[gid].left_edge[0] + (i+0.5)*dh0;
+            const double y = sim_grids[gid].left_edge[1] + (j+0.5)*dh0;
+            const double z = sim_grids[gid].left_edge[2] + (k+0.5)*dh0;
 
             for (int v=0; v<num_fields; v++) {
                field_data[gid][v][ (k*GRID_DIM+j)*GRID_DIM+i ] = set_density( x, y, z, time, velocity );
@@ -274,24 +324,24 @@ int main( int argc, char *argv[] )
 //       set the hierarchy information of this grid
          for (int d=0; d<3; d++)
          {
-            libyt_grids[gid].left_edge [d] = libyt_grids[gid_refine].left_edge[d] + grid_order[d]*GRID_DIM*dh1;
-            libyt_grids[gid].right_edge[d] = libyt_grids[gid].left_edge[d] + GRID_DIM*dh1;
-            libyt_grids[gid].grid_dimensions[d] = GRID_DIM;   // this example assumes cubic grids
+            sim_grids[gid].left_edge [d] = sim_grids[gid_refine].left_edge[d] + grid_order[d]*GRID_DIM*dh1;
+            sim_grids[gid].right_edge[d] = sim_grids[gid].left_edge[d] + GRID_DIM*dh1;
+            sim_grids[gid].grid_dimensions[d] = GRID_DIM;   // this example assumes cubic grids
          }
 
-         libyt_grids[gid].particle_count = 0;            // particles are not supported yet
-         libyt_grids[gid].id             = gid;          // 0-indexed
-         libyt_grids[gid].parent_id      = gid_refine;   // 0-indexed (-1 for grids on the root level)
-         libyt_grids[gid].level          = 1;            // 0-indexed
+         sim_grids[gid].particle_count = 1;            // particles are not supported yet
+         sim_grids[gid].id             = gid;          // 0-indexed
+         sim_grids[gid].parent_id      = gid_refine;   // 0-indexed (-1 for grids on the root level)
+         sim_grids[gid].level          = 1;            // 0-indexed
 
 //       here we arbitrarily set the field data of this grid
          for (int k=0; k<GRID_DIM; k++)
          for (int j=0; j<GRID_DIM; j++)
          for (int i=0; i<GRID_DIM; i++)
          {
-            const double x = libyt_grids[gid].left_edge[0] + (i+0.5)*dh1;
-            const double y = libyt_grids[gid].left_edge[1] + (j+0.5)*dh1;
-            const double z = libyt_grids[gid].left_edge[2] + (k+0.5)*dh1;
+            const double x = sim_grids[gid].left_edge[0] + (i+0.5)*dh1;
+            const double y = sim_grids[gid].left_edge[1] + (j+0.5)*dh1;
+            const double z = sim_grids[gid].left_edge[2] + (k+0.5)*dh1;
 
             for (int v=0; v<num_fields; v++) {
                field_data[gid][v][ (k*GRID_DIM+j)*GRID_DIM+i ] = set_density( x, y, z, time, velocity );
@@ -303,41 +353,41 @@ int main( int argc, char *argv[] )
 //    set general grid attributes and invoke inline analysis
       for (int gid=0; gid<param_yt.num_grids; gid++)
       {
-         libyt_grids[gid].field_data = new yt_data [num_fields];
+         sim_grids[gid].field_data = new yt_data [num_fields];
 
          if (grids_MPI[gid] == myrank){
             for (int v=0; v<num_fields; v++){
-               libyt_grids[gid].field_data[v].data_ptr = field_data[gid][v];
+               sim_grids[gid].field_data[v].data_ptr = field_data[gid][v];
             }
          }
          else {
             for (int v=0; v<num_fields; v++){
                // if no data, set it as NULL, so we can make sure each rank contains its own grids only
-               libyt_grids[gid].field_data[v].data_ptr = NULL;
+               sim_grids[gid].field_data[v].data_ptr = NULL;
             }
          }
 
       } // for (int gid=0; gid<param_yt.num_grids; gid++) 
 
 
-//    distribute libyt_grids to grids_local
+//    distribute sim_grids to grids_local
       int index_local = 0;
       for (int gid = 0; gid < param_yt.num_grids; gid = gid + 1){
 
          if (grids_MPI[gid] == myrank) {
 
             for (int d = 0; d < 3; d = d+1) {
-               grids_local[index_local].left_edge[d]  = libyt_grids[gid].left_edge[d];
-               grids_local[index_local].right_edge[d] = libyt_grids[gid].right_edge[d];
-               grids_local[index_local].grid_dimensions[d] = libyt_grids[gid].grid_dimensions[d];
+               grids_local[index_local].left_edge[d]  = sim_grids[gid].left_edge[d];
+               grids_local[index_local].right_edge[d] = sim_grids[gid].right_edge[d];
+               grids_local[index_local].grid_dimensions[d] = sim_grids[gid].grid_dimensions[d];
             }
-            grids_local[index_local].particle_count = libyt_grids[gid].particle_count;
-            grids_local[index_local].id             = libyt_grids[gid].id;
-            grids_local[index_local].parent_id      = libyt_grids[gid].parent_id;
-            grids_local[index_local].level          = libyt_grids[gid].level;
+            grids_local[index_local].particle_count = sim_grids[gid].particle_count;
+            grids_local[index_local].id             = sim_grids[gid].id;
+            grids_local[index_local].parent_id      = sim_grids[gid].parent_id;
+            grids_local[index_local].level          = sim_grids[gid].level;
 
             for (int v = 0; v < param_yt.num_fields; v = v + 1){
-               grids_local[index_local].field_data[v].data_ptr = libyt_grids[gid].field_data[v].data_ptr;
+               grids_local[index_local].field_data[v].data_ptr = sim_grids[gid].field_data[v].data_ptr;
             }
 
             index_local = index_local + 1;
@@ -345,9 +395,9 @@ int main( int argc, char *argv[] )
 
       }
 
-//    ==============================================
-//    6. tell libyt that you have done loading grids
-//    ==============================================
+//    =========================================================================
+//    6. tell libyt that you have done loading grids, field_list, particle_list
+//    =========================================================================
 //    *** libyt API ***
       if ( yt_commit_grids() != YT_SUCCESS ) {
          fprintf( stderr, "ERROR: yt_commit_grids() failed!\n" );
@@ -371,11 +421,17 @@ int main( int argc, char *argv[] )
          exit( EXIT_FAILURE );
       }
 
-	  if ( yt_inline("test_user_parameter") != YT_SUCCESS )
-	  {
-		 fprintf( stderr, "ERROR: yt_inline() failed!\n" );
-		 exit( EXIT_FAILURE );
-	  }
+      if ( yt_inline( "yt_inline_ParticlePlot" ) != YT_SUCCESS )
+      {
+         fprintf( stderr, "ERROR: yt_inline() failed!\n" );
+         exit( EXIT_FAILURE );
+      }
+
+	   if ( yt_inline("test_user_parameter") != YT_SUCCESS )
+	   {
+         fprintf( stderr, "ERROR: yt_inline() failed!\n" );
+         exit( EXIT_FAILURE );
+      }
 
 //    =============================================================================
 //    8. end of the inline-analysis at this step, free grid info loaded into python
@@ -389,8 +445,8 @@ int main( int argc, char *argv[] )
 
 
 //    free resources
-      for (int g=0; g<num_grids; g++)  delete [] libyt_grids[g].field_data;
-      delete [] libyt_grids;
+      for (int g=0; g<num_grids; g++)  delete [] sim_grids[g].field_data;
+      delete [] sim_grids;
 
       time += dt;
    } // for (int step=0; step<total_steps; step++)
@@ -408,6 +464,7 @@ int main( int argc, char *argv[] )
 
    delete [] field_data;
    delete [] grids_MPI;
+   delete [] species_list;
    
    /*
    MPI Finalize
@@ -451,3 +508,74 @@ void get_randArray(int *array, int length) {
       array[i] = rand() % NRank;
    }
 } // FUNCTION : get_randArray
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  par_io_get_attr
+// Description :  For particle type "io" to return their attribute.
+// 
+// Notes       :  1. Prototype must be void func(long, char*, void*)
+//                2. This function will be concatenate into python C extension, so that yt can reach 
+//                   particle attributes when it is needed.
+//                3. In this example, we will create particle with position at the center of the grid it
+//                   belongs to with Level equals to the level of the grid.
+//                4. Write results to void *data.
+// 
+// Parameter   : long  gid      : particle in grid gid to be return
+//               char *attribute: get the attribute of the particle
+//               void *data     : write the request particle data to this array
+//-------------------------------------------------------------------------------------------------------
+void par_io_get_attr(long gid, char *attribute, void *data){
+   
+   long len_array = 1;  // TODO: API for getting the data length
+   
+   real Pos[3];
+   getPositionByGID( gid, &Pos );
+
+   int Level;
+   getLevelByGID( gid, &Level );
+
+   // Since this example is very simple, we only have one particle in each grids.
+   // So we ignore the for loop.
+   if ( strcmp(attribute, "ParPosX") == 0 ){
+      ((real *)data)[0] = Pos[0];
+   }
+   else if ( strcmp(attribute, "ParPosY") == 0 ){
+      ((real *)data)[0] = Pos[1];
+   }
+   else if ( strcmp(attribute, "ParPosZ") == 0 ){
+      ((real *)data)[0] = Pos[2];
+   }
+   else if ( strcmp(attribute, "Level") == 0 ){
+      ((int  *)data)[0] = Level;
+   }
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  getPositionByGID
+// Description :  Get the center position of the grid id = gid.
+//-------------------------------------------------------------------------------------------------------
+void getPositionByGID( long gid, real (*Pos)[3] ){
+   for ( long i = 0; i < num_total_grids; i++ ){
+      if ( gridsPtr[i].id == gid ){
+         for ( int d = 0; d < 3; d++ ){
+            (*Pos)[d] = (real) 0.5 * (gridsPtr[i].left_edge[d] + gridsPtr[i].right_edge[d]);
+         }
+         break;
+      }
+   }
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  getLevelByGID
+// Description :  Get the level of the grid id = gid.
+//-------------------------------------------------------------------------------------------------------
+void getLevelByGID( long gid, int *Level ){
+   for ( long i = 0; i < num_total_grids; i++ ){
+      if ( gridsPtr[i].id == gid ){
+         *Level = gridsPtr[i].level;
+         printf("LEVEL = %d\n", gridsPtr[i].level);
+         break;
+      }
+   }
+}
