@@ -245,7 +245,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     if ( attr_dtype == YT_INT ){
         typenum = NPY_INT;
         output = malloc( array_length * sizeof(int) );
-        for ( int i = 0; i < array_length; i++ ){ 
+        for ( long i = 0; i < array_length; i++ ){ 
             ((int *)output)[i] = 0;
         }
         get_attr(gid, attr_name, output);
@@ -253,7 +253,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     else if ( attr_dtype == YT_FLOAT ){
         typenum = NPY_FLOAT;
         output = malloc( array_length * sizeof(float) );
-        for ( int i = 0; i < array_length; i++ ){ 
+        for ( long i = 0; i < array_length; i++ ){ 
             ((float *)output)[i] = 0;
         }
         get_attr(gid, attr_name, output);
@@ -261,7 +261,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     else if ( attr_dtype == YT_DOUBLE ){
         typenum = NPY_DOUBLE;
         output = malloc( array_length * sizeof(double) );
-        for ( int i = 0; i < array_length; i++ ){ 
+        for ( long i = 0; i < array_length; i++ ){ 
             ((double *)output)[i] = 0;
         }
         get_attr(gid, attr_name, output);
