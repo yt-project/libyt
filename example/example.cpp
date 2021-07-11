@@ -574,7 +574,6 @@ void getLevelByGID( long gid, int *Level ){
    for ( long i = 0; i < num_total_grids; i++ ){
       if ( gridsPtr[i].id == gid ){
          *Level = gridsPtr[i].level;
-         printf("LEVEL = %d\n", gridsPtr[i].level);
          break;
       }
    }

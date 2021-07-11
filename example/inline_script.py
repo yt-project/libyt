@@ -20,10 +20,15 @@ def yt_inline_ParticlePlot():
     # So we run mpirun -np 1
     ds = yt.frontends.libyt.libytDataset()
     
-    par = yt.ParticleProjectionPlot(ds, "z")
+    ## ParticleProjectionPlot
+    #==========================
+    # par = yt.ParticleProjectionPlot(ds, "z")
+
+    ## ParticlePlot
+    #==========================
+    par = yt.ParticlePlot(ds, "particle_position_x", "particle_position_y", "Level", center = 'c')
 
     par.save()
-        profile.save()
 
 def test_user_parameter():
     import libyt
