@@ -395,26 +395,51 @@ int add_dict_particle_list(){
 
       // Create coor_list and insert it to species_dict with key = "particle_coor_label"
       PyObject *coor_list = PyList_New(0);
-      val = PyUnicode_FromString( g_param_yt.particle_list[s].coor_x );
-      if ( PyList_Append(coor_list, val) != 0 ){
-         YT_ABORT("In species_name == %s, coor_x == %s, failed to append %s to list.\n",
-                   g_param_yt.particle_list[s].species_name, g_param_yt.particle_list[s].coor_x, "coor_x");
-      }
-      Py_DECREF( val );
 
-      val = PyUnicode_FromString( g_param_yt.particle_list[s].coor_y );
-      if ( PyList_Append(coor_list, val) != 0 ){
-         YT_ABORT("In species_name == %s, coor_y == %s, failed to append %s to list.\n",
-                   g_param_yt.particle_list[s].species_name, g_param_yt.particle_list[s].coor_y, "coor_y");
+      if ( g_param_yt.particle_list[s].coor_x == NULL ){
+         if ( PyList_Append(coor_list, Py_None) != 0 ){
+            YT_ABORT("In species_name == %s, coor_x == NULL, failed to append %s to coor_list.\n",
+                      g_param_yt.particle_list[s].species_name, "Py_None");
+         }
       }
-      Py_DECREF( val );
+      else{
+         val = PyUnicode_FromString( g_param_yt.particle_list[s].coor_x );
+         if ( PyList_Append(coor_list, val) != 0 ){
+            YT_ABORT("In species_name == %s, coor_x == %s, failed to append %s to list.\n",
+                      g_param_yt.particle_list[s].species_name, g_param_yt.particle_list[s].coor_x, "coor_x");
+         }
+         Py_DECREF( val );
+      }
 
-      val = PyUnicode_FromString( g_param_yt.particle_list[s].coor_z );
-      if ( PyList_Append(coor_list, val) != 0 ){
-         YT_ABORT("In species_name == %s, coor_z == %s, failed to append %s to list.\n",
-                   g_param_yt.particle_list[s].species_name, g_param_yt.particle_list[s].coor_z, "coor_z");
+      if ( g_param_yt.particle_list[s].coor_y == NULL ){
+         if ( PyList_Append(coor_list, Py_None) != 0 ){
+            YT_ABORT("In species_name == %s, coor_y == NULL, failed to append %s to coor_list.\n",
+                      g_param_yt.particle_list[s].species_name, "Py_None");
+         }
       }
-      Py_DECREF( val );
+      else{
+         val = PyUnicode_FromString( g_param_yt.particle_list[s].coor_y );
+         if ( PyList_Append(coor_list, val) != 0 ){
+            YT_ABORT("In species_name == %s, coor_y == %s, failed to append %s to list.\n",
+                      g_param_yt.particle_list[s].species_name, g_param_yt.particle_list[s].coor_y, "coor_y");
+         }
+         Py_DECREF( val );
+      }
+
+      if ( g_param_yt.particle_list[s].coor_z == NULL ){
+         if ( PyList_Append(coor_list, Py_None) != 0 ){
+            YT_ABORT("In species_name == %s, coor_z == NULL, failed to append %s to coor_list.\n",
+                      g_param_yt.particle_list[s].species_name, "Py_None");
+         }
+      }
+      else{
+         val = PyUnicode_FromString( g_param_yt.particle_list[s].coor_z );
+         if ( PyList_Append(coor_list, val) != 0 ){
+            YT_ABORT("In species_name == %s, coor_z == %s, failed to append %s to list.\n",
+                      g_param_yt.particle_list[s].species_name, g_param_yt.particle_list[s].coor_z, "coor_z");
+         }
+         Py_DECREF( val );
+      }
 
       // Insert coor_list to species_dict with key = "particle_coor_label"
       if ( PyDict_SetItemString(species_dict, "particle_coor_label", coor_list) != 0 ){
