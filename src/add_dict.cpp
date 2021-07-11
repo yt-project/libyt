@@ -334,11 +334,11 @@ int add_dict_particle_list(){
          PyObject    *attr_list = PyList_New(0);
          yt_attribute attr      = g_param_yt.particle_list[s].attr_list[a];
 
-         // Append attr_name to attr_list
-         val = PyUnicode_FromString( attr.attr_name );
+         // Append attr_unit to attr_list
+         val = PyUnicode_FromString( attr.attr_unit );
          if ( PyList_Append(attr_list, val) != 0 ){
-            YT_ABORT("In species_name == %s, attr_name == %s, failed to append %s to list.\n",
-                      g_param_yt.particle_list[s].species_name, attr.attr_name, "attr_name");
+            YT_ABORT("In species_name == %s, attr_unit == %s, failed to append %s to list.\n",
+                      g_param_yt.particle_list[s].species_name, attr.attr_unit, "attr_unit");
          }
          Py_DECREF( val );
          
