@@ -47,14 +47,30 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 	for ( int id = 0; id < g_param_yt.num_grids_local; id = id+1 ){
 		
 		(*grids_local)[id].proc_num     = MyRank;
-		(*grids_local)[id].field_data   = new yt_data [g_param_yt.num_fields];
 		
 		// Dealing with individual field in one grid
-		for ( int fid = 0; fid < g_param_yt.num_fields; fid = fid+1 ){
-			for ( int d = 0; d < 3; d++ ){
-				(*grids_local)[id].field_data[fid].data_dim[d] = 0;
+		if ( g_param_yt.num_fields > 0 ){
+			(*grids_local)[id].field_data   = new yt_data [g_param_yt.num_fields];
+			for ( int fid = 0; fid < g_param_yt.num_fields; fid = fid+1 ){
+				for ( int d = 0; d < 3; d++ ){
+					(*grids_local)[id].field_data[fid].data_dim[d] = 0;
+				}
+				(*grids_local)[id].field_data[fid].data_ptr = NULL;
 			}
-			(*grids_local)[id].field_data[fid].data_ptr = NULL;
+		}
+		else{
+			(*grids_local)[id].field_data   = NULL;
+		}
+
+		// Dealing with particle_count
+		if ( g_param_yt.num_species > 0 ){
+			(*grids_local)[id].particle_count_list = new long [g_param_yt.num_species];
+			for ( int s = 0; s < g_param_yt.num_species; s++ ){
+				(*grids_local)[id].particle_count_list[s] = 0;
+			}
+		}
+		else{
+			(*grids_local)[id].particle_count_list = NULL;
 		}
 	}
 

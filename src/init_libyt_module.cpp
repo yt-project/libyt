@@ -142,8 +142,8 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
 //                   get particle that belongs to this id.
 //                   (Maybe we can add feature get grids data from other rank in the future!)
 //                3. The returned numpy array data type well be set by attr_dtype.
-//                4. We will always return 1D numpy array, with length equal particle count of that grid.
-//                   Since we will only call this function if particle_count > 0.
+//                4. We will always return 1D numpy array, with length equal particle count of the species 
+//                   in that grid.
 //                
 // Parameter   :  int : GID of the grid
 //                str : ptype, particle species, ex:"io"
@@ -172,10 +172,12 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     yt_ftype attr_dtype;
     bool     have_ptype = false;
     bool     have_attr_name = false;
+    int      species_index;
 
     for ( int s = 0; s < g_param_yt.num_species; s++ ){
         if ( strcmp(g_param_yt.particle_list[s].species_name, ptype) == 0 ){
             have_ptype = true;
+            species_index = s;
 
             // Get get_attr
             if ( g_param_yt.particle_list[s].get_attr != NULL ){
@@ -213,14 +215,14 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     }
 
 
-    // Get lenght of the returned 1D numpy array, which is equal to particle_count in the grid.
+    // Get lenght of the returned 1D numpy array, which is equal to particle_count_list in the grid.
     long  array_length;
     bool  have_Grid = false;
 
     for (int lid = 0; lid < g_param_yt.num_grids_local; lid++){
         if ( g_param_yt.grids_local[lid].id == gid ){
             have_Grid = true;
-            array_length = g_param_yt.grids_local[lid].particle_count;
+            array_length = g_param_yt.grids_local[lid].particle_count_list[species_index];
             break;
         }
     }

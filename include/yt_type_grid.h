@@ -37,7 +37,11 @@ struct yt_data
 // Data Member :  grid_dimensions : Number of cells along each direction in [x][y][z] coordinate.
 //                left_edge       : Grid left  edge in code units
 //                right_edge      : Grid right edge in code units
-//                particle_count  : Nunber of particles in this grid
+//                particle_count_list : Array that records number of particles in each species, the input order
+//                                      should be the same as the input particle_list.
+//                grid_particle_count : Number of particles in this grid, which is sum of the particle_count array.
+//                                      This will be filled in by libyt, user don't need to touch this. They should
+//                                      only fill in particle_count_list.
 //                level           : AMR level (0 for the root level)
 //                id              : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
 //                parent_id       : Parent grid ID (0-indexed, -1 for grids on the root level)
@@ -57,7 +61,8 @@ struct yt_grid
    double    left_edge[3];
    double    right_edge[3];
 
-   long      particle_count;
+   long     *particle_count_list;
+   long      grid_particle_count;
    long      id;
    long      parent_id;
 
@@ -86,7 +91,8 @@ struct yt_grid
       for (int d=0; d<3; d++) {
       grid_dimensions[d]  = INT_UNDEFINED; }
 
-      particle_count = LNG_UNDEFINED;
+      grid_particle_count = 0;
+      particle_count_list = NULL;
       id             = LNG_UNDEFINED;
       parent_id      = LNG_UNDEFINED;
       level          = INT_UNDEFINED;
@@ -136,7 +142,6 @@ struct yt_grid
 
       for (int d=0; d<3; d++) {
       if ( grid_dimensions[d]  == INT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "grid_dimensions", d,  id ); }
-      if ( particle_count == LNG_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "particle_count", id );
       if ( id             == LNG_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "id",             id );
       if ( parent_id      == LNG_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "parent_id",      id );
       if ( level          == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "level",          id );
@@ -146,7 +151,6 @@ struct yt_grid
 //    additional checks
       for (int d=0; d<3; d++) {
       if ( grid_dimensions[d] <= 0 )   YT_ABORT( "\"%s[%d]\" == %d <= 0 for grid [%ld]!\n", "grid_dimensions", d, grid_dimensions[d], id ); }
-      if ( particle_count < 0 )   YT_ABORT( "\"%s\" == %d < 0 for grid [%ld]!\n", "particle_count", particle_count, id );
       if ( id < 0 )               YT_ABORT( "\"%s\" == %d < 0!\n", "id", id );
       if ( level < 0 )            YT_ABORT( "\"%s\" == %d < 0 for grid [%ld]!\n", "level", level, id );
 

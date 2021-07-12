@@ -13,7 +13,7 @@
 // Data Member :  dimensions     : Number of cells along each direction
 //                left_edge      : Grid left  edge in code units
 //                right_edge     : Grid right edge in code units
-//                particle_count : Nunber of particles in this grid
+//                grid_particle_count : Nunber of total particles in this grid
 //                level          : AMR level (0 for the root level)
 //                proc_num       : An array of MPI rank that the grid belongs
 //                id             : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
@@ -24,7 +24,7 @@ struct yt_hierarchy{
       double left_edge[3];
       double right_edge[3];
 
-      long   particle_count;
+      long   grid_particle_count;
       long   id;
       long   parent_id;
 

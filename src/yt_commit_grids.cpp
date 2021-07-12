@@ -100,6 +100,20 @@ int yt_commit_grids()
       if ( !(grid.validate()) )
          YT_ABORT(  "Validating input grid ID [%ld] ... failed\n", grid.id );
 
+      // check particle_count_list element > 0 if this array is set.
+      // and sum it up
+      grid.grid_particle_count = 0;
+      for ( int s = 0; s < g_param_yt.num_species; s++ ){
+         if ( grid.particle_count_list[s] >= 0 ){
+            grid.grid_particle_count = grid.grid_particle_count + grid.particle_count_list[s];
+         }
+         else{
+            YT_ABORT("Grid ID [%ld], particle count == %ld < 0, in particle species [%s]!\n",
+                      grid.id, grid.particle_count_list[s], g_param_yt.particle_list[s].species_name);
+         }
+      }
+
+
       // additional checks that depend on input YT parameters, and grid itself only.
       // grid ID
       if ((grid.id < 0) || grid.id >= g_param_yt.num_grids)
@@ -159,13 +173,16 @@ int yt_commit_grids()
             if ( grid.field_data[v].data_ptr == NULL ){
                log_warning( "Grid [%ld], field_data [%s], data_ptr is NULL, not set yet!", grid.id, g_param_yt.field_list[v].field_name);
             }
-            // check that dimension is greater than 0
-            for ( int d = 0; d < 3; d++ ){
-               if ( grid.field_data[v].data_dim[d] <= 0 ){
-                  log_warning("Grid [%ld], field_data [%s], data_dim[%d] == %d <= 0, should be > 0!\n", 
+            else{
+               // check that dimension is greater than 0
+               for ( int d = 0; d < 3; d++ ){
+                  if ( grid.field_data[v].data_dim[d] <= 0 ){
+                     YT_ABORT("Grid [%ld], field_data [%s], data_dim[%d] == %d <= 0, should be > 0!\n", 
                                grid.id, g_param_yt.field_list[v].field_name, d, grid.field_data[v].data_dim[d]);
-               }
+                  }
+               }               
             }
+
          }
 
          // If field_define_type == "derived_func"
@@ -174,8 +191,8 @@ int yt_commit_grids()
             if ( grid.field_data[v].data_ptr != NULL ){
                for ( int d = 0; d < 3; d++ ){
                   if ( grid.field_data[v].data_dim[d] <= 0 ){
-                     log_warning("Grid [%ld], field_data [%s], data_dim[%d] == %d <= 0, should be > 0!\n", 
-                                  grid.id, g_param_yt.field_list[v].field_name, d, grid.field_data[v].data_dim[d]);
+                     YT_ABORT("Grid [%ld], field_data [%s], data_dim[%d] == %d <= 0, should be > 0!\n", 
+                               grid.id, g_param_yt.field_list[v].field_name, d, grid.field_data[v].data_dim[d]);
                   }
                }
             }
@@ -234,11 +251,11 @@ int yt_commit_grids()
          hierarchy_local[i].dimensions[d] = grid.grid_dimensions[d];
       }
 
-      hierarchy_local[i].particle_count = grid.particle_count;
-      hierarchy_local[i].id             = grid.id;
-      hierarchy_local[i].parent_id      = grid.parent_id;
-      hierarchy_local[i].level          = grid.level;
-      hierarchy_local[i].proc_num       = grid.proc_num;
+      hierarchy_local[i].grid_particle_count = grid.grid_particle_count;
+      hierarchy_local[i].id                  = grid.id;
+      hierarchy_local[i].parent_id           = grid.parent_id;
+      hierarchy_local[i].level               = grid.level;
+      hierarchy_local[i].proc_num            = grid.proc_num;
    }
 
 // MPI_Gatherv to RootRank
@@ -303,11 +320,11 @@ int yt_commit_grids()
          grid_combine.right_edge[d]      = hierarchy_full[i].right_edge[d];
          grid_combine.grid_dimensions[d] = hierarchy_full[i].dimensions[d];
       }
-      grid_combine.particle_count = hierarchy_full[i].particle_count;
-      grid_combine.id             = hierarchy_full[i].id;
-      grid_combine.parent_id      = hierarchy_full[i].parent_id;
-      grid_combine.level          = hierarchy_full[i].level;
-      grid_combine.proc_num       = hierarchy_full[i].proc_num;
+      grid_combine.grid_particle_count = hierarchy_full[i].grid_particle_count;
+      grid_combine.id                  = hierarchy_full[i].id;
+      grid_combine.parent_id           = hierarchy_full[i].parent_id;
+      grid_combine.level               = hierarchy_full[i].level;
+      grid_combine.proc_num            = hierarchy_full[i].proc_num;
       
       // load from g_param_yt.grids_local
       if ( start_block <= i && i < end_block ) {

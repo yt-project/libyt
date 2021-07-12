@@ -55,7 +55,12 @@ int yt_free_gridsPtr()
 
    // Free grids_local, num_grids_local_MPI, field_list
    for (int i = 0; i < g_param_yt.num_grids_local; i = i+1){
-      delete [] g_param_yt.grids_local[i].field_data;
+      if ( g_param_yt.grids_local[i].field_data != NULL ){
+         delete [] g_param_yt.grids_local[i].field_data;
+      }
+      if ( g_param_yt.grids_local[i].particle_count_list != NULL ){
+         delete [] g_param_yt.grids_local[i].particle_count_list;
+      }
    }
    delete [] g_param_yt.grids_local;
    delete [] g_param_yt.num_grids_local_MPI;
