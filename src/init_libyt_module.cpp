@@ -144,6 +144,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
 //                3. The returned numpy array data type well be set by attr_dtype.
 //                4. We will always return 1D numpy array, with length equal particle count of the species 
 //                   in that grid.
+//                5. Return Py_None if number of ptype particle == 0.
 //                
 // Parameter   :  int : GID of the grid
 //                str : ptype, particle species, ex:"io"
@@ -223,6 +224,12 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
         if ( g_param_yt.grids_local[lid].id == gid ){
             have_Grid = true;
             array_length = g_param_yt.grids_local[lid].particle_count_list[species_index];
+            
+            if ( array_length == 0 ){
+                Py_INCREF(Py_None);
+                return Py_None;
+            }
+            
             break;
         }
     }
