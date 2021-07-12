@@ -101,11 +101,11 @@ int yt_commit_grids()
          YT_ABORT(  "Validating input grid ID [%ld] ... failed\n", grid.id );
 
       // check particle_count_list element > 0 if this array is set.
-      // and sum it up
-      grid.grid_particle_count = 0;
+      // and sum it up. Be careful the copy of struct, we wish to write changes in g_param_yt.grids_local
+      g_param_yt.grids_local[i].grid_particle_count = 0;
       for ( int s = 0; s < g_param_yt.num_species; s++ ){
          if ( grid.particle_count_list[s] >= 0 ){
-            grid.grid_particle_count = grid.grid_particle_count + grid.particle_count_list[s];
+            g_param_yt.grids_local[i].grid_particle_count += grid.particle_count_list[s];
          }
          else{
             YT_ABORT("Grid ID [%ld], particle count == %ld < 0, in particle species [%s]!\n",
