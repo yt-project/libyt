@@ -282,8 +282,6 @@ int main( int argc, char *argv[] )
             sim_grids[gid].grid_dimensions[d] = GRID_DIM;   // this example assumes cubic grids
          }
 
-         sim_grids[gid].particle_count_list[0] = 1;      // Fill in the number of particles of the species in this grid.
-                                                         // Be careful that the order should be the same as particle_list.
          sim_grids[gid].id                     = gid;    // 0-indexed
          sim_grids[gid].parent_id              = -1;     // 0-indexed (-1 for grids on the root level)
          sim_grids[gid].level                  = 0;      // 0-indexed
@@ -329,8 +327,7 @@ int main( int argc, char *argv[] )
             sim_grids[gid].right_edge[d] = sim_grids[gid].left_edge[d] + GRID_DIM*dh1;
             sim_grids[gid].grid_dimensions[d] = GRID_DIM;   // this example assumes cubic grids
          }
-         sim_grids[gid].particle_count_list[0] = 1;      // Fill in the number of particles of the species in this grid.
-                                                         // Be careful that the order should be the same as particle_list.
+
          sim_grids[gid].id             = gid;          // 0-indexed
          sim_grids[gid].parent_id      = gid_refine;   // 0-indexed (-1 for grids on the root level)
          sim_grids[gid].level          = 1;            // 0-indexed
@@ -382,7 +379,7 @@ int main( int argc, char *argv[] )
                grids_local[index_local].right_edge[d] = sim_grids[gid].right_edge[d];
                grids_local[index_local].grid_dimensions[d] = sim_grids[gid].grid_dimensions[d];
             }
-            grids_local[index_local].particle_count_list[0] = sim_grids[gid].particle_count_list[0];
+            grids_local[index_local].particle_count_list[0] = 1; // set the num of particle in species.
             grids_local[index_local].id             = sim_grids[gid].id;
             grids_local[index_local].parent_id      = sim_grids[gid].parent_id;
             grids_local[index_local].level          = sim_grids[gid].level;
