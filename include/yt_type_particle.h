@@ -82,7 +82,7 @@ struct yt_attribute
 	{
 		attr_name = NULL;
 		attr_dtype = YT_DOUBLE;
-		attr_unit = "NOT SET";
+		attr_unit = "";
 		num_attr_name_alias = 0;
 		attr_name_alias = NULL;
 		attr_display_name = NULL;

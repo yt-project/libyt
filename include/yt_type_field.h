@@ -74,7 +74,7 @@ struct yt_field
 		field_name = NULL;
 		field_define_type = "cell-centered";
 		swap_axes = true;
-		field_unit = "NOT SET";
+		field_unit = "";
 		num_field_name_alias = 0;
 		field_name_alias = NULL;
 		field_display_name = NULL;
