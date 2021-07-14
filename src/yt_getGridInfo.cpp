@@ -23,9 +23,16 @@ int check_procedure( const char *callFunc ){
     	YT_ABORT( "Please follow the libyt procedure, forgot to invoke yt_set_parameter() before calling %s()!\n", callFunc );
    	}
 
-	// check if user has call yt_get_fieldsPtr()
+	// check if user sets field_list
    	if ( !g_param_libyt.get_fieldsPtr ){
-    	YT_ABORT( "Please follow the libyt procedure, forgot to invode yt_get_fieldsPtr() before calling %s()!\n", callFunc );
+      	YT_ABORT( "num_fields == %d, please invoke yt_get_fieldsPtr() before calling %s()!\n",
+                   g_param_yt.num_fields, callFunc );
+   	}
+
+	// check if user sets particle_list
+   	if ( !g_param_libyt.get_particlesPtr ){
+      	YT_ABORT( "num_species == %d, please invoke yt_get_particlesPtr() before calling %s()!\n",
+                   g_param_yt.num_species, callFunc );
    	}
 
 	// check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
@@ -33,7 +40,7 @@ int check_procedure( const char *callFunc ){
       	YT_ABORT( "Please follow the libyt procedure, forgot to invoke yt_get_gridsPtr() before calling %s()!\n", callFunc );
    	}
 
-	// check if user has call yt_commit_grids(), so that grids are appended to YT.
+	// check if user has call yt_commit_grids(), so that grids are checked and appended to YT.
    	if ( !g_param_libyt.commit_grids ){
       	YT_ABORT( "Please follow the libyt procedure, forgot to invoke yt_commit_grids() before calling %s()!\n", callFunc );
    	}

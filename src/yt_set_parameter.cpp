@@ -12,6 +12,8 @@
 //                   passed in to python. 
 //                   To avoid user free the passing in array species_list, we initialize particle_list 
 //                   (needs info from species_list) right away. If num_species > 0.
+//                   To make loading field_list and particle_list more systematic, we will allocate both
+//                   field_list (if num_fields>0 ) and particle_list (if num_species>0) here.
 //                2. Should be called after yt_init().
 //                3. Check the validaty of the data in param_yt.
 //                4. Initialize python hierarchy allocate_hierarchy() and particle_list.
@@ -37,11 +39,13 @@ int yt_set_parameter( yt_param_yt *param_yt )
 
    log_info( "Setting YT parameters ...\n" );
 
-// check if this function has been called previously
+// check if this function has been called previously.
+// Abort if yes, since overwrite may leads to memory leakage.
    if ( g_param_libyt.param_yt_set )
    {
       log_warning( "%s() has been called already!\n", __FUNCTION__ );
       log_warning( "==> Are you trying to overwrite existing parameters?\n" );
+      YT_ABORT("Overwrite existing parameters may leads to memory leak, please called yt_free_gridsPtr() first!\n");
    }
 
 
@@ -120,6 +124,16 @@ int yt_set_parameter( yt_param_yt *param_yt )
       YT_ABORT(  "Allocating libyt.hierarchy ... failed!\n" );
 
 
+// if num_fields > 0, which means we want to load fields
+   if ( g_param_yt.num_fields > 0 ){
+      g_param_yt.field_list = new yt_field [ g_param_yt.num_fields ];
+   }
+   else{
+      g_param_yt.field_list = NULL;
+      g_param_libyt.get_fieldsPtr = true;
+   }
+
+
 // if num_species > 0, which means want to load particle
    if ( g_param_yt.num_species > 0 ){
       // Initialize and setup yt_particle *particle_list in g_param_yt.particle_list,
@@ -135,6 +149,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
    else {
       // don't need to load particle, set as NULL.
       g_param_yt.particle_list   = NULL;
+      g_param_libyt.get_particlesPtr = true;
    }
 
 

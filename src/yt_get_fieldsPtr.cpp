@@ -5,7 +5,8 @@
 // Function    :  yt_get_fieldsPtr
 // Description :  Get pointer of the array of struct yt_field with length num_fields.
 //
-// Note        :  1. User should call this function after yt_set_parameter(), since we need num_fields.
+// Note        :  1. User should call this function after yt_set_parameter(), since we allocate field_list
+//                   there.
 //
 // Parameter   :  yt_field **field_list  : Initialize and store the field list array under this pointer 
 //                                         points to.
@@ -25,13 +26,16 @@ int yt_get_fieldsPtr( yt_field **field_list )
     	YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
     }
 
+    // check if num_fields > 0, if not, particle_list won't be initialized
+    if ( g_param_yt.num_fields <= 0 ){
+    	YT_ABORT( "num_fields == %d <= 0, you don't need to input field_list, and it is also not initialized!\n",
+    	           g_param_yt.num_fields);
+    }
+
    	log_info( "Getting pointer to field list information ...\n" );
 
-	// Initialize the field_list array.
-	*field_list = new yt_field [g_param_yt.num_fields];
-
-	// Store the field_list to g_param_yt
-	g_param_yt.field_list = *field_list;
+	// Store the field_list ptr to *field_list
+	*field_list =  g_param_yt.field_list;
 
 	// Above all works like charm
 	g_param_libyt.get_fieldsPtr = true;

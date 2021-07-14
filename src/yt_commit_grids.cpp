@@ -4,17 +4,18 @@
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_commit_grids
-// Description :  Add local grids and append field list info to the libyt Python module.
+// Description :  Add local grids, append field list and particle list info to the libyt Python module.
 //
-// Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data to python
-//                2. Must call yt_set_parameter() in advance, which will  preallocate memory for NumPy arrays.
-//                3. Must call yt_get_fieldsPtr() in advance, so that g_param_yt knows the field_list array
-//                4. Must call yt_get_gridsPtr() in advance, so that g_param_yt knows the grids_local array
-//                   pointer.
-//                5. Append field list info and particle list info to libyt python module.
-//                6. Pass the grids and hierarchy to YT in function append_grid().
-//                7. Check the local grids and field list.
-//                8. Force the "cell-centered" field data_dim read from grid_dimensions.
+// Note        :  1. Must call yt_set_parameter() in advance, which will preallocate memory for NumPy arrays.
+//                2. Must call yt_get_fieldsPtr (if num_fields>0), yt_get_particlesPtr (if num_species>0), 
+//                   yt_get_gridsPtr, which gets data info from user.
+//                3. Check the local grids, field list, and particle list. 
+//                4. Sum up particle_count_list in each individual grid and store in grid_particle_count.
+//                5. Force the "cell-centered" field data_dim read from grid_dimensions.
+//                6. Append field_list info and particle_list info to libyt.param_yt['field_list'] and 
+//                   libyt.param_yt['particle_list'].
+//                7. Gather hierarchy in different rank, and check hierarchy in check_hierarchy().
+//                8. Pass the grids and hierarchy to YT in function append_grid().
 //                9. We assume that one grid contains all the fields belong to that grid.
 //
 // Parameter   :
@@ -34,12 +35,19 @@ int yt_commit_grids()
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
    }
 
-// check if user has call yt_get_fieldsPtr()
+// check if user sets field_list
    if ( !g_param_libyt.get_fieldsPtr ){
-      YT_ABORT( "Please invode yt_get_fieldsPtr() before calling %s()!\n", __FUNCTION__ );
+      YT_ABORT( "num_fields == %d, please invoke yt_get_fieldsPtr() before calling %s()!\n",
+                 g_param_yt.num_fields, __FUNCTION__ );
    }
 
-// check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
+// check if user sets particle_list
+   if ( !g_param_libyt.get_particlesPtr ){
+      YT_ABORT( "num_species == %d, please invoke yt_get_particlesPtr() before calling %s()!\n",
+                 g_param_yt.num_species, __FUNCTION__ );
+   }
+
+// check if user has call yt_get_gridsPtr()
    if ( !g_param_libyt.get_gridsPtr ){
       YT_ABORT( "Please invoke yt_get_gridsPtr() before calling %s()!\n", __FUNCTION__ );
    }

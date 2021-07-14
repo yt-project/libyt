@@ -28,9 +28,16 @@ int yt_inline_argument( char *function_name, int argc, ... ){
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
    }
 
-// check if user has call yt_get_fieldsPtr()
+// check if user sets field_list
    if ( !g_param_libyt.get_fieldsPtr ){
-      YT_ABORT( "Please invode yt_get_fieldsPtr() before calling %s()!\n", __FUNCTION__ );
+      YT_ABORT( "num_fields == %d, please invoke yt_get_fieldsPtr() before calling %s()!\n",
+                 g_param_yt.num_fields, __FUNCTION__ );
+   }
+
+// check if user sets particle_list
+   if ( !g_param_libyt.get_particlesPtr ){
+      YT_ABORT( "num_species == %d, please invoke yt_get_particlesPtr() before calling %s()!\n",
+                 g_param_yt.num_species, __FUNCTION__ );
    }
 
 // check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
@@ -115,9 +122,16 @@ int yt_inline( char *function_name ){
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
    }
 
-// check if user has call yt_get_fieldsPtr()
+// check if user sets field_list
    if ( !g_param_libyt.get_fieldsPtr ){
-      YT_ABORT( "Please invode yt_get_fieldsPtr() before calling %s()!\n", __FUNCTION__ );
+      YT_ABORT( "num_fields == %d, please invoke yt_get_fieldsPtr() before calling %s()!\n",
+                 g_param_yt.num_fields, __FUNCTION__ );
+   }
+
+// check if user sets particle_list
+   if ( !g_param_libyt.get_particlesPtr ){
+      YT_ABORT( "num_species == %d, please invoke yt_get_particlesPtr() before calling %s()!\n",
+                 g_param_yt.num_species, __FUNCTION__ );
    }
 
 // check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
