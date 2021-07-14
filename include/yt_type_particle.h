@@ -242,17 +242,17 @@ struct yt_particle
 
    		// attr_list != NULL
    		if ( attr_list == NULL ){
-   			YT_ABORT("attr_list not set properly!\n");
+   			YT_ABORT("In particle species [ %s ], attr_list not set properly!\n", species_name);
    		}
 		// num_attr should > 0
    		if ( num_attr < 0 ){
-   			YT_ABORT("num_attr not set properly!\n");
+   			YT_ABORT("In particle species [ %s ], num_attr not set properly!\n", species_name);
    		}
    		
    		// call yt_attribute validate for each attr_list elements.
    		for ( int i = 0; i < num_attr; i++ ){
    			if ( !(attr_list[i].validate()) ){
-   				YT_ABORT("attr_list element [ %d ] not set properly!\n", i);
+   				YT_ABORT("In particle species [ %s ], attr_list element [ %d ] not set properly!\n", species_name, i);
    			}
    		}
 
@@ -268,18 +268,18 @@ struct yt_particle
 
    		// if didn't input coor_x/y/z, yt cannot function properly for this particle.
    		if ( coor_x == NULL ){
-   			log_warning("Attribute name of coordinate x coor_x not set!\n");
+   			log_warning("In particle species [ %s ], attribute name of coordinate x coor_x not set!\n", species_name);
    		}
    		if ( coor_y == NULL ){
-   			log_warning("Attribute name of coordinate y coor_y not set!\n");
+   			log_warning("In particle species [ %s ], attribute name of coordinate y coor_y not set!\n", species_name);
    		}
    		if ( coor_z == NULL ){
-   			log_warning("Attribute name of coordinate z coor_z not set!\n");
+   			log_warning("In particle species [ %s ], attribute name of coordinate z coor_z not set!\n", species_name);
    		}
 
    		// if didn't input get_attr, yt cannot function properly for this particle.
    		if ( get_attr == NULL ){
-   			log_warning("Function that gets particle attribute get_attr not set!\n");
+   			log_warning("In particle species [ %s ], function that gets particle attribute get_attr not set!\n", species_name);
    		}
 
       	return YT_SUCCESS;
