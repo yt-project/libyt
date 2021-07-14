@@ -341,7 +341,7 @@ int add_dict_particle_list(){
                       g_param_yt.particle_list[s].species_name, attr.attr_unit, "attr_unit");
          }
          Py_DECREF( val );
-         
+
          // Create name_alias_list and append to attr_list
          PyObject *name_alias_list = PyList_New(0);
          for ( int i = 0; i < attr.num_attr_name_alias; i++ ){

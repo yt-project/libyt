@@ -99,11 +99,13 @@ int main( int argc, char *argv[] )
    const double dh1         = dh0 / REFINE_BY;                  // cell size at level 1
    const int    num_fields  = 1;                                // number of fields
    const int    num_grids   = CUBE(NGRID_1D)+CUBE(REFINE_BY);   // number of grids
-   const int    num_species = 1;                                // number of particle species
+   const int    num_species = 2;                                // number of particle species
    yt_species  *species_list = new yt_species [num_species];    // define species list, so that libyt knows particle species name,
                                                                 // and their number of attribute in each of them.
    species_list[0].species_name = "io";                         // particle species "io", with 4 attributes
    species_list[0].num_attr     = 4;
+   species_list[1].species_name = "par2";
+   species_list[1].num_attr     = 4;
    
    int *grids_MPI = new int [num_grids];                        // Record MPI rank in each grids
 
@@ -225,8 +227,9 @@ int main( int argc, char *argv[] )
 //    Be careful that the order you filled in particle_list, should be the same yt_species *species_list.
       particle_list[0].species_name = "io";     // This two line is redundant, since libyt has already filled in.
       particle_list[0].num_attr     = 4;        // I type it here just to make things clear.
-      
+
       char     *attr_name[]  = {"ParPosX", "ParPosY", "ParPosZ", "Level"}; // Attribute name
+      char     *attr_name_alias[] = {"grid_level"};                        // Alias name for attribute level
       for ( int v=0; v < 4; v++ ){
          
          particle_list[0].attr_list[v].attr_name  = attr_name[v];    // Must fill in attribute name.
@@ -235,9 +238,8 @@ int main( int argc, char *argv[] )
             particle_list[0].attr_list[v].attr_dtype = YT_INT;       // Must fill in attribute data type.
             particle_list[0].attr_list[v].attr_unit  = "";           // [Optional] if not filled in, libyt will use XXXFieldInfo 
                                                                      // set by param_yt.frontend if it exists.
-            // particle_list[0].attr_list[v].num_attr_name_alias = 1;   // [Optional] set name alias of this attribute.
-            // char *attr_name_alias[] = {"grid_level"};
-            // particle_list[0].attr_list[v].attr_name_alias     = attr_name_alias;
+            particle_list[0].attr_list[v].num_attr_name_alias = 1;   // [Optional] set name alias of this attribute.
+            particle_list[0].attr_list[v].attr_name_alias     = attr_name_alias;
             particle_list[0].attr_list[v].attr_display_name   = "Level of the Grid"; // [Optional] if not fill in, libyt will 
                                                                                      // display attr_name. 
          }   
@@ -252,6 +254,10 @@ int main( int argc, char *argv[] )
 
       particle_list[0].get_attr = par_io_get_attr;   // par_io_get_attr is a function ptr that takes arguments (long, char* void*)
                                                      // and returns void.
+
+      for ( int v=0; v<4; v++ ){
+         particle_list[1].attr_list[v].attr_name = attr_name[v];     // Fill in for particle species "par2"
+      }
 
 //    ============================================================
 //    5. Get pointer to local grids array, then set up local grids
