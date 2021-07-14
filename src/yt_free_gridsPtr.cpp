@@ -26,8 +26,7 @@ int yt_free_gridsPtr()
 // check if user has call yt_get_fieldsPtr()
    if ( !g_param_libyt.param_yt_set || !g_param_libyt.get_fieldsPtr || 
          !g_param_libyt.get_particlesPtr || !g_param_libyt.get_gridsPtr || !g_param_libyt.commit_grids ){
-         log_warning( "You are going to free every libyt initialized and allocated array, \
-                       even though the inline-analysis procedure has not finished yet!\n" );
+         log_warning( "You are going to free every libyt initialized and allocated array, even though the inline-analysis procedure has not finished yet!\n" );
    }
 
    // Make sure every rank has reach to this point
