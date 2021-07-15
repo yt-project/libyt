@@ -14,6 +14,12 @@ def yt_inline_ProjectionPlot( fields ):
     # Include this line, otherwise yt will save one copy in each rank.
     if yt.is_root():
         prjz.save()
+        
+def yt_inline_ProfilePlot():
+    ds = yt.frontends.libyt.libytDataset()
+    profile = yt.ProfilePlot(ds, "x", ["density"])
+    if yt.is_root():
+        profile.save()
     
 def yt_inline_ParticlePlot():
     # YT Particle Plot does not support parallelism for now
