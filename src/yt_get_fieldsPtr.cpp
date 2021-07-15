@@ -26,7 +26,7 @@ int yt_get_fieldsPtr( yt_field **field_list )
     	YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
     }
 
-    // check if num_fields > 0, if not, particle_list won't be initialized
+    // check if num_fields > 0, if not, field_list won't be initialized
     if ( g_param_yt.num_fields <= 0 ){
     	YT_ABORT( "num_fields == %d <= 0, you don't need to input field_list, and it is also not initialized!\n",
     	           g_param_yt.num_fields);
