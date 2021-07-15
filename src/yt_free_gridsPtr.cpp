@@ -65,15 +65,6 @@ int yt_free_gridsPtr()
       delete [] g_param_yt.grids_local;
    }
 
-
-   // Reset check points
-   g_param_libyt.param_yt_set     = false;
-   g_param_libyt.get_fieldsPtr    = false;
-   g_param_libyt.get_particlesPtr = false;
-   g_param_libyt.get_gridsPtr     = false;
-   g_param_libyt.commit_grids     = false;
-   g_param_libyt.counter ++;
-
    // Reset g_param_yt
    g_param_yt.init();
    
@@ -83,6 +74,14 @@ int yt_free_gridsPtr()
    PyDict_Clear( g_py_param_user );
 
    PyRun_SimpleString( "gc.collect()" );
+   
+   // Reset check points
+   g_param_libyt.param_yt_set     = false;
+   g_param_libyt.get_fieldsPtr    = false;
+   g_param_libyt.get_particlesPtr = false;
+   g_param_libyt.get_gridsPtr     = false;
+   g_param_libyt.commit_grids     = false;
+   g_param_libyt.counter ++;   
 
    g_param_libyt.free_gridsPtr = true;
 
