@@ -6,6 +6,33 @@
 // include relevant headers
 #include "yt_type.h"
 
+//-------------------------------------------------------------------------------------------------------
+// Structure   :  yt_hierarchy
+// Description :  Data structure for pass hierarchy of the grid in MPI process, it is meant to be temperary.
+//
+// Data Member :  dimensions     : Number of cells along each direction
+//                left_edge      : Grid left  edge in code units
+//                right_edge     : Grid right edge in code units
+//                grid_particle_count : Nunber of total particles in this grid
+//                level          : AMR level (0 for the root level)
+//                proc_num       : An array of MPI rank that the grid belongs
+//                id             : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
+//                parent_id      : Parent grid ID (0-indexed, -1 for grids on the root level)
+//                proc_num       : Process number, grid belong to which MPI rank
+//-------------------------------------------------------------------------------------------------------
+struct yt_hierarchy{
+      double left_edge[3];
+      double right_edge[3];
+
+      long   grid_particle_count;
+      long   id;
+      long   parent_id;
+
+      int    dimensions[3];
+      int    level;
+      int    proc_num;
+};
+
 void log_info   ( const char *Format, ... );
 void log_warning( const char *format, ... );
 void log_debug  ( const char *Format, ... );
@@ -24,6 +51,7 @@ int  add_dict_vector3( PyObject *dict, const char *key, const T *vector );
 int  add_dict_string( PyObject *dict, const char *key, const char *string );
 
 int  add_dict_field_list( );
+int  add_dict_particle_list( );
 #endif
 
 

@@ -4,17 +4,18 @@
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_commit_grids
-// Description :  Add local grids and append field list info to the libyt Python module.
+// Description :  Add local grids, append field list and particle list info to the libyt Python module.
 //
-// Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data to python
-//                2. Must call yt_set_parameter() in advance, which will  preallocate memory for NumPy arrays.
-//                3. Must call yt_get_fieldsPtr() in advance, so that g_param_yt knows the field_list array
-//                4. Must call yt_get_gridsPtr() in advance, so that g_param_yt knows the grids_local array
-//                   pointer.
-//                5. Append field list info to libyt python module.
-//                6. Pass the grids and hierarchy to YT in function append_grid().
-//                7. Check the local grids and field list.
-//                8. Force the "cell-centered" field data_dim read from grid_dimensions.
+// Note        :  1. Must call yt_set_parameter() in advance, which will preallocate memory for NumPy arrays.
+//                2. Must call yt_get_fieldsPtr (if num_fields>0), yt_get_particlesPtr (if num_species>0), 
+//                   yt_get_gridsPtr, which gets data info from user.
+//                3. Check the local grids, field list, and particle list. 
+//                4. Sum up particle_count_list in each individual grid and store in grid_particle_count.
+//                5. Force the "cell-centered" field data_dim read from grid_dimensions.
+//                6. Append field_list info and particle_list info to libyt.param_yt['field_list'] and 
+//                   libyt.param_yt['particle_list'].
+//                7. Gather hierarchy in different rank, and check hierarchy in check_hierarchy().
+//                8. Pass the grids and hierarchy to YT in function append_grid().
 //                9. We assume that one grid contains all the fields belong to that grid.
 //
 // Parameter   :
@@ -34,17 +35,25 @@ int yt_commit_grids()
       YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
    }
 
-// check if user has call yt_get_fieldsPtr()
+// check if user sets field_list
    if ( !g_param_libyt.get_fieldsPtr ){
-      YT_ABORT( "Please invode yt_get_fieldsPtr() before calling %s()!\n", __FUNCTION__ );
+      YT_ABORT( "num_fields == %d, please invoke yt_get_fieldsPtr() before calling %s()!\n",
+                 g_param_yt.num_fields, __FUNCTION__ );
    }
 
-// check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
+// check if user sets particle_list
+   if ( !g_param_libyt.get_particlesPtr ){
+      YT_ABORT( "num_species == %d, please invoke yt_get_particlesPtr() before calling %s()!\n",
+                 g_param_yt.num_species, __FUNCTION__ );
+   }
+
+// check if user has call yt_get_gridsPtr()
    if ( !g_param_libyt.get_gridsPtr ){
       YT_ABORT( "Please invoke yt_get_gridsPtr() before calling %s()!\n", __FUNCTION__ );
    }
 
    log_info("Loading grids to yt ...\n");
+
 
 // Checking yt_field field_list
 // check if each elements in yt_field field_list has correct value.
@@ -55,14 +64,39 @@ int yt_commit_grids()
       }
    }
 
-// check if yt_field field_list has all the field_name unique
+// check if field_list has all the field_name unique
    for ( int v1 = 0; v1 < g_param_yt.num_fields; v1++ ){
       for ( int v2 = v1+1; v2 < g_param_yt.num_fields; v2++ ){
          if ( strcmp(g_param_yt.field_list[v1].field_name, g_param_yt.field_list[v2].field_name) == 0 ){
-            YT_ABORT("field_name in field_list[%d] and field_list[%d] not unique!\n", v1, v2);
+            YT_ABORT("field_name in field_list[%d] and field_list[%d] are not unique!\n", v1, v2);
          }
       }
    }
+
+
+// Checking yt_particle particle_list if only num_species > 0
+// check if each elements in yt_particle particle_list has correct value,
+// and check that species_name cannot be the same as g_param_yt.frontend
+   for ( int p = 0; p < g_param_yt.num_species; p++ ){
+      yt_particle particle = g_param_yt.particle_list[p];
+      if ( !(particle.validate()) ){
+         YT_ABORT("Validating input particle list element [%d] ... failed\n", p);
+      }
+      if ( strcmp(particle.species_name, g_param_yt.frontend) == 0 ){
+         YT_ABORT("particle_list[%d], species_name == %s, frontend == %s, expect species_name different from the frontend!\n",
+                   p, particle.species_name, g_param_yt.frontend);
+      }
+   }
+
+// check if particle_list has all the species_name unique
+   for ( int p1 = 0; p1 < g_param_yt.num_species; p1++ ){
+      for ( int p2 = p1+1; p2 < g_param_yt.num_species; p2++ ){
+         if ( strcmp(g_param_yt.particle_list[p1].species_name, g_param_yt.particle_list[p2].species_name) == 0 ){
+            YT_ABORT("species_name in particle_list[%d] and particle_list[%d] are not unique!\n", p1, p2);
+         }
+      }
+   }
+
 
 // Checking grids
 // check each grids individually
@@ -73,6 +107,20 @@ int yt_commit_grids()
       // check if all parameters have been set properly and are in used.
       if ( !(grid.validate()) )
          YT_ABORT(  "Validating input grid ID [%ld] ... failed\n", grid.id );
+
+      // check particle_count_list element > 0 if this array is set.
+      // and sum it up. Be careful the copy of struct, we wish to write changes in g_param_yt.grids_local
+      g_param_yt.grids_local[i].grid_particle_count = 0;
+      for ( int s = 0; s < g_param_yt.num_species; s++ ){
+         if ( grid.particle_count_list[s] >= 0 ){
+            g_param_yt.grids_local[i].grid_particle_count += grid.particle_count_list[s];
+         }
+         else{
+            YT_ABORT("Grid ID [%ld], particle count == %ld < 0, in particle species [%s]!\n",
+                      grid.id, grid.particle_count_list[s], g_param_yt.particle_list[s].species_name);
+         }
+      }
+
 
       // additional checks that depend on input YT parameters, and grid itself only.
       // grid ID
@@ -133,13 +181,16 @@ int yt_commit_grids()
             if ( grid.field_data[v].data_ptr == NULL ){
                log_warning( "Grid [%ld], field_data [%s], data_ptr is NULL, not set yet!", grid.id, g_param_yt.field_list[v].field_name);
             }
-            // check that dimension is greater than 0
-            for ( int d = 0; d < 3; d++ ){
-               if ( grid.field_data[v].data_dim[d] <= 0 ){
-                  log_warning("Grid [%ld], field_data [%s], data_dim[%d] == %d <= 0, should be > 0!\n", 
+            else{
+               // check that dimension is greater than 0
+               for ( int d = 0; d < 3; d++ ){
+                  if ( grid.field_data[v].data_dim[d] <= 0 ){
+                     YT_ABORT("Grid [%ld], field_data [%s], data_dim[%d] == %d <= 0, should be > 0!\n", 
                                grid.id, g_param_yt.field_list[v].field_name, d, grid.field_data[v].data_dim[d]);
-               }
+                  }
+               }               
             }
+
          }
 
          // If field_define_type == "derived_func"
@@ -148,8 +199,8 @@ int yt_commit_grids()
             if ( grid.field_data[v].data_ptr != NULL ){
                for ( int d = 0; d < 3; d++ ){
                   if ( grid.field_data[v].data_dim[d] <= 0 ){
-                     log_warning("Grid [%ld], field_data [%s], data_dim[%d] == %d <= 0, should be > 0!\n", 
-                                  grid.id, g_param_yt.field_list[v].field_name, d, grid.field_data[v].data_dim[d]);
+                     YT_ABORT("Grid [%ld], field_data [%s], data_dim[%d] == %d <= 0, should be > 0!\n", 
+                               grid.id, g_param_yt.field_list[v].field_name, d, grid.field_data[v].data_dim[d]);
                   }
                }
             }
@@ -158,8 +209,19 @@ int yt_commit_grids()
 
    }
 
-// add field_list as dictionary
-   add_dict_field_list();
+// add field_list to libyt.param_yt['field_list'] dictionary
+   if ( g_param_yt.num_fields > 0 ){
+      if ( add_dict_field_list() != YT_SUCCESS ){
+         YT_ABORT("Inserting dictionary libyt.param_yt['field_list'] failed!\n");
+      }
+   }
+
+// add particle_list to libyt.param_yt['particle_list'] dictionary
+   if ( g_param_yt.num_species > 0 ){
+      if ( add_dict_particle_list() != YT_SUCCESS ){
+         YT_ABORT("Inserting dictionary libyt.param_yt['particle_list'] failed!\n");
+      }
+   }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Prepare to gather full hierarchy from different rank to root rank.
@@ -197,11 +259,11 @@ int yt_commit_grids()
          hierarchy_local[i].dimensions[d] = grid.grid_dimensions[d];
       }
 
-      hierarchy_local[i].particle_count = grid.particle_count;
-      hierarchy_local[i].id             = grid.id;
-      hierarchy_local[i].parent_id      = grid.parent_id;
-      hierarchy_local[i].level          = grid.level;
-      hierarchy_local[i].proc_num       = grid.proc_num;
+      hierarchy_local[i].grid_particle_count = grid.grid_particle_count;
+      hierarchy_local[i].id                  = grid.id;
+      hierarchy_local[i].parent_id           = grid.parent_id;
+      hierarchy_local[i].level               = grid.level;
+      hierarchy_local[i].proc_num            = grid.proc_num;
    }
 
 // MPI_Gatherv to RootRank
@@ -266,11 +328,11 @@ int yt_commit_grids()
          grid_combine.right_edge[d]      = hierarchy_full[i].right_edge[d];
          grid_combine.grid_dimensions[d] = hierarchy_full[i].dimensions[d];
       }
-      grid_combine.particle_count = hierarchy_full[i].particle_count;
-      grid_combine.id             = hierarchy_full[i].id;
-      grid_combine.parent_id      = hierarchy_full[i].parent_id;
-      grid_combine.level          = hierarchy_full[i].level;
-      grid_combine.proc_num       = hierarchy_full[i].proc_num;
+      grid_combine.grid_particle_count = hierarchy_full[i].grid_particle_count;
+      grid_combine.id                  = hierarchy_full[i].id;
+      grid_combine.parent_id           = hierarchy_full[i].parent_id;
+      grid_combine.level               = hierarchy_full[i].level;
+      grid_combine.proc_num            = hierarchy_full[i].proc_num;
       
       // load from g_param_yt.grids_local
       if ( start_block <= i && i < end_block ) {

@@ -11,6 +11,7 @@
 // Lists       :       Python Method         C Extension Function         
 //              .............................................................
 //                     derived_func          libyt_field_derived_func
+//                     get_attr              libyt_particle_get_attr
 //-------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------------
@@ -28,7 +29,7 @@
 // Parameter   :  int : GID of the grid
 //                str : field name
 //
-// Return      :  numpy.ndarray
+// Return      :  numpy.3darray
 //-------------------------------------------------------------------------------------------------------
 static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
 
@@ -129,6 +130,158 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     return derived_NpArray;
 }
 
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  libyt_particle_get_attr
+// Description :  Use the get_attr defined inside yt_particle struct to get the particle attributes.
+//
+// Note        :  1. Support only grid dimension = 3 for now, which is "coor_x", "coor_y", "coor_z" in
+//                   yt_particle must be set.
+//                2. We assume that parallelism in yt will make each rank only has to deal with the local
+//                   grids. So we can always find one grid with id = gid inside grids_local. We will only
+//                   get particle that belongs to this id.
+//                   (Maybe we can add feature get grids data from other rank in the future!)
+//                3. The returned numpy array data type well be set by attr_dtype.
+//                4. We will always return 1D numpy array, with length equal particle count of the species 
+//                   in that grid.
+//                5. Return Py_None if number of ptype particle == 0.
+//                
+// Parameter   :  int : GID of the grid
+//                str : ptype, particle species, ex:"io"
+//                str : attribute, or in terms in yt, which is particle.
+//
+// Return      :  numpy.1darray
+//-------------------------------------------------------------------------------------------------------
+static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
+    // Parse the input arguments input by python.
+    // If not in the format libyt.get_attr( int , str , str ), raise an error
+    long  gid;
+    char *ptype;
+    char *attr_name;
+
+    if ( !PyArg_ParseTuple(args, "lss", &gid, &ptype, &attr_name) ){
+        PyErr_SetString(PyExc_TypeError, "Wrong input type, expect to be libyt.get_attr(int, str, str).");
+        return NULL;
+    }
+
+    
+    // Get get_attr function pointer defined in particle_list according to ptype and attr_name.
+    // Get attr_dtype of the attr_name.
+    // If cannot find ptype or attr_name, raise an error.
+    // If find them successfully, but get_attr not set, which is == NULL, raise an error.
+    void    (*get_attr) (long, char*, void*);
+    yt_ftype attr_dtype;
+    bool     have_ptype = false;
+    bool     have_attr_name = false;
+    int      species_index;
+
+    for ( int s = 0; s < g_param_yt.num_species; s++ ){
+        if ( strcmp(g_param_yt.particle_list[s].species_name, ptype) == 0 ){
+            have_ptype = true;
+            species_index = s;
+
+            // Get get_attr
+            if ( g_param_yt.particle_list[s].get_attr != NULL ){
+                get_attr = g_param_yt.particle_list[s].get_attr;
+            }
+            else {
+                PyErr_Format(PyExc_NotImplementedError, "In particle_list, species_name [ %s ], get_attr does not set properly.\n",
+                             g_param_yt.particle_list[s].species_name);
+                return NULL;
+            }
+
+            // Get attr_dtype
+            for ( int p = 0; p < g_param_yt.particle_list[s].num_attr; p++ ){
+                if ( strcmp(g_param_yt.particle_list[s].attr_list[p].attr_name, attr_name) == 0 ){
+                    have_attr_name = true;
+                    // Since in yt_attribute validate(), we have already make sure that attr_dtype is set.
+                    // So we don't need additional check
+                    attr_dtype = g_param_yt.particle_list[s].attr_list[p].attr_dtype;
+                    break;
+                }
+            }
+
+            break;
+        }
+    }
+
+    if ( !have_ptype ){
+        PyErr_Format(PyExc_ValueError, "Cannot find species_name [ %s ] in particle_list.\n", ptype);
+        return NULL;
+    }
+    if ( !have_attr_name ){
+        PyErr_Format(PyExc_ValueError, "species_name [ %s ], attr_name [ %s ] not in particle_list.\n",
+                     ptype, attr_name);
+        return NULL;
+    }
+
+
+    // Get lenght of the returned 1D numpy array, which is equal to particle_count_list in the grid.
+    long  array_length;
+    bool  have_Grid = false;
+
+    for (int lid = 0; lid < g_param_yt.num_grids_local; lid++){
+        if ( g_param_yt.grids_local[lid].id == gid ){
+            have_Grid = true;
+            array_length = g_param_yt.grids_local[lid].particle_count_list[species_index];
+            
+            if ( array_length == 0 ){
+                Py_INCREF(Py_None);
+                return Py_None;
+            }
+            
+            break;
+        }
+    }
+
+    if ( !have_Grid ){
+        int MyRank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
+        PyErr_Format(PyExc_ValueError, "Cannot find grid with GID [ %ld ] on MPI rank [%d].\n", gid, MyRank);
+        return NULL;
+    }
+
+
+    // Allocate the output array with size = array_length, type = attr_dtype, and initialize as 0
+    // Then pass in to get_attr(long, char*, void*) function
+    // Finally, return numpy 1D array, by wrapping the output.
+    // We do not need to free output, since we make python owns this data after returning.
+    int      nd = 1;
+    int      typenum;
+    npy_intp dims[1] = { array_length };
+    void     *output;
+
+    if ( attr_dtype == YT_INT ){
+        typenum = NPY_INT;
+        output = malloc( array_length * sizeof(int) );
+        for ( long i = 0; i < array_length; i++ ){ 
+            ((int *)output)[i] = 0;
+        }
+        get_attr(gid, attr_name, output);
+    }
+    else if ( attr_dtype == YT_FLOAT ){
+        typenum = NPY_FLOAT;
+        output = malloc( array_length * sizeof(float) );
+        for ( long i = 0; i < array_length; i++ ){ 
+            ((float *)output)[i] = 0;
+        }
+        get_attr(gid, attr_name, output);
+    }
+    else if ( attr_dtype == YT_DOUBLE ){
+        typenum = NPY_DOUBLE;
+        output = malloc( array_length * sizeof(double) );
+        for ( long i = 0; i < array_length; i++ ){ 
+            ((double *)output)[i] = 0;
+        }
+        get_attr(gid, attr_name, output);
+    }
+
+    PyObject *outputNumpyArray = PyArray_SimpleNewFromData(nd, dims, typenum, output);
+    PyArray_ENABLEFLAGS( (PyArrayObject*) outputNumpyArray, NPY_ARRAY_OWNDATA);
+
+    return outputNumpyArray;
+}
+
 //-------------------------------------------------------------------------------------------------------
 // Description :  Preparation for creating libyt python module
 //
@@ -147,6 +300,8 @@ static PyMethodDef libyt_method_list[] =
 // { "method_name", c_function_name, METH_VARARGS, "Description"},
    {"derived_func", libyt_field_derived_func, METH_VARARGS, 
     "Input GID and field name, and get the field data derived by derived_func."},
+   {"get_attr",     libyt_particle_get_attr,  METH_VARARGS,
+    "Input GID, ptype, particle (which is attribute), and get the particle attribute by get_attr."},
    { NULL, NULL, 0, NULL } // sentinel
 };
 

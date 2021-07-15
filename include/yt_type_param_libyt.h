@@ -24,6 +24,7 @@
 //                libyt_initialized           : true ==> yt_init() has been called successfully
 //                param_yt_set                : true ==> yt_set_parameter() has been called successfully
 //                get_fieldsPtr               : true ==> yt_get_fieldsPtr() has been called successfully
+//                get_particlesPtr            : true ==> yt_get_particlesPtr() has been called successfully
 //                get_gridsPtr                : true ==> yt_get_gridsPtr() has been called successfully
 //                commit_grids                : true ==> yt_commit_grids() has been called successfully
 //                free_gridsPtr               : true ==> yt_free_gridsPtr() has been called successfully, 
@@ -46,6 +47,7 @@ struct yt_param_libyt
    bool  libyt_initialized;
    bool  param_yt_set;
    bool  get_fieldsPtr;
+   bool  get_particlesPtr;
    bool  get_gridsPtr;
    bool  commit_grids;
    bool  free_gridsPtr;
@@ -70,6 +72,7 @@ struct yt_param_libyt
       libyt_initialized  = false;
       param_yt_set       = false;
       get_fieldsPtr      = false;
+      get_particlesPtr   = false;
       get_gridsPtr       = false;
       commit_grids       = false;
       free_gridsPtr      = true;

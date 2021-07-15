@@ -9,10 +9,15 @@
 // Description :  Set YT-specific parameters
 //
 // Note        :  1. Store yt relavent data in input "param_yt" to libyt.param_yt, not all the data are
-//                   passed in.
+//                   passed in to python. 
+//                   To avoid user free the passing in array species_list, we initialize particle_list 
+//                   (needs info from species_list) right away. If num_species > 0.
+//                   To make loading field_list and particle_list more systematic, we will allocate both
+//                   field_list (if num_fields>0 ) and particle_list (if num_species>0) here.
 //                2. Should be called after yt_init().
 //                3. Check the validaty of the data in param_yt.
-//                4. Organize and generate other information, for later runtime usage.
+//                4. Initialize python hierarchy allocate_hierarchy() and particle_list.
+//                5. Gather each ranks number of local grids, we need this info in yt_commit_grid().
 //
 // Parameter   :  param_yt : Structure storing YT-specific parameters that will later pass to YT, and
 //                           other relavent data.
@@ -29,17 +34,11 @@ int yt_set_parameter( yt_param_yt *param_yt )
 
 // check if libyt has free all the resource in previous inline-analysis
    if ( !g_param_libyt.free_gridsPtr ){
-      YT_ABORT( "Please invoke yt_free_gridsPtr() before calling %s() for next iteration!\n", __FUNCTION__ );
+      log_warning( "Please invoke yt_free_gridsPtr() before calling %s() for next iteration!\n", __FUNCTION__ );
+      YT_ABORT("Overwrite existing parameters may leads to memory leak, please called yt_free_gridsPtr() first!\n");
    }
 
    log_info( "Setting YT parameters ...\n" );
-
-// check if this function has been called previously
-   if ( g_param_libyt.param_yt_set )
-   {
-      log_warning( "%s() has been called already!\n", __FUNCTION__ );
-      log_warning( "==> Are you trying to overwrite existing parameters?\n" );
-   }
 
 
 // reset all cosmological parameters to zero for non-cosmological datasets
@@ -115,6 +114,35 @@ int yt_set_parameter( yt_param_yt *param_yt )
       log_debug( "Allocating libyt.hierarchy ... done\n" );
    else
       YT_ABORT(  "Allocating libyt.hierarchy ... failed!\n" );
+
+
+// if num_fields > 0, which means we want to load fields
+   if ( g_param_yt.num_fields > 0 ){
+      g_param_yt.field_list = new yt_field [ g_param_yt.num_fields ];
+   }
+   else{
+      g_param_yt.field_list = NULL;
+      g_param_libyt.get_fieldsPtr = true;
+   }
+
+
+// if num_species > 0, which means want to load particle
+   if ( g_param_yt.num_species > 0 ){
+      // Initialize and setup yt_particle *particle_list in g_param_yt.particle_list,
+      // to avoid user freeing yt_species *species_list.
+      yt_particle *particle_list = new yt_particle [ g_param_yt.num_species ];
+      for ( int s = 0; s < g_param_yt.num_species; s++ ){
+         particle_list[s].species_name = g_param_yt.species_list[s].species_name;
+         particle_list[s].num_attr     = g_param_yt.species_list[s].num_attr;
+         particle_list[s].attr_list    = new yt_attribute [ particle_list[s].num_attr ];
+      }
+      g_param_yt.particle_list   = particle_list;
+   }
+   else {
+      // don't need to load particle, set as NULL.
+      g_param_yt.particle_list   = NULL;
+      g_param_libyt.get_particlesPtr = true;
+   }
 
 
 // Organize other information, for later runtime usage

@@ -15,12 +15,20 @@ def yt_inline_ProjectionPlot( fields ):
     if yt.is_root():
         prjz.save()
     
-def yt_inline_ProfilePlot():
+def yt_inline_ParticlePlot():
+    # YT Particle Plot does not support parallelism for now
+    # So we run mpirun -np 1
     ds = yt.frontends.libyt.libytDataset()
-    profile = yt.ProfilePlot(ds, "x", ["density"])
+    
+    ## ParticleProjectionPlot
+    #==========================
+    # par = yt.ParticleProjectionPlot(ds, "z")
 
-    if yt.is_root():
-        profile.save()
+    ## ParticlePlot
+    #==========================
+    par = yt.ParticlePlot(ds, "particle_position_x", "particle_position_y", "Level", center = 'c')
+
+    par.save()
 
 def test_user_parameter():
     import libyt
