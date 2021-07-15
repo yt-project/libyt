@@ -64,9 +64,9 @@ struct yt_field
 // Description : Constructor of the structure "yt_field"
 // 
 // Note        : 1. Initialize field_define_type as "cell-centered"
-//               2. Initialize attr_unit as "NOT SET", if it is not set by user, then yt will use the 
-//                  particle unit set by the frontend in yt_set_parameter(). If there still isn't one,
-//                  then it will display "NOT SET" in graph. 
+//               2. Initialize field_unit as "". If it is not set by user, then yt will use the particle 
+//                  unit set by the frontend in yt_set_parameter(). If there still isn't one, then it 
+//                  will use "". 
 // Parameter   : None
 // ======================================================================================================
 	yt_field()
