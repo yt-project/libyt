@@ -34,19 +34,11 @@ int yt_set_parameter( yt_param_yt *param_yt )
 
 // check if libyt has free all the resource in previous inline-analysis
    if ( !g_param_libyt.free_gridsPtr ){
-      YT_ABORT( "Please invoke yt_free_gridsPtr() before calling %s() for next iteration!\n", __FUNCTION__ );
+      log_warning( "Please invoke yt_free_gridsPtr() before calling %s() for next iteration!\n", __FUNCTION__ );
+      YT_ABORT("Overwrite existing parameters may leads to memory leak, please called yt_free_gridsPtr() first!\n");
    }
 
    log_info( "Setting YT parameters ...\n" );
-
-// check if this function has been called previously.
-// Abort if yes, since overwrite may leads to memory leakage.
-   if ( g_param_libyt.param_yt_set )
-   {
-      log_warning( "%s() has been called already!\n", __FUNCTION__ );
-      log_warning( "==> Are you trying to overwrite existing parameters?\n" );
-      YT_ABORT("Overwrite existing parameters may leads to memory leak, please called yt_free_gridsPtr() first!\n");
-   }
 
 
 // reset all cosmological parameters to zero for non-cosmological datasets
