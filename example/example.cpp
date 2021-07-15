@@ -44,7 +44,7 @@ void get_randArray(int *array, int length);
 void par_io_get_attr(long gid, char *attribute, void *data);   // Must have for yt to get particle's attribute.
                                                                // One particle type need to setup one get_attr.
 void getPositionByGID( long gid, real (*Pos)[3] );  // These function is for getting particle position and level info.
-void getLevelByGID( long gid, int *Level );
+void getLevelByGID( long gid, int *Level );         // Used by par_io_get_attr.
 yt_grid *gridsPtr;
 long     num_total_grids;
 
