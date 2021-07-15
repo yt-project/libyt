@@ -25,7 +25,7 @@ LIB_SONAME   := libyt.so.1
 
 # different paths
 #######################################################################################################
-PYTHON_PATH := $(YOUR_PYTHON_PATH)
+PYTHON_PATH := /home/cindytsai/software/python/python3.8
 OBJ_PATH := ./obj
 
 
