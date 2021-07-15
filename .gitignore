@@ -3,9 +3,3 @@
 libyt.so.1.*
 example/example
 
-.idea/*
-*.png
-stderr
-stdout
-lib/*
-Dockerfile
