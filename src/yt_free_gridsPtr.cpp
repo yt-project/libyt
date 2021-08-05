@@ -23,7 +23,7 @@ int yt_free_gridsPtr()
       YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
    }
 
-// check if user has call yt_get_fieldsPtr()
+// check if user has run through all the routine.
    if ( !g_param_libyt.param_yt_set || !g_param_libyt.get_fieldsPtr || 
          !g_param_libyt.get_particlesPtr || !g_param_libyt.get_gridsPtr || !g_param_libyt.commit_grids ){
          log_warning( "You are going to free every libyt initialized and allocated array, even though the inline-analysis procedure has not finished yet!\n" );
@@ -53,7 +53,7 @@ int yt_free_gridsPtr()
 
    // Free resource allocated in yt_get_gridsPtr():
    //    grids_local, field_data, particle_count_list
-   if ( g_param_libyt.get_gridsPtr ){
+   if ( g_param_libyt.get_gridsPtr && g_param_yt.num_grids_local > 0 ){
       for (int i = 0; i < g_param_yt.num_grids_local; i = i+1){
          if ( g_param_yt.num_fields > 0 ){
             delete [] g_param_yt.grids_local[i].field_data;

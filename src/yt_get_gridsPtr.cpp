@@ -31,6 +31,12 @@ int yt_get_gridsPtr( yt_grid **grids_local )
     	YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
     }
 
+    // check if num_grids_local > 0, if not, grids_local won't be initialized
+    if ( g_param_yt.num_grids_local <= 0 ){
+    	YT_ABORT( "num_grids_local == %d <= 0, you don't need to input grids_local!\n",
+    	           g_param_yt.num_grids_local);
+    }    
+
    	log_info( "Getting pointer to local grids information ...\n" );
 
    	// If user call for the first time.
