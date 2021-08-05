@@ -48,7 +48,6 @@ void log_warning(const char *Format, ...);
 //                num_grids               : Total number of grids
 //                num_fields              : Number of fields
 //                num_species             : Number of particle species, initialized as 0.
-//                grids_MPI               : grids belongs to which MPI rank
 //                num_grids_local         : Number of local grids in each rank
 //                field_list              : field list, including {field_name, field_define_type, field_unit ,...}
 //                particle_list           : particle list, including {species_name, attr_list, ...}
@@ -95,7 +94,6 @@ struct yt_param_yt
    int          num_fields;
    int          num_species;
    yt_species  *species_list;
-   int         *grids_MPI;
    int          num_grids_local;
    yt_ftype     field_ftype;
 
@@ -180,8 +178,7 @@ struct yt_param_yt
 
       num_fields              = 0;
       num_species             = 0;
-      grids_MPI               = NULL;
-      num_grids_local         = INT_UNDEFINED;
+      num_grids_local         = 0;
       field_list              = NULL;
       particle_list           = NULL;
       species_list            = NULL;
@@ -232,11 +229,11 @@ struct yt_param_yt
       if ( dimensionality          == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "dimensionality" );
       if ( refine_by               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "refine_by" );
       if ( num_grids               == LNG_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_grids" );
-      if ( num_species > 0 && species_list == NULL  )   YT_ABORT( "Particle species info species_list and num_species have not been set!\n");
+      if ( num_species > 0 && species_list == NULL  )   YT_ABORT( "Particle species info species_list has not been set!\n");
+      if ( num_species < 0 && species_list != NULL  )   YT_ABORT( "Particle species info num_species has not been set!\n");
       for (int s=0; s<num_species; s++) {
       if ( species_list[s].species_name == NULL || species_list[s].num_attr < 0 ) YT_ABORT( "species_list element [ %d ] is not set properly!\n", s);
       }
-      if ( grids_MPI == NULL && num_grids_local == INT_UNDEFINED )  YT_ABORT( "Either grids_MPI or num_grids_local should be set!\n");
       if ( field_ftype != YT_FLOAT  &&  field_ftype != YT_DOUBLE )  YT_ABORT( "Unknown \"%s\" == %d !\n", "field_ftype", field_ftype);
 
       return YT_SUCCESS;
@@ -280,7 +277,7 @@ struct yt_param_yt
       log_debug( "   %-*s = %13.7e\n",     width_scalar, "mass_unit",               mass_unit               );
       log_debug( "   %-*s = %13.7e\n",     width_scalar, "time_unit",               time_unit               );
       if ( magnetic_unit == DBL_UNDEFINED ){
-         log_debug( "   %-*s = %s\n",      width_scalar, "magnetic_unit",           "NOT SET"               );
+         log_debug( "   %-*s = %s\n",      width_scalar, "magnetic_unit",           "NOT SET, and will be set to 1.");
       }
       else{
          log_debug( "   %-*s = %13.7e\n",     width_scalar, "magnetic_unit",        magnetic_unit           );
@@ -296,15 +293,11 @@ struct yt_param_yt
       
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_fields",              num_fields              );
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_species",             num_species             );
-
-      if (grids_MPI != NULL) {
-      for (int d=0; d<num_grids; d++) {
-      log_debug( "   %-*s[%d] in MPI rank %d\n", width_vector, "grid", d,           grids_MPI[d]            ); }         
+      for (int s=0; s<num_species; s++){
+      log_debug( "   %-*s[%d] = (type=\"%s\", num_attr=%d)\n", width_vector, "species_list", s, species_list[s].species_name, species_list[s].num_attr);
       }
-      if (num_grids_local != INT_UNDEFINED){
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids_local",         num_grids_local         );
-      }
-      
+
       return YT_SUCCESS;
 
    } // METHOD : show

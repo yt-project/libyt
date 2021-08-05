@@ -167,8 +167,7 @@ int main( int argc, char *argv[] )
          }
       }
 
-//    We can either pass in param_yt.grids_MPI or param_yt.num_grids_local
-      // param_yt.grids_MPI               = grids_MPI;
+//    Pass in param_yt.num_grids_local
       param_yt.num_grids_local         = num_grids_local;
 
 //    *** libyt API ***
