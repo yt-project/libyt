@@ -246,8 +246,13 @@ int yt_commit_grids()
    MPI_Type_commit(&yt_hierarchy_mpi_type);
 
 // Grep hierarchy data from g_param_yt.grids_local, and allocate receive buffer
-   yt_hierarchy *hierarchy_local = new yt_hierarchy [g_param_yt.num_grids_local];
    yt_hierarchy *hierarchy_full  = new yt_hierarchy [g_param_yt.num_grids];
+   yt_hierarchy *hierarchy_local;
+   
+// To avoid using new [0]
+   if ( g_param_yt.num_grids_local > 0 ){
+      hierarchy_local = new yt_hierarchy [g_param_yt.num_grids_local];
+   }
 
    for (int i = 0; i < g_param_yt.num_grids_local; i = i+1) {
 
@@ -352,7 +357,9 @@ int yt_commit_grids()
    MPI_Barrier( MPI_COMM_WORLD );
 
    // Freed resource 
-   delete [] hierarchy_local;
+   if ( g_param_yt.num_grids_local > 0 ){
+      delete [] hierarchy_local;
+   }
    delete [] hierarchy_full;
    delete [] recv_counts;
    delete [] offsets;
