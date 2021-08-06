@@ -309,12 +309,21 @@ int yt_commit_grids()
 // Not sure if we need this MPI_Barrier
    MPI_Barrier(MPI_COMM_WORLD);
 
-// We pass hierarchy to each rank as well, support only when num_grids <= INT_MAX
-   if (g_param_yt.num_grids > INT_MAX){
-      YT_ABORT("Number of grids = %ld, libyt not support number of grids larger than %d yet.\n", 
-                g_param_yt.num_grids, INT_MAX);
+// We pass hierarchy to each rank as well. The maximum MPI_Bcast sendcount is INT_MAX.
+// If num_grids > INT_MAX chop it to chunks, then broadcast.
+   long stride   = INT_MAX;
+   int  part     = (int) (g_param_yt.num_grids / stride) + 1;
+   int  remain   = (int) (g_param_yt.num_grids % stride);
+   long index;
+   for (int i=0; i < part; i++){
+      index = i * stride;
+      if ( i == part - 1 ){
+         MPI_Bcast(&(hierarchy_full[index]), remain, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+      }
+      else {
+         MPI_Bcast(&(hierarchy_full[index]), stride, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+      }
    }
-   MPI_Bcast(hierarchy_full, g_param_yt.num_grids, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // append grid to YT
