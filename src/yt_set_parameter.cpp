@@ -151,7 +151,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
       g_param_libyt.get_particlesPtr = true;
    }
 
-// if num_grids_local < 0, which means this rank doesn't need to load in grids_local info.
+// if num_grids_local <= 0, which means this rank doesn't need to load in grids_local info.
    if ( g_param_yt.num_grids_local <= 0 ){
       g_param_yt.grids_local     = NULL;
       g_param_libyt.get_gridsPtr = true;
