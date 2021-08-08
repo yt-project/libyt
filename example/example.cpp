@@ -137,7 +137,6 @@ int main( int argc, char *argv[] )
       param_yt.num_fields              = num_fields;
       param_yt.num_species             = num_species;
       param_yt.species_list            = species_list;
-      param_yt.field_ftype             = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
 
       for (int d=0; d<3; d++)
       {
@@ -215,6 +214,7 @@ int main( int argc, char *argv[] )
 //    We only have one field in this example.
       field_list[0].field_name = "Dens";
       field_list[0].field_define_type = "cell-centered";
+      field_list[0].field_dtype = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
       char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
       field_list[0].field_name_alias = field_name_alias;
       field_list[0].num_field_name_alias = 3;

@@ -22,19 +22,20 @@ void log_warning(const char *Format, ...);
 //                2. "field_unit", "field_name_alias", "field_display_name", are set corresponding to yt 
 //                   ( "name", ("units", ["fields", "to", "alias"], "display_name"))
 //
-// Data Member :  char  *field_name           : Field name
-//                char  *field_define_type    : Define type, for now, we have these types, define in 
-//                                              validate():
-//                                              (1) "cell-centered"
-//                                              (2) "face-centered"
-//                                              (3) "derived_func"
-//                bool   swap_axes            : true  ==> [z][y][x], x address alter-first, default value.
-//                                              false ==> [x][y][z], z address alter-first
-//                char  *field_unit           : Set field_unit if needed.
-//                int    num_field_name_alias : Set fields to alias, number of the aliases.
-//                char **field_name_alias     : Aliases.
-//                char  *field_display_name   : Set display name on the plottings, if not set, yt will 
-//                                              use field_name as display name.
+// Data Member :  char    *field_name           : Field name
+//                char    *field_define_type    : Define type, for now, we have these types, define in 
+//                                                validate():
+//                                                  (1) "cell-centered"
+//                                                  (2) "face-centered"
+//                                                  (3) "derived_func"
+//                yt_dtype field_dtype          : Field type of the grid. Can be YT_FLOAT, YT_DOUBLE, YT_INT.
+//                bool     swap_axes            : true  ==> [z][y][x], x address alter-first, default value.
+//                                                false ==> [x][y][z], z address alter-first
+//                char    *field_unit           : Set field_unit if needed.
+//                int      num_field_name_alias : Set fields to alias, number of the aliases.
+//                char   **field_name_alias     : Aliases.
+//                char    *field_display_name   : Set display name on the plottings, if not set, yt will 
+//                                                use field_name as display name.
 //
 //                (func pointer) derived_func : pointer to function that has argument (long, double *)
 //                                              and no return.
@@ -48,13 +49,14 @@ struct yt_field
 {
 // data members
 // ======================================================================================================
-	char  *field_name;
-	char  *field_define_type;
-	bool   swap_axes;
-	char  *field_unit;
-	int    num_field_name_alias;
-	char **field_name_alias;
-	char  *field_display_name;
+	char     *field_name;
+	char     *field_define_type;
+	yt_dtype  field_dtype;
+	bool      swap_axes;
+	char     *field_unit;
+	int       num_field_name_alias;
+	char    **field_name_alias;
+	char     *field_display_name;
 
 	void (*derived_func) (long, double *);
 
@@ -73,6 +75,7 @@ struct yt_field
 	{
 		field_name = NULL;
 		field_define_type = "cell-centered";
+		field_dtype = YT_DTYPE_UNKNOWN;
 		swap_axes = true;
 		field_unit = "";
 		num_field_name_alias = 0;
@@ -103,7 +106,8 @@ struct yt_field
 // Note        : 1. Validate data member value in one yt_field struct.
 //                  (1) field_name is set != NULL.
 //                  (2) field_define_type can only be : "cell-centered", "face-centered", "derived_func".
-//                  (3) Raise warning if derived_func == NULL and field_define_type is set to "derived_func".
+//                  (3) Check if field_dtype is set.
+//                  (4) Raise warning if derived_func == NULL and field_define_type is set to "derived_func".
 //               2. Used in yt_commit_grids()
 // 
 // Parameter   : None
@@ -126,6 +130,11 @@ struct yt_field
    	}
    	if ( check1 == false ){
    		YT_ABORT("In field [%s], unknown field_define_type [%s]!\n", field_name, field_define_type);
+   	}
+
+   	// Check if field_dtype is set.
+   	if ( field_dtype != YT_FLOAT && field_dtype != YT_DOUBLE && field_dtype != YT_INT ){
+   		YT_ABORT("In field [%s], unknown field_dtype, should be one of these: YT_FLOAT, YT_DOUBLE, YT_INT!\n");
    	}
 
    	// Raise warning if derived_func == NULL and field_define_type is set to "derived_func".

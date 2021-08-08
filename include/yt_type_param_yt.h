@@ -53,7 +53,6 @@ void log_warning(const char *Format, ...);
 //                particle_list           : particle list, including {species_name, attr_list, ...}
 //                species_list            : species list of particles, includeing {species_name, num_attr}
 //                grids_local             : Ptr to full information of local grids
-//                field_ftype             : Floating-point type of "field_data" ==> YT_FLOAT or YT_DOUBLE
 //
 // Method      :  yt_param_yt : Constructor
 //               ~yt_param_yt : Destructor
@@ -95,7 +94,6 @@ struct yt_param_yt
    int          num_species;
    yt_species  *species_list;
    int          num_grids_local;
-   yt_ftype     field_ftype;
 
 // Loaded and controlled by libyt
    yt_field    *field_list;
@@ -182,7 +180,6 @@ struct yt_param_yt
       field_list              = NULL;
       particle_list           = NULL;
       species_list            = NULL;
-      field_ftype             = YT_FTYPE_UNKNOWN;
 
    // Loaded and controlled by libyt
       grids_local             = NULL;
@@ -234,7 +231,6 @@ struct yt_param_yt
       for (int s=0; s<num_species; s++) {
       if ( species_list[s].species_name == NULL || species_list[s].num_attr < 0 ) YT_ABORT( "species_list element [ %d ] is not set properly!\n", s);
       }
-      if ( field_ftype != YT_FLOAT  &&  field_ftype != YT_DOUBLE )  YT_ABORT( "Unknown \"%s\" == %d !\n", "field_ftype", field_ftype);
 
       return YT_SUCCESS;
    } // METHOD : validate

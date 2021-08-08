@@ -205,6 +205,17 @@ int yt_commit_grids()
                }
             }
          }
+
+         // Check field_data data_dtype, if it is not one of enum yt_dtype or YT_DTYPE_UNKNOWN, set to field_dtype.
+         if ( grid.field_data[v].data_dtype == YT_DTYPE_UNKNOWN ){
+            grid.field_data[v].data_dtype = g_param_yt.field_list[v].field_dtype;
+         }
+         else if ( grid.field_data[v].data_dtype != YT_FLOAT && grid.field_data[v].data_dtype != YT_DOUBLE &&
+                   grid.field_data[v].data_dtype != YT_INT ){
+            log_warning("Grid [%ld], field_data [%s], data_dtype is not one of YT_FLOAT, YT_DOUBLE, YT_INT, so set to field_dtype.\n", 
+                         grid.id, g_param_yt.field_list[v].field_name);
+            grid.field_data[v].data_dtype = g_param_yt.field_list[v].field_dtype;
+         }
       }
 
    }
