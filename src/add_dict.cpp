@@ -186,11 +186,12 @@ template int add_dict_vector3 <ulong > ( PyObject *dict, const char *key, const 
 //                4. We assume that we have all the field name unique.
 //                5. If field_display_name is NULL, set it to Py_None.
 //                6. Dictionary structure loaded in python:
-//                   { <field_name>: {"field_define_type" :  <field_define_type>, 
-//                                    "field_unit"        :  <field_unit>,
-//                                    "field_name_alias"  : [<field_name_alias>, ],
-//                                    "field_display_name":  <field_display_name> , 
-//                                    "swap_axes"         :  true / false          } }
+//            field_list_dict    field_info_dict        info_list     name_alias_list
+//                   |               |                      |               |
+//                   { <field_name>: {"attribute"         : [ <field_unit>, [<field_name_alias>, ], <field_display_name> ]
+//                                    "field_define_type" :  <field_define_type>,
+//                                    "swap_axes"         :  true / false                                                 },
+//                   }
 //
 // Parameter   :  None
 //
@@ -200,95 +201,97 @@ int add_dict_field_list(){
 
    PyObject  *field_list_dict = PyDict_New();
    PyObject  *key, *val;
-   PyObject **field_info_dict = new PyObject* [g_param_yt.num_fields];
-   PyObject **name_alias_list = new PyObject* [g_param_yt.num_fields];
-   for (int i = 0; i < g_param_yt.num_fields; i++) { 
-      field_info_dict[i] = PyDict_New( );
-      name_alias_list[i] = PyList_New(0);
-   }
 
    for (int i = 0; i < g_param_yt.num_fields; i++){
 
+      PyObject *field_info_dict = PyDict_New( );
+      PyObject *info_list       = PyList_New(0);
+
+      // Append "field_unit" to "info_list"
+      val = PyUnicode_FromString((g_param_yt.field_list)[i].field_unit);
+      if ( PyList_Append(info_list, val) != 0 ){
+         YT_ABORT("In field_name == %s, field_unit == %s, failed to append %s to list!\n", 
+                   (g_param_yt.field_list)[i].field_name, (g_param_yt.field_list)[i].field_unit, "field_unit");
+      }
+      Py_DECREF( val );
+
+      // Create "name_alias_list" and append to "info_list"
+      PyObject *name_alias_list = PyList_New(0);
+      for (int j = 0; j < (g_param_yt.field_list)[i].num_field_name_alias; j++){
+         val = PyUnicode_FromString( (g_param_yt.field_list)[i].field_name_alias[j] );
+         if ( PyList_Append(name_alias_list, val) != 0 ){
+            YT_ABORT("In field_name == %s, field_name_alias == %s, failed to append %s to list!\n",
+                      (g_param_yt.field_list)[i].field_name, (g_param_yt.field_list)[i].field_name_alias[j], "field_name_alias");
+         }
+         Py_DECREF( val );
+      }
+      if ( PyList_Append(info_list, name_alias_list) != 0 ){
+         YT_ABORT("In field_name == %s, failed to append name_alias_list to list!\n", (g_param_yt.field_list)[i].field_name);
+      }
+      Py_DECREF( name_alias_list );
+
+      // Load "field_display_name" to "info_list"
+      // If field_display_name == NULL, load Py_None.
+      if ( (g_param_yt.field_list)[i].field_display_name == NULL ){
+         if ( PyList_Append( info_list, Py_None ) != 0 ){
+            YT_ABORT("In field_name == %s, field_display_name == NULL, failed to append Py_None to list!\n", 
+                      (g_param_yt.field_list)[i].field_name);
+         }
+      }
+      else {
+         val = PyUnicode_FromString( (g_param_yt.field_list)[i].field_display_name );
+         if ( PyList_Append( info_list, val ) != 0 ){
+            YT_ABORT("In field_name == %s, field_display_name == %s, failed to append %s to list!\n", 
+                      (g_param_yt.field_list)[i].field_name, (g_param_yt.field_list)[i].field_display_name, "field_display_name");
+         }
+         Py_DECREF( val );
+      }
+
+      // Insert "info_list" to "field_info_dict" with key "attribute"
+      if ( PyDict_SetItemString(field_info_dict, "attribute", info_list) != 0 ){
+         YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair ['attribute']-[info_list] failed!\n", 
+                   (g_param_yt.field_list)[i].field_name);
+      }
+      Py_DECREF(info_list);
+
       // Load "field_define_type" to "field_info_dict".
       val = PyUnicode_FromString((g_param_yt.field_list)[i].field_define_type);
-      if ( PyDict_SetItemString(field_info_dict[i], "field_define_type", val) != 0 ){
+      if ( PyDict_SetItemString(field_info_dict, "field_define_type", val) != 0 ){
          YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n", 
                    (g_param_yt.field_list)[i].field_name, "field_define_type", (g_param_yt.field_list)[i].field_define_type);
       }
       Py_DECREF( val );
 
-      // Load "field_unit" to "field_info_dict".
-      val = PyUnicode_FromString((g_param_yt.field_list)[i].field_unit);
-      if ( PyDict_SetItemString(field_info_dict[i], "field_unit", val) != 0 ){
-         YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n", 
-                   (g_param_yt.field_list)[i].field_name, "field_unit", (g_param_yt.field_list)[i].field_unit);
-      }
-      Py_DECREF( val );
-
-      // Load "field_name_alias" to "field_info_dict".
-      for (int j = 0; j < (g_param_yt.field_list)[i].num_field_name_alias; j++){
-         val = PyUnicode_FromString( (g_param_yt.field_list)[i].field_name_alias[j] );
-         if ( PyList_Append(name_alias_list[i], val) != 0 ){
-            YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ list item %s ] failed!\n",
-                      (g_param_yt.field_list)[i].field_name, "field_name_alias", (g_param_yt.field_list)[i].field_name_alias[j]);
-         }
-         Py_DECREF( val );
-      }
-      if( PyDict_SetItemString( field_info_dict[i], "field_name_alias", name_alias_list[i]) != 0 ){
-         YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n",
-                   (g_param_yt.field_list)[i].field_name, "field_name_alias", "list of names");
-      }
-
-      // Load "field_display_name" to "field_info_dict".
-      // If field_display_name == NULL, load Py_None.
-      if ( (g_param_yt.field_list)[i].field_display_name == NULL ){
-         if ( PyDict_SetItemString( field_info_dict[i], "field_display_name", Py_None) != 0 ){
-            YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ None ] failed!\n", 
-                      (g_param_yt.field_list)[i].field_name, "field_display_name");
-         }
-      }
-      else {
-         val = PyUnicode_FromString( (g_param_yt.field_list)[i].field_display_name );
-         if ( PyDict_SetItemString( field_info_dict[i], "field_display_name", val) != 0 ){
-            YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n", 
-                      (g_param_yt.field_list)[i].field_name, "field_display_name", (g_param_yt.field_list)[i].field_display_name);
-         }
-         Py_DECREF( val );
-      }
-
       // Load "swap_axes" to "field_info_dict".
       if ( (g_param_yt.field_list)[i].swap_axes == true ){
-         if ( PyDict_SetItemString( field_info_dict[i], "swap_axes", Py_True) != 0 ){
+         if ( PyDict_SetItemString( field_info_dict, "swap_axes", Py_True) != 0 ){
             YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ true ] failed!\n", 
                       (g_param_yt.field_list)[i].field_name, "swap_axes");
          }
       } 
       else {
-         if ( PyDict_SetItemString( field_info_dict[i], "swap_axes", Py_False) != 0 ){
+         if ( PyDict_SetItemString( field_info_dict, "swap_axes", Py_False) != 0 ){
             YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ false ] failed!\n", 
                       (g_param_yt.field_list)[i].field_name, "swap_axes");
          }
       }
 
-
-      // Load "field_info_dict" to "field_list_dict", with key-value pair {field_name : field_info_dict}
+      // Load "field_info_dict" to "field_list_dict", with key = field_name
       key = PyUnicode_FromString( (g_param_yt.field_list)[i].field_name );
-      if ( PyDict_SetItem( field_list_dict, key, field_info_dict[i]) != 0 ){
+      if ( PyDict_SetItem( field_list_dict, key, field_info_dict) != 0 ){
          YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s] failed to add dictionary!\n", (g_param_yt.field_list)[i].field_name);
       }
       Py_DECREF( key );
 
+      Py_DECREF( field_info_dict );
+
    }
 
    if ( PyDict_SetItemString( g_py_param_yt, "field_list", field_list_dict ) != 0 ){
-      YT_ABORT( "Inserting dictionary [field_list] item to libyt ... failed!\n");
+      YT_ABORT( "Inserting dictionary [field_list] to libyt.param_yt ... failed!\n");
    }
 
    Py_DECREF( field_list_dict );
-   for (int i = 0; i < g_param_yt.num_fields; i++) {
-      Py_DECREF( field_info_dict[i] );
-      Py_DECREF( name_alias_list[i] );
-   }
 
    return YT_SUCCESS;
 }
