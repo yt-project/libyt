@@ -180,6 +180,12 @@ int main( int argc, char *argv[] )
 //    ==========================================
 //    3. [optional] add code-specific parameters
 //    ==========================================
+      // Since we are now using "gamer" as frontend, we need to set code specific parameter.
+      // mhd must be defined in gamer frontend fields.py.
+      const int mhd = 0;   
+      yt_add_user_parameter_int   ( "mhd", 1, &mhd);
+
+      // You can also input your own code specific parameter to match your frontend's fields.py
       const  int   user_int        = 1;
       const long   user_long       = 2;
       const uint   user_uint       = 3;
