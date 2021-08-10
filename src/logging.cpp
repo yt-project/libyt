@@ -39,7 +39,7 @@ void log_info( const char *format, ... )
    va_list arg;
    va_start( arg, format );
 
-   fprintf( stderr, "[%-*s] ", LogPrefixWidth, "YT_INFO" );
+   fprintf( stdout, "[%-*s] ", LogPrefixWidth, "YT_INFO" );
    vfprintf( stdout, format, arg );
    fflush( stdout );
 
@@ -103,15 +103,15 @@ void log_debug( const char *format, ... )
    if ( g_param_libyt.verbose < YT_VERBOSE_DEBUG )   return;
 
 // flush previous messages
-   fflush( stdout );
+   fflush( stderr );
 
 // print messages
    va_list arg;
    va_start( arg, format );
 
    fprintf( stderr, "[%-*s] ", LogPrefixWidth, "YT_DEBUG" );
-   vfprintf( stdout, format, arg );
-   fflush( stdout );
+   vfprintf( stderr, format, arg );
+   fflush( stderr );
 
    va_end( arg );
 
