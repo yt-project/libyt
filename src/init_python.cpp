@@ -33,20 +33,16 @@ int init_python( int argc, char *argv[] )
    else {
       YT_ABORT(  "Initializing Python interpreter ... failed!\n" ); }
 
-// TODO: What are argc, argv use for?
-//       Probably can encode some settings, that must do before initialize Python.
-//       Length is hardcoded, each argv string size cannot longer than 1000.
-// set sys.argv
-   wchar_t **wchar_t_argv = (wchar_t **) malloc(argc * sizeof(wchar_t *));
-   wchar_t wchar_temp[1000];
-   for (int i = 0; i < argc; i = i+1) {
-	  printf("argv[%d] = %s\n", i, argv[i]);
-      mbtowc(wchar_temp, argv[i], 1000);
-      wchar_t_argv[i] = wchar_temp;
-   }
-// TODO: Comment out, since sometimes the typecasting cannot work
-//       and leads to error in OpenMPI.
-//   PySys_SetArgv( argc, wchar_t_argv );
+// Q: What can argc, argv be used for?
+// A: Probably can encode some settings, but since we aren't use them, comment them out.
+   // wchar_t **wchar_t_argv = (wchar_t **) malloc(argc * sizeof(wchar_t *));
+   // wchar_t wchar_temp[1000];
+   // for (int i = 0; i < argc; i = i+1) {
+	  // printf("argv[%d] = %s\n", i, argv[i]);
+   //    mbtowc(wchar_temp, argv[i], 1000);
+   //    wchar_t_argv[i] = wchar_temp;
+   // }
+   // PySys_SetArgv( argc, wchar_t_argv );
 
 
 // import numpy
