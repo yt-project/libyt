@@ -22,8 +22,8 @@ def yt_inline_ProfilePlot():
         profile.save()
     
 def yt_inline_ParticlePlot():
-    # YT Particle Plot does not support parallelism for now
-    # So we run mpirun -np 1
+    # [Caution] YT Particle Plot does not support parallelism for now
+    #           So we run mpirun -np 1
     ds = yt.frontends.libyt.libytDataset()
     
     ## ParticleProjectionPlot
