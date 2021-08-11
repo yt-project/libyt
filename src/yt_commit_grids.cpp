@@ -62,7 +62,6 @@ int yt_commit_grids()
       }
    }
 
-
 // Check yt_particle* particle_list
    if ( g_param_yt.num_species > 0 ){
       if ( check_particle_list() != YT_SUCCESS ){
@@ -70,17 +69,33 @@ int yt_commit_grids()
       }
    }
 
+// Check yt_grid* grids_local
+   if ( g_param_yt.num_grids_local > 0 ){
+      if ( check_grid() != YT_SUCCESS ){
+         YT_ABORT("Check grids_local failed in %s!\n", __FUNCTION__);
+      }
+   }
 
-// Checking grids
-// check each grids individually
+
+// Add field_list to libyt.param_yt['field_list'] dictionary
+   if ( g_param_yt.num_fields > 0 ){
+      if ( add_dict_field_list() != YT_SUCCESS ){
+         YT_ABORT("Inserting dictionary libyt.param_yt['field_list'] failed!\n");
+      }
+   }
+
+// Add particle_list to libyt.param_yt['particle_list'] dictionary
+   if ( g_param_yt.num_species > 0 ){
+      if ( add_dict_particle_list() != YT_SUCCESS ){
+         YT_ABORT("Inserting dictionary libyt.param_yt['particle_list'] failed!\n");
+      }
+   }
+
+// Set up grid_particle_count, field_data's data_dim, field_data's data_dtype in grids_local
    for (int i = 0; i < g_param_yt.num_grids_local; i = i+1) {
-
       yt_grid grid = g_param_yt.grids_local[i];
-
-      // check if all parameters have been set properly and are in used.
-      if ( !(grid.validate()) )
-         YT_ABORT(  "Validating input grid ID [%ld] ... failed\n", grid.id );
-
+      
+      // (1) Calculate grid_particle_count, 
       // check particle_count_list element > 0 if this array is set.
       // and sum it up. Be careful the copy of struct, we wish to write changes in g_param_yt.grids_local
       g_param_yt.grids_local[i].grid_particle_count = 0;
@@ -94,47 +109,11 @@ int yt_commit_grids()
          }
       }
 
+      // Deal with field_data in grid
+      for (int v = 0; v < g_param_yt.num_fields; v++){
 
-      // additional checks that depend on input YT parameters, and grid itself only.
-      // grid ID
-      if ((grid.id < 0) || grid.id >= g_param_yt.num_grids)
-         YT_ABORT(  "Grid ID [%ld] not in the range between 0 ~ (number of grids [%ld] - 1)!\n", 
-                     grid.id, g_param_yt.num_grids );
-   
-      if (grid.parent_id >= g_param_yt.num_grids)
-         YT_ABORT(  "Grid [%ld] parent ID [%ld] >= total number of grids [%ld]!\n",
-                    grid.id, grid.parent_id, g_param_yt.num_grids );
-
-      if (grid.level > 0 && grid.parent_id < 0)
-         YT_ABORT(  "Grid [%ld] parent ID [%ld] < 0 at level [%d]!\n",
-                    grid.id, grid.parent_id, grid.level );
-
-      // edge
-      for (int d = 0; d < 3; d = d+1) {
-         
-         if (grid.left_edge[d] < g_param_yt.domain_left_edge[d])
-            YT_ABORT( "Grid [%ld] left edge [%13.7e] < domain left edge [%13.7e] along the dimension [%d]!\n",
-                      grid.id, grid.left_edge[d], g_param_yt.domain_left_edge[d], d );
-
-         if (grid.right_edge[d] > g_param_yt.domain_right_edge[d])
-            YT_ABORT( "Grid [%ld] right edge [%13.7e] > domain right edge [%13.7e] along the dimension [%d]!\n",
-                      grid.id, grid.right_edge[d], g_param_yt.domain_right_edge[d], d );
-         
-         // Not sure if periodic condition will need this test
-         if (grid.right_edge[d] < grid.left_edge[d])
-            YT_ABORT( "Grid [%ld], right edge [%13.7e] < left edge [%13.7e]!\n", 
-                      grid.id, grid.right_edge[d], grid.left_edge[d]);
-      }
-
-      // check field_data in each individual grid
-      for (int v = 0; v < g_param_yt.num_fields; v = v+1){
-         
-         // If field_define_type == "cell-centered"
-         if ( strcmp(g_param_yt.field_list[v].field_define_type, "cell-centered") == 0 ) {
-            // check if data_ptr is set
-            if ( grid.field_data[v].data_ptr == NULL ){
-               log_warning( "Grid [%ld], field_data [%s], data_ptr is NULL, not set yet!", grid.id, g_param_yt.field_list[v].field_name);
-            }
+         // (2) set data_dim in field_data if field_define_type == "cell-centered"
+         if ( strcmp(g_param_yt.field_list[v].field_define_type, "cell-centered") == 0 ){
             // set the field_data data_dim, base on grid_dimensions and swap_axes
             if ( g_param_yt.field_list[v].swap_axes == true ){
                grid.field_data[v].data_dim[0] = grid.grid_dimensions[2];
@@ -148,38 +127,7 @@ int yt_commit_grids()
             }
          }
 
-         // If field_define_type == "face-centered"
-         if ( strcmp(g_param_yt.field_list[v].field_define_type, "face-centered") == 0 ) {
-            // check if data_ptr is set
-            if ( grid.field_data[v].data_ptr == NULL ){
-               log_warning( "Grid [%ld], field_data [%s], data_ptr is NULL, not set yet!", grid.id, g_param_yt.field_list[v].field_name);
-            }
-            else{
-               // check that dimension is greater than 0
-               for ( int d = 0; d < 3; d++ ){
-                  if ( grid.field_data[v].data_dim[d] <= 0 ){
-                     YT_ABORT("Grid [%ld], field_data [%s], data_dim[%d] == %d <= 0, should be > 0!\n", 
-                               grid.id, g_param_yt.field_list[v].field_name, d, grid.field_data[v].data_dim[d]);
-                  }
-               }               
-            }
-
-         }
-
-         // If field_define_type == "derived_func"
-         if ( strcmp(g_param_yt.field_list[v].field_define_type, "derived_func") == 0 ) {
-            // check if data_ptr is set != NULL, then dimension should be greater than 0
-            if ( grid.field_data[v].data_ptr != NULL ){
-               for ( int d = 0; d < 3; d++ ){
-                  if ( grid.field_data[v].data_dim[d] <= 0 ){
-                     YT_ABORT("Grid [%ld], field_data [%s], data_dim[%d] == %d <= 0, should be > 0!\n", 
-                               grid.id, g_param_yt.field_list[v].field_name, d, grid.field_data[v].data_dim[d]);
-                  }
-               }
-            }
-         }
-
-         // Check field_data data_dtype, if it is not one of enum yt_dtype or YT_DTYPE_UNKNOWN, set to field_dtype.
+         // (3) Check field_data data_dtype, if it is not one of enum yt_dtype or YT_DTYPE_UNKNOWN, set to field_dtype.
          if ( grid.field_data[v].data_dtype == YT_DTYPE_UNKNOWN ){
             grid.field_data[v].data_dtype = g_param_yt.field_list[v].field_dtype;
          }
@@ -189,21 +137,6 @@ int yt_commit_grids()
                          grid.id, g_param_yt.field_list[v].field_name);
             grid.field_data[v].data_dtype = g_param_yt.field_list[v].field_dtype;
          }
-      }
-
-   }
-
-// add field_list to libyt.param_yt['field_list'] dictionary
-   if ( g_param_yt.num_fields > 0 ){
-      if ( add_dict_field_list() != YT_SUCCESS ){
-         YT_ABORT("Inserting dictionary libyt.param_yt['field_list'] failed!\n");
-      }
-   }
-
-// add particle_list to libyt.param_yt['particle_list'] dictionary
-   if ( g_param_yt.num_species > 0 ){
-      if ( add_dict_particle_list() != YT_SUCCESS ){
-         YT_ABORT("Inserting dictionary libyt.param_yt['particle_list'] failed!\n");
       }
    }
 

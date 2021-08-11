@@ -45,6 +45,7 @@ int  append_grid( yt_grid *grid );
 int  check_sum_num_grids_local_MPI( int NRank, int * &num_grids_local_MPI );
 int  check_field_list();
 int  check_particle_list();
+int  check_grid();
 int  check_hierarchy(yt_hierarchy * &hierarchy);
 #ifndef NO_PYTHON
 template <typename T>
