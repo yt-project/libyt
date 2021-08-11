@@ -19,6 +19,7 @@
 // Data Member :  [public ] ==> Set by users when calling yt_init()
 //                verbose : Verbose level
 //                script  : Name of the YT inline analysis script (without the .py extension)
+//                check_data: Check the input data (ex: hierarchy, grid information...), if it is true.
 //
 //                [private] ==> Set and used by libyt internally
 //                libyt_initialized           : true ==> yt_init() has been called successfully
@@ -40,6 +41,7 @@ struct yt_param_libyt
 // ===================================================================================
    yt_verbose verbose;
    const char *script;
+   bool       check_data;
 
 
 // private data members
@@ -68,6 +70,7 @@ struct yt_param_libyt
 //    set defaults
       verbose = YT_VERBOSE_WARNING;
       script  = "yt_inline_script";
+      check_data = true;
 
       libyt_initialized  = false;
       param_yt_set       = false;

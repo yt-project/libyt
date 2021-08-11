@@ -56,21 +56,21 @@ int yt_commit_grids()
 
 
 // Check yt_field* field_list
-   if ( g_param_yt.num_fields > 0 ){
+   if ( g_param_libyt.check_data == true && g_param_yt.num_fields > 0 ){
       if ( check_field_list() != YT_SUCCESS ){
          YT_ABORT("Check field_list failed in %s!\n", __FUNCTION__);
       }
    }
 
 // Check yt_particle* particle_list
-   if ( g_param_yt.num_species > 0 ){
+   if ( g_param_libyt.check_data == true && g_param_yt.num_species > 0 ){
       if ( check_particle_list() != YT_SUCCESS ){
          YT_ABORT("Check particle_list failed in %s!\n", __FUNCTION__);
       }
    }
 
 // Check yt_grid* grids_local
-   if ( g_param_yt.num_grids_local > 0 ){
+   if ( g_param_libyt.check_data == true && g_param_yt.num_grids_local > 0 ){
       if ( check_grid() != YT_SUCCESS ){
          YT_ABORT("Check grids_local failed in %s!\n", __FUNCTION__);
       }
@@ -214,7 +214,7 @@ int yt_commit_grids()
                hierarchy_full, recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
 
 // Check that the hierarchy are correct, do the test on RootRank only
-   if ( MyRank == RootRank ){
+   if ( g_param_libyt.check_data == true && MyRank == RootRank ){
       if ( check_hierarchy( hierarchy_full ) == YT_SUCCESS ) {
          log_debug("Validating the parent-children relationship ... done!\n");
       }

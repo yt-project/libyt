@@ -67,6 +67,48 @@ int check_field_list(){
 
 
 //-------------------------------------------------------------------------------------------------------
+// Function    :  check_particle_list
+// Description :  Check g_param_yt.particle_list.
+//
+// Note        :  1. Use inside yt_commit_grids().
+//                2. Check particle_list
+//                  (1) Validate each yt_particle element in particle_list.
+//                  (2) Species name (or ptype in YT-term) cannot be the same as g_param_yt.frontend.
+//                  (3) Species names (or ptype in YT-term) are all unique.
+//                
+// Parameter   :  None
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int check_particle_list(){
+
+    // (1) Validate each yt_particle element in particle_list.
+    // (2) Check species name (or ptype in YT-term) cannot be the same as g_param_yt.frontend.
+    for ( int p = 0; p < g_param_yt.num_species; p++ ){
+        yt_particle particle = g_param_yt.particle_list[p];
+        if ( !(particle.validate()) ){
+            YT_ABORT("Validating input particle list element [%d] ... failed\n", p);
+        }
+        if ( strcmp(particle.species_name, g_param_yt.frontend) == 0 ){
+            YT_ABORT("particle_list[%d], species_name == %s, frontend == %s, expect species_name different from the frontend!\n",
+                      p, particle.species_name, g_param_yt.frontend);
+        }
+    }
+
+    // (3) Species names (or ptype in YT-term) are all unique.
+    for ( int p1 = 0; p1 < g_param_yt.num_species; p1++ ){
+        for ( int p2 = p1+1; p2 < g_param_yt.num_species; p2++ ){
+            if ( strcmp(g_param_yt.particle_list[p1].species_name, g_param_yt.particle_list[p2].species_name) == 0 ){
+                YT_ABORT("species_name in particle_list[%d] and particle_list[%d] are not unique!\n", p1, p2);
+            }
+        }
+    }
+
+    return YT_SUCCESS;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
 // Function    :  check_grid
 // Description :  Check g_param_yt.grids_local.
 //
@@ -183,47 +225,6 @@ int check_grid(){
    return YT_SUCCESS;
 }
 
-
-//-------------------------------------------------------------------------------------------------------
-// Function    :  check_particle_list
-// Description :  Check g_param_yt.particle_list.
-//
-// Note        :  1. Use inside yt_commit_grids().
-//                2. Check particle_list
-//                  (1) Validate each yt_particle element in particle_list.
-//                  (2) Species name (or ptype in YT-term) cannot be the same as g_param_yt.frontend.
-//                  (3) Species names (or ptype in YT-term) are all unique.
-//                
-// Parameter   :  None
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
-int check_particle_list(){
-
-    // (1) Validate each yt_particle element in particle_list.
-    // (2) Check species name (or ptype in YT-term) cannot be the same as g_param_yt.frontend.
-    for ( int p = 0; p < g_param_yt.num_species; p++ ){
-        yt_particle particle = g_param_yt.particle_list[p];
-        if ( !(particle.validate()) ){
-            YT_ABORT("Validating input particle list element [%d] ... failed\n", p);
-        }
-        if ( strcmp(particle.species_name, g_param_yt.frontend) == 0 ){
-            YT_ABORT("particle_list[%d], species_name == %s, frontend == %s, expect species_name different from the frontend!\n",
-                      p, particle.species_name, g_param_yt.frontend);
-        }
-    }
-
-    // (3) Species names (or ptype in YT-term) are all unique.
-    for ( int p1 = 0; p1 < g_param_yt.num_species; p1++ ){
-        for ( int p2 = p1+1; p2 < g_param_yt.num_species; p2++ ){
-            if ( strcmp(g_param_yt.particle_list[p1].species_name, g_param_yt.particle_list[p2].species_name) == 0 ){
-                YT_ABORT("species_name in particle_list[%d] and particle_list[%d] are not unique!\n", p1, p2);
-            }
-        }
-    }
-
-    return YT_SUCCESS;
-}
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  check_hierarchy
