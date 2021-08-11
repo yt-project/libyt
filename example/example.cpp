@@ -79,6 +79,11 @@ int main( int argc, char *argv[] )
 // YT analysis script without the ".py" extension (default="yt_inline_script")
    param_libyt.script  = "inline_script";
 
+// Check interface, default is true.
+// If it is set false, libyt won't check each input data.
+// You can turn off is you have already make sure that everything is input correctly.
+   param_libyt.check_data = false;
+
 // *** libyt API ***
    if ( yt_init( argc, argv, &param_libyt ) != YT_SUCCESS )
    {
