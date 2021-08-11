@@ -8,9 +8,9 @@
 // Function    :  yt_set_parameter
 // Description :  Set YT-specific parameters
 //
-// Note        :  1. Store yt relavent data in input "param_yt" to libyt.param_yt, not all the data are
-//                   passed in to python. 
-//                   To avoid user free the passing in array species_list, we initialize particle_list 
+// Note        :  1. Store yt relavent data in input "param_yt" to libyt.param_yt. Note that not all the 
+//                   data are passed in to python. 
+//                   To avoid user free the passed in array species_list, we initialize particle_list 
 //                   (needs info from species_list) right away. If num_species > 0.
 //                   To make loading field_list and particle_list more systematic, we will allocate both
 //                   field_list (if num_fields>0 ) and particle_list (if num_species>0) here.
@@ -94,7 +94,14 @@ int yt_set_parameter( yt_param_yt *param_yt )
    add_dict_scalar(  g_py_param_yt, "length_unit",             g_param_yt.length_unit             );
    add_dict_scalar(  g_py_param_yt, "mass_unit",               g_param_yt.mass_unit               );
    add_dict_scalar(  g_py_param_yt, "time_unit",               g_param_yt.time_unit               );
-   add_dict_scalar(  g_py_param_yt, "magnetic_unit",           g_param_yt.magnetic_unit           );
+
+   if ( g_param_yt.magnetic_unit == DBL_UNDEFINED ){
+      add_dict_scalar(  g_py_param_yt, "magnetic_unit",          1                                 );
+   }
+   else{
+      add_dict_scalar(  g_py_param_yt, "magnetic_unit",        g_param_yt.magnetic_unit           );
+   }
+
    add_dict_scalar(  g_py_param_yt, "cosmological_simulation", g_param_yt.cosmological_simulation );
    add_dict_scalar(  g_py_param_yt, "dimensionality",          g_param_yt.dimensionality          );
    add_dict_scalar(  g_py_param_yt, "refine_by",               g_param_yt.refine_by               );
@@ -121,7 +128,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
       g_param_yt.field_list = new yt_field [ g_param_yt.num_fields ];
    }
    else{
-      g_param_yt.field_list = NULL;
+      g_param_yt.field_list       = NULL;
       g_param_libyt.get_fieldsPtr = true;
    }
 
@@ -140,8 +147,14 @@ int yt_set_parameter( yt_param_yt *param_yt )
    }
    else {
       // don't need to load particle, set as NULL.
-      g_param_yt.particle_list   = NULL;
+      g_param_yt.particle_list       = NULL;
       g_param_libyt.get_particlesPtr = true;
+   }
+
+// if num_grids_local <= 0, which means this rank doesn't need to load in grids_local info.
+   if ( g_param_yt.num_grids_local <= 0 ){
+      g_param_yt.grids_local     = NULL;
+      g_param_libyt.get_gridsPtr = true;
    }
 
 
@@ -149,37 +162,16 @@ int yt_set_parameter( yt_param_yt *param_yt )
    int MyRank;
    MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
 
-   // Make sure g_param_yt.num_grids_local is set, otherwise count from grids_MPI
-   if ( g_param_yt.num_grids_local != INT_UNDEFINED ) {
+   // Make sure g_param_yt.num_grids_local is set, 
+   // and if g_param_yt.num_grids_local < 0, set it = 0
+   if ( g_param_yt.num_grids_local < 0 ) {
       
-      // Prevent input long type, exceed int storage
-      if ( g_param_yt.num_grids_local < 0 ){
-         YT_ABORT("Number of local grids = %d at MPI rank %d, probably because of exceeding int storage or wrong input!\n",
+      // Prevent input long type and exceed int storage
+      log_warning("Number of local grids = %d at MPI rank %d, probably because of exceeding int storage or wrong input!\n",
                    g_param_yt.num_grids_local, MyRank);
-      }
-   
-   }
-   else {
 
-      int num_grids_local = 0;
-      int flag = 0;
-      for ( long i = 0; i < g_param_yt.num_grids; i = i+1 ){
-         if ( g_param_yt.grids_MPI[i] == MyRank ) {
-
-            num_grids_local = num_grids_local + 1;
-            
-            // Prevent exceed int storage
-            if ( num_grids_local == INT_MAX ){
-               log_warning("Number of local grids at MPI rank %d reach its maximum [%d]!\n", MyRank, INT_MAX);
-               flag = 1;
-            }
-            if (flag == 1){
-               YT_ABORT("Number of local grids at MPI rank %d exceed its maximum!\n", MyRank);
-            }
-
-         }
-      }
-      g_param_yt.num_grids_local = num_grids_local;
+      // if < 0, set it to 0, to avoid adding negative num_grids_local when checking num_grids. 
+      g_param_yt.num_grids_local = 0;
    }
 
    // Gather num_grids_local in every rank and store at num_grids_local_MPI, with "MPI_Gather"
@@ -193,14 +185,11 @@ int yt_set_parameter( yt_param_yt *param_yt )
    MPI_Gather(&(g_param_yt.num_grids_local), 1, MPI_INT, num_grids_local_MPI, 1, MPI_INT, RootRank, MPI_COMM_WORLD);
    MPI_Bcast(num_grids_local_MPI, NRank, MPI_INT, RootRank, MPI_COMM_WORLD);
 
-   // Check that sum of num_grids_local_MPI is equal to num_grids (total number of grids)
-   long num_grids = 0;
-   for (int rid = 0; rid < NRank; rid = rid+1){
-      num_grids = num_grids + (long)num_grids_local_MPI[rid];
-   }
-   if (num_grids != g_param_yt.num_grids){
-      YT_ABORT("Sum of grids in each MPI rank [%ld] are not equal to total number of grids [%ld]!\n", 
-                num_grids, g_param_yt.num_grids );
+   // Check that sum of num_grids_local_MPI is equal to num_grids (total number of grids), abort if not.
+   if (g_param_libyt.check_data == true ){
+      if ( check_sum_num_grids_local_MPI( NRank, num_grids_local_MPI ) != YT_SUCCESS ){
+         YT_ABORT("Check sum of local grids in each MPI rank failed in %s!\n", __FUNCTION__);
+      }
    }
 
 // If the above all works like charm.

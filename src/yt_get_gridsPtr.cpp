@@ -10,6 +10,7 @@
 //                2. Initialize field_data in one grid with
 //                   (1) data_dim[3] = {0, 0, 0}
 //                   (2) data_ptr    = NULL
+//                   (3) data_dtype  = YT_DTYPE_UNKNOWN
 //                3. If user call this function twice, then it will just return the previously initialized 
 //                   and allocated array.
 //
@@ -30,6 +31,12 @@ int yt_get_gridsPtr( yt_grid **grids_local )
    	if ( !g_param_libyt.param_yt_set ) {
     	YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
     }
+
+    // check if num_grids_local > 0, if not, grids_local won't be initialized
+    if ( g_param_yt.num_grids_local <= 0 ){
+    	YT_ABORT( "num_grids_local == %d <= 0, you don't need to input grids_local!\n",
+    	           g_param_yt.num_grids_local);
+    }    
 
    	log_info( "Getting pointer to local grids information ...\n" );
 
@@ -54,7 +61,8 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 					for ( int d = 0; d < 3; d++ ){
 						(*grids_local)[id].field_data[fid].data_dim[d] = 0;
 					}
-					(*grids_local)[id].field_data[fid].data_ptr = NULL;
+					(*grids_local)[id].field_data[fid].data_ptr   = NULL;
+					(*grids_local)[id].field_data[fid].data_dtype = YT_DTYPE_UNKNOWN;
 				}
 			}
 			else{

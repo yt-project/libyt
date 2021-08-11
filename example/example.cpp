@@ -79,6 +79,11 @@ int main( int argc, char *argv[] )
 // YT analysis script without the ".py" extension (default="yt_inline_script")
    param_libyt.script  = "inline_script";
 
+// Check interface, default is true.
+// If it is set false, libyt won't check each input data.
+// You can turn off is you have already make sure that everything is input correctly.
+   param_libyt.check_data = false;
+
 // *** libyt API ***
    if ( yt_init( argc, argv, &param_libyt ) != YT_SUCCESS )
    {
@@ -137,7 +142,6 @@ int main( int argc, char *argv[] )
       param_yt.num_fields              = num_fields;
       param_yt.num_species             = num_species;
       param_yt.species_list            = species_list;
-      param_yt.field_ftype             = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
 
       for (int d=0; d<3; d++)
       {
@@ -167,8 +171,7 @@ int main( int argc, char *argv[] )
          }
       }
 
-//    We can either pass in param_yt.grids_MPI or param_yt.num_grids_local
-      // param_yt.grids_MPI               = grids_MPI;
+//    Pass in param_yt.num_grids_local
       param_yt.num_grids_local         = num_grids_local;
 
 //    *** libyt API ***
@@ -182,6 +185,12 @@ int main( int argc, char *argv[] )
 //    ==========================================
 //    3. [optional] add code-specific parameters
 //    ==========================================
+      // Since we are now using "gamer" as frontend, we need to set code specific parameter.
+      // mhd must be defined in gamer frontend fields.py.
+      const int mhd = 0;   
+      yt_add_user_parameter_int   ( "mhd", 1, &mhd);
+
+      // You can also input your own code specific parameter to match your frontend's fields.py
       const  int   user_int        = 1;
       const long   user_long       = 2;
       const uint   user_uint       = 3;
@@ -216,6 +225,7 @@ int main( int argc, char *argv[] )
 //    We only have one field in this example.
       field_list[0].field_name = "Dens";
       field_list[0].field_define_type = "cell-centered";
+      field_list[0].field_dtype = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
       char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
       field_list[0].field_name_alias = field_name_alias;
       field_list[0].num_field_name_alias = 3;

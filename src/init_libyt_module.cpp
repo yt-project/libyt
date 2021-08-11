@@ -170,7 +170,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     // If cannot find ptype or attr_name, raise an error.
     // If find them successfully, but get_attr not set, which is == NULL, raise an error.
     void    (*get_attr) (long, char*, void*);
-    yt_ftype attr_dtype;
+    yt_dtype attr_dtype;
     bool     have_ptype = false;
     bool     have_attr_name = false;
     int      species_index;

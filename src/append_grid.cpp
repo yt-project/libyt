@@ -41,8 +41,6 @@ int append_grid( yt_grid *grid ){
    log_debug( "Inserting grid [%15ld] info to libyt.hierarchy ... done\n", grid->id );
 
 // export grid data to libyt.grid_data as "libyt.grid_data[grid_id][field_list.field_name][field_data.data_ptr]"
-   int      grid_ftype   = (g_param_yt.field_ftype == YT_FLOAT ) ? NPY_FLOAT : NPY_DOUBLE;
-   
    PyObject *py_grid_id, *py_field_labels, *py_field_data;
 
 // allocate [grid_id][field_list.field_name]
@@ -71,13 +69,23 @@ int append_grid( yt_grid *grid ){
                         grid->id, g_param_yt.field_list[v].field_name );
          }
          else {
+            int grid_dtype = NPY_DOUBLE;
+            if ( (grid->field_data)[v].data_dtype == YT_FLOAT ){
+               grid_dtype = NPY_FLOAT;
+            }
+            else if ( (grid->field_data)[v].data_dtype == YT_DOUBLE ){
+               grid_dtype = NPY_DOUBLE;
+            }
+            else if ( (grid->field_data)[v].data_dtype == YT_INT ){
+               grid_dtype = NPY_INT;
+            }
             // get the dimension of the input array from the (grid->field_data)[v]
             npy_intp grid_dims[3] = { (grid->field_data)[v].data_dim[0],
                                       (grid->field_data)[v].data_dim[1],
                                       (grid->field_data)[v].data_dim[2]};
             
             // PyArray_SimpleNewFromData simply creates an array wrapper and does not allocate and own the array
-            py_field_data = PyArray_SimpleNewFromData( 3, grid_dims, grid_ftype, (grid->field_data)[v].data_ptr );
+            py_field_data = PyArray_SimpleNewFromData( 3, grid_dims, grid_dtype, (grid->field_data)[v].data_ptr );
 
             // add the field data to dict "libyt.grid_data[grid_id][field_list.field_name]"
             PyDict_SetItemString( py_field_labels, g_param_yt.field_list[v].field_name, py_field_data );
