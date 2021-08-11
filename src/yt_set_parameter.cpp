@@ -187,7 +187,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
 
    // Check that sum of num_grids_local_MPI is equal to num_grids (total number of grids), abort if not.
    if ( check_sum_num_grids_local_MPI( NRank, num_grids_local_MPI ) != YT_SUCCESS ){
-      YT_ABORT("Check failed in %s!", __FUNCTION__);
+      YT_ABORT("Check sum of local grids in each MPI rank failed in %s!\n", __FUNCTION__);
    }
 
 // If the above all works like charm.

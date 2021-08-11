@@ -55,45 +55,18 @@ int yt_commit_grids()
    log_info("Loading grids to yt ...\n");
 
 
-// Checking yt_field field_list
-// check if each elements in yt_field field_list has correct value.
-   for ( int v = 0; v < g_param_yt.num_fields; v++ ){
-      yt_field field = g_param_yt.field_list[v];
-      if ( !(field.validate()) ){
-         YT_ABORT("Validating input field list element [%d] ... failed\n", v);
-      }
-   }
-
-// check if field_list has all the field_name unique
-   for ( int v1 = 0; v1 < g_param_yt.num_fields; v1++ ){
-      for ( int v2 = v1+1; v2 < g_param_yt.num_fields; v2++ ){
-         if ( strcmp(g_param_yt.field_list[v1].field_name, g_param_yt.field_list[v2].field_name) == 0 ){
-            YT_ABORT("field_name in field_list[%d] and field_list[%d] are not unique!\n", v1, v2);
-         }
+// Check yt_field* field_list
+   if ( g_param_yt.num_fields > 0 ){
+      if ( check_field_list() != YT_SUCCESS ){
+         YT_ABORT("Check field_list failed in %s!\n", __FUNCTION__);
       }
    }
 
 
-// Checking yt_particle particle_list if only num_species > 0
-// check if each elements in yt_particle particle_list has correct value,
-// and check that species_name cannot be the same as g_param_yt.frontend
-   for ( int p = 0; p < g_param_yt.num_species; p++ ){
-      yt_particle particle = g_param_yt.particle_list[p];
-      if ( !(particle.validate()) ){
-         YT_ABORT("Validating input particle list element [%d] ... failed\n", p);
-      }
-      if ( strcmp(particle.species_name, g_param_yt.frontend) == 0 ){
-         YT_ABORT("particle_list[%d], species_name == %s, frontend == %s, expect species_name different from the frontend!\n",
-                   p, particle.species_name, g_param_yt.frontend);
-      }
-   }
-
-// check if particle_list has all the species_name unique
-   for ( int p1 = 0; p1 < g_param_yt.num_species; p1++ ){
-      for ( int p2 = p1+1; p2 < g_param_yt.num_species; p2++ ){
-         if ( strcmp(g_param_yt.particle_list[p1].species_name, g_param_yt.particle_list[p2].species_name) == 0 ){
-            YT_ABORT("species_name in particle_list[%d] and particle_list[%d] are not unique!\n", p1, p2);
-         }
+// Check yt_particle* particle_list
+   if ( g_param_yt.num_species > 0 ){
+      if ( check_particle_list() != YT_SUCCESS ){
+         YT_ABORT("Check particle_list failed in %s!\n", __FUNCTION__);
       }
    }
 
