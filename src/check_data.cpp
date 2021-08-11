@@ -1,16 +1,44 @@
 #include "yt_combo.h"
 #include "libyt.h"
 
+//-------------------------------------------------------------------------------------------------------
+// Function    :  check_sum_num_grids_local_MPI
+// Description :  Check sum of number of local grids in each MPI rank is equal to num_grids input by user.
+//
+// Note        :  1. Use inside yt_set_parameter()
+//                2. Check sum of number of local grids in each MPI rank is equal to num_grids input by 
+//                   user, which is equal to the number of total grids.
+//                
+// Parameter   :  int * &num_grids_local_MPI : Address to the int*, each element stores number of local 
+//                                             grids in each MPI rank.
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int check_sum_num_grids_local_MPI( int NRank, int * &num_grids_local_MPI ) {
+    long num_grids = 0;
+    for (int rid = 0; rid < NRank; rid = rid+1){
+        num_grids = num_grids + (long)num_grids_local_MPI[rid];
+    }
+    if (num_grids != g_param_yt.num_grids){
+        for(int rid = 0; rid < NRank; rid++){
+            log_error("MPI rank [ %d ], num_grids_local = %d.\n", rid, num_grids_local_MPI[rid]);
+        }
+        YT_ABORT("Sum of local grids in each MPI rank [%ld] are not equal to input num_grids [%ld]!\n", 
+                  num_grids, g_param_yt.num_grids );
+    }
+
+   return YT_SUCCESS;
+}
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  check_hierarchy.cpp
+// Function    :  check_hierarchy
 // Description :  Check that the hierarchy, parent-children relationships are correct
 //
 // Note        :  1. Use inside yt_commit_grids()
 // 			      2. Check that the hierarchy is correct, even though we didn't build a parent-children 
 //                   map.
 // 				  
-// Parameter   :  yt_hierarchy hierarchy : Contain full hierarchy
+// Parameter   :  yt_hierarchy * &hierarchy : Contain full hierarchy
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------

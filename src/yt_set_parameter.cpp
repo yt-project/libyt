@@ -186,16 +186,8 @@ int yt_set_parameter( yt_param_yt *param_yt )
    MPI_Bcast(num_grids_local_MPI, NRank, MPI_INT, RootRank, MPI_COMM_WORLD);
 
    // Check that sum of num_grids_local_MPI is equal to num_grids (total number of grids), abort if not.
-   long num_grids = 0;
-   for (int rid = 0; rid < NRank; rid = rid+1){
-      num_grids = num_grids + (long)num_grids_local_MPI[rid];
-   }
-   if (num_grids != g_param_yt.num_grids){
-      for(int rid = 0; rid < NRank; rid++){
-         log_error("MPI rank [ %d ], num_grids_local = %d.\n", rid, num_grids_local_MPI[rid]);
-      }
-      YT_ABORT("Sum of local grids in each MPI rank [%ld] are not equal to input num_grids [%ld]!\n", 
-                num_grids, g_param_yt.num_grids );
+   if ( check_sum_num_grids_local_MPI( NRank, num_grids_local_MPI ) != YT_SUCCESS ){
+      YT_ABORT("Check failed in %s!", __FUNCTION__);
    }
 
 // If the above all works like charm.

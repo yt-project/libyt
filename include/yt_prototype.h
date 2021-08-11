@@ -42,6 +42,7 @@ int  init_python( int argc, char *argv[] );
 int  init_libyt_module();
 int  allocate_hierarchy();
 int  append_grid( yt_grid *grid );
+int check_sum_num_grids_local_MPI( int NRank, int * &num_grids_local_MPI );
 int  check_hierarchy(yt_hierarchy * &hierarchy);
 #ifndef NO_PYTHON
 template <typename T>
