@@ -35,13 +35,16 @@ int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt )
 
 // store user-provided parameters to a libyt internal variable
 // --> better do it **before** calling any log function since they will query g_param_libyt.verbose
-   g_param_libyt.verbose = param_libyt->verbose;
-   g_param_libyt.script  = param_libyt->script;
-   g_param_libyt.counter = param_libyt->counter;   // useful during restart, where the initial counter can be non-zero
+   g_param_libyt.verbose    = param_libyt->verbose;
+   g_param_libyt.script     = param_libyt->script;
+   g_param_libyt.counter    = param_libyt->counter;   // useful during restart, where the initial counter can be non-zero
+   g_param_libyt.check_data = param_libyt->check_data;
 
    log_info( "Initializing libyt ...\n" );
    log_debug( "   verbose = %d\n", g_param_libyt.verbose );
-   log_debug( "   script  = %s\n", g_param_libyt.script );
+   log_debug( "    script = %s\n", g_param_libyt.script  );
+   log_debug( "   counter = %ld\n", g_param_libyt.counter);
+   log_debug( "check_data = %s\n", (g_param_libyt.check_data ? "true" : "false"));
 
 // create libyt module, should be before init_python
    if ( create_libyt_module() == YT_FAIL ) {
