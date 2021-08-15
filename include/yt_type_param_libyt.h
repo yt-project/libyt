@@ -19,6 +19,7 @@
 // Data Member :  [public ] ==> Set by users when calling yt_init()
 //                verbose : Verbose level
 //                script  : Name of the YT inline analysis script (without the .py extension)
+//                counter : Number of rounds doing inline-analysis
 //                check_data: Check the input data (ex: hierarchy, grid information...), if it is true.
 //
 //                [private] ==> Set and used by libyt internally
@@ -41,8 +42,8 @@ struct yt_param_libyt
 // ===================================================================================
    yt_verbose verbose;
    const char *script;
+   long       counter;   
    bool       check_data;
-
 
 // private data members
 // ===================================================================================
@@ -53,7 +54,7 @@ struct yt_param_libyt
    bool  get_gridsPtr;
    bool  commit_grids;
    bool  free_gridsPtr;
-   long  counter;
+   
 
 
    //===================================================================================
@@ -67,11 +68,13 @@ struct yt_param_libyt
    yt_param_libyt()
    {
 
-//    set defaults
-      verbose = YT_VERBOSE_WARNING;
-      script  = "yt_inline_script";
+//    Set by user
+      verbose    = YT_VERBOSE_WARNING;
+      script     = "yt_inline_script";
+      counter    = 0;
       check_data = true;
 
+//    Set by libyt
       libyt_initialized  = false;
       param_yt_set       = false;
       get_fieldsPtr      = false;
@@ -79,8 +82,6 @@ struct yt_param_libyt
       get_gridsPtr       = false;
       commit_grids       = false;
       free_gridsPtr      = true;
-      counter            = 0;
-
    } // METHOD : yt_param_libyt
 
 
