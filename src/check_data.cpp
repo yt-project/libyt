@@ -233,6 +233,10 @@ int check_grid(){
 // Note        :  1. Use inside yt_commit_grids()
 // 			      2. Check that the hierarchy is correct, even though we didn't build a parent-children 
 //                   map.
+//                  (1) Check every grid id are unique.
+//                  (2) Check if all grids with level > 0, have a good parent id.
+//                  (3) Check if children grids' edge fall between parent's.
+//                  (4) Check parent's level = children level - 1.
 // 				  
 // Parameter   :  yt_hierarchy * &hierarchy : Contain full hierarchy
 //
