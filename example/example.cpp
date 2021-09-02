@@ -188,7 +188,9 @@ int main( int argc, char *argv[] )
       // Since we are now using "gamer" as frontend, we need to set code specific parameter.
       // mhd must be defined in gamer frontend fields.py.
       const int mhd = 0;   
-      yt_add_user_parameter_int   ( "mhd", 1, &mhd);
+      yt_add_user_parameter_int("mhd", 1, &mhd);
+      const int srhd = 0;
+      yt_add_user_parameter_int("srhd", 1, &srhd);
 
       // You can also input your own code specific parameter to match your frontend's fields.py
       const  int   user_int        = 1;
