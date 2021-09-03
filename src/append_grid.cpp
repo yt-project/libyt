@@ -71,7 +71,7 @@ int append_grid( yt_grid *grid ){
          else {
             int grid_dtype;
             if ( get_npy_dtype((grid->field_data)[v].data_dtype, &grid_dtype) != YT_SUCCESS ){
-               YT_ABORT("Unknown yt_dtype, cannot match it to NumPy Enumerate type.\n");
+               YT_ABORT("Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
             }
             // get the dimension of the input array from the (grid->field_data)[v]
             npy_intp grid_dims[3] = { (grid->field_data)[v].data_dim[0],

@@ -251,8 +251,12 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     npy_intp dims[1] = { array_length };
     void     *output;
 
+    if ( get_npy_dtype(attr_dtype, &typenum) != YT_SUCCESS ){
+        PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
+        return NULL;
+    }
+
     if ( attr_dtype == YT_INT ){
-        typenum = NPY_INT;
         output = malloc( array_length * sizeof(int) );
         for ( long i = 0; i < array_length; i++ ){ 
             ((int *)output)[i] = 0;
@@ -260,7 +264,6 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
         get_attr(gid, attr_name, output);
     }
     else if ( attr_dtype == YT_FLOAT ){
-        typenum = NPY_FLOAT;
         output = malloc( array_length * sizeof(float) );
         for ( long i = 0; i < array_length; i++ ){ 
             ((float *)output)[i] = 0;
@@ -268,7 +271,6 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
         get_attr(gid, attr_name, output);
     }
     else if ( attr_dtype == YT_DOUBLE ){
-        typenum = NPY_DOUBLE;
         output = malloc( array_length * sizeof(double) );
         for ( long i = 0; i < array_length; i++ ){ 
             ((double *)output)[i] = 0;
