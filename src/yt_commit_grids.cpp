@@ -10,13 +10,12 @@
 //                2. Must call yt_get_fieldsPtr (if num_fields>0), yt_get_particlesPtr (if num_species>0), 
 //                   yt_get_gridsPtr, which gets data info from user.
 //                3. Check the local grids, field list, and particle list. 
-//                4. Sum up particle_count_list in each individual grid and store in grid_particle_count.
-//                5. Force the "cell-centered" field data_dim read from grid_dimensions.
-//                6. Append field_list info and particle_list info to libyt.param_yt['field_list'] and 
+//                4. Append field_list info and particle_list info to libyt.param_yt['field_list'] and 
 //                   libyt.param_yt['particle_list'].
-//                7. Gather hierarchy in different rank, and check hierarchy in check_hierarchy().
-//                8. Pass the grids and hierarchy to YT in function append_grid().
-//                9. We assume that one grid contains all the fields belong to that grid.
+//                5. Sum up particle_count_list in each individual grid and store in grid_particle_count.
+//                6. Gather hierarchy in different rank, and check hierarchy in check_hierarchy().
+//                7. Pass the grids and hierarchy to YT in function append_grid().
+//                8. We assume that one grid contains all the fields belong to that grid.
 //
 // Parameter   :
 //
