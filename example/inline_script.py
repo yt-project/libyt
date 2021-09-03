@@ -22,18 +22,19 @@ def yt_inline_ProfilePlot():
         profile.save()
     
 def yt_inline_ParticlePlot():
-    # [Caution] YT Particle Plot does not support parallelism for now.
-    ds = yt.frontends.libyt.libytDataset()
+    pass
+    # # [Caution] YT Particle Plot does not support parallelism for now.
+    # ds = yt.frontends.libyt.libytDataset()
     
-    ## ParticleProjectionPlot
-    #==========================
-    # par = yt.ParticleProjectionPlot(ds, "z")
+    # ## ParticleProjectionPlot
+    # #==========================
+    # # par = yt.ParticleProjectionPlot(ds, "z")
 
-    ## ParticlePlot
-    #==========================
-    par = yt.ParticlePlot(ds, "particle_position_x", "particle_position_y", "Level", center = 'c')
+    # ## ParticlePlot
+    # #==========================
+    # par = yt.ParticlePlot(ds, "particle_position_x", "particle_position_y", "Level", center = 'c')
 
-    par.save()
+    # par.save()
 
 def test_user_parameter():
     import libyt

@@ -69,15 +69,9 @@ int append_grid( yt_grid *grid ){
                         grid->id, g_param_yt.field_list[v].field_name );
          }
          else {
-            int grid_dtype = NPY_DOUBLE;
-            if ( (grid->field_data)[v].data_dtype == YT_FLOAT ){
-               grid_dtype = NPY_FLOAT;
-            }
-            else if ( (grid->field_data)[v].data_dtype == YT_DOUBLE ){
-               grid_dtype = NPY_DOUBLE;
-            }
-            else if ( (grid->field_data)[v].data_dtype == YT_INT ){
-               grid_dtype = NPY_INT;
+            int grid_dtype;
+            if ( get_npy_dtype((grid->field_data)[v].data_dtype, &grid_dtype) != YT_SUCCESS ){
+               YT_ABORT("Unknown yt_dtype, cannot match it to NumPy Enumerate type.\n");
             }
             // get the dimension of the input array from the (grid->field_data)[v]
             npy_intp grid_dims[3] = { (grid->field_data)[v].data_dim[0],
