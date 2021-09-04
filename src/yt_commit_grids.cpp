@@ -275,7 +275,9 @@ int yt_commit_grids()
       }
 
       // Append grid to YT
-      append_grid( &grid_combine );
+      if ( append_grid( &grid_combine ) != YT_SUCCESS ){
+         YT_ABORT("Failed to append grid [ %ld ]!\n", grid_combine.id);
+      }
    }
 
    log_debug( "Append grids to libyt.grid_data ... done!\n" );
