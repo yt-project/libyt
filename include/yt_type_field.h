@@ -108,7 +108,7 @@ struct yt_field
 //                  (2) field_define_type can only be : "cell-centered", "face-centered", "derived_func".
 //                  (3) Check if field_dtype is set.
 //                  (4) Raise warning if derived_func == NULL and field_define_type is set to "derived_func".
-//               2. Used in yt_commit_grids()
+//               2. Used in check_field_list()
 // 
 // Parameter   : None
 // ======================================================================================================

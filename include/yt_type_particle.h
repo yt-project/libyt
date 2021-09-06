@@ -238,6 +238,7 @@ struct yt_particle
 //                  (5) call yt_attribute validate for each attr_list elements.
 //                  (6) raise log_warning if coor_x, coor_y, coor_z is not set.
 //                  (7) raise log_warning if get_attr not set.
+//               2. Used inside check_particle_list().
 // 
 // Parameter   : None
 // ======================================================================================================
