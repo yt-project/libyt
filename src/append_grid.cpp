@@ -59,21 +59,54 @@ int append_grid( yt_grid *grid ){
       }
 
 //    Else grid->field_data != NULL, append the data. 
-//    Or else append Py_None. So that we avoid dealing with numpy scalar.
+//    Or else append Py_None.
       else {
          if ( (grid->field_data)[v].data_ptr == NULL ){
             // add Py_None to dict "libyt.grid_data[grid_id][field_list.field_name]"
             PyDict_SetItemString( py_field_labels, g_param_yt.field_list[v].field_name, Py_None );
 
-            log_debug( "Inserting [ None ] to grid [%15ld] field data [%s] to libyt.grid_data, since data_ptr == NULL\n", 
+            log_debug( "Inserting [ None ] to grid [%ld] field data [%s] to libyt.grid_data, since data_ptr == NULL\n", 
                         grid->id, g_param_yt.field_list[v].field_name );
          }
          else {
+            // Grab NumPy Enumerate Type in order: (1)data_dtype (2)field_dtype
             int grid_dtype;
-            if ( get_npy_dtype((grid->field_data)[v].data_dtype, &grid_dtype) != YT_SUCCESS ){
-               YT_ABORT("Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
+            if ( get_npy_dtype((grid->field_data)[v].data_dtype, &grid_dtype) == YT_SUCCESS ){
+               log_debug("Grid ID [ %ld ], field data [ %s ], grab NumPy enumerate type from data_dtype.\n",
+                         grid->id, g_param_yt.field_list[v].field_name);
             }
-            // get the dimension of the input array from the (grid->field_data)[v]
+            else if ( get_npy_dtype(g_param_yt.field_list[v].field_dtype, &grid_dtype) == YT_SUCCESS ){
+               (grid->field_data)[v].data_dtype = g_param_yt.field_list[v].field_dtype;
+               log_debug("Grid ID [ %ld ], field data [ %s ], grab NumPy enumerate type from field_dtype.\n",
+                         grid->id, g_param_yt.field_list[v].field_name);
+            }
+            else{
+               YT_ABORT("Grid ID [ %ld ], field data [ %s ], cannot get the NumPy enumerate type properly.\n",
+                         grid->id, g_param_yt.field_list[v].field_name);
+            }
+
+            // Get the dimension of the input array
+            // Only "cell-centered" will be set to grid_dimensions, else should set in data_dim.
+            if ( strcmp(g_param_yt.field_list[v].field_define_type, "cell-centered") == 0 ){
+               if ( g_param_yt.field_list[v].swap_axes == true ){
+                  (grid->field_data)[v].data_dim[0] = (grid->grid_dimensions)[2];
+                  (grid->field_data)[v].data_dim[1] = (grid->grid_dimensions)[1];
+                  (grid->field_data)[v].data_dim[2] = (grid->grid_dimensions)[0];
+               }
+               else{
+                  (grid->field_data)[v].data_dim[0] = (grid->grid_dimensions)[0];
+                  (grid->field_data)[v].data_dim[1] = (grid->grid_dimensions)[1];
+                  (grid->field_data)[v].data_dim[2] = (grid->grid_dimensions)[2];
+               }
+            }
+            // See if all data_dim > 0, abort if not.
+            for (int d = 0; d < 3; d++){
+               if ( (grid->field_data)[v].data_dim[d] <= 0 ){
+                  YT_ABORT("Grid ID [ %ld ], field data [ %s ], data_dim[%d] = %d <= 0.\n",
+                            grid->id, g_param_yt.field_list[v].field_name, d, (grid->field_data)[v].data_dim[d]);
+               }
+            }
+
             npy_intp grid_dims[3] = { (grid->field_data)[v].data_dim[0],
                                       (grid->field_data)[v].data_dim[1],
                                       (grid->field_data)[v].data_dim[2]};

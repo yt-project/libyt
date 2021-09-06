@@ -107,36 +107,6 @@ int yt_commit_grids()
                       grid.id, grid.particle_count_list[s], g_param_yt.particle_list[s].species_name);
          }
       }
-
-      // Deal with field_data in grid
-      for (int v = 0; v < g_param_yt.num_fields; v++){
-
-         // (2) set data_dim in field_data if field_define_type == "cell-centered"
-         if ( strcmp(g_param_yt.field_list[v].field_define_type, "cell-centered") == 0 ){
-            // set the field_data data_dim, base on grid_dimensions and swap_axes
-            if ( g_param_yt.field_list[v].swap_axes == true ){
-               grid.field_data[v].data_dim[0] = grid.grid_dimensions[2];
-               grid.field_data[v].data_dim[1] = grid.grid_dimensions[1];
-               grid.field_data[v].data_dim[2] = grid.grid_dimensions[0];
-            }
-            else {
-               grid.field_data[v].data_dim[0] = grid.grid_dimensions[0];
-               grid.field_data[v].data_dim[1] = grid.grid_dimensions[1];
-               grid.field_data[v].data_dim[2] = grid.grid_dimensions[2];
-            }
-         }
-
-         // (3) Check field_data data_dtype, if it is not one of enum yt_dtype or YT_DTYPE_UNKNOWN, set to field_dtype.
-         if ( grid.field_data[v].data_dtype == YT_DTYPE_UNKNOWN ){
-            grid.field_data[v].data_dtype = g_param_yt.field_list[v].field_dtype;
-         }
-         else if ( grid.field_data[v].data_dtype != YT_FLOAT && grid.field_data[v].data_dtype != YT_DOUBLE &&
-                   grid.field_data[v].data_dtype != YT_INT ){
-            log_warning("Grid [%ld], field_data [%s], data_dtype is not one of YT_FLOAT, YT_DOUBLE, YT_INT, so set to field_dtype.\n", 
-                         grid.id, g_param_yt.field_list[v].field_name);
-            grid.field_data[v].data_dtype = g_param_yt.field_list[v].field_dtype;
-         }
-      }
    }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
