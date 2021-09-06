@@ -166,7 +166,7 @@ int yt_commit_grids()
 
    for (int i = 0; i < NRank; i++){
       offsets[i] = 0;
-      accumulate = 0
+      accumulate = 0;
       for (int j = mpi_start; j < i; j++){
          offsets[i] += g_param_yt.num_grids_local_MPI[j];
          accumulate += g_param_yt.num_grids_local_MPI[j];
