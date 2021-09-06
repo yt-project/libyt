@@ -158,29 +158,73 @@ int yt_commit_grids()
    }
 
 // MPI_Gatherv to RootRank
-// Reference: https://www.rookiehpc.com/mpi/docs/mpi_gatherv.php
    int *recv_counts = new int [NRank]; 
    int *offsets = new int [NRank];
-      
-   for (int i = 0; i < NRank; i = i+1){
-      recv_counts[i] = g_param_yt.num_grids_local_MPI[i];
-      offsets[i] = 0;
-      for (int j = 0; j < i; j = j+1){
-         offsets[i] = offsets[i] + recv_counts[j];
+   int mpi_start = 0;
+   long index_start = 0;
+   long accumulate = 0;
 
-         // Prevent exceeding int storage.
-         if ( offsets[i] < 0 ){
-            YT_ABORT("Exceeding int storage, libyt not support number of grids larger than %d yet.\n", INT_MAX);
+   for (int i = 0; i < NRank; i++){
+      offsets[i] = 0;
+      accumulate = 0
+      for (int j = mpi_start; j < i; j++){
+         offsets[i] += g_param_yt.num_grids_local_MPI[j];
+         accumulate += g_param_yt.num_grids_local_MPI[j];
+         // exceeding INT_MAX, start MPI_Gatherv
+         if ( accumulate > INT_MAX ){
+            // Set recv_counts and offsets.
+            for (int k = 0; k < NRank; k++){
+               if ( mpi_start <= k && k < i ){
+                  recv_counts[k] = g_param_yt.num_grids_local_MPI[k];
+               }
+               else{
+                  offsets[k] = 0;
+                  recv_counts[k] = 0;
+               }              
+            }
+            // MPI_Gatherv
+            if ( mpi_start <= MyRank && MyRank < i ){
+               MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type, 
+                           &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+            }
+            else{
+               MPI_Gatherv(hierarchy_local,                          0, yt_hierarchy_mpi_type, 
+                           &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+            }
+            // New start point.
+            mpi_start = i;
+            offsets[mpi_start] = 0;
+            index_start = 0;
+            for (int k = 0; k < i; k++){
+               index_start += g_param_yt.num_grids_local_MPI[k];
+            }
+         }
+         // Reach last mpi rank, MPI_Gatherv
+         // We can ignore the case when there is only one rank left and its offsets exceeds INT_MAX simultaneously.
+         // Because one is type int, the other is type long.
+         else if ( i == NRank - 1 ){
+            // Set recv_counts and offsets.
+            for (int k = 0; k < NRank; k++){
+               if ( mpi_start <= k && k <= i ){
+                  recv_counts[k] = g_param_yt.num_grids_local_MPI[k];
+               }
+               else{
+                  offsets[k] = 0;
+                  recv_counts[k] = 0;
+               }        
+            }
+            // MPI_Gatherv
+            if ( mpi_start <= MyRank && MyRank <= i ){
+               MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type, 
+                           &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+            }
+            else{
+               MPI_Gatherv(hierarchy_local,                          0, yt_hierarchy_mpi_type, 
+                           &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+            }
          }
       }
    }
-
-// Not sure if we need this MPI_Barrier
-   MPI_Barrier(MPI_COMM_WORLD);
-
-// Gather all the grids hierarchy
-   MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type, 
-               hierarchy_full, recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
 
 // Check that the hierarchy are correct, do the test on RootRank only
    if ( g_param_libyt.check_data == true && MyRank == RootRank ){
