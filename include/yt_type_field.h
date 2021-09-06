@@ -132,9 +132,18 @@ struct yt_field
    		YT_ABORT("In field [%s], unknown field_define_type [%s]!\n", field_name, field_define_type);
    	}
 
-   	// Check if field_dtype is set.
-   	if ( field_dtype != YT_FLOAT && field_dtype != YT_DOUBLE && field_dtype != YT_INT ){
-   		YT_ABORT("In field [%s], unknown field_dtype, should be one of these: YT_FLOAT, YT_DOUBLE, YT_INT!\n");
+   	// if field_dtype is set.
+   	bool check2 = false;
+   	for ( int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++ ){
+   		yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
+   		if ( field_dtype == dtype ){
+   			check2 = true;
+   			break;
+   		}
+   	}
+   	if ( check2 == false && strcmp(field_define_type, "derived_func") != 0 ){
+   		YT_ABORT("In field [%s], field_define_type == %s, but field_dtype not set!\n", 
+   			       field_name, field_define_type);
    	}
 
    	// Raise warning if derived_func == NULL and field_define_type is set to "derived_func".
