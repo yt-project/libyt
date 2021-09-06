@@ -225,6 +225,14 @@ int yt_commit_grids()
          }
       }
    }
+// The code above does not consider NRank = 1. So we need to explicitly support NRank = 1.
+// I know this is ugly, so just bear with me.
+   if ( NRank == 1 ){
+      recv_counts[0] = g_param_yt.num_grids_local_MPI[0];
+      offsets[0] = 0;
+      MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type,
+                  hierarchy_full, recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+   }
 
 // Check that the hierarchy are correct, do the test on RootRank only
    if ( g_param_libyt.check_data == true && MyRank == RootRank ){
