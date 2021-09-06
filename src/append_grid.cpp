@@ -38,7 +38,7 @@ int append_grid( yt_grid *grid ){
    FILL_ARRAY( "grid_parent_id",      &grid->parent_id,           1, npy_long   );
    FILL_ARRAY( "grid_levels",         &grid->level,               1, npy_long   );
    FILL_ARRAY( "proc_num",            &grid->proc_num,            1, npy_int    );
-   log_debug( "Inserting grid [%15ld] info to libyt.hierarchy ... done\n", grid->id );
+   log_debug( "Inserting grid [%ld] info to libyt.hierarchy ... done\n", grid->id );
 
 // export grid data to libyt.grid_data as "libyt.grid_data[grid_id][field_list.field_name][field_data.data_ptr]"
    PyObject *py_grid_id, *py_field_labels, *py_field_data;
@@ -120,7 +120,7 @@ int append_grid( yt_grid *grid ){
             // call decref since PyDict_SetItemString() returns a new reference
             Py_DECREF( py_field_data );
 
-            log_debug( "Inserting grid [%15ld] field data [%s] to libyt.grid_data ... done\n", 
+            log_debug( "Inserting grid [%ld] field data [%s] to libyt.grid_data ... done\n", 
                         grid->id, g_param_yt.field_list[v].field_name );
          }
 
