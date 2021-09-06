@@ -43,8 +43,7 @@ struct yt_species
 //                   ( "name", ("units", ["alias1", "alias2"], "display_name"))
 //
 // Data Member :  char     *attr_name             : Particle label name, which in yt, it is its attribute.
-//                yt_dtype  attr_dtype            : Attribute's data type. For now, it is type yt_dtype:
-//                                                  (1) YT_FLOAT (2) YT_DOUBLE (3) YT_INT
+//                yt_dtype  attr_dtype            : Attribute's data type. Should be yt_dtype.
 //                char     *attr_unit             : Set attr_unit if needed, if not set, it will search 
 //                                               for XXXFieldInfo. Where XXX is set by g_param_yt.frontend.
 //                int       num_attr_name_alias   : Set attribute name to alias, number of the aliases.
@@ -110,7 +109,7 @@ struct yt_attribute
 // 
 // Note        : 1. Validate data member value in one yt_attribute struct.
 //                  (1) attr_name is set, and != NULL.
-//                  (2) attr_dtype is one of yt_dtype = {YT_FLOAT, YT_DOUBLE, YT_INT}.
+//                  (2) attr_dtype is one of yt_dtype.
 // 
 // Parameter   : None
 // ======================================================================================================
@@ -120,12 +119,20 @@ struct yt_attribute
    			YT_ABORT("attr_name is not set!\n");
    		}
 
-   		// attr_dtype is one of yt_dtype = {YT_FLOAT, YT_DOUBLE, YT_INT}.
-   		if ( attr_dtype != YT_FLOAT && attr_dtype != YT_DOUBLE && attr_dtype != YT_INT ){
-   			YT_ABORT("In attr [%s], unknown attr_dtype, should be one of these: YT_FLOAT, YT_DOUBLE, YT_INT!\n", attr_name);
+   		// attr_dtype is one of yt_dtype
+   		bool valid = false;
+   		for ( int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++ ){
+   			yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
+   			if ( attr_dtype == dtype ){
+   				valid = true;
+   				break;
+   			}
+   		}
+   		if ( valid == false ){
+   			YT_ABORT("In attr [%s], unknown attr_dtype!\n", attr_name);
    		}
 
-      	return YT_SUCCESS;
+   		return YT_SUCCESS;
    	}
 
 
@@ -268,13 +275,13 @@ struct yt_particle
 
    		// if didn't input coor_x/y/z, yt cannot function properly for this particle.
    		if ( coor_x == NULL ){
-   			log_warning("In particle species [ %s ], attribute name of coordinate x coor_x not set!\n", species_name);
+   			YT_ABORT("In particle species [ %s ], attribute name of coordinate x coor_x not set!\n", species_name);
    		}
    		if ( coor_y == NULL ){
-   			log_warning("In particle species [ %s ], attribute name of coordinate y coor_y not set!\n", species_name);
+   			YT_ABORT("In particle species [ %s ], attribute name of coordinate y coor_y not set!\n", species_name);
    		}
    		if ( coor_z == NULL ){
-   			log_warning("In particle species [ %s ], attribute name of coordinate z coor_z not set!\n", species_name);
+   			YT_ABORT("In particle species [ %s ], attribute name of coordinate z coor_z not set!\n", species_name);
    		}
 
    		// if didn't input get_attr, yt cannot function properly for this particle.

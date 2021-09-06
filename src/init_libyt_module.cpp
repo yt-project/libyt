@@ -256,28 +256,36 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
         return NULL;
     }
 
+    // Initialize output array
     if ( attr_dtype == YT_INT ){
         output = malloc( array_length * sizeof(int) );
         for ( long i = 0; i < array_length; i++ ){ 
             ((int *)output)[i] = 0;
         }
-        get_attr(gid, attr_name, output);
     }
     else if ( attr_dtype == YT_FLOAT ){
         output = malloc( array_length * sizeof(float) );
         for ( long i = 0; i < array_length; i++ ){ 
             ((float *)output)[i] = 0;
         }
-        get_attr(gid, attr_name, output);
     }
     else if ( attr_dtype == YT_DOUBLE ){
         output = malloc( array_length * sizeof(double) );
         for ( long i = 0; i < array_length; i++ ){ 
             ((double *)output)[i] = 0;
         }
-        get_attr(gid, attr_name, output);
     }
+    else if ( attr_dtype == YT_LONG ){
+        output = malloc( array_length * sizeof(long) );
+        for ( long i = 0; i < array_length; i++ ){
+            ((long *)output)[i] = 0;
+        }
+    }
+    
+    // Call get_attr function pointer    
+    get_attr(gid, attr_name, output);
 
+    // Wrap the output and return back to python
     PyObject *outputNumpyArray = PyArray_SimpleNewFromData(nd, dims, typenum, output);
     PyArray_ENABLEFLAGS( (PyArrayObject*) outputNumpyArray, NPY_ARRAY_OWNDATA);
 
