@@ -188,7 +188,9 @@ int main( int argc, char *argv[] )
       // Since we are now using "gamer" as frontend, we need to set code specific parameter.
       // mhd must be defined in gamer frontend fields.py.
       const int mhd = 0;   
-      yt_add_user_parameter_int   ( "mhd", 1, &mhd);
+      yt_add_user_parameter_int("mhd", 1, &mhd);
+      const int srhd = 0;
+      yt_add_user_parameter_int("srhd", 1, &srhd);
 
       // You can also input your own code specific parameter to match your frontend's fields.py
       const  int   user_int        = 1;
@@ -268,6 +270,9 @@ int main( int argc, char *argv[] )
       for ( int v=0; v<4; v++ ){
          particle_list[1].attr_list[v].attr_name = attr_name[v];     // Fill in for particle species "par2"
       }
+      particle_list[1].coor_x = attr_name[0];
+      particle_list[1].coor_y = attr_name[1];
+      particle_list[1].coor_z = attr_name[2];
 
 //    ============================================================
 //    5. Get pointer to local grids array, then set up local grids

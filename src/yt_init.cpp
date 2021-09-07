@@ -41,10 +41,10 @@ int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt )
    g_param_libyt.check_data = param_libyt->check_data;
 
    log_info( "Initializing libyt ...\n" );
-   log_debug( "   verbose = %d\n", g_param_libyt.verbose );
-   log_debug( "    script = %s\n", g_param_libyt.script  );
-   log_debug( "   counter = %ld\n", g_param_libyt.counter);
-   log_debug( "check_data = %s\n", (g_param_libyt.check_data ? "true" : "false"));
+   log_info( "   verbose = %d\n", g_param_libyt.verbose );
+   log_info( "    script = %s\n", g_param_libyt.script  );
+   log_info( "   counter = %ld\n", g_param_libyt.counter);
+   log_info( "check_data = %s\n", (g_param_libyt.check_data ? "true" : "false"));
 
 // create libyt module, should be before init_python
    if ( create_libyt_module() == YT_FAIL ) {

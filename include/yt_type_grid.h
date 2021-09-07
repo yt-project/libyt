@@ -130,7 +130,7 @@ struct yt_grid
    //
    // Note        :  1. This function does not perform checks that depend on the input
    //                   YT parameters (e.g., whether left_edge lies within the simulation domain)
-   //                   ==> These checks are performed in yt_commit_grids()
+   //                   ==> These checks are performed in check_grid()
    //                2. If check needs information other than grid info, we will do it elsewhere.
    //
    // Parameter   :  None

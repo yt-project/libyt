@@ -10,13 +10,12 @@
 //                2. Must call yt_get_fieldsPtr (if num_fields>0), yt_get_particlesPtr (if num_species>0), 
 //                   yt_get_gridsPtr, which gets data info from user.
 //                3. Check the local grids, field list, and particle list. 
-//                4. Sum up particle_count_list in each individual grid and store in grid_particle_count.
-//                5. Force the "cell-centered" field data_dim read from grid_dimensions.
-//                6. Append field_list info and particle_list info to libyt.param_yt['field_list'] and 
+//                4. Append field_list info and particle_list info to libyt.param_yt['field_list'] and 
 //                   libyt.param_yt['particle_list'].
-//                7. Gather hierarchy in different rank, and check hierarchy in check_hierarchy().
-//                8. Pass the grids and hierarchy to YT in function append_grid().
-//                9. We assume that one grid contains all the fields belong to that grid.
+//                5. Sum up particle_count_list in each individual grid and store in grid_particle_count.
+//                6. Gather hierarchy in different rank, and check hierarchy in check_hierarchy().
+//                7. Pass the grids and hierarchy to YT in function append_grid().
+//                8. We assume that one grid contains all the fields belong to that grid.
 //
 // Parameter   :
 //
@@ -108,36 +107,6 @@ int yt_commit_grids()
                       grid.id, grid.particle_count_list[s], g_param_yt.particle_list[s].species_name);
          }
       }
-
-      // Deal with field_data in grid
-      for (int v = 0; v < g_param_yt.num_fields; v++){
-
-         // (2) set data_dim in field_data if field_define_type == "cell-centered"
-         if ( strcmp(g_param_yt.field_list[v].field_define_type, "cell-centered") == 0 ){
-            // set the field_data data_dim, base on grid_dimensions and swap_axes
-            if ( g_param_yt.field_list[v].swap_axes == true ){
-               grid.field_data[v].data_dim[0] = grid.grid_dimensions[2];
-               grid.field_data[v].data_dim[1] = grid.grid_dimensions[1];
-               grid.field_data[v].data_dim[2] = grid.grid_dimensions[0];
-            }
-            else {
-               grid.field_data[v].data_dim[0] = grid.grid_dimensions[0];
-               grid.field_data[v].data_dim[1] = grid.grid_dimensions[1];
-               grid.field_data[v].data_dim[2] = grid.grid_dimensions[2];
-            }
-         }
-
-         // (3) Check field_data data_dtype, if it is not one of enum yt_dtype or YT_DTYPE_UNKNOWN, set to field_dtype.
-         if ( grid.field_data[v].data_dtype == YT_DTYPE_UNKNOWN ){
-            grid.field_data[v].data_dtype = g_param_yt.field_list[v].field_dtype;
-         }
-         else if ( grid.field_data[v].data_dtype != YT_FLOAT && grid.field_data[v].data_dtype != YT_DOUBLE &&
-                   grid.field_data[v].data_dtype != YT_INT ){
-            log_warning("Grid [%ld], field_data [%s], data_dtype is not one of YT_FLOAT, YT_DOUBLE, YT_INT, so set to field_dtype.\n", 
-                         grid.id, g_param_yt.field_list[v].field_name);
-            grid.field_data[v].data_dtype = g_param_yt.field_list[v].field_dtype;
-         }
-      }
    }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,29 +158,73 @@ int yt_commit_grids()
    }
 
 // MPI_Gatherv to RootRank
-// Reference: https://www.rookiehpc.com/mpi/docs/mpi_gatherv.php
    int *recv_counts = new int [NRank]; 
    int *offsets = new int [NRank];
-      
-   for (int i = 0; i < NRank; i = i+1){
-      recv_counts[i] = g_param_yt.num_grids_local_MPI[i];
-      offsets[i] = 0;
-      for (int j = 0; j < i; j = j+1){
-         offsets[i] = offsets[i] + recv_counts[j];
+   int mpi_start = 0;
+   long index_start = 0;
+   long accumulate = 0;
 
-         // Prevent exceeding int storage.
-         if ( offsets[i] < 0 ){
-            YT_ABORT("Exceeding int storage, libyt not support number of grids larger than %d yet.\n", INT_MAX);
+   for (int i = 0; i < NRank; i++){
+      offsets[i] = 0;
+      accumulate = 0;
+      for (int j = mpi_start; j < i; j++){
+         offsets[i] += g_param_yt.num_grids_local_MPI[j];
+         accumulate += g_param_yt.num_grids_local_MPI[j];
+      }
+      // exceeding INT_MAX, start MPI_Gatherv
+      if ( accumulate > INT_MAX ){
+         // Set recv_counts and offsets.
+         for (int k = 0; k < NRank; k++){
+            if ( mpi_start <= k && k < i ){
+               recv_counts[k] = g_param_yt.num_grids_local_MPI[k];
+            }
+            else{
+               offsets[k] = 0;
+               recv_counts[k] = 0;
+            }              
+         }
+         // MPI_Gatherv
+         if ( mpi_start <= MyRank && MyRank < i ){
+            MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type, 
+                        &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+         }
+         else{
+            MPI_Gatherv(hierarchy_local,                          0, yt_hierarchy_mpi_type, 
+                        &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+         }
+         // New start point.
+         mpi_start = i;
+         offsets[mpi_start] = 0;
+         index_start = 0;
+         for (int k = 0; k < i; k++){
+            index_start += g_param_yt.num_grids_local_MPI[k];
+         }
+      }
+      // Reach last mpi rank, MPI_Gatherv
+      // We can ignore the case when there is only one rank left and its offsets exceeds INT_MAX simultaneously.
+      // Because one is type int, the other is type long.
+      else if ( i == NRank - 1 ){
+         // Set recv_counts and offsets.
+         for (int k = 0; k < NRank; k++){
+            if ( mpi_start <= k && k <= i ){
+               recv_counts[k] = g_param_yt.num_grids_local_MPI[k];
+            }
+            else{
+               offsets[k] = 0;
+               recv_counts[k] = 0;
+            }        
+         }
+         // MPI_Gatherv
+         if ( mpi_start <= MyRank && MyRank <= i ){
+            MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type, 
+                        &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+         }
+         else{
+            MPI_Gatherv(hierarchy_local,                          0, yt_hierarchy_mpi_type, 
+                        &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
          }
       }
    }
-
-// Not sure if we need this MPI_Barrier
-   MPI_Barrier(MPI_COMM_WORLD);
-
-// Gather all the grids hierarchy
-   MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type, 
-               hierarchy_full, recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
 
 // Check that the hierarchy are correct, do the test on RootRank only
    if ( g_param_libyt.check_data == true && MyRank == RootRank ){
@@ -276,7 +289,9 @@ int yt_commit_grids()
       }
 
       // Append grid to YT
-      append_grid( &grid_combine );
+      if ( append_grid( &grid_combine ) != YT_SUCCESS ){
+         YT_ABORT("Failed to append grid [ %ld ]!\n", grid_combine.id);
+      }
    }
 
    log_debug( "Append grids to libyt.grid_data ... done!\n" );
