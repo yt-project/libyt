@@ -170,68 +170,60 @@ int yt_commit_grids()
       for (int j = mpi_start; j < i; j++){
          offsets[i] += g_param_yt.num_grids_local_MPI[j];
          accumulate += g_param_yt.num_grids_local_MPI[j];
-         // exceeding INT_MAX, start MPI_Gatherv
-         if ( accumulate > INT_MAX ){
-            // Set recv_counts and offsets.
-            for (int k = 0; k < NRank; k++){
-               if ( mpi_start <= k && k < i ){
-                  recv_counts[k] = g_param_yt.num_grids_local_MPI[k];
-               }
-               else{
-                  offsets[k] = 0;
-                  recv_counts[k] = 0;
-               }              
-            }
-            // MPI_Gatherv
-            if ( mpi_start <= MyRank && MyRank < i ){
-               MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type, 
-                           &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+      }
+      // exceeding INT_MAX, start MPI_Gatherv
+      if ( accumulate > INT_MAX ){
+         // Set recv_counts and offsets.
+         for (int k = 0; k < NRank; k++){
+            if ( mpi_start <= k && k < i ){
+               recv_counts[k] = g_param_yt.num_grids_local_MPI[k];
             }
             else{
-               MPI_Gatherv(hierarchy_local,                          0, yt_hierarchy_mpi_type, 
-                           &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
-            }
-            // New start point.
-            mpi_start = i;
-            offsets[mpi_start] = 0;
-            index_start = 0;
-            for (int k = 0; k < i; k++){
-               index_start += g_param_yt.num_grids_local_MPI[k];
-            }
+               offsets[k] = 0;
+               recv_counts[k] = 0;
+            }              
          }
-         // Reach last mpi rank, MPI_Gatherv
-         // We can ignore the case when there is only one rank left and its offsets exceeds INT_MAX simultaneously.
-         // Because one is type int, the other is type long.
-         else if ( i == NRank - 1 ){
-            // Set recv_counts and offsets.
-            for (int k = 0; k < NRank; k++){
-               if ( mpi_start <= k && k <= i ){
-                  recv_counts[k] = g_param_yt.num_grids_local_MPI[k];
-               }
-               else{
-                  offsets[k] = 0;
-                  recv_counts[k] = 0;
-               }        
-            }
-            // MPI_Gatherv
-            if ( mpi_start <= MyRank && MyRank <= i ){
-               MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type, 
-                           &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
-            }
-            else{
-               MPI_Gatherv(hierarchy_local,                          0, yt_hierarchy_mpi_type, 
-                           &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
-            }
+         // MPI_Gatherv
+         if ( mpi_start <= MyRank && MyRank < i ){
+            MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type, 
+                        &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+         }
+         else{
+            MPI_Gatherv(hierarchy_local,                          0, yt_hierarchy_mpi_type, 
+                        &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+         }
+         // New start point.
+         mpi_start = i;
+         offsets[mpi_start] = 0;
+         index_start = 0;
+         for (int k = 0; k < i; k++){
+            index_start += g_param_yt.num_grids_local_MPI[k];
          }
       }
-   }
-// The code above does not consider NRank = 1. So we need to explicitly support NRank = 1.
-// I know this is ugly, so just bear with me.
-   if ( NRank == 1 ){
-      recv_counts[0] = g_param_yt.num_grids_local_MPI[0];
-      offsets[0] = 0;
-      MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type,
-                  hierarchy_full, recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+      // Reach last mpi rank, MPI_Gatherv
+      // We can ignore the case when there is only one rank left and its offsets exceeds INT_MAX simultaneously.
+      // Because one is type int, the other is type long.
+      else if ( i == NRank - 1 ){
+         // Set recv_counts and offsets.
+         for (int k = 0; k < NRank; k++){
+            if ( mpi_start <= k && k <= i ){
+               recv_counts[k] = g_param_yt.num_grids_local_MPI[k];
+            }
+            else{
+               offsets[k] = 0;
+               recv_counts[k] = 0;
+            }        
+         }
+         // MPI_Gatherv
+         if ( mpi_start <= MyRank && MyRank <= i ){
+            MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type, 
+                        &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+         }
+         else{
+            MPI_Gatherv(hierarchy_local,                          0, yt_hierarchy_mpi_type, 
+                        &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
+         }
+      }
    }
 
 // Check that the hierarchy are correct, do the test on RootRank only
