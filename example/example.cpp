@@ -270,6 +270,9 @@ int main( int argc, char *argv[] )
       for ( int v=0; v<4; v++ ){
          particle_list[1].attr_list[v].attr_name = attr_name[v];     // Fill in for particle species "par2"
       }
+      particle_list[1].coor_x = attr_name[0];
+      particle_list[1].coor_y = attr_name[1];
+      particle_list[1].coor_z = attr_name[2];
 
 //    ============================================================
 //    5. Get pointer to local grids array, then set up local grids
