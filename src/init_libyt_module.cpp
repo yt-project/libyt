@@ -283,7 +283,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
         }
     }
     
-    // Call get_attr function pointer    
+    // Call get_attr function pointer
     get_attr(gid, attr_name, output);
 
     // Wrap the output and return back to python
@@ -308,7 +308,46 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
 // Return      :  dict obj data[grid id][field_name][:,:,:]
 //-------------------------------------------------------------------------------------------------------
 static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
+    // Parse the input list arguments by python
+    PyObject *arg1; // fname_list
+    PyObject *arg2; // prepare_grid_id_list
+    PyObject *arg3; // get_grid_id_list
+    PyObject *arg4; // get_grid_rank_list
+    if ( !PyArg_ParseTuple(args, "OOOO", &arg1, &arg2, &arg3, &arg4) ){
+        PyErr_SetString(PyExc_TypeError, "Wrong input type, expect to be libyt.get_field_remote(list, list, list, list).\n");
+        return NULL;
+    }
 
+    // Make these input lists iterators.
+    PyObject *fname_list           = PyObject_GetIter( arg1 );
+    PyObject *prepare_grid_id_list = PyObject_GetIter( arg2 );
+    PyObject *get_grid_id_list     = PyObject_GetIter( arg3 );
+    PyObject *get_grid_rank_list   = PyObject_GetIter( arg4 );
+    if( fname_list == NULL || prepare_grid_id_list == NULL || get_grid_id_list == NULL || get_grid_rank_list == NULL ){
+        PyErr_SetString(PyExc_TypeError, "One of the input arguments are not iterable!\n");
+        return NULL;
+    }
+
+    // fname -> grid id
+    PyObject *py_fname;
+    while( py_fname = PyIter_Next( fname_list )){
+        // Get fname, grid id to prepare, grid id to get, rank to get from.
+        char *fname = PyBytes_AsString( py_fname );
+        
+        
+
+        // Done with this py_fname, dereference it.
+        Py_DECREF( py_fname );
+    }
+
+    // Dereference Python objects
+    Py_DECREF( fname_list );
+    Py_DECREF( prepare_grid_id_list );
+    Py_DECREF( get_grid_id_list );
+    Py_DECREF( get_grid_rank_list );
+
+    // Return to Python 
+    
 }
 
 //-------------------------------------------------------------------------------------------------------
