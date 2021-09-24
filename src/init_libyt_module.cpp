@@ -12,6 +12,7 @@
 //              .............................................................
 //                     derived_func          libyt_field_derived_func
 //                     get_attr              libyt_particle_get_attr
+//                     get_field_remote      libyt_field_get_field_remote
 //-------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------------
@@ -293,6 +294,24 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
 }
 
 //-------------------------------------------------------------------------------------------------------
+// Function    :  libyt_field_get_field_remote
+// Description :  Get non-local field data from remote ranks. 
+//
+// Note        :  1. Support only grid dimension = 3 for now.
+//                2. We return in dictionary objects.
+//                
+// Parameter   :  list obj : fname_list   : list of field name to get.
+//                list obj : to_prepare   : list of grid ids you need to prepare.
+//                list obj : nonlocal_id  : nonlocal grid id that you want to get.
+//                list obj : nonlocal_rank: where to get those nonlocal grid.
+//
+// Return      :  dict obj data[grid id][field_name][:,:,:]
+//-------------------------------------------------------------------------------------------------------
+static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
+
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Description :  Preparation for creating libyt python module
 //
 // Note        :  1. Contains data blocks for creating libyt python module.
@@ -308,10 +327,12 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
 static PyMethodDef libyt_method_list[] =
 {
 // { "method_name", c_function_name, METH_VARARGS, "Description"},
-   {"derived_func", libyt_field_derived_func, METH_VARARGS, 
+   {"derived_func",     libyt_field_derived_func, METH_VARARGS, 
     "Input GID and field name, and get the field data derived by derived_func."},
-   {"get_attr",     libyt_particle_get_attr,  METH_VARARGS,
+   {"get_attr",         libyt_particle_get_attr,  METH_VARARGS,
     "Input GID, ptype, particle (which is attribute), and get the particle attribute by get_attr."},
+   {"get_field_remote", libyt_field_get_field_remote, METH_VARARGS,
+    "Input fields, prepare grids, id of grids to get, and which rank to get from. It returns a dict object contains all the data."},
    { NULL, NULL, 0, NULL } // sentinel
 };
 
