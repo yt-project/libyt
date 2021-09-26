@@ -1,5 +1,6 @@
 #include "yt_combo.h"
-#include "string.h"
+#include <string.h>
+#include "yt_rma.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Description :  List of libyt C extension python methods
@@ -299,6 +300,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
 //
 // Note        :  1. Support only grid dimension = 3 for now.
 //                2. We return in dictionary objects.
+//                3. We assume that the fname_list passed in has the same fname order in each rank.
 //                
 // Parameter   :  list obj : fname_list   : list of field name to get.
 //                list obj : to_prepare   : list of grid ids you need to prepare.
@@ -313,8 +315,15 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
     PyObject *arg2; // prepare_grid_id_list
     PyObject *arg3; // get_grid_id_list
     PyObject *arg4; // get_grid_rank_list
-    if ( !PyArg_ParseTuple(args, "OOOO", &arg1, &arg2, &arg3, &arg4) ){
-        PyErr_SetString(PyExc_TypeError, "Wrong input type, expect to be libyt.get_field_remote(list, list, list, list).\n");
+
+    int  len_fname_list;           // Max number of field is INT_MAX
+    int  len_prepare_grid_id_list; // Since maximum number of local grid is INT_MAX
+    long len_get_grid_id_list;     // Max of total grid number is LNG_MAX
+    long len_get_grid_rank_list;
+
+    if ( !PyArg_ParseTuple(args, "OiOiOlOl", &arg1, &len_fname_list, &arg2, &len_prepare_grid_id_list,
+                                             &arg3, &len_get_grid_id_list, &arg4, &len_get_grid_rank_list) ){
+        PyErr_SetString(PyExc_TypeError, "Wrong input type, expect to be libyt.get_field_remote(list, list, int, list, long, list, long).\n");
         return NULL;
     }
 
@@ -333,8 +342,8 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
     while( py_fname = PyIter_Next( fname_list )){
         // Get fname, grid id to prepare, grid id to get, rank to get from.
         char *fname = PyBytes_AsString( py_fname );
-        
-        
+
+        yt_rma RMAOperation = yt_rma(fname);
 
         // Done with this py_fname, dereference it.
         Py_DECREF( py_fname );
@@ -347,7 +356,7 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
     Py_DECREF( get_grid_rank_list );
 
     // Return to Python 
-    
+    return NULL;
 }
 
 //-------------------------------------------------------------------------------------------------------
