@@ -337,13 +337,90 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
         return NULL;
     }
 
+    // Create Python dictionary for storing remote data.
+    // py_output for returning back to python, the others are used temporary inside this method.
+    PyObject *py_output = PyDict_New();
+    PyObject *py_grid_id, *py_field_label, *py_field_data;
+
     // fname -> grid id
     PyObject *py_fname;
-    while( py_fname = PyIter_Next( fname_list )){
-        // Get fname, grid id to prepare, grid id to get, rank to get from.
+    PyObject *py_prepare_grid_id;
+    PyObject *py_get_grid_id;
+    PyObject *py_get_grid_rank;
+    int root = 0;
+    while( py_fname = PyIter_Next( fname_list ) ){
+        // Get fname, and create yt_rma class.
         char *fname = PyBytes_AsString( py_fname );
-
         yt_rma RMAOperation = yt_rma(fname);
+
+        // Prepare grid with field fname and id = gid.
+        while( py_prepare_grid_id = PyIter_Next( prepare_grid_id_list ) ){
+            long gid = PyLong_AsLong( py_prepare_grid_id );
+            RMAOperation.prepare_data( gid );
+            Py_DECREF( py_prepare_grid_id );
+        }
+        RMAOperation.gather_all_prepare_data( root );
+
+        // Fetch remote data.
+        while( true ){
+            py_get_grid_id = PyIter_Next(get_grid_id_list);
+            py_get_grid_rank = PyIter_Next(get_grid_rank_list);
+            if ( !py_get_grid_id || !py_get_grid_rank ){
+                break;
+            }
+            long get_gid  = PyLong_AsLong( py_get_grid_id );
+            int  get_rank = (int) PyLong_AsLong( py_get_grid_rank );
+
+            RMAOperation.fetch_remote_data( get_gid, get_rank );
+
+            Py_DECREF( py_get_grid_id );
+            Py_DECREF( py_get_grid_rank );
+        }
+
+        // Clean up prepared data.
+        RMAOperation.clean_up();
+
+        // Get those fetched data and wrap it to NumPy array
+        long      get_gid;
+        char     *get_fname;
+        yt_dtype  get_data_dtype;
+        int       get_data_dim[3];
+        void     *get_data_ptr;
+        long      num_to_get = len_get_grid_id_list;
+        while( num_to_get > 0 ){
+            // Step1: Fetched data.
+            if( RMAOperation.get_fetched_data(&get_gid, &get_fname, &get_data_dtype, &get_data_dim, &get_data_ptr) != YT_SUCCESS ){
+                // It means we have reached the end of the fetched data container.
+                break;
+            }
+            printf("Fetched data gid = %ld, fname = %s\n", get_gid, get_fname);
+            printf("             data[0,0,0] = %lf\n", ((double*)get_data_ptr)[0]);
+            num_to_get -= 1;
+
+            // Step2: Get Python dictionary to append.
+            // Check if grid id key exist in py_output, if not create one.
+            py_grid_id = PyLong_FromLong( get_gid );
+            if( PyDict_Contains(py_output, py_grid_id) == 0 ){
+                py_field_label = PyDict_New();
+                PyDict_SetItem( py_output, py_grid_id, py_field_label );
+                Py_DECREF(py_field_label);
+            }
+            // Get the Python dictionary under key: grid id, and stored in py_field_label.
+            // PyDict_GetItem returns a borrowed reference.
+            py_field_label = PyDict_GetItem( py_output, py_grid_id );
+
+            // Step3: Wrap the data to NumPy array and append to dictionary.
+            npy_intp npy_dim[3] = { get_data_dim[0], get_data_dim[1], get_data_dim[2] };
+            int      npy_dtype;
+            get_npy_dtype(get_data_dtype, &npy_dtype);
+            py_field_data = PyArray_SimpleNewFromData(3, npy_dim, npy_dtype, get_data_ptr);
+            PyArray_ENABLEFLAGS((PyArrayObject*) py_field_data, NPY_ARRAY_OWNDATA);
+            PyDict_SetItemString(py_field_label, get_fname, py_field_data);
+
+            // Dereference
+            Py_DECREF(py_grid_id);
+            Py_DECREF(py_field_data);
+        }
 
         // Done with this py_fname, dereference it.
         Py_DECREF( py_fname );
@@ -355,8 +432,8 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
     Py_DECREF( get_grid_id_list );
     Py_DECREF( get_grid_rank_list );
 
-    // Return to Python 
-    return NULL;
+    // Return to Python
+    return py_output;
 }
 
 //-------------------------------------------------------------------------------------------------------

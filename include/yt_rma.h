@@ -18,8 +18,10 @@ struct yt_rma_grid_info
 	long     id;
 	MPI_Aint address;	
 	int      rank;
-	yt_dtype grid_dtype;
-	int      grid_dimensions[3];
+
+    // Field and particle dependent
+	yt_dtype data_dtype;
+	int      data_dim[3];  // Is in the view of the data array.
 };
 
 
@@ -44,6 +46,9 @@ private:
 
 	MPI_Win  m_Window;
 	char    *m_FieldName;
+    char    *m_FieldDefineType;
+    int      m_FieldIndex;
+    bool     m_FieldSwapAxes;
 
 	std::vector<yt_rma_grid_info> m_Prepare;
     std::vector<void*> m_PrepareData;
@@ -60,15 +65,10 @@ public:
 
     // OpenMPI RMA operation
 	int prepare_data(long& gid);
+    int gather_all_prepare_data(int root);
     int fetch_remote_data(long& gid, int& rank);
     int clean_up();
-    int get_fetched_data(long& gid);
-
-private:
-    // Field and particle dependent
-    static int get_size(int& dim0, int& dim1, int& dim2);
-    // Field and particle independent
-    static int get_mpi_type(yt_dtype& grid_dtype);
+    int get_fetched_data(long *gid, char **fname, yt_dtype *data_dtype, int (*data_dim)[3], void **data_ptr);
 };
 
 #endif // #ifndef __YT_RMA_H__
