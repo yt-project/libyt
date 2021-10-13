@@ -311,29 +311,26 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
 //-------------------------------------------------------------------------------------------------------
 static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
     // Parse the input list arguments by python
-    PyObject *arg1; // fname_list
-    PyObject *arg2; // prepare_grid_id_list
-    PyObject *arg3; // get_grid_id_list
-    PyObject *arg4; // get_grid_rank_list
+    PyObject *arg1; // fname_list, we will make it an iterable object.
+    PyObject *py_prepare_grid_id_list;
+    PyObject *py_get_grid_id_list;
+    PyObject *py_get_grid_rank_list;
 
     int  len_fname_list;   // Max number of field is INT_MAX
     int  len_prepare;      // Since maximum number of local grid is INT_MAX
     long len_get_grid;     // Max of total grid number is LNG_MAX
 
-    if ( !PyArg_ParseTuple(args, "OiOiOOl", &arg1, &len_fname_list, &arg2, &len_prepare,
-                                             &arg3, &arg4, &len_get_grid) ){
+    if ( !PyArg_ParseTuple(args, "OiOiOOl", &arg1, &len_fname_list, &py_prepare_grid_id_list, &len_prepare,
+                                            &py_get_grid_id_list, &py_get_grid_rank_list, &len_get_grid) ){
         PyErr_SetString(PyExc_TypeError, "Wrong input type, "
                                          "expect to be libyt.get_field_remote(list, int, list, int, list, list, long).\n");
         return NULL;
     }
 
     // Make these input lists iterators.
-    PyObject *fname_list           = PyObject_GetIter( arg1 );
-    PyObject *prepare_grid_id_list = PyObject_GetIter( arg2 );
-    PyObject *get_grid_id_list     = PyObject_GetIter( arg3 );
-    PyObject *get_grid_rank_list   = PyObject_GetIter( arg4 );
-    if( fname_list == NULL || prepare_grid_id_list == NULL || get_grid_id_list == NULL || get_grid_rank_list == NULL ){
-        PyErr_SetString(PyExc_TypeError, "One of the input arguments are not iterable!\n");
+    PyObject *fname_list = PyObject_GetIter( arg1 );
+    if( fname_list == NULL ){
+        PyErr_SetString(PyExc_TypeError, "fname_list are not an iterable object!\n");
         return NULL;
     }
 
@@ -354,27 +351,20 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
         yt_rma RMAOperation = yt_rma( fname, len_prepare, len_get_grid );
 
         // Prepare grid with field fname and id = gid.
-        while( py_prepare_grid_id = PyIter_Next( prepare_grid_id_list ) ){
+        for(int i = 0; i < len_prepare; i++){
+            py_prepare_grid_id = PyList_GetItem(py_prepare_grid_id_list, i);
             long gid = PyLong_AsLong( py_prepare_grid_id );
             RMAOperation.prepare_data( gid );
-            Py_DECREF( py_prepare_grid_id );
         }
         RMAOperation.gather_all_prepare_data( root );
 
         // Fetch remote data.
-        while( true ){
-            py_get_grid_id = PyIter_Next(get_grid_id_list);
-            py_get_grid_rank = PyIter_Next(get_grid_rank_list);
-            if ( !py_get_grid_id || !py_get_grid_rank ){
-                break;
-            }
+        for(long i = 0; i < len_get_grid; i++){
+            py_get_grid_id = PyList_GetItem(py_get_grid_id_list, i);
+            py_get_grid_rank = PyList_GetItem(py_get_grid_rank_list, i);
             long get_gid  = PyLong_AsLong( py_get_grid_id );
             int  get_rank = (int) PyLong_AsLong( py_get_grid_rank );
-
             RMAOperation.fetch_remote_data( get_gid, get_rank );
-
-            Py_DECREF( py_get_grid_id );
-            Py_DECREF( py_get_grid_rank );
         }
 
         // Clean up prepared data.
@@ -427,9 +417,6 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
 
     // Dereference Python objects
     Py_DECREF( fname_list );
-    Py_DECREF( prepare_grid_id_list );
-    Py_DECREF( get_grid_id_list );
-    Py_DECREF( get_grid_rank_list );
 
     // Return to Python
     return py_output;
