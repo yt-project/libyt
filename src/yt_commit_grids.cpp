@@ -108,8 +108,7 @@ int yt_commit_grids()
          }
       }
    }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   
 // Prepare to gather full hierarchy from different rank to root rank.
 // Get MPI rank and size
    int MyRank;
@@ -157,74 +156,8 @@ int yt_commit_grids()
       hierarchy_local[i].proc_num            = grid.proc_num;
    }
 
-// MPI_Gatherv to RootRank
-   int *recv_counts = new int [NRank]; 
-   int *offsets = new int [NRank];
-   int mpi_start = 0;
-   long index_start = 0;
-   long accumulate = 0;
-
-   for (int i = 0; i < NRank; i++){
-      offsets[i] = 0;
-      accumulate = 0;
-      for (int j = mpi_start; j < i; j++){
-         offsets[i] += g_param_yt.num_grids_local_MPI[j];
-         accumulate += g_param_yt.num_grids_local_MPI[j];
-      }
-      // exceeding INT_MAX, start MPI_Gatherv
-      if ( accumulate > INT_MAX ){
-         // Set recv_counts and offsets.
-         for (int k = 0; k < NRank; k++){
-            if ( mpi_start <= k && k < i ){
-               recv_counts[k] = g_param_yt.num_grids_local_MPI[k];
-            }
-            else{
-               offsets[k] = 0;
-               recv_counts[k] = 0;
-            }              
-         }
-         // MPI_Gatherv
-         if ( mpi_start <= MyRank && MyRank < i ){
-            MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type, 
-                        &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
-         }
-         else{
-            MPI_Gatherv(hierarchy_local,                          0, yt_hierarchy_mpi_type, 
-                        &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
-         }
-         // New start point.
-         mpi_start = i;
-         offsets[mpi_start] = 0;
-         index_start = 0;
-         for (int k = 0; k < i; k++){
-            index_start += g_param_yt.num_grids_local_MPI[k];
-         }
-      }
-      // Reach last mpi rank, MPI_Gatherv
-      // We can ignore the case when there is only one rank left and its offsets exceeds INT_MAX simultaneously.
-      // Because one is type int, the other is type long.
-      else if ( i == NRank - 1 ){
-         // Set recv_counts and offsets.
-         for (int k = 0; k < NRank; k++){
-            if ( mpi_start <= k && k <= i ){
-               recv_counts[k] = g_param_yt.num_grids_local_MPI[k];
-            }
-            else{
-               offsets[k] = 0;
-               recv_counts[k] = 0;
-            }        
-         }
-         // MPI_Gatherv
-         if ( mpi_start <= MyRank && MyRank <= i ){
-            MPI_Gatherv(hierarchy_local, g_param_yt.num_grids_local, yt_hierarchy_mpi_type, 
-                        &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
-         }
-         else{
-            MPI_Gatherv(hierarchy_local,                          0, yt_hierarchy_mpi_type, 
-                        &(hierarchy_full[index_start]), recv_counts, offsets, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
-         }
-      }
-   }
+   // Big MPI_Gatherv, this is just a workaround method.
+   big_MPI_Gatherv(RootRank, g_param_yt.num_grids_local_MPI, hierarchy_local, &yt_hierarchy_mpi_type, hierarchy_full, 0);
 
 // Check that the hierarchy are correct, do the test on RootRank only
    if ( g_param_libyt.check_data == true && MyRank == RootRank ){
@@ -255,15 +188,17 @@ int yt_commit_grids()
       }
    }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // append grid to YT
 // We pass hierarchy to each rank as well.
 // Combine full hierarchy and the grid data that one rank has, otherwise fill in NULL in grid data.
-   
-   yt_grid grid_combine;
-   int start_block = offsets[MyRank];
-   int end_block = start_block + g_param_yt.num_grids_local;
+   long start_block = 0;
+   long end_block;
+   for(int rank = 0; rank < MyRank; rank++){
+       start_block += g_param_yt.num_grids_local_MPI[rank];
+   }
+   end_block = start_block + g_param_yt.num_grids_local;
 
+   yt_grid grid_combine;
    for (long i = 0; i < g_param_yt.num_grids; i = i+1) {
 
       // Load from hierarchy_full
@@ -302,8 +237,6 @@ int yt_commit_grids()
       delete [] hierarchy_local;
    }
    delete [] hierarchy_full;
-   delete [] recv_counts;
-   delete [] offsets;
 
    // Above all works like charm
    g_param_libyt.commit_grids = true;
