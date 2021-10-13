@@ -60,7 +60,7 @@ private:
     std::vector<void*> m_FetchedData;
 
 public:
-	yt_rma(char *fname);
+    yt_rma(char* fname, int len_prepare, long len_get_grid);
 	~yt_rma();
 
     // OpenMPI RMA operation

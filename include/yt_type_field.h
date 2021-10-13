@@ -18,7 +18,7 @@ void log_warning(const char *Format, ...);
 // Structure   :  yt_field
 // Description :  Data structure to store a field's label and its definition of data representation.
 // 
-// Notes       :  1. The data representation type will be initialize as "cell-centered".
+// Notes       :  1. The data representation type will be initialized as "cell-centered".
 //                2. "field_unit", "field_name_alias", "field_display_name", are set corresponding to yt 
 //                   ( "name", ("units", ["fields", "to", "alias"], "display_name"))
 //

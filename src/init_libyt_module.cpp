@@ -316,14 +316,14 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
     PyObject *arg3; // get_grid_id_list
     PyObject *arg4; // get_grid_rank_list
 
-    int  len_fname_list;           // Max number of field is INT_MAX
-    int  len_prepare_grid_id_list; // Since maximum number of local grid is INT_MAX
-    long len_get_grid_id_list;     // Max of total grid number is LNG_MAX
-    long len_get_grid_rank_list;
+    int  len_fname_list;   // Max number of field is INT_MAX
+    int  len_prepare;      // Since maximum number of local grid is INT_MAX
+    long len_get_grid;     // Max of total grid number is LNG_MAX
 
-    if ( !PyArg_ParseTuple(args, "OiOiOlOl", &arg1, &len_fname_list, &arg2, &len_prepare_grid_id_list,
-                                             &arg3, &len_get_grid_id_list, &arg4, &len_get_grid_rank_list) ){
-        PyErr_SetString(PyExc_TypeError, "Wrong input type, expect to be libyt.get_field_remote(list, list, int, list, long, list, long).\n");
+    if ( !PyArg_ParseTuple(args, "OiOiOOl", &arg1, &len_fname_list, &arg2, &len_prepare,
+                                             &arg3, &arg4, &len_get_grid) ){
+        PyErr_SetString(PyExc_TypeError, "Wrong input type, "
+                                         "expect to be libyt.get_field_remote(list, int, list, int, list, list, long).\n");
         return NULL;
     }
 
@@ -342,7 +342,7 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
     PyObject *py_output = PyDict_New();
     PyObject *py_grid_id, *py_field_label, *py_field_data;
 
-    // fname -> grid id
+    // Get all remote grid id in field name fname, get one field at a time.
     PyObject *py_fname;
     PyObject *py_prepare_grid_id;
     PyObject *py_get_grid_id;
@@ -351,7 +351,7 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
     while( py_fname = PyIter_Next( fname_list ) ){
         // Get fname, and create yt_rma class.
         char *fname = PyBytes_AsString( py_fname );
-        yt_rma RMAOperation = yt_rma(fname);
+        yt_rma RMAOperation = yt_rma( fname, len_prepare, len_get_grid );
 
         // Prepare grid with field fname and id = gid.
         while( py_prepare_grid_id = PyIter_Next( prepare_grid_id_list ) ){
@@ -386,15 +386,14 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
         yt_dtype  get_data_dtype;
         int       get_data_dim[3];
         void     *get_data_ptr;
-        long      num_to_get = len_get_grid_id_list;
+        long      num_to_get = len_get_grid;
         while( num_to_get > 0 ){
             // Step1: Fetched data.
             if( RMAOperation.get_fetched_data(&get_gid, &get_fname, &get_data_dtype, &get_data_dim, &get_data_ptr) != YT_SUCCESS ){
                 // It means we have reached the end of the fetched data container.
+                // This if clause is just a safety check.
                 break;
             }
-            printf("Fetched data gid = %ld, fname = %s\n", get_gid, get_fname);
-            printf("             data[0,0,0] = %lf\n", ((double*)get_data_ptr)[0]);
             num_to_get -= 1;
 
             // Step2: Get Python dictionary to append.

@@ -11,12 +11,15 @@
 //                   m_FieldDefineType and m_FieldSwapAxes.
 //                   (We assume that the lifetime of its element exist.)
 //                4. Find field index inside field_list and assign to m_FieldIndex.
+//                5. Set the std::vector capacity.
 //
-// Arguments   :  char* fname: Field name.
+// Arguments   :  char*       fname: Field name.
+//                int   len_prepare: Number of grid to prepare.
+//                long len_get_grid: Number of grid to get.
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-yt_rma::yt_rma(char* fname)
+yt_rma::yt_rma(char* fname, int len_prepare, long len_get_grid)
 : m_LenAllPrepare(0)
 {
     // Initialize m_Window
@@ -35,6 +38,13 @@ yt_rma::yt_rma(char* fname)
             break;
         }
     }
+
+    // Set std::vector capacity
+    m_Prepare.reserve(len_prepare);
+    m_PrepareData.reserve(len_prepare);
+    m_Fetched.reserve(len_get_grid);
+    m_FetchedData.reserve(len_get_grid);
+
     printf("yt_rma: Field Name = %s\n", m_FieldName);
     printf("yt_rma: Field Define Type = %s\n", m_FieldDefineType);
     printf("yt_rma: Field Swap Axes = %s\n", m_FieldSwapAxes ? "true" : "false");
