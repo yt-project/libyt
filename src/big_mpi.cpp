@@ -110,3 +110,44 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
 
     return YT_SUCCESS;
 }
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  big_MPI_Bcast
+// Description :  This is a workaround method for passing big send count of MPI_Bcast.
+//
+// Note        :  1. Use inside yt_commit_grids().
+//                2. Because void* pointer has no arithmetic, cast_type indicates what C type or struct
+//                   to cast to.
+//                   cast_type          type
+//                   ===========================
+//                       0          yt_hierarchy
+//
+// Parameter   :  int            RootRank     : Root rank.
+//                long           sendcount    : Send count.
+//                void          *buffer       : Buffer to broadcast.
+//                MPI_Datatype  *mpi_datatype : MPI datatype, can be user defined or MPI defined one.
+//                int            cast_type    : What data type to cast the void* ptr to.
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_datatype, int cast_type)
+{
+    // The maximum MPI_Bcast sendcount is INT_MAX.
+    // If num_grids > INT_MAX chop it to chunks, then broadcast.
+    long stride   = INT_MAX;
+    int  part     = (int) (sendcount / stride) + 1;
+    int  remain   = (int) (sendcount % stride);
+    long index;
+    if( cast_type == 0 ){
+        for (int i=0; i < part; i++){
+            index = i * stride;
+            if ( i == part - 1 ){
+                MPI_Bcast(&(((yt_hierarchy*)buffer)[index]), remain, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+            }
+            else {
+                MPI_Bcast(&(((yt_hierarchy*)buffer)[index]), stride, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+            }
+        }
+    }
+
+    return YT_SUCCESS;
+}

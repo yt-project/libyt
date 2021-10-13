@@ -108,7 +108,7 @@ int yt_commit_grids()
          }
       }
    }
-   
+
 // Prepare to gather full hierarchy from different rank to root rank.
 // Get MPI rank and size
    int MyRank;
@@ -157,7 +157,7 @@ int yt_commit_grids()
    }
 
    // Big MPI_Gatherv, this is just a workaround method.
-   big_MPI_Gatherv(RootRank, g_param_yt.num_grids_local_MPI, hierarchy_local, &yt_hierarchy_mpi_type, hierarchy_full, 0);
+   big_MPI_Gatherv(RootRank, g_param_yt.num_grids_local_MPI, (void*)hierarchy_local, &yt_hierarchy_mpi_type, (void*)hierarchy_full, 0);
 
 // Check that the hierarchy are correct, do the test on RootRank only
    if ( g_param_libyt.check_data == true && MyRank == RootRank ){
@@ -174,19 +174,7 @@ int yt_commit_grids()
 
 // We pass hierarchy to each rank as well. The maximum MPI_Bcast sendcount is INT_MAX.
 // If num_grids > INT_MAX chop it to chunks, then broadcast.
-   long stride   = INT_MAX;
-   int  part     = (int) (g_param_yt.num_grids / stride) + 1;
-   int  remain   = (int) (g_param_yt.num_grids % stride);
-   long index;
-   for (int i=0; i < part; i++){
-      index = i * stride;
-      if ( i == part - 1 ){
-         MPI_Bcast(&(hierarchy_full[index]), remain, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
-      }
-      else {
-         MPI_Bcast(&(hierarchy_full[index]), stride, yt_hierarchy_mpi_type, RootRank, MPI_COMM_WORLD);
-      }
-   }
+   big_MPI_Bcast(RootRank, g_param_yt.num_grids, (void*) hierarchy_full, &yt_hierarchy_mpi_type, 0);
 
 // append grid to YT
 // We pass hierarchy to each rank as well.

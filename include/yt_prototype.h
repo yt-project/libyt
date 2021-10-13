@@ -42,6 +42,7 @@ int  init_python( int argc, char *argv[] );
 int  init_libyt_module();
 int  allocate_hierarchy();
 int  big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatype *mpi_datatype, void *buffer, int cast_type);
+int  big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_datatype, int cast_type);
 int  get_npy_dtype( yt_dtype data_type, int *npy_dtype );
 int  get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype );
 int  get_dtype_size( yt_dtype data_type, int *dtype_size );
