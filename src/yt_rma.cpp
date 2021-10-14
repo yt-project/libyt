@@ -82,6 +82,7 @@ yt_rma::~yt_rma()
 //                4. The data_dim is in the point of view of the data array, only "face-centered" data
 //                   can have data dim different from grid dim.
 //                5. "derived_func" data type must be YT_DOUBLE.
+//                6. We assume that all gid can be found on this rank.
 //
 // Arguments   :  long gid : Grid id to prepare.
 // Return      :  YT_SUCCESS or YT_FAIL
@@ -90,7 +91,7 @@ int yt_rma::prepare_data(long& gid)
 {
     printf("yt_rma: prepare grid id = %ld\n", gid);
 
-    // Get all the grid info
+    // Get grid info
     int local_index = -1;
     yt_rma_grid_info grid_info;
     grid_info.id = gid;
@@ -181,7 +182,7 @@ int yt_rma::prepare_data(long& gid)
 // Description :  Gather all prepared data in each rank.
 //
 // Notes       :  1. This should be called after preparing all the need grid data.
-//                2. Perform MPI_Gatherv and MPI_Bcast at root rank.
+//                2. Perform big_MPI_Gatherv and big_MPI_Bcast at root rank.
 //                3. Open the window epoch.
 //
 // Parameter   :  int root : root rank.
@@ -207,7 +208,7 @@ int yt_rma::gather_all_prepare_data(int root)
         m_LenAllPrepare += SendCount[rank];
     }
 
-    // Gather PreparedInfoList in each rank
+    // Gather PreparedInfoList, which is m_Prepare in each rank
     // (1) Create MPI_Datatype for yt_rma_grid_info
     MPI_Datatype yt_rma_grid_info_mpi_type;
     int lengths[5] = {1, 1, 1, 1, 3};
@@ -220,30 +221,16 @@ int yt_rma::gather_all_prepare_data(int root)
     MPI_Type_create_struct(5, lengths, displacements, types, &yt_rma_grid_info_mpi_type);
     MPI_Type_commit(&yt_rma_grid_info_mpi_type);
 
-    // (2) Calculate recv_counts and offsets
-    int *recv_counts = new int [NRank];
-    int *offsets = new int [NRank];
-    for(int i = 0; i < NRank; i++){
-        recv_counts[i] = SendCount[i];
-        offsets[i] = 0;
-        for(int j = 0; j < i; j++){
-            offsets[i] = offsets[i] + recv_counts[j];
-        }
-    }
-
-    // (3) Perform MPI_Gatherv // TODO: Switch to modelized MPI_Gatherv and MPI_Bcast.
+    // (2) Perform big_MPI_Gatherv and big_MPI_Bcast
     m_AllPrepare = new yt_rma_grid_info [m_LenAllPrepare];
-    MPI_Gatherv(PreparedInfoList, PreparedInfoListLength, yt_rma_grid_info_mpi_type,
-                m_AllPrepare, recv_counts, offsets, yt_rma_grid_info_mpi_type, root, MPI_COMM_WORLD);
-    MPI_Bcast(m_AllPrepare, m_LenAllPrepare, yt_rma_grid_info_mpi_type, root, MPI_COMM_WORLD);
+    big_MPI_Gatherv(root, SendCount, (void*)PreparedInfoList, &yt_rma_grid_info_mpi_type, (void*)m_AllPrepare, 1);
+    big_MPI_Bcast(root, m_LenAllPrepare, (void*)m_AllPrepare, &yt_rma_grid_info_mpi_type, 1);
 
     // Open window epoch.
     MPI_Win_fence(0, m_Window);
 
     // Free unused resource
     delete [] SendCount;
-    delete [] recv_counts;
-    delete [] offsets;
 
     return YT_SUCCESS;
 }

@@ -8,7 +8,7 @@
 
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_hierarchy
-// Description :  Data structure for pass hierarchy of the grid in MPI process, it is meant to be temperary.
+// Description :  Data structure for pass hierarchy of the grid in MPI process, it is meant to be temporary.
 //
 // Data Member :  dimensions     : Number of cells along each direction
 //                left_edge      : Grid left  edge in code units
@@ -31,6 +31,25 @@ struct yt_hierarchy{
       int    dimensions[3];
       int    level;
       int    proc_num;
+};
+
+//-------------------------------------------------------------------------------------------------------
+// Structure   :  yt_rma_grid_info
+// Description :  Data structure for getting remote grids, it's meant for temporary used.
+//
+// Data Member :  long     id         : Grid id.
+//                MPI_Aint address    : Window address at which this data buffer attaches to.
+//                int      rank       : Rank that contains the data buffer.
+//                yt_dtype data_dtype : Data type of the array.
+//                int      data_dim[3]: Data array's dimension.
+//-------------------------------------------------------------------------------------------------------
+struct yt_rma_grid_info
+{
+    long     id;
+    MPI_Aint address;
+    int      rank;
+    yt_dtype data_dtype;
+    int      data_dim[3];  // Is in the view of the data array.
 };
 
 void log_info   ( const char *Format, ... );

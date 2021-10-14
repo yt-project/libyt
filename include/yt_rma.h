@@ -13,18 +13,6 @@
 #include <vector>
 #include "yt_combo.h"
 
-struct yt_rma_grid_info
-{	
-	long     id;
-	MPI_Aint address;	
-	int      rank;
-
-    // Field and particle dependent
-	yt_dtype data_dtype;
-	int      data_dim[3];  // Is in the view of the data array.
-};
-
-
 //-------------------------------------------------------------------------------------------------------
 // Class       :  yt_rma
 // Description :  Class to deal with RMA operation, to get non-local grids.
