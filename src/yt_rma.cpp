@@ -5,7 +5,8 @@
 // Class       :  yt_rma
 // Method      :  Constructor
 //
-// Notes       :  1. Initialize m_Window, which used inside OpenMPI RMA operation.
+// Notes       :  1. Initialize m_Window, which used inside OpenMPI RMA operation. And set m_Window info
+//                   to "no_locks".
 //                2. Copy the input fname to m_FieldName, in case it is freed.
 //                3. Find the corresponding field_define_type and swap_axes in field_list, and assign to
 //                   m_FieldDefineType and m_FieldSwapAxes.
@@ -22,8 +23,12 @@
 yt_rma::yt_rma(char* fname, int len_prepare, long len_get_grid)
 : m_LenAllPrepare(0)
 {
-    // Initialize m_Window
-    MPI_Win_create_dynamic(MPI_INFO_NULL, MPI_COMM_WORLD, &m_Window); // TODO: Tuning RMA
+    // Initialize m_Window and set info to "no_locks".
+    MPI_Info windowInfo;
+    MPI_Info_create( &windowInfo );
+    MPI_Info_set( windowInfo, "no_locks", "true" );
+    MPI_Win_create_dynamic( windowInfo, MPI_COMM_WORLD, &m_Window );
+    MPI_Info_free( &windowInfo );
 
     // Copy input fname, and find its field_define_type
     int len = strlen(fname);
