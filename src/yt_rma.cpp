@@ -227,7 +227,7 @@ int yt_rma::gather_all_prepare_data(int root)
     big_MPI_Bcast(root, m_LenAllPrepare, (void*)m_AllPrepare, &yt_rma_grid_info_mpi_type, 1);
 
     // Open window epoch.
-    MPI_Win_fence(0, m_Window);
+    MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOPRECEDE, m_Window);
 
     // Free unused resource
     delete [] SendCount;
@@ -298,7 +298,7 @@ int yt_rma::fetch_remote_data(long& gid, int& rank)
 int yt_rma::clean_up()
 {
     // Close the window epoch
-    MPI_Win_fence(0, m_Window);
+    MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOSUCCEED, m_Window);
 
     // Detach m_PrepareData from m_Window.
     for(int i = 0; i < m_PrepareData.size(); i++){
