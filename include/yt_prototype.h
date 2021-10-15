@@ -52,6 +52,28 @@ struct yt_rma_grid_info
     int      data_dim[3];  // Is in the view of the data array.
 };
 
+//-------------------------------------------------------------------------------------------------------
+// Structure   :  yt_rma_particle_info
+// Description :  Data structure for getting remote particle attribute, it's meant for temporary used.
+//
+// Notes       :  1. I change the order of the data member, in order to make creating mpi user data type
+//                   more efficient.
+//
+// Data Member :  long     id         : Grid id.
+//                MPI_Aint address    : Window address at which this data buffer attaches to.
+//                long     data_len   : Data array's length.
+//                int      rank       : Rank that contains the data buffer.
+//                yt_dtype data_dtype : Data type of the array.
+//-------------------------------------------------------------------------------------------------------
+struct yt_rma_particle_info
+{
+    long     id;
+    MPI_Aint address;
+    long     data_len;  // Is in the view of the data array.
+    int      rank;
+    yt_dtype data_dtype;
+};
+
 void log_info   ( const char *Format, ... );
 void log_warning( const char *format, ... );
 void log_debug  ( const char *Format, ... );
