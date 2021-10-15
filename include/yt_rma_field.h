@@ -1,9 +1,9 @@
-#ifndef __YT_RMA_H__
-#define __YT_RMA_H__
+#ifndef __YT_RMA_FIELD_H__
+#define __YT_RMA_FIELD_H__
 
 /*******************************************************************************
 /
-/  yt_rma class and all the related struct.
+/  yt_rma_field class.
 /
 /  ==> included by init_libyt_module.cpp.
 /
@@ -14,7 +14,7 @@
 #include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
-// Class       :  yt_rma
+// Class       :  yt_rma_field
 // Description :  Class to deal with RMA operation, to get non-local grids.
 // 
 // Notes       :  1. This class deals with OpenMPI RMA operation, should be called by every rank.
@@ -28,7 +28,7 @@
 // 
 // Method      :  //TODO
 //-------------------------------------------------------------------------------------------------------
-class yt_rma
+class yt_rma_field
 {
 private:
 
@@ -48,8 +48,8 @@ private:
     std::vector<void*> m_FetchedData;
 
 public:
-    yt_rma(char* fname, int len_prepare, long len_get_grid);
-	~yt_rma();
+    yt_rma_field(char* fname, int len_prepare, long len_get_grid);
+	~yt_rma_field();
 
     // OpenMPI RMA operation
 	int prepare_data(long& gid);
@@ -59,4 +59,4 @@ public:
     int get_fetched_data(long *gid, char **fname, yt_dtype *data_dtype, int (*data_dim)[3], void **data_ptr);
 };
 
-#endif // #ifndef __YT_RMA_H__
+#endif // #ifndef __YT_RMA_FIELD_H__

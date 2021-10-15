@@ -1,8 +1,8 @@
-#include "yt_rma.h"
+#include "yt_rma_field.h"
 #include <string.h>
 
 //-------------------------------------------------------------------------------------------------------
-// Class       :  yt_rma
+// Class       :  yt_rma_field
 // Method      :  Constructor
 //
 // Notes       :  1. Initialize m_Window, which used inside OpenMPI RMA operation. And set m_Window info
@@ -20,7 +20,7 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-yt_rma::yt_rma(char* fname, int len_prepare, long len_get_grid)
+yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
 : m_LenAllPrepare(0)
 {
     // Initialize m_Window and set info to "no_locks".
@@ -56,7 +56,7 @@ yt_rma::yt_rma(char* fname, int len_prepare, long len_get_grid)
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Class       :  yt_rma
+// Class       :  yt_rma_field
 // Method      :  Destructor
 //
 // Notes       :  1. Free m_Window, m_FieldName.
@@ -66,7 +66,7 @@ yt_rma::yt_rma(char* fname, int len_prepare, long len_get_grid)
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-yt_rma::~yt_rma()
+yt_rma_field::~yt_rma_field()
 {
     MPI_Win_free(&m_Window);
     delete [] m_FieldName;
@@ -76,7 +76,7 @@ yt_rma::~yt_rma()
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Class       :  yt_rma
+// Class       :  yt_rma_field
 // Method      :  prepare_data
 // Description :  Prepare data grid = gid and field = m_FieldName, create data if not exist,
 //                then attach grid data to window and get address.
@@ -92,7 +92,7 @@ yt_rma::~yt_rma()
 // Arguments   :  long gid : Grid id to prepare.
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_rma::prepare_data(long& gid)
+int yt_rma_field::prepare_data(long& gid)
 {
     printf("yt_rma: prepare grid id = %ld\n", gid);
 
@@ -182,7 +182,7 @@ int yt_rma::prepare_data(long& gid)
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Class       :  yt_rma
+// Class       :  yt_rma_field
 // Method      :  gather_all_prepare_data
 // Description :  Gather all prepared data in each rank.
 //
@@ -194,7 +194,7 @@ int yt_rma::prepare_data(long& gid)
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_rma::gather_all_prepare_data(int root)
+int yt_rma_field::gather_all_prepare_data(int root)
 {
     int NRank;
     MPI_Comm_size(MPI_COMM_WORLD, &NRank);
@@ -241,7 +241,7 @@ int yt_rma::gather_all_prepare_data(int root)
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Class       :  yt_rma
+// Class       :  yt_rma_field
 // Method      :  fetch_remote_data
 // Description :  Allocate spaces and fetch remote data, and store in std::vector m_Fetched, m_FetchData.
 //
@@ -249,10 +249,12 @@ int yt_rma::gather_all_prepare_data(int root)
 //                2. We allocate buffer to store fetched data, but we do not free them. It is Python's
 //                   responsibility.
 //
-// Parameters  :
+// Parameters  : long gid  : Grid id to fetch.
+//               int  rank : Fetch grid from rank.
+//
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_rma::fetch_remote_data(long& gid, int& rank)
+int yt_rma_field::fetch_remote_data(long& gid, int& rank)
 {
     // Look for gid in m_AllPrepare, and allocate memory.
     int  gridLength;
@@ -289,7 +291,7 @@ int yt_rma::fetch_remote_data(long& gid, int& rank)
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Class       :  yt_rma
+// Class       :  yt_rma_field
 // Method      :  clean_up
 // Description :  Clean up prepared data, after we've done fetching all the stuff.
 //
@@ -300,7 +302,7 @@ int yt_rma::fetch_remote_data(long& gid, int& rank)
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_rma::clean_up()
+int yt_rma_field::clean_up()
 {
     // Close the window epoch
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOSUCCEED, m_Window);
@@ -326,7 +328,7 @@ int yt_rma::clean_up()
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Class       :  yt_rma
+// Class       :  yt_rma_field
 // Method      :  get_fetched_data
 // Description :  Get fetched data.
 //
@@ -343,7 +345,7 @@ int yt_rma::clean_up()
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_rma::get_fetched_data(long *gid, char **fname, yt_dtype *data_dtype, int (*data_dim)[3], void **data_ptr){
+int yt_rma_field::get_fetched_data(long *gid, char **fname, yt_dtype *data_dtype, int (*data_dim)[3], void **data_ptr){
     // Check if there are left fetched data to get.
     if( m_Fetched.size() == 0 ){
         return YT_FAIL;

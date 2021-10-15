@@ -1,6 +1,6 @@
 #include "yt_combo.h"
 #include <string.h>
-#include "yt_rma.h"
+#include "yt_rma_field.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Description :  List of libyt C extension python methods
@@ -346,9 +346,9 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
     PyObject *py_get_grid_rank;
     int root = 0;
     while( py_fname = PyIter_Next( fname_list ) ){
-        // Get fname, and create yt_rma class.
+        // Get fname, and create yt_rma_field class.
         char *fname = PyBytes_AsString( py_fname );
-        yt_rma RMAOperation = yt_rma( fname, len_prepare, len_get_grid );
+        yt_rma_field RMAOperation = yt_rma_field( fname, len_prepare, len_get_grid );
 
         // Prepare grid with field fname and id = gid.
         for(int i = 0; i < len_prepare; i++){
