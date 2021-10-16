@@ -8,10 +8,11 @@
 // Note        :  1. Use inside yt_commit_grids().
 //                2. Because void* pointer has no arithmetic, cast_type indicates what C type or struct
 //                   to cast to.
-//                   cast_type          type
-//                   ===========================
+//                   cast_type             type
+//                   ===================================
 //                       0          yt_hierarchy
 //                       1          yt_rma_grid_info
+//                       2          yt_rma_particle_info
 //
 // Parameter   :  int            RootRank     : Root rank.
 //                int           *sendcounts   : Send counts in each rank.
@@ -19,6 +20,7 @@
 //                MPI_Datatype  *mpi_datatype : MPI datatype, can be user defined or MPI defined one.
 //                void          *recvbuffer   : Store the received buffer.
 //                int            cast_type    : What data type to cast the void* ptr to.
+//
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatype *mpi_datatype, void *recvbuffer, int cast_type)
@@ -77,6 +79,16 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
                                 &(((yt_rma_grid_info*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
                 }
             }
+            else if(cast_type == 2){
+                if ( mpi_start <= MyRank && MyRank < i ){
+                    MPI_Gatherv(sendbuffer, sendcounts[MyRank], *mpi_datatype,
+                                &(((yt_rma_particle_info*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+                }
+                else{
+                    MPI_Gatherv(sendbuffer,                  0, *mpi_datatype,
+                                &(((yt_rma_particle_info*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+                }
+            }
 
             // New start point.
             mpi_start = i;
@@ -121,6 +133,16 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
                                 &(((yt_rma_grid_info*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
                 }
             }
+            else if(cast_type == 2){
+                if ( mpi_start <= MyRank && MyRank <= i ){
+                    MPI_Gatherv(sendbuffer, sendcounts[MyRank], *mpi_datatype,
+                                &(((yt_rma_particle_info*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+                }
+                else{
+                    MPI_Gatherv(sendbuffer,                  0, *mpi_datatype,
+                                &(((yt_rma_particle_info*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+                }
+            }
 
         }
     }
@@ -139,16 +161,18 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
 // Note        :  1. Use inside yt_commit_grids().
 //                2. Because void* pointer has no arithmetic, cast_type indicates what C type or struct
 //                   to cast to.
-//                   cast_type          type
-//                   ===========================
+//                   cast_type             type
+//                   ===================================
 //                       0          yt_hierarchy
 //                       1          yt_rma_grid_info
+//                       2          yt_rma_particle_info
 //
 // Parameter   :  int            RootRank     : Root rank.
 //                long           sendcount    : Send count.
 //                void          *buffer       : Buffer to broadcast.
 //                MPI_Datatype  *mpi_datatype : MPI datatype, can be user defined or MPI defined one.
 //                int            cast_type    : What data type to cast the void* ptr to.
+//
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_datatype, int cast_type)
@@ -178,6 +202,17 @@ int big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_
             }
             else {
                 MPI_Bcast(&(((yt_rma_grid_info*)buffer)[index]), stride, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+            }
+        }
+    }
+    else if( cast_type == 2 ){
+        for (int i=0; i < part; i++){
+            index = i * stride;
+            if ( i == part - 1 ){
+                MPI_Bcast(&(((yt_rma_particle_info*)buffer)[index]), remain, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+            }
+            else {
+                MPI_Bcast(&(((yt_rma_particle_info*)buffer)[index]), stride, *mpi_datatype, RootRank, MPI_COMM_WORLD);
             }
         }
     }
