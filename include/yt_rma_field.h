@@ -9,7 +9,6 @@
 /
 ********************************************************************************/
 
-#include <mpi.h>
 #include <vector>
 #include "yt_combo.h"
 
@@ -23,10 +22,7 @@
 //                3. First assume that each rank has the same fname_list, and their fname order are the 
 //                   same.
 //                4. One instance with one field and one window.
-// 
-// Data Member :  //TODO
-// 
-// Method      :  //TODO
+//
 //-------------------------------------------------------------------------------------------------------
 class yt_rma_field
 {

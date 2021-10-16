@@ -9,7 +9,6 @@
 /
 ********************************************************************************/
 
-#include <mpi.h>
 #include <vector>
 #include "yt_combo.h"
 
@@ -25,9 +24,6 @@
 //                4. One instance with one field and one window.
 //                5. One instance only deals with one particle type and one attribute.
 //
-// Data Member :  //TODO
-//
-// Method      :  //TODO
 //-------------------------------------------------------------------------------------------------------
 class yt_rma_particle
 {
@@ -35,12 +31,30 @@ private:
 
     MPI_Win   m_Window;
     char     *m_ParticleType;
-    char     *m_Attribute;
+    char     *m_AttributeName;
     int       m_ParticleIndex;
     int       m_AttributeIndex;
+    yt_dtype  m_AttributeDataType;
 
     std::vector<yt_rma_particle_info> m_Prepare;
     std::vector<void*> m_PrepareData;
+
+    long m_LenAllPrepare;
+    yt_rma_particle_info *m_AllPrepare;
+
+    std::vector<yt_rma_particle_info> m_Fetched;
+    std::vector<void*> m_FetchedData;
+
+public:
+    yt_rma_particle(char *ptype, char *attribute, int len_prepare, long len_get);
+    ~yt_rma_particle();
+
+    // OpenMPI RMA operation
+    int prepare_data(long& gid);
+    int gather_all_prepare_data(int root);
+    int fetch_remote_data(long& gid, int& rank);
+    int clean_up();
+    int get_fetched_data(long *gid, char **ptype, char **attribute, yt_dtype *data_dtype, long *data_len, void **data_ptr);
 };
 
 #endif // #ifndef __YT_RMA_PARTICLE_H__

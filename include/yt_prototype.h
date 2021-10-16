@@ -63,7 +63,6 @@ struct yt_rma_grid_info
 //                MPI_Aint address    : Window address at which this data buffer attaches to.
 //                long     data_len   : Data array's length.
 //                int      rank       : Rank that contains the data buffer.
-//                yt_dtype data_dtype : Data type of the array.
 //-------------------------------------------------------------------------------------------------------
 struct yt_rma_particle_info
 {
@@ -71,7 +70,6 @@ struct yt_rma_particle_info
     MPI_Aint address;
     long     data_len;  // Is in the view of the data array.
     int      rank;
-    yt_dtype data_dtype;
 };
 
 void log_info   ( const char *Format, ... );
