@@ -17,8 +17,6 @@
 // Arguments   :  char*       fname: Field name.
 //                int   len_prepare: Number of grid to prepare.
 //                long len_get_grid: Number of grid to get.
-//
-// Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
 : m_LenAllPrepare(0)
@@ -63,8 +61,6 @@ yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
 //                2. Clear m_Fetched and m_FetchedData.
 //
 // Arguments   :  None
-//
-// Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 yt_rma_field::~yt_rma_field()
 {
@@ -186,7 +182,7 @@ int yt_rma_field::prepare_data(long& gid)
 // Method      :  gather_all_prepare_data
 // Description :  Gather all prepared data in each rank.
 //
-// Notes       :  1. This should be called after preparing all the need grid data.
+// Notes       :  1. This should be called after preparing all the needed grid data.
 //                2. Perform big_MPI_Gatherv and big_MPI_Bcast at root rank.
 //                3. Open the window epoch.
 //
@@ -222,7 +218,7 @@ int yt_rma_field::gather_all_prepare_data(int root)
                                        1 * sizeof(long) + 1 * sizeof(MPI_Aint),
                                        1 * sizeof(long) + 1 * sizeof(MPI_Aint) + 1 * sizeof(int),
                                        1 * sizeof(long) + 1 * sizeof(MPI_Aint) + 2 * sizeof(int)};
-    MPI_Datatype types[8] = {MPI_LONG, MPI_AINT, MPI_INT, MPI_INT, MPI_INT};
+    MPI_Datatype types[5] = {MPI_LONG, MPI_AINT, MPI_INT, MPI_INT, MPI_INT};
     MPI_Type_create_struct(5, lengths, displacements, types, &yt_rma_grid_info_mpi_type);
     MPI_Type_commit(&yt_rma_grid_info_mpi_type);
 
@@ -293,7 +289,7 @@ int yt_rma_field::fetch_remote_data(long& gid, int& rank)
 //-------------------------------------------------------------------------------------------------------
 // Class       :  yt_rma_field
 // Method      :  clean_up
-// Description :  Clean up prepared data, after we've done fetching all the stuff.
+// Description :  Clean up prepared data.
 //
 // Notes       :  1. Close the window epoch, and detach the prepared data buffer.
 //                2. Free m_AllPrepare.
