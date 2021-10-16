@@ -118,19 +118,27 @@ int yt_rma_particle::prepare_data(long& gid)
 
     int dtype_size;
     get_dtype_size(m_AttributeDataType, &dtype_size);
-    void *data_ptr = malloc( par_info.data_len * dtype_size );
-    (*get_attr) (gid, m_AttributeName, data_ptr);
+    void *data_ptr;
+    if( par_info.data_len > 0 ){
+        // Generate buffer.
+        data_ptr = malloc( par_info.data_len * dtype_size );
+        (*get_attr) (gid, m_AttributeName, data_ptr);
 
-    // Attach buffer to window.
-    if( MPI_Win_attach(m_Window, data_ptr, par_info.data_len * dtype_size ) != MPI_SUCCESS ){
-        YT_ABORT("yt_rma_particle: Attach particle [%s] attribute [%s] to window failed!\n",
-                 m_ParticleType, m_AttributeName);
+        // Attach buffer to window.
+        if( MPI_Win_attach(m_Window, data_ptr, par_info.data_len * dtype_size ) != MPI_SUCCESS ){
+            YT_ABORT("yt_rma_particle: Attach particle [%s] attribute [%s] to window failed!\n",
+                     m_ParticleType, m_AttributeName);
+        }
+
+        // Get the address of the attached buffer.
+        if( MPI_Get_address(data_ptr, &(par_info.address)) != MPI_SUCCESS ){
+            YT_ABORT("yt_rma_particle: Get attached particle [%s] attribute [%s] buffer address failed!\n",
+                     m_ParticleType, m_AttributeName);
+        }
     }
-
-    // Get the address of the attached buffer.
-    if( MPI_Get_address(data_ptr, &(par_info.address)) != MPI_SUCCESS ){
-        YT_ABORT("yt_rma_particle: Get attached particle [%s] attribute [%s] buffer address failed!\n",
-                 m_ParticleType, m_AttributeName);
+    else{
+        data_ptr = NULL;
+        par_info.address = NULL;
     }
 
     // Push back to m_Prepare, m_PrepareData.
@@ -206,6 +214,7 @@ int yt_rma_particle::gather_all_prepare_data(int root)
 // Notes       :  1. Look for particle info in m_AllPrepare, and allocate memory.
 //                2. We allocate buffer to store fetched data, but we do not free them. It is Python's
 //                   responsibility.
+//                3. Allocate and fetch data if data length > 0.
 //
 // Parameters  : long gid  : From which grid id to fetch the particle data.
 //               int  rank : Fetch data from rank.
@@ -214,9 +223,7 @@ int yt_rma_particle::gather_all_prepare_data(int root)
 //-------------------------------------------------------------------------------------------------------
 int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
 {
-    // Look for gid in m_AllPrepare, and allocate memory.
-    int  dtype_size;
-    MPI_Datatype mpi_dtype;
+    // Look for gid in m_AllPrepare.
     yt_rma_particle_info fetched;
     for(long aid = 0; aid < m_LenAllPrepare; aid++){
         if( m_AllPrepare[aid].id == gid ){
@@ -224,14 +231,23 @@ int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
             break;
         }
     }
-    get_dtype_size( m_AttributeDataType, &dtype_size );
-    get_mpi_dtype( m_AttributeDataType, &mpi_dtype );
-    void *fetchedData = malloc( fetched.data_len * dtype_size );
+    void *fetchedData;
 
-    // TODO: MPI_Get with big number.
-    if( MPI_Get(fetchedData, (int)fetched.data_len, mpi_dtype, rank, fetched.address, (int)fetched.data_len, mpi_dtype, m_Window) != MPI_SUCCESS ){
-        YT_ABORT("yt_rma_particle: MPI_Get fetch particle [%s] attribute [%s] in grid [%ld] failed!\n",
-                 m_ParticleType, m_AttributeName, gid);
+    if( fetched.data_len > 0 ){
+        int  dtype_size;
+        MPI_Datatype mpi_dtype;
+        get_dtype_size( m_AttributeDataType, &dtype_size );
+        get_mpi_dtype( m_AttributeDataType, &mpi_dtype );
+        fetchedData = malloc( fetched.data_len * dtype_size );
+
+        // TODO: MPI_Get with big number.
+        if( MPI_Get(fetchedData, (int)fetched.data_len, mpi_dtype, rank, fetched.address, (int)fetched.data_len, mpi_dtype, m_Window) != MPI_SUCCESS ){
+            YT_ABORT("yt_rma_particle: MPI_Get fetch particle [%s] attribute [%s] in grid [%ld] failed!\n",
+                     m_ParticleType, m_AttributeName, gid);
+        }
+    }
+    else{
+        fetchedData = NULL;
     }
 
     // Push back to m_Fetched, m_FetchedData.
@@ -257,10 +273,12 @@ int yt_rma_particle::clean_up()
     // Close the window epoch
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOSUCCEED, m_Window);
 
-    // Detach m_PrepareData from m_Window, and then free it.
-    for(int i = 0; i < m_PrepareData.size(); i++){
-        MPI_Win_detach(m_Window, m_PrepareData[i]);
-        delete [] m_PrepareData[i];
+    // Detach m_PrepareData from m_Window and free it, if data length > 0.
+    for(int i = 0; i < m_Prepare.size(); i++){
+        if( m_Prepare[i].data_len > 0 ){
+            MPI_Win_detach(m_Window, m_PrepareData[i]);
+            delete [] m_PrepareData[i];
+        }
     }
 
     // Free m_AllPrepare, m_PrepareData, m_Prepare
@@ -280,6 +298,8 @@ int yt_rma_particle::clean_up()
 //                2. Whenever one gets the data from m_Fetched and m_FetchedData, it will also remove it
 //                   from std::vector.
 //                3. Write fetched data and info to passed in parameters.
+//                4. If fetched data has data length 0, then we write in NULL to data_ptr
+//                   (see also fetch_remote_data).
 //
 // Parameters  :  long     *gid        : Grid id fetched.
 //                char    **ptype      : Particle type fetched.
