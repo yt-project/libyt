@@ -388,7 +388,7 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
             }
             num_to_get -= 1;
 
-            // Step2: Get Python dictionary to appehttps://sciviscolor.org/nd.
+            // Step2: Get Python dictionary to append.
             // Check if grid id key exist in py_output, if not create one.
             py_grid_id = PyLong_FromLong( get_gid );
             if( PyDict_Contains(py_output, py_grid_id) == 0 ){
@@ -468,11 +468,14 @@ static PyObject* libyt_particle_get_attr_remote(PyObject *self, PyObject *args){
 
     // Variables for creating output.
     PyObject *py_output = PyDict_New();
-    PyObject *py_grid_id, *py_ptype, *py_attribute, *py_par_data;
+    PyObject *py_grid_id, *py_ptype_dict, *py_ptype_key, *py_attribute_dict, *py_par_data;
 
     // Run through all the py_ptf_dict and its value.
-    PyObject *py_attr_iter;
+    PyObject *py_ptype;
     PyObject *py_value;
+    PyObject *py_attribute, *py_attr_iter;
+    PyObject *py_prepare_id, *py_get_id, *py_get_rank;
+    int root = 0;
     while( py_ptype = PyIter_Next( py_ptf_keys ) ){
 
         char *ptype = PyBytes_AsString( py_ptype );
@@ -488,23 +491,87 @@ static PyObject* libyt_particle_get_attr_remote(PyObject *self, PyObject *args){
 
         // Iterate through attribute list, and perform RMA operation.
         while( py_attribute = PyIter_Next( py_attr_iter ) ){
-
-            char *attr = PyBytes_AsString( py_attribute );
-
             // Initialize RMA operation
+            char *attr = PyBytes_AsString( py_attribute );
             yt_rma_particle RMAOperation = yt_rma_particle( ptype, attr, len_prepare, len_to_get );
 
-            // Prepare data.
-
-            // Gather prepare data.
+            // Prepare particle data in grid gid.
+            for(int i = 0; i < len_prepare; i++){
+                py_prepare_id = PyList_GetItem( py_prepare_list, i );
+                long gid = PyLong_AsLong( py_prepare_id );
+                RMAOperation.prepare_data( gid );
+            }
+            RMAOperation.gather_all_prepare_data( root );
 
             // Fetch remote data.
+            for(long i = 0; i < len_to_get; i++){
+                py_get_id = PyList_GetItem( py_to_get_list, i );
+                py_get_rank = PyList_GetItem( py_get_rank_list, i );
+                long get_gid = PyLong_AsLong( py_get_id );
+                int  get_rank = (int) PyLong_AsLong( py_get_rank );
+                RMAOperation.fetch_remote_data( get_gid, get_rank );
+            }
 
             // Clean up.
+            RMAOperation.clean_up();
 
-            // Get fetched data.
+            // Get fetched data, and wrap up to NumPy Array, then store inside py_output.
+            long      get_gid;
+            char     *get_ptype;
+            char     *get_attr;
+            yt_dtype  get_data_dtype;
+            long      get_data_len;
+            void     *get_data_ptr;
+            long num_to_get = len_to_get;
+            while( num_to_get > 0 ){
+                // Step1: Fetch data.
+                if ( RMAOperation.get_fetched_data(&get_gid, &get_ptype, &get_attr, &get_data_dtype, &get_data_len, &get_data_ptr) != YT_SUCCESS ){
+                    break;
+                }
+                num_to_get -= 1;
 
-            // Wrap up data and store inside py_output.
+                // Step2: Get python dictionary to append data to.
+                // Check if the grid id key exist in py_output, if not create one.
+                py_grid_id = PyLong_FromLong( get_gid );
+                if( PyDict_Contains(py_output, py_grid_id) == 0 ){
+                    py_ptype_dict = PyDict_New();
+                    PyDict_SetItem( py_output, py_grid_id, py_ptype_dict );
+                    Py_DECREF( py_ptype_dict );
+                }
+                // Get python dictionary under key: py_grid_id. Stored in py_ptype_dict.
+                py_ptype_dict = PyDict_GetItem( py_output, py_grid_id );
+                Py_DECREF(py_grid_id);
+
+                // Check if py_ptype_key exist in py_ptype_dict, if not create one.
+                py_ptype_key = PyUnicode_FromString( get_ptype );
+                if( PyDict_Contains(py_ptype_dict, py_ptype_key) == 0 ){
+                    py_attribute_dict = PyDict_New();
+                    PyDict_SetItem( py_ptype_dict, py_ptype_key, py_attribute_dict );
+                    Py_DECREF( py_attribute_dict );
+                }
+                // Get python dictionary under key: py_ptype_key. Stored in py_attribute_dict.
+                py_attribute_dict = PyDict_GetItem( py_ptype_dict, py_ptype_key );
+                Py_DECREF(py_ptype_key);
+
+                // Step3: Wrap the data to NumPy array if ptr is not NULL and append to dictionary.
+                //        Or else append None to dictionary.
+                if( get_data_ptr == NULL ){
+                    PyDict_SetItemString(py_attribute_dict, get_attr, Py_None);
+                }
+                else{
+                    int nd = 1;
+                    int npy_type;
+                    npy_intp dims[1] = { get_data_len };
+                    if( get_npy_dtype( get_data_dtype, &npy_type ) != YT_SUCCESS ){
+                        PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
+                        return NULL;
+                    }
+                    py_par_data = PyArray_SimpleNewFromData(nd, dims, npy_type, get_data_ptr);
+                    PyArray_ENABLEFLAGS( (PyArrayObject*) py_par_data, NPY_ARRAY_OWNDATA );
+                    PyDict_SetItemString(py_attribute_dict, get_attr, py_par_data);
+                    Py_DECREF(py_par_data);
+                }
+            }
 
             // Free unused resource
             Py_DECREF( py_attribute );
@@ -519,8 +586,7 @@ static PyObject* libyt_particle_get_attr_remote(PyObject *self, PyObject *args){
     Py_DECREF( py_ptf_keys );
 
     // Return.
-    PyErr_SetString(PyExc_NotImplementedError, "libyt.get_attr_remote is still in progress...\n");
-    return NULL;
+    return py_output;
 }
 
 //-------------------------------------------------------------------------------------------------------
