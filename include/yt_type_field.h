@@ -112,48 +112,48 @@ struct yt_field
 // 
 // Parameter   : None
 // ======================================================================================================
-   int validate() const {
-   	// field name is set.
-   	if ( field_name == NULL ){
-   		YT_ABORT("field_name is not set!\n");
-   	}
+    int validate() const {
+        // field name is set.
+        if ( field_name == NULL ){
+            YT_ABORT("field_name is not set!\n");
+        }
 
-   	// field_define_type can only be : "cell-centered", "face-centered", "derived_func".
-   	bool  check1 = false;
-   	int   num_type = 3;
-   	char *type[3]  = {"cell-centered", "face-centered", "derived_func"};
-   	for ( int i = 0; i < num_type; i++ ){
-   		if ( strcmp(field_define_type, type[i]) == 0 ) {
-   			check1 = true;
-   			break;
-   		}
-   	}
-   	if ( check1 == false ){
-   		YT_ABORT("In field [%s], unknown field_define_type [%s]!\n", field_name, field_define_type);
-   	}
+        // field_define_type can only be : "cell-centered", "face-centered", "derived_func".
+        bool  check1 = false;
+        int   num_type = 3;
+        char *type[3]  = {"cell-centered", "face-centered", "derived_func"};
+        for ( int i = 0; i < num_type; i++ ){
+            if ( strcmp(field_define_type, type[i]) == 0 ) {
+                check1 = true;
+                break;
+            }
+        }
+        if ( check1 == false ){
+            YT_ABORT("In field [%s], unknown field_define_type [%s]!\n", field_name, field_define_type);
+        }
 
-   	// if field_dtype is set.
-   	bool check2 = false;
-   	for ( int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++ ){
-   		yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
-   		if ( field_dtype == dtype ){
-   			check2 = true;
-   			break;
-   		}
-   	}
-   	if ( check2 == false && strcmp(field_define_type, "derived_func") != 0 ){
-   		YT_ABORT("In field [%s], field_define_type == %s, but field_dtype not set!\n", 
-   			       field_name, field_define_type);
-   	}
+        // if field_dtype is set.
+        bool check2 = false;
+        for ( int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++ ){
+            yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
+            if ( field_dtype == dtype ){
+                check2 = true;
+                break;
+            }
+        }
+        if ( check2 == false && strcmp(field_define_type, "derived_func") != 0 ){
+            YT_ABORT("In field [%s], field_define_type == %s, but field_dtype not set!\n",
+                       field_name, field_define_type);
+        }
 
-   	// Raise warning if derived_func == NULL and field_define_type is set to "derived_func".
-   	if ( strcmp(field_define_type, "derived_func") == 0 && derived_func == NULL ){
-   		log_warning("In field [%s], field_define_type == %s, but derived_func not set!\n", 
-   			          field_name, field_define_type);
-   	}
+        // Raise warning if derived_func == NULL and field_define_type is set to "derived_func".
+        if ( strcmp(field_define_type, "derived_func") == 0 && derived_func == NULL ){
+            log_warning("In field [%s], field_define_type == %s, but derived_func not set!\n",
+                          field_name, field_define_type);
+        }
       
-      return YT_SUCCESS;
-   }
+        return YT_SUCCESS;
+    }
 
 
 //=======================================================================================================

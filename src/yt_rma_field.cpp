@@ -19,7 +19,7 @@
 //                long len_get_grid: Number of grid to get.
 //-------------------------------------------------------------------------------------------------------
 yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
-: m_LenAllPrepare(0)
+: m_LenAllPrepare(0), m_FieldIndex(-1)
 {
     // Initialize m_Window and set info to "no_locks".
     MPI_Info windowInfo;
@@ -48,9 +48,9 @@ yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
     m_Fetched.reserve(len_get_grid);
     m_FetchedData.reserve(len_get_grid);
 
-    printf("yt_rma: Field Name = %s\n", m_FieldName);
-    printf("yt_rma: Field Define Type = %s\n", m_FieldDefineType);
-    printf("yt_rma: Field Swap Axes = %s\n", m_FieldSwapAxes ? "true" : "false");
+    log_debug("yt_rma_field: Field Name = %s\n", m_FieldName);
+    log_debug("yt_rma_field: Field Define Type = %s\n", m_FieldDefineType);
+    log_debug("yt_rma_field: Field Swap Axes = %s\n", m_FieldSwapAxes ? "true" : "false");
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ yt_rma_field::~yt_rma_field()
     delete [] m_FieldName;
     m_Fetched.clear();
     m_FetchedData.clear();
-    printf("yt_rma: Destructor called.\n");
+    log_debug("yt_rma_field: Destructor called.\n");
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -90,7 +90,12 @@ yt_rma_field::~yt_rma_field()
 //-------------------------------------------------------------------------------------------------------
 int yt_rma_field::prepare_data(long& gid)
 {
-    printf("yt_rma: prepare grid id = %ld\n", gid);
+    // Make sure that the field exist.
+    if( m_FieldIndex == -1 ){
+        int myrank;
+        MPI_Comm_rank(&myrank);
+        YT_ABORT("yt_rma_field: Cannot find field name [ %s ] in field_list on MPI rank [ %d ].\n", m_FieldName, myrank);
+    }
 
     // Get grid info
     int local_index = -1;
@@ -132,6 +137,12 @@ int yt_rma_field::prepare_data(long& gid)
         }
     }
 
+    if(local_index == -1){
+        int myrank;
+        MPI_Comm_rank(&myrank);
+        YT_ABORT("yt_rma_field: Cannot find grid id [ %ld ] on MPI rank [ %d ].\n", gid, myrank);
+    }
+
     // Get data pointer
     void *data_ptr;
     if( strcmp(m_FieldDefineType, "cell-centered") == 0 ){
@@ -152,7 +163,7 @@ int yt_rma_field::prepare_data(long& gid)
         void (*derived_func) (long, double*);
         derived_func = g_param_yt.field_list[m_FieldIndex].derived_func;
         if( derived_func == NULL ){
-            YT_ABORT("In field [%s], field_define_type == %s, but derived_func not set!\n",
+            YT_ABORT("yt_rma_field: In field [%s], field_define_type == %s, but derived_func not set!\n",
                       m_FieldName, m_FieldDefineType);
         }
         (*derived_func) (gid, (double*) data_ptr);
@@ -162,12 +173,12 @@ int yt_rma_field::prepare_data(long& gid)
     int size;
     get_dtype_size( grid_info.data_dtype, &size );
     if( MPI_Win_attach(m_Window, data_ptr, grid_info.data_dim[0] * grid_info.data_dim[1] * grid_info.data_dim[2] * size) != MPI_SUCCESS ){
-        YT_ABORT("yt_rma: Attach buffer to window unsuccessful.\n");
+        YT_ABORT("yt_rma_field: Attach buffer to window failed.\n");
     }
 
     // Get the address of the attached buffer.
     if( MPI_Get_address(data_ptr, &(grid_info.address)) != MPI_SUCCESS ){
-        YT_ABORT("yt_rma: Get attached buffer address failed.\n");
+        YT_ABORT("yt_rma_field: Get attached buffer address failed.\n");
     }
 
     // Push back data_ptr to m_PrepareData, and grid_info to m_Prepare.
@@ -253,6 +264,7 @@ int yt_rma_field::gather_all_prepare_data(int root)
 int yt_rma_field::fetch_remote_data(long& gid, int& rank)
 {
     // Look for gid in m_AllPrepare, and allocate memory.
+    bool get_remote_grid = false;
     int  gridLength;
     int  dtype_size;
     MPI_Datatype mpi_dtype;
@@ -269,14 +281,21 @@ int yt_rma_field::fetch_remote_data(long& gid, int& rank)
             get_dtype_size(fetched.data_dtype, &dtype_size);
             get_mpi_dtype(fetched.data_dtype, &mpi_dtype);
 
+            get_remote_grid = true;
             break;
         }
+    }
+    if( get_remote_grid != true ){
+        int myrank;
+        MPI_Comm_rank(&myrank);
+        YT_ABORT("yt_rma_field: Cannot get remote grid id [ %ld ] located in rank [ %d ] on MPI rank [ %d ].\n",
+                 gid, rank, myrank);
     }
     void *fetchedData = malloc( gridLength * dtype_size );
 
     // Fetch data and info
     if( MPI_Get(fetchedData, gridLength, mpi_dtype, rank, fetched.address, gridLength, mpi_dtype, m_Window) != MPI_SUCCESS ){
-        YT_ABORT("yt_rma: MPI_Get fetch remote data failed!\n");
+        YT_ABORT("yt_rma_field: MPI_Get fetch remote data failed!\n");
     }
 
     // Push back to m_Fetched and m_FetchedData

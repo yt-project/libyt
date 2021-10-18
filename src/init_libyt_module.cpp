@@ -562,10 +562,7 @@ static PyObject* libyt_particle_get_attr_remote(PyObject *self, PyObject *args){
                     int nd = 1;
                     int npy_type;
                     npy_intp dims[1] = { get_data_len };
-                    if( get_npy_dtype( get_data_dtype, &npy_type ) != YT_SUCCESS ){
-                        PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
-                        return NULL;
-                    }
+                    get_npy_dtype( get_data_dtype, &npy_type );
                     py_par_data = PyArray_SimpleNewFromData(nd, dims, npy_type, get_data_ptr);
                     PyArray_ENABLEFLAGS( (PyArrayObject*) py_par_data, NPY_ARRAY_OWNDATA );
                     PyDict_SetItemString(py_attribute_dict, get_attr, py_par_data);

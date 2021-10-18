@@ -20,7 +20,7 @@
 //                long      len_get: Number of grid to get.
 //-------------------------------------------------------------------------------------------------------
 yt_rma_particle::yt_rma_particle(char *ptype, char *attribute, int len_prepare, long len_get)
- : m_LenAllPrepare(0)
+ : m_LenAllPrepare(0), m_ParticleIndex(-1), m_AttributeIndex(-1)
 {
     // Initialize m_Window and set info to "no_locks".
     MPI_Info windowInfo;
@@ -58,8 +58,8 @@ yt_rma_particle::yt_rma_particle(char *ptype, char *attribute, int len_prepare, 
     m_Fetched.reserve(len_get);
     m_FetchedData.reserve(len_get);
 
-    printf("yt_rma_particle: Particle Type  = %s\n", m_ParticleType);
-    printf("yt_rma_particle: Attribute Name = %s\n", m_AttributeName);
+    log_debug("yt_rma_particle: Particle Type  = %s\n", m_ParticleType);
+    log_debug("yt_rma_particle: Attribute Name = %s\n", m_AttributeName);
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -99,9 +99,21 @@ yt_rma_particle::~yt_rma_particle()
 //-------------------------------------------------------------------------------------------------------
 int yt_rma_particle::prepare_data(long& gid)
 {
-    printf("yt_rma_particle: Prepare particle [%s] in grid [%ld].\n", m_ParticleType, gid);
+    // Make sure particle type and its attribute name exist.
+    if( m_ParticleIndex == -1 ){
+        int myrank;
+        MPI_Comm_rank(&myrank);
+        YT_ABORT("yt_rma_particle: Cannot find species name [ %s ] in particle_list on MPI rank [ %d ].\n", m_ParticleType, myrank);
+    }
+    if( m_AttributeIndex == -1 ){
+        int myrank;
+        MPI_Comm_rank(&myrank);
+        YT_ABORT("yt_rma_particle: Cannot find attribute name [ %s ] in species name [ %s ] on MPI rank [ %d ].\n",
+                 m_AttributeName, m_ParticleType, myrank);
+    }
 
     // Get particle info
+    bool get_local_gid = false
     yt_rma_particle_info par_info;
     par_info.id = gid;
 
@@ -109,12 +121,23 @@ int yt_rma_particle::prepare_data(long& gid)
         if( g_param_yt.grids_local[lid].id == gid ){
             par_info.rank = g_param_yt.grids_local[lid].proc_num;
             par_info.data_len = g_param_yt.grids_local[lid].particle_count_list[m_ParticleIndex];
+
+            get_local_gid = true;
+            break;
         }
+    }
+    if( get_local_gid != true ){
+        int myrank;
+        MPI_Comm_rank(&myrank);
+        YT_ABORT("yt_rma_particle: Cannot find grid id [ %ld ] on MPI rank [ %d ].\n", gid, myrank);
     }
 
     // Generate particle data
     void (*get_attr) (long, char*, void*);
     get_attr = g_param_yt.particle_list[m_ParticleIndex].get_attr;
+    if( get_attr == NULL ){
+        YT_ABORT("yt_rma_particle: In particle [%s], get_attr not set!\n", m_ParticleType);
+    }
 
     int dtype_size;
     get_dtype_size(m_AttributeDataType, &dtype_size);
@@ -224,12 +247,19 @@ int yt_rma_particle::gather_all_prepare_data(int root)
 int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
 {
     // Look for gid in m_AllPrepare.
+    bool get_remote_gid = false;
     yt_rma_particle_info fetched;
     for(long aid = 0; aid < m_LenAllPrepare; aid++){
         if( m_AllPrepare[aid].id == gid ){
             fetched = m_AllPrepare[aid];
+
+            get_remote_gid = true;
             break;
         }
+    }
+    if( get_remote_gid != true ){
+        YT_ABORT("yt_rma_particle: Cannot get remote grid id [ %ld ] located in rank [ %d ] on MPI rank [ %d ].\n",
+                 gid, rank, myrank);
     }
     void *fetchedData;
 
