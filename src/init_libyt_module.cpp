@@ -356,7 +356,10 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
         for(int i = 0; i < len_prepare; i++){
             py_prepare_grid_id = PyList_GetItem(py_prepare_grid_id_list, i);
             long gid = PyLong_AsLong( py_prepare_grid_id );
-            RMAOperation.prepare_data( gid );
+            if( RMAOperation.prepare_data( gid ) != YT_SUCCESS ){
+                PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_field when preparing data.\n");
+                return NULL;
+            }
         }
         RMAOperation.gather_all_prepare_data( root );
 
@@ -366,7 +369,10 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
             py_get_grid_rank = PyList_GetItem(py_get_grid_rank_list, i);
             long get_gid  = PyLong_AsLong( py_get_grid_id );
             int  get_rank = (int) PyLong_AsLong( py_get_grid_rank );
-            RMAOperation.fetch_remote_data( get_gid, get_rank );
+            if( RMAOperation.fetch_remote_data( get_gid, get_rank ) != YT_SUCCESS ){
+                PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_field when fetching remote data.\n");
+                return NULL;
+            }
         }
 
         // Clean up prepared data.
@@ -499,7 +505,10 @@ static PyObject* libyt_particle_get_attr_remote(PyObject *self, PyObject *args){
             for(int i = 0; i < len_prepare; i++){
                 py_prepare_id = PyList_GetItem( py_prepare_list, i );
                 long gid = PyLong_AsLong( py_prepare_id );
-                RMAOperation.prepare_data( gid );
+                if( RMAOperation.prepare_data( gid ) != YT_SUCCESS ){
+                    PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_particle when preparing data.\n");
+                    return NULL;
+                }
             }
             RMAOperation.gather_all_prepare_data( root );
 
@@ -509,7 +518,10 @@ static PyObject* libyt_particle_get_attr_remote(PyObject *self, PyObject *args){
                 py_get_rank = PyList_GetItem( py_get_rank_list, i );
                 long get_gid = PyLong_AsLong( py_get_id );
                 int  get_rank = (int) PyLong_AsLong( py_get_rank );
-                RMAOperation.fetch_remote_data( get_gid, get_rank );
+                if( RMAOperation.fetch_remote_data( get_gid, get_rank ) != YT_SUCCESS ){
+                    PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_particle when fetching remote data.\n");
+                    return NULL;
+                }
             }
 
             // Clean up.
