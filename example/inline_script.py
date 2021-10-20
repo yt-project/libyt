@@ -4,41 +4,35 @@ import yt
 yt.enable_parallelism()
 
 def yt_inline_ProjectionPlot( fields ):
-    pass
-    # # Load the data, just like using yt.load()
-    # ds = yt.frontends.libyt.libytDataset()
+    # Load the data, just like using yt.load()
+    ds = yt.frontends.libyt.libytDataset()
     
-    # # Do yt operation
-    # prjz = yt.ProjectionPlot(ds, 'z', fields)
+    # Do yt operation
+    prjz = yt.ProjectionPlot(ds, 'z', fields)
 
-    # # Include this line, otherwise yt will save one copy in each rank.
-    # if yt.is_root():
-    #     prjz.save()
+    # Include this line, otherwise yt will save one copy in each rank.
+    if yt.is_root():
+        prjz.save()
 
 def yt_inline_ProfilePlot():
-    pass
-    # ds = yt.frontends.libyt.libytDataset()
-    # profile = yt.ProfilePlot(ds, "x", ["density"])
-    # if yt.is_root():
-    #     profile.save()
+    ds = yt.frontends.libyt.libytDataset()
+    profile = yt.ProfilePlot(ds, "x", ["density"])
+    if yt.is_root():
+        profile.save()
     
 def yt_inline_ParticlePlot():
-    pass
-    # # [Caution] YT Particle Plot does not support parallelism for now.
-    # ds = yt.frontends.libyt.libytDataset()
-    
-    # ## ParticleProjectionPlot
-    # #==========================
-    # # par = yt.ParticleProjectionPlot(ds, "z")
+    # [Caution] YT Particle Plot does not support parallelism for now.
+    ds = yt.frontends.libyt.libytDataset()
 
-    # ## ParticlePlot
-    # #==========================
-    # par = yt.ParticlePlot(ds, "particle_position_x", "particle_position_y", "Level", center = 'c')
+    ## ParticleProjectionPlot
+    #==========================
+    # par = yt.ParticleProjectionPlot(ds, "z")
 
-    # par.save()
+    ## ParticlePlot
+    #==========================
+    par = yt.ParticlePlot(ds, "particle_position_x", "particle_position_y", "Level", center = 'c')
+
+    par.save()
 
 def test_user_parameter():
-    ds = yt.frontends.libyt.libytDataset()
-    slc = yt.SlicePlot(ds, "z", ("gas", "density"))
-    if yt.is_root():
-        slc.save()
+    pass

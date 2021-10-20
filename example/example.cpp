@@ -545,8 +545,8 @@ void get_randArray(int *array, int length) {
 //               void *data     : write the request particle data to this array
 //-------------------------------------------------------------------------------------------------------
 void par_io_get_attr(long gid, char *attribute, void *data){
-   
-   long len_array = 1;  // TODO: API for getting the data length
+   // Since we set the particle data to be level, which means length = 1.
+   long len_array = 1;
    
    real Pos[3];
    getPositionByGID( gid, &Pos );
