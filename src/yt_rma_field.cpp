@@ -265,7 +265,7 @@ int yt_rma_field::fetch_remote_data(long& gid, int& rank)
 {
     // Look for gid in m_AllPrepare, and allocate memory.
     bool get_remote_grid = false;
-    int  gridLength;
+    long  gridLength;
     int  dtype_size;
     MPI_Datatype mpi_dtype;
     yt_rma_grid_info fetched;
@@ -294,8 +294,8 @@ int yt_rma_field::fetch_remote_data(long& gid, int& rank)
     void *fetchedData = malloc( gridLength * dtype_size );
 
     // Fetch data and info
-    if( MPI_Get(fetchedData, gridLength, mpi_dtype, rank, fetched.address, gridLength, mpi_dtype, m_Window) != MPI_SUCCESS ){
-        YT_ABORT("yt_rma_field: MPI_Get fetch remote data failed!\n");
+    if( big_MPI_Get(fetchedData, gridLength, &(fetched.data_dtype), &mpi_dtype, rank, fetched.address, &m_Window) != YT_SUCCESS ){
+        YT_ABORT("yt_rma_field: big_MPI_Get fetch remote grid [ %ld ] located on rank [ %d ] failed!\n", gid, rank);
     }
 
     // Push back to m_Fetched and m_FetchedData

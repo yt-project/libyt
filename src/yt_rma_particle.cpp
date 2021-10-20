@@ -272,9 +272,8 @@ int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
         get_mpi_dtype( m_AttributeDataType, &mpi_dtype );
         fetchedData = malloc( fetched.data_len * dtype_size );
 
-        // TODO: MPI_Get with big number.
-        if( MPI_Get(fetchedData, (int)fetched.data_len, mpi_dtype, rank, fetched.address, (int)fetched.data_len, mpi_dtype, m_Window) != MPI_SUCCESS ){
-            YT_ABORT("yt_rma_particle: MPI_Get fetch particle [%s] attribute [%s] in grid [%ld] failed!\n",
+        if( big_MPI_Get(fetchedData, fetched.data_len, &m_AttributeDataType, &mpi_dtype, rank, fetched.address, &m_Window) != YT_SUCCESS ){
+            YT_ABORT("yt_rma_particle: big_MPI_Get fetch particle [%s] attribute [%s] in grid [%ld] failed!\n",
                      m_ParticleType, m_AttributeName, gid);
         }
     }
