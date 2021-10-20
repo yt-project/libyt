@@ -3,7 +3,7 @@
 
 /*******************************************************************************
 /
-/  yt_rma_field class.
+/  yt_rma_particle class.
 /
 /  ==> included by init_libyt_module.cpp.
 /
