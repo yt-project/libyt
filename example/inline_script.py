@@ -4,7 +4,6 @@ import yt
 yt.enable_parallelism()
 
 def yt_inline_ProjectionPlot( fields ):
-    
     # Load the data, just like using yt.load()
     ds = yt.frontends.libyt.libytDataset()
     
@@ -22,20 +21,18 @@ def yt_inline_ProfilePlot():
         profile.save()
     
 def yt_inline_ParticlePlot():
-    pass
-    # # [Caution] YT Particle Plot does not support parallelism for now.
-    # ds = yt.frontends.libyt.libytDataset()
-    
-    # ## ParticleProjectionPlot
-    # #==========================
-    # # par = yt.ParticleProjectionPlot(ds, "z")
+    # [Caution] YT Particle Plot does not support parallelism for now.
+    ds = yt.frontends.libyt.libytDataset()
 
-    # ## ParticlePlot
-    # #==========================
-    # par = yt.ParticlePlot(ds, "particle_position_x", "particle_position_y", "Level", center = 'c')
+    ## ParticleProjectionPlot
+    #==========================
+    # par = yt.ParticleProjectionPlot(ds, "z")
 
-    # par.save()
+    ## ParticlePlot
+    #==========================
+    par = yt.ParticlePlot(ds, "particle_position_x", "particle_position_y", "Level", center = 'c')
+
+    par.save()
 
 def test_user_parameter():
-    import libyt
-    print("user_int = ", libyt.param_user['user_int'])
+    pass

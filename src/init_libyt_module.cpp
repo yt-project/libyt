@@ -1,5 +1,7 @@
 #include "yt_combo.h"
-#include "string.h"
+#include <string.h>
+#include "yt_rma_field.h"
+#include "yt_rma_particle.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Description :  List of libyt C extension python methods
@@ -12,6 +14,8 @@
 //              .............................................................
 //                     derived_func          libyt_field_derived_func
 //                     get_attr              libyt_particle_get_attr
+//                     get_field_remote      libyt_field_get_field_remote
+//                     get_attr_remote       libyt_particle_get_attr_remote
 //-------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------------
@@ -282,7 +286,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
         }
     }
     
-    // Call get_attr function pointer    
+    // Call get_attr function pointer
     get_attr(gid, attr_name, output);
 
     // Wrap the output and return back to python
@@ -290,6 +294,308 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     PyArray_ENABLEFLAGS( (PyArrayObject*) outputNumpyArray, NPY_ARRAY_OWNDATA);
 
     return outputNumpyArray;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  libyt_field_get_field_remote
+// Description :  Get non-local field data from remote ranks. 
+//
+// Note        :  1. Support only grid dimension = 3 for now.
+//                2. We return in dictionary objects.
+//                3. We assume that the fname_list passed in has the same fname order in each rank.
+//                
+// Parameter   :  list obj : fname_list   : list of field name to get.
+//                list obj : to_prepare   : list of grid ids you need to prepare.
+//                list obj : nonlocal_id  : nonlocal grid id that you want to get.
+//                list obj : nonlocal_rank: where to get those nonlocal grid.
+//
+// Return      :  dict obj data[grid id][field_name][:,:,:]
+//-------------------------------------------------------------------------------------------------------
+static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
+    // Parse the input list arguments by python
+    PyObject *arg1; // fname_list, we will make it an iterable object.
+    PyObject *py_prepare_grid_id_list;
+    PyObject *py_get_grid_id_list;
+    PyObject *py_get_grid_rank_list;
+
+    int  len_fname_list;   // Max number of field is INT_MAX
+    int  len_prepare;      // Since maximum number of local grid is INT_MAX
+    long len_get_grid;     // Max of total grid number is LNG_MAX
+
+    if ( !PyArg_ParseTuple(args, "OiOiOOl", &arg1, &len_fname_list, &py_prepare_grid_id_list, &len_prepare,
+                                            &py_get_grid_id_list, &py_get_grid_rank_list, &len_get_grid) ){
+        PyErr_SetString(PyExc_TypeError, "Wrong input type, "
+                                         "expect to be libyt.get_field_remote(list, int, list, int, list, list, long).\n");
+        return NULL;
+    }
+
+    // Make these input lists iterators.
+    PyObject *fname_list = PyObject_GetIter( arg1 );
+    if( fname_list == NULL ){
+        PyErr_SetString(PyExc_TypeError, "fname_list is not an iterable object!\n");
+        return NULL;
+    }
+
+    // Create Python dictionary for storing remote data.
+    // py_output for returning back to python, the others are used temporary inside this method.
+    PyObject *py_output = PyDict_New();
+    PyObject *py_grid_id, *py_field_label, *py_field_data;
+
+    // Get all remote grid id in field name fname, get one field at a time.
+    PyObject *py_fname;
+    PyObject *py_prepare_grid_id;
+    PyObject *py_get_grid_id;
+    PyObject *py_get_grid_rank;
+    int root = 0;
+    while( py_fname = PyIter_Next( fname_list ) ){
+        // Get fname, and create yt_rma_field class.
+        char *fname = PyBytes_AsString( py_fname );
+        yt_rma_field RMAOperation = yt_rma_field( fname, len_prepare, len_get_grid );
+
+        // Prepare grid with field fname and id = gid.
+        for(int i = 0; i < len_prepare; i++){
+            py_prepare_grid_id = PyList_GetItem(py_prepare_grid_id_list, i);
+            long gid = PyLong_AsLong( py_prepare_grid_id );
+            if( RMAOperation.prepare_data( gid ) != YT_SUCCESS ){
+                PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_field when preparing data.\n");
+                return NULL;
+            }
+        }
+        RMAOperation.gather_all_prepare_data( root );
+
+        // Fetch remote data.
+        for(long i = 0; i < len_get_grid; i++){
+            py_get_grid_id = PyList_GetItem(py_get_grid_id_list, i);
+            py_get_grid_rank = PyList_GetItem(py_get_grid_rank_list, i);
+            long get_gid  = PyLong_AsLong( py_get_grid_id );
+            int  get_rank = (int) PyLong_AsLong( py_get_grid_rank );
+            if( RMAOperation.fetch_remote_data( get_gid, get_rank ) != YT_SUCCESS ){
+                PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_field when fetching remote data.\n");
+                return NULL;
+            }
+        }
+
+        // Clean up prepared data.
+        RMAOperation.clean_up();
+
+        // Get those fetched data and wrap it to NumPy array
+        long      get_gid;
+        char     *get_fname;
+        yt_dtype  get_data_dtype;
+        int       get_data_dim[3];
+        void     *get_data_ptr;
+        long      num_to_get = len_get_grid;
+        while( num_to_get > 0 ){
+            // Step1: Fetched data.
+            if( RMAOperation.get_fetched_data(&get_gid, &get_fname, &get_data_dtype, &get_data_dim, &get_data_ptr) != YT_SUCCESS ){
+                // It means we have reached the end of the fetched data container.
+                // This if clause is just a safety check.
+                break;
+            }
+            num_to_get -= 1;
+
+            // Step2: Get Python dictionary to append.
+            // Check if grid id key exist in py_output, if not create one.
+            py_grid_id = PyLong_FromLong( get_gid );
+            if( PyDict_Contains(py_output, py_grid_id) == 0 ){
+                py_field_label = PyDict_New();
+                PyDict_SetItem( py_output, py_grid_id, py_field_label );
+                Py_DECREF(py_field_label);
+            }
+            // Get the Python dictionary under key: grid id, and stored in py_field_label.
+            // PyDict_GetItem returns a borrowed reference.
+            py_field_label = PyDict_GetItem( py_output, py_grid_id );
+
+            // Step3: Wrap the data to NumPy array and append to dictionary.
+            npy_intp npy_dim[3] = { get_data_dim[0], get_data_dim[1], get_data_dim[2] };
+            int      npy_dtype;
+            get_npy_dtype(get_data_dtype, &npy_dtype);
+            py_field_data = PyArray_SimpleNewFromData(3, npy_dim, npy_dtype, get_data_ptr);
+            PyArray_ENABLEFLAGS((PyArrayObject*) py_field_data, NPY_ARRAY_OWNDATA);
+            PyDict_SetItemString(py_field_label, get_fname, py_field_data);
+
+            // Dereference
+            Py_DECREF(py_grid_id);
+            Py_DECREF(py_field_data);
+        }
+
+        // Done with this py_fname, dereference it.
+        Py_DECREF( py_fname );
+    }
+
+    // Dereference Python objects
+    Py_DECREF( fname_list );
+
+    // Return to Python
+    return py_output;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  libyt_particle_get_attr_remote
+// Description :  Get non-local particle data from remote ranks.
+//
+// Note        :  1. We return in dictionary objects.
+//                2. We assume that the list of to-get attribute has the same ptype and attr order in each
+//                   rank.
+//                3. If there are no particles in one grid, then we write Py_None to it.
+//                4.
+//
+// Parameter   :  dict obj : ptf          : {<ptype>: [<attr1>, <attr2>, ...]} particle type and attributes
+//                                          to read.
+//                list obj : to_prepare   : list of grid ids you need to prepare.
+//                list obj : nonlocal_id  : nonlocal grid id that you want to get.
+//                list obj : nonlocal_rank: where to get those nonlocal grid.
+//
+// Return      :  dict obj data[grid id][ptype][attribute]
+//-------------------------------------------------------------------------------------------------------
+static PyObject* libyt_particle_get_attr_remote(PyObject *self, PyObject *args){
+    // Parse the input list arguments by Python
+    PyObject *py_ptf_dict;
+    PyObject *arg2, *py_ptf_keys;
+    PyObject *py_prepare_list;
+    PyObject *py_to_get_list;
+    PyObject *py_get_rank_list;
+
+    int  len_prepare;
+    long len_to_get;
+
+    if( !PyArg_ParseTuple(args, "OOOiOOl", &py_ptf_dict, &arg2, &py_prepare_list, &len_prepare,
+                                            &py_to_get_list, &py_get_rank_list, &len_to_get) ){
+        PyErr_SetString(PyExc_TypeError, "Wrong input type, "
+                                         "expect to be libyt.get_attr_remote(dict, iter, list, int, list, list, long).\n");
+        return NULL;
+    }
+
+    py_ptf_keys = PyObject_GetIter( arg2 );
+    if( py_ptf_keys == NULL ){
+        PyErr_SetString(PyExc_TypeError, "py_ptf_keys is not an iterable object!\n");
+        return NULL;
+    }
+
+    // Variables for creating output.
+    PyObject *py_output = PyDict_New();
+    PyObject *py_grid_id, *py_ptype_dict, *py_ptype_key, *py_attribute_dict, *py_par_data;
+
+    // Run through all the py_ptf_dict and its value.
+    PyObject *py_ptype;
+    PyObject *py_value;
+    PyObject *py_attribute, *py_attr_iter;
+    PyObject *py_prepare_id, *py_get_id, *py_get_rank;
+    int root = 0;
+    while( py_ptype = PyIter_Next( py_ptf_keys ) ){
+
+        char *ptype = PyBytes_AsString( py_ptype );
+
+        // Get attribute list inside key ptype in py_ptf_dict.
+        // PyDict_GetItemWithError returns a borrowed reference.
+        py_value = PyDict_GetItemWithError( py_ptf_dict, py_ptype );
+        if( py_value == NULL ){
+            PyErr_Format(PyExc_KeyError, "py_ptf_dict has no key [ %s ].\n", ptype);
+            return NULL;
+        }
+        py_attr_iter = PyObject_GetIter( py_value );
+
+        // Iterate through attribute list, and perform RMA operation.
+        while( py_attribute = PyIter_Next( py_attr_iter ) ){
+            // Initialize RMA operation
+            char *attr = PyBytes_AsString( py_attribute );
+            yt_rma_particle RMAOperation = yt_rma_particle( ptype, attr, len_prepare, len_to_get );
+
+            // Prepare particle data in grid gid.
+            for(int i = 0; i < len_prepare; i++){
+                py_prepare_id = PyList_GetItem( py_prepare_list, i );
+                long gid = PyLong_AsLong( py_prepare_id );
+                if( RMAOperation.prepare_data( gid ) != YT_SUCCESS ){
+                    PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_particle when preparing data.\n");
+                    return NULL;
+                }
+            }
+            RMAOperation.gather_all_prepare_data( root );
+
+            // Fetch remote data.
+            for(long i = 0; i < len_to_get; i++){
+                py_get_id = PyList_GetItem( py_to_get_list, i );
+                py_get_rank = PyList_GetItem( py_get_rank_list, i );
+                long get_gid = PyLong_AsLong( py_get_id );
+                int  get_rank = (int) PyLong_AsLong( py_get_rank );
+                if( RMAOperation.fetch_remote_data( get_gid, get_rank ) != YT_SUCCESS ){
+                    PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_particle when fetching remote data.\n");
+                    return NULL;
+                }
+            }
+
+            // Clean up.
+            RMAOperation.clean_up();
+
+            // Get fetched data, and wrap up to NumPy Array, then store inside py_output.
+            long      get_gid;
+            char     *get_ptype;
+            char     *get_attr;
+            yt_dtype  get_data_dtype;
+            long      get_data_len;
+            void     *get_data_ptr;
+            long num_to_get = len_to_get;
+            while( num_to_get > 0 ){
+                // Step1: Fetch data.
+                if ( RMAOperation.get_fetched_data(&get_gid, &get_ptype, &get_attr, &get_data_dtype, &get_data_len, &get_data_ptr) != YT_SUCCESS ){
+                    break;
+                }
+                num_to_get -= 1;
+
+                // Step2: Get python dictionary to append data to.
+                // Check if the grid id key exist in py_output, if not create one.
+                py_grid_id = PyLong_FromLong( get_gid );
+                if( PyDict_Contains(py_output, py_grid_id) == 0 ){
+                    py_ptype_dict = PyDict_New();
+                    PyDict_SetItem( py_output, py_grid_id, py_ptype_dict );
+                    Py_DECREF( py_ptype_dict );
+                }
+                // Get python dictionary under key: py_grid_id. Stored in py_ptype_dict.
+                py_ptype_dict = PyDict_GetItem( py_output, py_grid_id );
+                Py_DECREF(py_grid_id);
+
+                // Check if py_ptype_key exist in py_ptype_dict, if not create one.
+                py_ptype_key = PyUnicode_FromString( get_ptype );
+                if( PyDict_Contains(py_ptype_dict, py_ptype_key) == 0 ){
+                    py_attribute_dict = PyDict_New();
+                    PyDict_SetItem( py_ptype_dict, py_ptype_key, py_attribute_dict );
+                    Py_DECREF( py_attribute_dict );
+                }
+                // Get python dictionary under key: py_ptype_key. Stored in py_attribute_dict.
+                py_attribute_dict = PyDict_GetItem( py_ptype_dict, py_ptype_key );
+                Py_DECREF(py_ptype_key);
+
+                // Step3: Wrap the data to NumPy array if ptr is not NULL and append to dictionary.
+                //        Or else append None to dictionary.
+                if( get_data_ptr == NULL ){
+                    PyDict_SetItemString(py_attribute_dict, get_attr, Py_None);
+                }
+                else{
+                    int nd = 1;
+                    int npy_type;
+                    npy_intp dims[1] = { get_data_len };
+                    get_npy_dtype( get_data_dtype, &npy_type );
+                    py_par_data = PyArray_SimpleNewFromData(nd, dims, npy_type, get_data_ptr);
+                    PyArray_ENABLEFLAGS( (PyArrayObject*) py_par_data, NPY_ARRAY_OWNDATA );
+                    PyDict_SetItemString(py_attribute_dict, get_attr, py_par_data);
+                    Py_DECREF(py_par_data);
+                }
+            }
+
+            // Free unused resource
+            Py_DECREF( py_attribute );
+        }
+
+        // Free unused resource.
+        Py_DECREF( py_attr_iter );
+        Py_DECREF( py_ptype );
+    }
+
+    // Free unneeded resource.
+    Py_DECREF( py_ptf_keys );
+
+    // Return.
+    return py_output;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -308,10 +614,14 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
 static PyMethodDef libyt_method_list[] =
 {
 // { "method_name", c_function_name, METH_VARARGS, "Description"},
-   {"derived_func", libyt_field_derived_func, METH_VARARGS, 
-    "Input GID and field name, and get the field data derived by derived_func."},
-   {"get_attr",     libyt_particle_get_attr,  METH_VARARGS,
-    "Input GID, ptype, particle (which is attribute), and get the particle attribute by get_attr."},
+   {"derived_func",     libyt_field_derived_func, METH_VARARGS, 
+    "Get local derived field data."},
+   {"get_attr",         libyt_particle_get_attr,  METH_VARARGS,
+    "Get local particle attribute data."},
+   {"get_field_remote", libyt_field_get_field_remote, METH_VARARGS,
+    "Get remote field data."},
+   {"get_attr_remote",  libyt_particle_get_attr_remote, METH_VARARGS,
+    "Get remote particle attribute data."},
    { NULL, NULL, 0, NULL } // sentinel
 };
 
