@@ -18,16 +18,19 @@
 // Notes       :  1. This struct will be use in yt_grid data member field_data.
 //                2. We initialize them in yt_get_gridsPtr.cpp.
 // 
-// Data Member :  data_ptr    : field data pointer
-//                data_dim[3] : dimension of the field data to be passed to python.
-//                              Def => fieldData[ dim[0] ][ dim[1] ][ dim[2] ]
-//                data_dtype  : Data type of the field in specific grid. If this is set as YT_DTYPE_UNKNOWN, 
-//                              then we will use field_dtype define in field_list as input field data type.
+// Data Member :  data_ptr          : field data pointer
+//                data_dim[3]       : dimension of the field data to be passed to python.
+//                                    Def => fieldData[ dim[0] ][ dim[1] ][ dim[2] ]
+//                data_ghost_cell[6]:
+//                data_dtype        : Data type of the field in specific grid. If this is set as
+//                                    YT_DTYPE_UNKNOWN, then we will use field_dtype define in field_list
+//                                    as input field data type.
 //-------------------------------------------------------------------------------------------------------
 struct yt_data
 {
    void     *data_ptr;
    int       data_dim[3];
+   int       data_ghost_cell[6];
    yt_dtype  data_dtype;
 };
 
@@ -38,7 +41,10 @@ struct yt_data
 // Notes       :  1. We assume that each element in array[3] are all in use, which is we only supports 
 //                   dim 3 for now.
 //
-// Data Member :  grid_dimensions : Number of cells along each direction in [x][y][z] coordinate.
+// Data Member :  grid_dimensions : Number of cells along each direction in [x][y][z] coordinate, this is the grid dim
+//                                  that YT will read.
+//                ghost_cell      : Number of ghost cells in each direction [x][y][z] { left, right, bottom, top, down, up }.
+//                                  Number of ghost cells are excluded from grid_dimensions.
 //                left_edge       : Grid left  edge in code units
 //                right_edge      : Grid right edge in code units
 //                particle_count_list : Array that records number of particles in each species, the input order
@@ -71,6 +77,7 @@ struct yt_grid
    long      parent_id;
 
    int       grid_dimensions[3];
+   int       ghost_cell[6];
    int       level;
    int       proc_num;
 
@@ -94,6 +101,7 @@ struct yt_grid
 
       for (int d=0; d<3; d++) {
       grid_dimensions[d]  = INT_UNDEFINED; }
+      for (int d=0; d<6; d++) { ghost_cell[d] = 0; }
 
       grid_particle_count = 0;
       particle_count_list = NULL;
@@ -155,6 +163,8 @@ struct yt_grid
 //    additional checks
       for (int d=0; d<3; d++) {
       if ( grid_dimensions[d] <= 0 )   YT_ABORT( "\"%s[%d]\" == %d <= 0 for grid [%ld]!\n", "grid_dimensions", d, grid_dimensions[d], id ); }
+      for (int d=0; d<6; d++) {
+      if ( ghost_cell[d] < 0)     YT_ABORT( "\"%s[%d]\" < 0 in grid id [%ld]!\n", "ghost_cell", d,  id ); }
       if ( id < 0 )               YT_ABORT( "\"%s\" == %d < 0!\n", "id", id );
       if ( level < 0 )            YT_ABORT( "\"%s\" == %d < 0 for grid [%ld]!\n", "level", level, id );
 
