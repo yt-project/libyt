@@ -165,7 +165,7 @@ int yt_commit_grids()
          log_debug("Validating the parent-children relationship ... done!\n");
       }
       else{
-         YT_ABORT("Validating the parent-children relationship ... failed!")
+         YT_ABORT("Validating the parent-children relationship ... failed!\n")
       }
    }
 

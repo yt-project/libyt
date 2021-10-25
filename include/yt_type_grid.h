@@ -18,7 +18,8 @@
 // Notes       :  1. This struct will be use in yt_grid data member field_data.
 // 
 // Data Member :  data_ptr    : field data pointer
-//                data_dim[3] : dimension of the field data to be passed to python.
+//                data_dim[3] : dimension of the field data to be passed to python, which is the actual
+//                              size of the array.
 //                              Def => fieldData[ dim[0] ][ dim[1] ][ dim[2] ]
 //                data_dtype  : Data type of the field in specific grid. If this is set as YT_DTYPE_UNKNOWN, 
 //                              then we will use field_dtype define in field_list as input field data type.

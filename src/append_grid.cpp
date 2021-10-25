@@ -86,17 +86,22 @@ int append_grid( yt_grid *grid ){
             }
 
             // Get the dimension of the input array
-            // Only "cell-centered" will be set to grid_dimensions, else should set in data_dim.
+            // Only "cell-centered" will be set to grid_dimensions + ghost cell, else should be set in data_dim.
             if ( strcmp(g_param_yt.field_list[v].field_define_type, "cell-centered") == 0 ){
-               if ( g_param_yt.field_list[v].swap_axes == true ){
-                  (grid->field_data)[v].data_dim[0] = (grid->grid_dimensions)[2];
-                  (grid->field_data)[v].data_dim[1] = (grid->grid_dimensions)[1];
-                  (grid->field_data)[v].data_dim[2] = (grid->grid_dimensions)[0];
-               }
-               else{
-                  (grid->field_data)[v].data_dim[0] = (grid->grid_dimensions)[0];
-                  (grid->field_data)[v].data_dim[1] = (grid->grid_dimensions)[1];
-                  (grid->field_data)[v].data_dim[2] = (grid->grid_dimensions)[2];
+                // Get grid_dimensions and consider swap_axes or not, since grid_dimensions is defined as [x][y][z].
+                if ( g_param_yt.field_list[v].swap_axes == true ){
+                    (grid->field_data)[v].data_dim[0] = (grid->grid_dimensions)[2];
+                    (grid->field_data)[v].data_dim[1] = (grid->grid_dimensions)[1];
+                    (grid->field_data)[v].data_dim[2] = (grid->grid_dimensions)[0];
+                }
+                else{
+                    (grid->field_data)[v].data_dim[0] = (grid->grid_dimensions)[0];
+                    (grid->field_data)[v].data_dim[1] = (grid->grid_dimensions)[1];
+                    (grid->field_data)[v].data_dim[2] = (grid->grid_dimensions)[2];
+                }
+               // Plus the ghost cell to get the actual array dimensions.
+               for(int d = 0; d < 6; d++) {
+                   (grid->field_data)[v].data_dim[ d / 2 ] += g_param_yt.field_list[v].field_ghost_cell[d];
                }
             }
             // See if all data_dim > 0, abort if not.
