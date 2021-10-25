@@ -1,15 +1,19 @@
 /*
-This example is to test how libyt can work with 
-yt python package with OpenMPI.
+This example is to show how libyt load all the data and information into yt,
+then use yt to do analysis on the go. And also, to illustrates the basic
+usage of libyt in steps 0 - 9.
 
-1. Assign grids to one MPI rank
-2. Pass the grid to yt when that grid belongs to the MPI rank
-3. Each MPI rank will only pass "its" hierarchy to yt
-   ---> Here, we calculate all the grids (sim_grids) first, 
-        then distribute them to grids_local, to simulate the working process.
-
-And also, to illustrates the basic usage of libyt.
-In steps 0 - 9.
+We have a set of pre-calculated data. We assign each grid to one MPI rank
+randomly to stimulate the actual code of having grid data on different rank.
+Then we demonstrate how to pass in the grid data and their hierarchy located
+on current MPI rank to libyt. Finally, we use those passed in data to do a
+series of analysis with yt.
+Above description can be concentrated to following steps:
+    1. Assign pre-calculated grids to one MPI rank.
+    2. Each MPI rank will only pass "its" hierarchy to yt
+       ---> Here, we calculate all the grids (sim_grids) first,
+            then distribute them to grids_local, to simulate the working process.
+    3. Do analysis using yt.
  */
 
 #include <stdlib.h>
@@ -32,6 +36,8 @@ typedef double real;
 #define NGRID_1D  5  // number of root grids along each direction
 #define GRID_DIM  8  // grid dimension (this example assumes cubic grids)
 #define REFINE_BY 2  // refinement factor between two AMR levels
+#define GHOST_CELL 1  // number of ghost cell in each direction, you can change whatever you like.
+                      // We make it like a shift in data array.
 
 // convenient macros
 #define SQR(a)  ( (a)*(a) )
@@ -118,8 +124,9 @@ int main( int argc, char *argv[] )
    num_total_grids = (long) num_grids;
 
 // this array represents the simulation data stored in memory
-   real (*field_data)[num_fields][ CUBE(GRID_DIM) ]
-      = new real [num_grids][num_fields][ CUBE(GRID_DIM) ];
+// there can be GHOST_CELL at the grid's boundary.
+   real (*field_data)[num_fields][ CUBE(GRID_DIM+GHOST_CELL*2) ]
+      = new real [num_grids][num_fields][ CUBE(GRID_DIM+GHOST_CELL*2) ];
 
    for (int step=0; step<total_steps; step++)
    {
@@ -231,6 +238,14 @@ int main( int argc, char *argv[] )
       char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
       field_list[0].field_name_alias = field_name_alias;
       field_list[0].num_field_name_alias = 3;
+      for(int d = 0; d < 6; d++){
+          // Number of ghost cell in the beginning and the end of the data array in each dimension in the point of view
+          // of the data array.
+          // field_ghost_cell[0] -> number of ghost cell to be ignored at the beginning of 0-dim of the data.
+          // field_ghost_cell[1] -> number of ghost cell to be ignored at the end of 0-dim of the data.
+          field_list[0].field_ghost_cell[d] = GHOST_CELL;
+      }
+
 
 //    Set up particle list
       yt_particle *particle_list;
@@ -300,24 +315,25 @@ int main( int argc, char *argv[] )
          {
             sim_grids[gid].left_edge [d] = grid_order[d]*GRID_DIM*dh0;
             sim_grids[gid].right_edge[d] = sim_grids[gid].left_edge[d] + GRID_DIM*dh0;
-            sim_grids[gid].grid_dimensions[d] = GRID_DIM;   // this example assumes cubic grids
+            sim_grids[gid].grid_dimensions[d] = GRID_DIM;
          }
 
          sim_grids[gid].id                     = gid;    // 0-indexed
          sim_grids[gid].parent_id              = -1;     // 0-indexed (-1 for grids on the root level)
          sim_grids[gid].level                  = 0;      // 0-indexed
 
-//       in this example we arbitrarily set the field data of this grid
-         for (int k=0; k<GRID_DIM; k++)
-         for (int j=0; j<GRID_DIM; j++)
-         for (int i=0; i<GRID_DIM; i++)
+         // In this example we arbitrarily set the field data of this grid.
+         // But we exclude ghost cell, since ghost cells will be ignored in yt.
+         for (int k=GHOST_CELL; k<GRID_DIM+GHOST_CELL; k++)
+         for (int j=GHOST_CELL; j<GRID_DIM+GHOST_CELL; j++)
+         for (int i=GHOST_CELL; i<GRID_DIM+GHOST_CELL; i++)
          {
-            const double x = sim_grids[gid].left_edge[0] + (i+0.5)*dh0;
-            const double y = sim_grids[gid].left_edge[1] + (j+0.5)*dh0;
-            const double z = sim_grids[gid].left_edge[2] + (k+0.5)*dh0;
+            const double x = sim_grids[gid].left_edge[0] + ((i - GHOST_CELL)+0.5)*dh0;
+            const double y = sim_grids[gid].left_edge[1] + ((j - GHOST_CELL)+0.5)*dh0;
+            const double z = sim_grids[gid].left_edge[2] + ((k - GHOST_CELL)+0.5)*dh0;
 
             for (int v=0; v<num_fields; v++) {
-               field_data[gid][v][ (k*GRID_DIM+j)*GRID_DIM+i ] = set_density( x, y, z, time, velocity );
+               field_data[gid][v][ (k*(GRID_DIM+GHOST_CELL)+j)*(GRID_DIM+GHOST_CELL)+i ] = set_density( x, y, z, time, velocity );
             }
          }
       } // for grid_order[0/1/2]
@@ -354,22 +370,22 @@ int main( int argc, char *argv[] )
          sim_grids[gid].level          = 1;            // 0-indexed
 
 //       here we arbitrarily set the field data of this grid
-         for (int k=0; k<GRID_DIM; k++)
-         for (int j=0; j<GRID_DIM; j++)
-         for (int i=0; i<GRID_DIM; i++)
+         for (int k=GHOST_CELL; k<GRID_DIM+GHOST_CELL; k++)
+         for (int j=GHOST_CELL; j<GRID_DIM+GHOST_CELL; j++)
+         for (int i=GHOST_CELL; i<GRID_DIM+GHOST_CELL; i++)
          {
-            const double x = sim_grids[gid].left_edge[0] + (i+0.5)*dh1;
-            const double y = sim_grids[gid].left_edge[1] + (j+0.5)*dh1;
-            const double z = sim_grids[gid].left_edge[2] + (k+0.5)*dh1;
+            const double x = sim_grids[gid].left_edge[0] + ((i - GHOST_CELL)+0.5)*dh1;
+            const double y = sim_grids[gid].left_edge[1] + ((j - GHOST_CELL)+0.5)*dh1;
+            const double z = sim_grids[gid].left_edge[2] + ((k - GHOST_CELL)+0.5)*dh1;
 
             for (int v=0; v<num_fields; v++) {
-               field_data[gid][v][ (k*GRID_DIM+j)*GRID_DIM+i ] = set_density( x, y, z, time, velocity );
+               field_data[gid][v][ (k*(GRID_DIM+GHOST_CELL)+j)*(GRID_DIM+GHOST_CELL)+i ] = set_density( x, y, z, time, velocity );
             }
          }
       } // for grid_order[0/1/2]
 
 
-//    set general grid attributes and invoke inline analysis
+//    set field_data in sim_grid, which represents grid and data in simulation code.
       for (int gid=0; gid<param_yt.num_grids; gid++)
       {
          sim_grids[gid].field_data = new yt_data [num_fields];
@@ -389,7 +405,7 @@ int main( int argc, char *argv[] )
       } // for (int gid=0; gid<param_yt.num_grids; gid++) 
 
 
-//    distribute sim_grids to grids_local
+//    Load the actual information to libyt.
       int index_local = 0;
       for (int gid = 0; gid < param_yt.num_grids; gid = gid + 1){
 
