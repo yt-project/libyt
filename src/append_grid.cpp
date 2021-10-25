@@ -7,7 +7,9 @@
 //
 // Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data to python
 //                2. Called and use by yt_commit_grids().
-//                3. If field_data == NULL, we append Py_None to the dictionary. 
+//                3. If field_data == NULL, we append Py_None to the dictionary.
+//                4. We assign data_dim and data_dtype in yt_data if user only sets its macros in grid_dimensions
+//                   and field_dtype.
 //
 // Parameter   :  yt_grid *grid
 //

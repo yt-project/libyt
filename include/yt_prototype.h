@@ -41,7 +41,7 @@ struct yt_hierarchy{
 //                MPI_Aint address    : Window address at which this data buffer attaches to.
 //                int      rank       : Rank that contains the data buffer.
 //                yt_dtype data_dtype : Data type of the array.
-//                int      data_dim[3]: Data array's dimension.
+//                int      data_dim[3]: Data array's dimension, the actual dimension, which include ghost cell.
 //-------------------------------------------------------------------------------------------------------
 struct yt_rma_grid_info
 {
