@@ -1,6 +1,9 @@
+# Your path
+MPI_PATH := /home/calab912/software/openmpi/3.1.5-gnu/bin
+
 BIN  := example
 FILE := example.cpp
-COMPILER := mpic++
+COMPILER := $(MPI_PATH)/mpic++
 
 $(BIN): $(FILE)
 	$(COMPILER) -o $(BIN) $(FILE) -I../include -L../src -lyt

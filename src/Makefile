@@ -1,12 +1,8 @@
-
-# compilation options (NOT USED YET)
+# Your paths
 #######################################################################################################
-# double precision
-#SIMU_OPTION += -DFLOAT8
-
-# debug mode
-#SIMU_OPTION += -DYT_DEBUG
-
+PYTHON_PATH := /home/calab912/software/python/python3.8
+MPI_PATH    := /home/calab912/software/openmpi/3.1.5-gnu
+OBJ_PATH := ./obj
 
 # source files
 #######################################################################################################
@@ -16,28 +12,20 @@ CC_FILE := yt_init.cpp  yt_finalize.cpp  yt_set_parameter.cpp  yt_inline.cpp  yt
 CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp    \
 		   check_data.cpp append_grid.cpp get_dtype_property.cpp big_mpi.cpp
 
-
 # library name
 #######################################################################################################
 LIB_REALNAME := libyt.so.1.0.0
 LIB_SONAME   := libyt.so.1
 
-
-# different paths
-#######################################################################################################
-PYTHON_PATH := /home/cindytsai/software/python/python3.8
-OBJ_PATH := ./obj
-
-
 # flags
 #######################################################################################################
-#CXX := icpc
-CXX := mpic++
+CXX := $(MPI_PATH)/bin/mpicxx
 
 LIB := -L$(PYTHON_PATH)/lib -lpython3.8
 
 INCLUDE := -I../include -I$(PYTHON_PATH)/include/python3.8 \
-           -I$(PYTHON_PATH)/lib/python3.8/site-packages/numpy/core/include
+           -I$(PYTHON_PATH)/lib/python3.8/site-packages/numpy/core/include \
+           -I$(MPI_PATH)/include
 
 #CXXWARN_FLAG := -w1
 CXXWARN_FLAG := -Wall -Wno-write-strings
