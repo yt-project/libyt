@@ -31,6 +31,10 @@ void log_warning(const char *Format, ...);
 //                yt_dtype field_dtype          : Field type of the grid. Can be YT_FLOAT, YT_DOUBLE, YT_INT.
 //                bool     swap_axes            : true  ==> [z][y][x], x address alter-first, default value.
 //                                                false ==> [x][y][z], z address alter-first
+//                short    field_ghost_cell[6]  : Number of cell to ignore at the beginning and the end of each dimensions.
+//                                                The dimensions is in the point of view of the field data, it has
+//                                                nothing to do with coordinates.
+//
 //                char    *field_unit           : Set field_unit if needed.
 //                int      num_field_name_alias : Set fields to alias, number of the aliases.
 //                char   **field_name_alias     : Aliases.
@@ -53,6 +57,7 @@ struct yt_field
 	char     *field_define_type;
 	yt_dtype  field_dtype;
 	bool      swap_axes;
+    short     field_ghost_cell[6];
 	char     *field_unit;
 	int       num_field_name_alias;
 	char    **field_name_alias;
@@ -77,6 +82,7 @@ struct yt_field
 		field_define_type = "cell-centered";
 		field_dtype = YT_DTYPE_UNKNOWN;
 		swap_axes = true;
+        for(int d=0; d<6; d++){ field_ghost_cell[d] = 0; }
 		field_unit = "";
 		num_field_name_alias = 0;
 		field_name_alias = NULL;
@@ -108,6 +114,7 @@ struct yt_field
 //                  (2) field_define_type can only be : "cell-centered", "face-centered", "derived_func".
 //                  (3) Check if field_dtype is set.
 //                  (4) Raise warning if derived_func == NULL and field_define_type is set to "derived_func".
+//                  (5) field_ghost_cell cannot be smaller than 0.
 //               2. Used in check_field_list()
 // 
 // Parameter   : None
@@ -150,6 +157,14 @@ struct yt_field
         if ( strcmp(field_define_type, "derived_func") == 0 && derived_func == NULL ){
             log_warning("In field [%s], field_define_type == %s, but derived_func not set!\n",
                           field_name, field_define_type);
+        }
+
+        // field_ghost_cell cannot be smaller than 0.
+        for ( int d = 0; d < 6; d++ ){
+            if( field_ghost_cell[d] < 0 ){
+                YT_ABORT("In field [%s], field_ghost_cell[%d] < 0. This parameter means number of cells to ignore and should be >= 0!\n",
+                         field_name, d);
+            }
         }
       
         return YT_SUCCESS;

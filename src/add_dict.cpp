@@ -190,7 +190,10 @@ template int add_dict_vector3 <ulong > ( PyObject *dict, const char *key, const 
 //                   |               |                      |               |
 //                   { <field_name>: {"attribute"         : [ <field_unit>, [<field_name_alias>, ], <field_display_name> ]
 //                                    "field_define_type" :  <field_define_type>,
-//                                    "swap_axes"         :  true / false                                                 },
+//                                    "swap_axes"         :  true / false
+//                                    "ghost_cell"        : [ beginning of 0-dim, ending of 0-dim,
+//                                                            beginning of 1-dim, ending of 1-dim,
+//                                                            beginning of 2-dim, ending of 2-dim  ]                      },
 //                   }
 //
 // Parameter   :  None
@@ -271,10 +274,26 @@ int add_dict_field_list(){
       } 
       else {
          if ( PyDict_SetItemString( field_info_dict, "swap_axes", Py_False) != 0 ){
-            YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ false ] failed!\n", 
+            YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ false ] failed!\n",
                       (g_param_yt.field_list)[i].field_name, "swap_axes");
          }
       }
+
+      // Load "ghost_cell" to "field_info_dict"
+      PyObject *ghost_cell_list = PyList_New(0);
+      for(int d = 0; d < 6; d++){
+          val = PyLong_FromLong((long) (g_param_yt.field_list)[i].field_ghost_cell[d] );
+          if( PyList_Append( ghost_cell_list, val ) != 0 ){
+              YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], failed to append ghost cell to list!\n",
+                       (g_param_yt.field_list)[i].field_name);
+          }
+          Py_DECREF(val);
+      }
+      if( PyDict_SetItemString( field_info_dict, "ghost_cell", ghost_cell_list ) != 0 ){
+          YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ list obj ] failed!\n",
+                   (g_param_yt.field_list)[i].field_name, "ghost_cell");
+      }
+      Py_DECREF( ghost_cell_list );
 
       // Load "field_info_dict" to "field_list_dict", with key = field_name
       key = PyUnicode_FromString( (g_param_yt.field_list)[i].field_name );
