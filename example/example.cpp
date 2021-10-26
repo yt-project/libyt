@@ -333,7 +333,7 @@ int main( int argc, char *argv[] )
             const double z = sim_grids[gid].left_edge[2] + ((k - GHOST_CELL)+0.5)*dh0;
 
             for (int v=0; v<num_fields; v++) {
-               field_data[gid][v][ (k*(GRID_DIM+GHOST_CELL)+j)*(GRID_DIM+GHOST_CELL)+i ] = set_density( x, y, z, time, velocity );
+               field_data[gid][v][ (k*(GRID_DIM+GHOST_CELL*2)+j)*(GRID_DIM+GHOST_CELL*2)+i ] = set_density( x, y, z, time, velocity );
             }
          }
       } // for grid_order[0/1/2]
@@ -379,7 +379,7 @@ int main( int argc, char *argv[] )
             const double z = sim_grids[gid].left_edge[2] + ((k - GHOST_CELL)+0.5)*dh1;
 
             for (int v=0; v<num_fields; v++) {
-               field_data[gid][v][ (k*(GRID_DIM+GHOST_CELL)+j)*(GRID_DIM+GHOST_CELL)+i ] = set_density( x, y, z, time, velocity );
+               field_data[gid][v][ (k*(GRID_DIM+GHOST_CELL*2)+j)*(GRID_DIM+GHOST_CELL*2)+i ] = set_density( x, y, z, time, velocity );
             }
          }
       } // for grid_order[0/1/2]
