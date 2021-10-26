@@ -1,8 +1,8 @@
 # Your paths
 #######################################################################################################
-PYTHON_PATH := /home/calab912/software/python/python3.8
-MPI_PATH    := /home/calab912/software/openmpi/3.1.5-gnu
-OBJ_PATH := ./obj
+PYTHON_PATH := /home/cindytsai/software/python/python3.8
+MPI_PATH    := /home/cindytsai/software/openmpi/3.1.5-gnu
+
 
 # source files
 #######################################################################################################
@@ -12,10 +12,12 @@ CC_FILE := yt_init.cpp  yt_finalize.cpp  yt_set_parameter.cpp  yt_inline.cpp  yt
 CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp    \
 		   check_data.cpp append_grid.cpp get_dtype_property.cpp big_mpi.cpp
 
+
 # library name
 #######################################################################################################
 LIB_REALNAME := libyt.so.1.0.0
 LIB_SONAME   := libyt.so.1
+
 
 # flags
 #######################################################################################################
@@ -34,6 +36,7 @@ CXXFLAG := $(CXXWARN_FLAG) $(INCLUDE) $(SIMU_OPTION) -O2 -fPIC
 
 # rules and targets
 #######################################################################################################
+OBJ_PATH := ./obj
 OBJ := $(patsubst %.cpp, $(OBJ_PATH)/%.o, $(CC_FILE))
 
 $(OBJ_PATH)/%.o : %.cpp
@@ -51,6 +54,3 @@ $(LIB_REALNAME) : $(OBJ)
 clean :
 	 rm -f $(OBJ)
 	 rm -f $(LIB_REALNAME)
-
-
-
