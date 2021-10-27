@@ -10,26 +10,26 @@
 - **Supported `yt` functionalities**:
 
   |       `yt` Function      | Supported | Notes                                    |
-|:------------------------:|:---------:|------------------------------------------|
-| `find_max`               | V         |                                          |
-| `ProjectionPlot`         | V         |                                          |
-| `OffAxisProjectionPlot`  | V         |                                          |
-| `SlicePlot`              | V         |                                          |
-| `OffAxisSlicePlot`       | V         |                                          |
-| `covering_grid`          | V         |                                          |
-| 1D `create_profile`      | V         |                                          |
-| 2D `create_profile`      | V         |                                          |
-| `ProfilePlot`            | V         |                                          |
-| `PhasePlot`              | V         |                                          |
-| `LinePlot`               | V         |                                          |
-| Halo Analysis            |           | Not test yet.                            |
-| Isocontours              |           | Not test yet.                            |
-| `volume_render`          | V         | Only when MPI size is even will it work. |
-| `ParticlePlot`           | X         | Generate false figure.                   |
-| `ParticleProjectionPlot` | X         | Generate false figure.                   |
+  |:------------------------:|:---------:|------------------------------------------|
+  | `find_max`               | V         |                                          |
+  | `ProjectionPlot`         | V         |                                          |
+  | `OffAxisProjectionPlot`  | V         |                                          |
+  | `SlicePlot`              | V         |                                          |
+  | `OffAxisSlicePlot`       | V         |                                          |
+  | `covering_grid`          | V         |                                          |
+  | 1D `create_profile`      | V         |                                          |
+  | 2D `create_profile`      | V         |                                          |
+  | `ProfilePlot`            | V         |                                          |
+  | `PhasePlot`              | V         |                                          |
+  | `LinePlot`               | V         |                                          |
+  | Halo Analysis            |           | Not test yet.                            |
+  | Isocontours              |           | Not test yet.                            |
+  | `volume_render`          | V         | Only when MPI size is even will it work. |
+  | `ParticlePlot`           | X         | Generate false figure.                   |
+  | `ParticleProjectionPlot` | X         | Generate false figure.                   |
 
 ## Installation
-##### libyt
+### libyt
 In `/libyt/src/Makefile`, update `PYTHON_PATH` and `MPI_PATH`:
 ```makefile
 # Your paths
@@ -47,7 +47,7 @@ cp libyt.so* ../lib/
 
 Include `libyt` header which is in `/libyt/include/libyt.h` and library in your simulation code. Make sure you are using the same `MPI_PATH` to compile `libyt` and your simulation code.
 
-##### yt
+### yt
 > :warning: We will submit a pull request to [`yt-project/yt`](https://github.com/yt-project/yt). This section is only for temporary. For now, you can only build from source code.
 
 Clone [`cindytsai/yt`-`libyt` branch](https://github.com/cindytsai/yt/tree/libyt):
