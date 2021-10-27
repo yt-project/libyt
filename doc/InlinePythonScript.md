@@ -13,10 +13,10 @@ import yt
 yt.enable_parallelism()
 
 def yt_inline():
-	ds = yt.frontends.libyt.libytDataset()     # <--> yt.load("Data")
-	proj = yt.ProjectionPlot(ds, "density")
-	if yt.is_root():
-		proj.save()
+    ds = yt.frontends.libyt.libytDataset()     # <--> yt.load("Data")
+    proj = yt.ProjectionPlot(ds, "density")
+    if yt.is_root():
+        proj.save()
 ```
 We have borrowed parallel computation ability in `yt`, you can also refer to [Parallel Computation With yt](https://yt-project.org/doc/analyzing/parallel_computation.html#parallel-computation-with-yt).
 > :warning: When doing volume rendering, do *not* use `yt.is_root()` when saving outputs. Because this is not a serial process, it requires all ranks to work cooperatively.
