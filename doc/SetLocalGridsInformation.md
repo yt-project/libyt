@@ -51,7 +51,7 @@ int index_local = 0;
 for (int gid = 0; gid < param_yt.num_grids; gid = gid + 1){  
     if (grids_MPI[gid] == myrank) {  
         /* Fill in hierarchy. */
-		for (int d = 0; d < 3; d = d+1) {  
+        for (int d = 0; d < 3; d = d+1) {  
             grids_local[index_local].left_edge[d]  = sim_grids[gid].left_edge[d];  
             grids_local[index_local].right_edge[d] = sim_grids[gid].right_edge[d];  
             grids_local[index_local].grid_dimensions[d] = sim_grids[gid].grid_dimensions[d];  
