@@ -32,7 +32,7 @@ int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *f
   - `data_dim[3]`: Dimension of the `data_ptr` array, in the point of view in itself.
   - `data_dtype`: Data type of the array.
 
-> :warning: Do not mix grid dimensions get by `yt_getGridInfo_Dimensions` with data dimensions get by `yt_getGridInfo_FieldData`. Grid dimensions are grid length in [0][1][2] <-> [x][y][z]. Whereas data dimensions are just data length in their point of view, which may consist of ghost cells.
+> :information_source: Do not mix grid dimensions get by `yt_getGridInfo_Dimensions` with data dimensions get by `yt_getGridInfo_FieldData`. Grid dimensions are grid length in [0][1][2] <-> [x][y][z]. Whereas data dimensions are just data length in their point of view, which may consist of ghost cells.
 
 > :warning: You should not be modifying `data_ptr`, as they are those data pointers you passed in and will be used in your later on iterations.
 
@@ -48,7 +48,7 @@ void YT_Inline(){
 	
     FieldList[MHDIdx].field_name        = "CCMagX";
     FieldList[MHDIdx].field_define_type = "derived_func";
-	FieldList[MHDIdx].swap_axes         = true;
+    FieldList[MHDIdx].swap_axes         = true;
     FieldList[MHDIdx].derived_func      = MagX_DerivedFunc;
     ...
 }

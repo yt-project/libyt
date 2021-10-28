@@ -46,6 +46,7 @@ int yt_get_fieldsPtr( yt_field **field_list )
   - Usage: Name aliases.
 - `field_display_name` (Default=`NULL`)
   - Usage: Display name of the field on the output figure. If not set, `yt` uses its field name instead.
+
 ## Example
 ```cpp
 /* libyt API */  

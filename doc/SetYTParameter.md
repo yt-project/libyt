@@ -54,7 +54,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
 - `num_species` (Default=`0`)
   - Usage: Number of particle types.
 - `species_list` (Default=`NULL`)
-  - Usage: Species list of particles. This should be a `yt_species` array. The lifespace of this array should cover `yt_set_parameter` API.
+  - Usage: Species list of particles. This should be a `yt_species` array. The lifespan of this array should at least cover `yt_inline` and `yt_inline_argument` API, which is when [Perform Inline-Analysis](./PerformInlineAnalysis.md).
   - Valid Value: Each element in `yt_species` array
     - `species_name`: Name of the particle type.
     - `num_attr`: Number of attributes does this particle type has. 
