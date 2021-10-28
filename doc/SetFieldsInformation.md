@@ -16,13 +16,13 @@ int yt_get_fieldsPtr( yt_field **field_list )
     - `"face-centered"`: Face-centered data. For more details, see [Face-Centered Field](./FaceCenteredField.md).
     - `"derived_func"`: Derived field data. When you want your simulation code to generate or convert existing data for `yt`, set to this. See [Derived Field](./DerivedField.md) on how to set them.
 - `field_ghost_cell` (Default=`0`)
-  - Usage: Number of ghost cell to be ignored at the beginning and the end of each dimension. This is in the point of view of the data array.
-    `field_ghost_cell[0]`: Number of ghost cell to be ignored at the beginning of 0-dim of the data.
-	`field_ghost_cell[1]`: Number of ghost cell to be ignored at the end of 0-dim of the data.
-	`field_ghost_cell[2]`: Number of ghost cell to be ignored at the beginning of 1-dim of the data.
-	`field_ghost_cell[3]`: Number of ghost cell to be ignored at the end of 1-dim of the data.
-	`field_ghost_cell[4]`: Number of ghost cell to be ignored at the beginning of 2-dim of the data.
-	`field_ghost_cell[5]`: Number of ghost cell to be ignored at the beginning of 2-dim of the data.
+  - Usage: Number of ghost cell to be ignored at the beginning and the end of each dimension. This is in the point of view of the data array. <br>
+    `field_ghost_cell[0]`: Number of ghost cell to be ignored at the beginning of 0-dim of the data.<br>
+    `field_ghost_cell[1]`: Number of ghost cell to be ignored at the end of 0-dim of the data.<br>
+    `field_ghost_cell[2]`: Number of ghost cell to be ignored at the beginning of 1-dim of the data.<br>
+    `field_ghost_cell[3]`: Number of ghost cell to be ignored at the end of 1-dim of the data.<br>
+    `field_ghost_cell[4]`: Number of ghost cell to be ignored at the beginning of 2-dim of the data.<br>
+    `field_ghost_cell[5]`: Number of ghost cell to be ignored at the end of 2-dim of the data.<br>
   - Valid Value: Must be greater than or equal to `0`.
 - `field_dtype` (Default=`YT_DTYPE_UNKNOWN`)
   - Usage: Data type of the field.
