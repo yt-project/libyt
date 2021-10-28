@@ -18,5 +18,3 @@ This guide will walk you through how to implement `libyt` into your code. And ho
   - [Finalize]()
 - [Inline Python Script](./InlinePythonScript.md)
 
-An overview of `libyt` procedure:
-![](./res/Overview-Procedure.png)
