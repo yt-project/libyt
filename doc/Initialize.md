@@ -27,7 +27,7 @@ int main(int argc, char *argv[]){
     - `YT_VERBOSE_WARNING`: Output log level below or equal to warning.
     - `YT_VERBOSE_DEBUG`: Output all log.
 - `script` (Default=`yt_inline_script`)
-  - Usage: Your Python script name. Do NOT contain `.py`. The lifespan of this variable should at least covers `yt_init` API.
+  - Usage: Your Python script name. Do NOT contain `.py`. The lifespan of this variable should cover `yt_init` API.
 - `counter` (Default=`0`)
   - Usage: Number of rounds doing inline-analysis, may be useful in restart. We also append this number at the end of the figure name.
 - `check_data` (Default=`true`)

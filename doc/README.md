@@ -3,7 +3,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
 
 - Implement `libyt` to your code step by step
   - [Initialize](./Initialize.md)
-  - [Set `yt` Parameter]()
+  - [Set `yt` Parameter](./SetYTParameter.md)
   - [Set Code Specific Parameter]()
   - [Set Fields Information]()
     - [Cell-Centered Field]()
