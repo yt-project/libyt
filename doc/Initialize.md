@@ -1,22 +1,10 @@
 # Initialize
-Initialize `libyt` at the initialization stage of your code. This API should only be called once.
-
-```C++
-int main(int argc, char *argv[]){
-    ...
-    yt_param_libyt param_libyt;
-    param_libyt.verbose = YT_VERBOSE_DEBUG;
-    param_libyt.script  = "inline_script"
-    param_libyt.check_data = false;
-	
-	/* Initialize libyt, should only be called once. */
-    if( yt_init( argc, argv, &param_libyt ) != YT_SUCCESS ){
-	    // error message
-	    exit( EXIT_FAILURE );
-    }
-    ...
-}
+## yt_init API
+```cpp
+int yt_init(int argc, char *argv[], const yt_param_libyt *param_libyt)
 ```
+- Usage: Initialize `libyt` and import your Python script. This API should only be called once.
+- Return: `YT_SUCCESS` or `YT_FAIL`.
 
 ## yt_param_libyt
 - `verbose` (Default=`YT_VERBOSE_WARNING`)
@@ -33,9 +21,22 @@ int main(int argc, char *argv[]){
 - `check_data` (Default=`true`)
   - Usage: Check the input data (ex: hierarchy, grid information…), if it is true. You should set this to `false` at production run.
 
-## yt_init API
-```c++
-int yt_init(int argc, char *argv[], const yt_param_libyt *param_libyt)
+
+
+## Example
+```cpp
+int main(int argc, char *argv[]){
+    ...
+    yt_param_libyt param_libyt;
+    param_libyt.verbose = YT_VERBOSE_DEBUG;
+    param_libyt.script  = "inline_script"
+    param_libyt.check_data = false;
+	
+	/* Initialize libyt, should only be called once. */
+    if( yt_init( argc, argv, &param_libyt ) != YT_SUCCESS ){
+	    // error message
+	    exit( EXIT_FAILURE );
+    }
+    ...
+}
 ```
-- Usage: Initialize `libyt` and import your Python script.
-- Return: `YT_SUCCESS` or `YT_FAIL`.
