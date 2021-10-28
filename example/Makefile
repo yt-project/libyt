@@ -1,5 +1,5 @@
 # Your path
-MPI_PATH := /home/calab912/software/openmpi/3.1.5-gnu/bin
+MPI_PATH := /home/cindytsai/software/openmpi/3.1.5-gnu/bin
 
 BIN  := example
 FILE := example.cpp
