@@ -34,8 +34,8 @@ int main(int argc, char *argv[]){
 	
 	/* Initialize libyt, should only be called once. */
     if( yt_init( argc, argv, &param_libyt ) != YT_SUCCESS ){
-	    // error message
-	    exit( EXIT_FAILURE );
+        // error message
+        exit( EXIT_FAILURE );
     }
     ...
 }

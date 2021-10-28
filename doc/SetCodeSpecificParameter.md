@@ -1,13 +1,13 @@
 # Set Code Specific Parameter
 ## yt\_add\_user\_parameter_*
 ```cpp
-int yt_add_user_parameter_int   ( const char *key, const int n, const int    *input )
-int yt_add_user_parameter_long  ( const char *key, const int n, const long   *input )
-int yt_add_user_parameter_uint  ( const char *key, const int n, const uint   *input )
-int yt_add_user_parameter_ulong ( const char *key, const int n, const ulong  *input )
-int yt_add_user_parameter_float ( const char *key, const int n, const float  *input )
-int yt_add_user_parameter_double( const char *key, const int n, const double *input )
-int yt_add_user_parameter_string( const char *key,              const char   *input )
+int yt_add_user_parameter_int   ( const char *key, const int n, const int    *input );
+int yt_add_user_parameter_long  ( const char *key, const int n, const long   *input );
+int yt_add_user_parameter_uint  ( const char *key, const int n, const uint   *input );
+int yt_add_user_parameter_ulong ( const char *key, const int n, const ulong  *input );
+int yt_add_user_parameter_float ( const char *key, const int n, const float  *input );
+int yt_add_user_parameter_double( const char *key, const int n, const double *input );
+int yt_add_user_parameter_string( const char *key,              const char   *input );
 ```
 - Usage: Add code specific parameters as new attributes to data set in `yt`. You must add code specific parameters to match your input [`frontend`](./SetYTParameter.md#yt_param_yt), since `libyt` will borrow field information (`class XXXFieldInfo`) from it.
 - Return: `YT_SUCCESS` or `YT_FAIL`
