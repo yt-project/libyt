@@ -78,7 +78,7 @@ yt_rma_particle::~yt_rma_particle()
     delete [] m_AttributeName;
     m_Fetched.clear();
     m_FetchedData.clear();
-    printf("yt_rma_particle: Destructor called.\n");
+    log_debug("yt_rma_particle: Destructor called.\n");
 }
 
 //-------------------------------------------------------------------------------------------------------
