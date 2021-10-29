@@ -1,11 +1,7 @@
-
-# compilation options (NOT USED YET)
+# Your paths
 #######################################################################################################
-# double precision
-#SIMU_OPTION += -DFLOAT8
-
-# debug mode
-#SIMU_OPTION += -DYT_DEBUG
+PYTHON_PATH := $(YOUR_PYTHON_PATH)
+MPI_PATH    := $(YOUR_MPI_PATH)
 
 
 # source files
@@ -23,21 +19,15 @@ LIB_REALNAME := libyt.so.1.0.0
 LIB_SONAME   := libyt.so.1
 
 
-# different paths
-#######################################################################################################
-PYTHON_PATH := $(YOUR_PYTHON_PATH)
-OBJ_PATH := ./obj
-
-
 # flags
 #######################################################################################################
-#CXX := icpc
-CXX := mpic++
+CXX := $(MPI_PATH)/bin/mpicxx
 
 LIB := -L$(PYTHON_PATH)/lib -lpython3.8
 
 INCLUDE := -I../include -I$(PYTHON_PATH)/include/python3.8 \
-           -I$(PYTHON_PATH)/lib/python3.8/site-packages/numpy/core/include
+           -I$(PYTHON_PATH)/lib/python3.8/site-packages/numpy/core/include \
+           -I$(MPI_PATH)/include
 
 #CXXWARN_FLAG := -w1
 CXXWARN_FLAG := -Wall -Wno-write-strings
@@ -46,6 +36,7 @@ CXXFLAG := $(CXXWARN_FLAG) $(INCLUDE) $(SIMU_OPTION) -O2 -fPIC
 
 # rules and targets
 #######################################################################################################
+OBJ_PATH := ./obj
 OBJ := $(patsubst %.cpp, $(OBJ_PATH)/%.o, $(CC_FILE))
 
 $(OBJ_PATH)/%.o : %.cpp
@@ -63,6 +54,3 @@ $(LIB_REALNAME) : $(OBJ)
 clean :
 	 rm -f $(OBJ)
 	 rm -f $(LIB_REALNAME)
-
-
-

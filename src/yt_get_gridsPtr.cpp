@@ -57,13 +57,6 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 			// Dealing with individual field in one grid
 			if ( g_param_yt.num_fields > 0 ){
 				(*grids_local)[id].field_data   = new yt_data [g_param_yt.num_fields];
-				for ( int fid = 0; fid < g_param_yt.num_fields; fid = fid+1 ){
-					for ( int d = 0; d < 3; d++ ){
-						(*grids_local)[id].field_data[fid].data_dim[d] = 0;
-					}
-					(*grids_local)[id].field_data[fid].data_ptr   = NULL;
-					(*grids_local)[id].field_data[fid].data_dtype = YT_DTYPE_UNKNOWN;
-				}
 			}
 			else{
 				(*grids_local)[id].field_data   = NULL;
@@ -82,7 +75,7 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 		}
 
 		// Store the grids_local to g_param_yt
-		g_param_yt.grids_local = *grids_local;   		
+		g_param_yt.grids_local = *grids_local;
    	}
    	else{
    		// If user already called this function before, we just return the initialized grids_local,

@@ -37,7 +37,8 @@ private:
 	std::vector<yt_rma_grid_info> m_Prepare;
     std::vector<void*> m_PrepareData;
 
-	long m_LenAllPrepare;
+	long  m_LenAllPrepare;
+    long *m_SearchRange;
 	yt_rma_grid_info  *m_AllPrepare;
 
     std::vector<yt_rma_grid_info> m_Fetched;

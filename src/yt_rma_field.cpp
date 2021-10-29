@@ -80,9 +80,9 @@ yt_rma_field::~yt_rma_field()
 // Notes       :  1. Prepare the grid data with id = gid, and attach grid data to window.
 //                2. Insert data pointer into m_PrepareData.
 //                3. Insert data information into m_Prepare.
-//                4. The data_dim is in the point of view of the data array, only "face-centered" data
-//                   can have data dim different from grid dim.
-//                5. "derived_func" data type must be YT_DOUBLE.
+//                4. In "cell-centered" and "face-centered", we pass full data_ptr, including ghost cell.
+//                5. "derived_func" data type must be YT_DOUBLE, and data_dim must be the same as grid dim
+//                   up to a swap_axes. Because derived_func generates only data without ghost cell.
 //                6. We assume that all gid can be found on this rank.
 //
 // Arguments   :  long gid : Grid id to prepare.
@@ -107,13 +107,8 @@ int yt_rma_field::prepare_data(long& gid)
             local_index = lid;
             grid_info.rank = g_param_yt.grids_local[lid].proc_num;
 
-            // Get data dimensions. "face-centered" can differ from grid's.
-            if( strcmp(m_FieldDefineType, "face-centered") == 0 ){
-                for(int d = 0; d < 3; d++){
-                    grid_info.data_dim[d] = g_param_yt.grids_local[lid].field_data[m_FieldIndex].data_dim[d];
-                }
-            }
-            else{
+            // Get data dimensions and data type.
+            if( strcmp(m_FieldDefineType, "derived_func") == 0 ){
                 if( m_FieldSwapAxes ){
                     grid_info.data_dim[0] = g_param_yt.grids_local[lid].grid_dimensions[2];
                     grid_info.data_dim[1] = g_param_yt.grids_local[lid].grid_dimensions[1];
@@ -124,15 +119,16 @@ int yt_rma_field::prepare_data(long& gid)
                     grid_info.data_dim[1] = g_param_yt.grids_local[lid].grid_dimensions[1];
                     grid_info.data_dim[2] = g_param_yt.grids_local[lid].grid_dimensions[2];
                 }
-            }
-
-            // Get data type. "derived_func" can only be YT_DOUBLE type.
-            if( strcmp(m_FieldDefineType, "derived_func") == 0 ){
                 grid_info.data_dtype = YT_DOUBLE;
             }
             else{
+                // "cell-centered" or "face-centered"
+                for(int d = 0; d < 3; d++){
+                    grid_info.data_dim[d] = g_param_yt.grids_local[lid].field_data[m_FieldIndex].data_dim[d];
+                }
                 grid_info.data_dtype = g_param_yt.grids_local[lid].field_data[m_FieldIndex].data_dtype;
             }
+
             break;
         }
     }
@@ -153,10 +149,10 @@ int yt_rma_field::prepare_data(long& gid)
     }
     else if( strcmp(m_FieldDefineType, "derived_func") == 0 ){
         // Allocate memory.
-        int gridLength = grid_info.data_dim[0] * grid_info.data_dim[1] * grid_info.data_dim[2];
+        long gridLength = grid_info.data_dim[0] * grid_info.data_dim[1] * grid_info.data_dim[2];
         data_ptr = malloc( gridLength * sizeof(double) );
         double *temp = (double *) data_ptr;
-        for(int i = 0; i < gridLength; i++){
+        for(long i = 0; i < gridLength; i++){
             temp[i] = 0.0;
         }
         // Generate data.
@@ -195,7 +191,9 @@ int yt_rma_field::prepare_data(long& gid)
 //
 // Notes       :  1. This should be called after preparing all the needed grid data.
 //                2. Perform big_MPI_Gatherv and big_MPI_Bcast at root rank.
-//                3. Open the window epoch.
+//                3. Set up m_SearchRange and m_LenAllPrepare, will later be used in fetch_remote_data to
+//                   search grid id in m_AllPrepare.
+//                4. Open the window epoch.
 //
 // Parameter   :  int root : root rank.
 //
@@ -214,11 +212,16 @@ int yt_rma_field::gather_all_prepare_data(int root)
     int *SendCount = new int [NRank];
     MPI_Gather(&PreparedInfoListLength, 1, MPI_INT, SendCount, 1, MPI_INT, root, MPI_COMM_WORLD);
     MPI_Bcast(SendCount, NRank, MPI_INT, root, MPI_COMM_WORLD);
-
-    // Calculate m_LenAllPrepare.
-    for(int rank = 0; rank < NRank; rank++){
-        m_LenAllPrepare += SendCount[rank];
+    
+    // Calculate m_SearchRange, and m_LenAllPrepare.
+    m_SearchRange = new long [ NRank + 1 ];
+    for(int i = 0; i < NRank + 1; i++) {
+        m_SearchRange[i] = 0;
+        for (int rank = 0; rank < i; rank++) {
+            m_SearchRange[i] += SendCount[rank];
+        }
     }
+    m_LenAllPrepare = m_SearchRange[ NRank ];
 
     // Gather PreparedInfoList, which is m_Prepare in each rank
     // (1) Create MPI_Datatype for yt_rma_grid_info
@@ -269,7 +272,7 @@ int yt_rma_field::fetch_remote_data(long& gid, int& rank)
     int  dtype_size;
     MPI_Datatype mpi_dtype;
     yt_rma_grid_info fetched;
-    for(long aid = 0; aid < m_LenAllPrepare; aid++){
+    for(long aid = m_SearchRange[rank]; aid < m_SearchRange[rank+1]; aid++){
         if( m_AllPrepare[aid].id == gid ){
             // Copy fetched grid info to fetched.
             fetched = m_AllPrepare[aid];
@@ -311,7 +314,7 @@ int yt_rma_field::fetch_remote_data(long& gid, int& rank)
 // Description :  Clean up prepared data.
 //
 // Notes       :  1. Close the window epoch, and detach the prepared data buffer.
-//                2. Free m_AllPrepare.
+//                2. Free m_AllPrepare, m_SearchRange.
 //                3. Free local prepared data, drop m_Prepare vector and free pointers in m_PrepareData
 //                   vector if m_FieldDefineType is "derived_func".
 //
@@ -334,8 +337,9 @@ int yt_rma_field::clean_up()
         }
     }
 
-    // Free m_AllPrepare, m_PrepareData, m_Prepare
+    // Free m_AllPrepare, m_SearchRange, m_PrepareData, m_Prepare
     delete [] m_AllPrepare;
+    delete [] m_SearchRange;
     m_PrepareData.clear();
     m_Prepare.clear();
 

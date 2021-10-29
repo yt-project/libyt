@@ -16,19 +16,41 @@
 // Description :  Data structure to store a field data's pointer and its array dimensions.
 // 
 // Notes       :  1. This struct will be use in yt_grid data member field_data.
-//                2. We initialize them in yt_get_gridsPtr.cpp.
 // 
 // Data Member :  data_ptr    : field data pointer
-//                data_dim[3] : dimension of the field data to be passed to python.
+//                data_dim[3] : dimension of the field data to be passed to python, which is the actual
+//                              size of the array.
 //                              Def => fieldData[ dim[0] ][ dim[1] ][ dim[2] ]
 //                data_dtype  : Data type of the field in specific grid. If this is set as YT_DTYPE_UNKNOWN, 
 //                              then we will use field_dtype define in field_list as input field data type.
+//
+// Methods     : yt_data            : Constructor
+//               ~yt_data           : Destructor, does nothing for now.
 //-------------------------------------------------------------------------------------------------------
 struct yt_data
 {
    void     *data_ptr;
    int       data_dim[3];
    yt_dtype  data_dtype;
+
+    //===================================================================================
+    // Method      :  yt_data
+    // Description :  Constructor of the structure "yt_data"
+    //
+    // Note        :  Initialize all data members
+    //
+    // Parameter   :  None
+    //===================================================================================
+    yt_data()
+    {
+        data_ptr = NULL;
+        for(int d=0; d<3; d++){ data_dim[d] = 0; }
+        data_dtype = YT_DTYPE_UNKNOWN;
+    }
+    ~yt_data()
+    {
+
+    }
 };
 
 //-------------------------------------------------------------------------------------------------------
