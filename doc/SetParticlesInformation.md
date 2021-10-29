@@ -79,12 +79,12 @@ int main(){
         }
     }
     
-	/* Fill in positions attribute name. */
+    /* Fill in positions attribute name. */
     particle_list[0].coor_x = attr_name[0];
     particle_list[0].coor_y = attr_name[1];  
     particle_list[0].coor_z = attr_name[2];
     
-	/* Fill in get attribute function pointer. */
+    /* Fill in get attribute function pointer. */
     particle_list[0].get_attr = par_io_get_attr;
 }
 
