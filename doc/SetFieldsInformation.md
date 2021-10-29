@@ -3,7 +3,7 @@
 ```cpp
 int yt_get_fieldsPtr( yt_field **field_list )
 ```
-- Usage: Get the `yt_field` pointer where `libyt` access fields information from. You should then fill in those information.
+- Usage: Get the `yt_field` array pointer where `libyt` access fields information from. You should fill them in. If you don't have any fields, then skip this.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## yt_field
@@ -46,6 +46,9 @@ int yt_get_fieldsPtr( yt_field **field_list )
   - Usage: Name aliases.
 - `field_display_name` (Default=`NULL`)
   - Usage: Display name of the field on the output figure. If not set, `yt` uses its field name instead.
+
+> :information_source: `libyt` borrows the full field information class (`class XXXFieldInfo`) from [`frontend`](./SetYTParameter.md#yt_param_yt). It is OK not to set a field's `field_unit`, `num_field_name_alias`, `field_name_alias`, `field_display_name`, if this `field_name` is already inside your frontend.
+> If you are adding a totally new field, please add them. `libyt` will add these new field information alongside with your original one.
 
 ## Example
 ```cpp

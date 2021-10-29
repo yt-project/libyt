@@ -47,6 +47,10 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
 ## Example
 
 ```cpp
+/* libyt API */
+yt_grid *grids_local;  
+yt_get_gridsPtr( &grids_local );
+
 int index_local = 0;  
 for (int gid = 0; gid < param_yt.num_grids; gid = gid + 1){  
     if (grids_MPI[gid] == myrank) {  
