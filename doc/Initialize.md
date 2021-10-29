@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
     param_libyt.script  = "inline_script"
     param_libyt.check_data = false;
 	
-	/* Initialize libyt, should only be called once. */
+    /* Initialize libyt, should only be called once. */
     if( yt_init( argc, argv, &param_libyt ) != YT_SUCCESS ){
         // error message
         exit( EXIT_FAILURE );
