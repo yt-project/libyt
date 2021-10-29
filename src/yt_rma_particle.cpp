@@ -178,7 +178,9 @@ int yt_rma_particle::prepare_data(long& gid)
 //
 // Notes       :  1. This should be called after preparing all the needed particle data.
 //                2. Perform big_MPI_Gatherv and big_MPI_Bcast at root rank.
-//                3. Open the window epoch.
+//                3. Set up m_SearchRange and m_LenAllPrepare, will later be used in fetch_remote_data to
+//                   search grid id in m_AllPrepare.
+//                4. Open the window epoch.
 //
 // Parameter   :  int root : root rank.
 //
@@ -198,10 +200,15 @@ int yt_rma_particle::gather_all_prepare_data(int root)
     MPI_Gather(&PreparedInfoListLength, 1, MPI_INT, SendCount, 1, MPI_INT, root, MPI_COMM_WORLD);
     MPI_Bcast(SendCount, NRank, MPI_INT, root, MPI_COMM_WORLD);
 
-    // Calculate m_LenAllPrepare.
-    for(int rank = 0; rank < NRank; rank++){
-        m_LenAllPrepare += SendCount[rank];
+    // Calculate m_SearchRange, and m_LenAllPrepare.
+    m_SearchRange = new long [ NRank + 1 ];
+    for(int i = 0; i < NRank + 1; i++) {
+        m_SearchRange[i] = 0;
+        for (int rank = 0; rank < i; rank++) {
+            m_SearchRange[i] += SendCount[rank];
+        }
     }
+    m_LenAllPrepare = m_SearchRange[ NRank ];
 
     // Gather PreparedInfoList, which is m_Prepare in each rank
     // (1) Create MPI_Datatype for yt_rma_particle_info
@@ -249,7 +256,7 @@ int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
     // Look for gid in m_AllPrepare.
     bool get_remote_gid = false;
     yt_rma_particle_info fetched;
-    for(long aid = 0; aid < m_LenAllPrepare; aid++){
+    for(long aid = m_SearchRange[rank]; aid < m_SearchRange[rank+1]; aid++){
         if( m_AllPrepare[aid].id == gid ){
             fetched = m_AllPrepare[aid];
 
@@ -294,7 +301,7 @@ int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
 // Description :  Clean up prepared data.
 //
 // Notes       :  1. Close the window epoch, and detach the prepared data buffer.
-//                2. Free m_AllPrepare.
+//                2. Free m_AllPrepare, m_SearchRange.
 //                3. Free local prepared data, drop m_Prepare and m_PrepareData vector.
 //
 // Return      :  YT_SUCCESS or YT_FAIL
@@ -312,8 +319,9 @@ int yt_rma_particle::clean_up()
         }
     }
 
-    // Free m_AllPrepare, m_PrepareData, m_Prepare
+    // Free m_AllPrepare, m_SearchRange, m_PrepareData, m_Prepare
     delete [] m_AllPrepare;
+    delete [] m_SearchRange;
     m_PrepareData.clear();
     m_Prepare.clear();
 
