@@ -1,19 +1,28 @@
 /*
-This example is to show how libyt load all the data and information into yt,
-then use yt to do analysis on the go. And also, to illustrates the basic
-usage of libyt in steps 0 - 9.
+ [Description]
+ This example is to show how libyt load all the data and information into yt,
+ then use yt to do analysis on the go. And also, to illustrates the basic
+ usage of libyt in steps 0 - 9.
 
-We have a set of pre-calculated data. We assign each grid to one MPI rank
-randomly to stimulate the actual code of having grid data on different rank.
-Then we demonstrate how to pass in the grid data and their hierarchy located
-on current MPI rank to libyt. Finally, we use those passed in data to do a
-series of analysis with yt.
-Above description can be concentrated to following steps:
-    1. Assign pre-calculated grids to one MPI rank.
-    2. Each MPI rank will only pass "its" hierarchy to yt
-       ---> Here, we calculate all the grids (sim_grids) first,
-            then distribute them to grids_local, to simulate the working process.
-    3. Do analysis using yt.
+ We have a set of pre-calculated data. We assign each grid to one MPI rank
+ randomly to stimulate the actual code of having grid data on different rank.
+ Then we demonstrate how to pass in the grid data and their hierarchy located
+ on current MPI rank to libyt. Finally, we use those passed in data to do a
+ series of analysis with yt.
+ Above description can be concentrated to following steps:
+     1. Assign pre-calculated grids to one MPI rank.
+     2. Each MPI rank will only pass "its" hierarchy to yt
+        ---> Here, we calculate all the grids (sim_grids) first,
+             then distribute them to grids_local, to simulate the working process.
+     3. Do analysis using yt.
+
+ [Compile and Run]
+   1. Compile libyt and move libyt.so.* library to ../lib/.
+   2. Run this command to set LD_LIBRARY_PATH:
+      sh set_ld_path.sh
+   3. Update Makefile MPI_PATH.
+   4. make clean; make;
+   5. mpirun -np 4 --output-filename log ./example
  */
 
 #include <stdlib.h>
