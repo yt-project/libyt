@@ -3,8 +3,10 @@
 ```cpp
 int yt_get_fieldsPtr( yt_field **field_list )
 ```
-- Usage: Get the `yt_field` array pointer where `libyt` access fields information from. You should fill them in. If you don't have any fields, then skip this.
+- Usage: Get the `yt_field` array pointer where `libyt` access fields information from. Each MPI rank should call this function and fill them in. If you don't have any fields, then skip this.
 - Return: `YT_SUCCESS` or `YT_FAIL`
+
+> :warning: Every MPI rank must call this API and fill in the field information in the same order. We do not broadcast and sync information here.
 
 ## yt_field
 - `field_name` (Default=`NULL`)

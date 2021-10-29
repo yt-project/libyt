@@ -3,8 +3,10 @@
 ```cpp
 int yt_get_particlesPtr( yt_particle **particle_list );
 ```
-- Usage: Get the `yt_particle` array pointer where `libyt` access particles information from. You should fill them in. If you don't have any particles, then skip this.
+- Usage: Get the `yt_particle` array pointer where `libyt` access particles information from. Each MPI rank should call this function and fill them in. If you don't have any particles, then skip this.
 - Return: `YT_SUCCESS` or `YT_FAIL`
+
+> :warning: Every MPI rank must call this API and fill in the particle information in the same order. We do not broadcast and sync information here.
 
 ## yt\_particle
 - `species_name`

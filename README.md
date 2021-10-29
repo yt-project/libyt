@@ -61,9 +61,19 @@ pip install .
 ```
 
 ## User Guide
-This guide will walk you through how to implement `libyt` into your code. And how you can convert your everyday used `yt` script to do inline-analysis.
-- Implement `libyt`
-- [Inline Python Script](./doc/InlinePythonScript.md)
+This guide will walk you through how to implement `libyt` into your code. And how you can convert your everyday used `yt` script to do inline-analysis. All the user guide are in [`doc`](./doc) folder.
+- Implement `libyt` to your code step by step
+  - [Initialize - `yt_init`](./doc/Initialize.md#initialize)
+  - [Set `yt` Parameter - `yt_set_parameter`](./doc/SetYTParameter.md#set-yt-parameter)
+  - [Set Code Specific Parameter - `yt_add_user_parameter_*`](./doc/SetCodeSpecificParameter.md#set-code-specific-parameter)
+  - [Set Fields Information - `yt_get_fieldsPtr`](./doc/SetFieldsInformation.md#set-fields-information)
+  - [Set Particles Information - `yt_get_particlesPtr`](./doc/SetParticlesInformation.md#set-particles-information)
+  - [Set Local Grids Information - `yt_get_gridsPtr`](./doc/SetLocalGridsInformation.md#set-local-grids-information)
+  - [Commit Your Settings - `yt_commit_grids`](./doc/CommitYourSettings.md#commit-your-settings)
+  - [Perform Inline-Analysis - `yt_inline` and `yt_inline_argument`](./doc/PerformInlineAnalysis.md#perform-inline-analysis)
+  - [Free Resource - `yt_free_gridsPtr`](./doc/FreeResource.md#free-resource)
+  - [Finalize - `yt_finalize`](./doc/Finalize.md#finalize)
+- [Inline Python Script](./doc/InlinePythonScript.md#inline-python-script)
 
 ## Example
 - A simple demo in [`libyt/example.cpp`](./example/example.cpp)
