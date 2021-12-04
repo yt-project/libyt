@@ -1,7 +1,8 @@
 # Your paths
 #######################################################################################################
-PYTHON_PATH := /home/cindytsai/software/python/python3.8
-MPI_PATH    := /home/cindytsai/software/openmpi/3.1.5-gnu
+PYTHON_PATH := $(YOUR_PYTHON_PATH)
+NUMPY_PATH  := $(YOUR_NUMPY_PATH)
+MPI_PATH    := $(YOUR_MPI_PATH)
 
 
 # source files
@@ -26,7 +27,7 @@ CXX := $(MPI_PATH)/bin/mpicxx
 LIB := -L$(PYTHON_PATH)/lib -lpython3.8
 
 INCLUDE := -I../include -I$(PYTHON_PATH)/include/python3.8 \
-           -I$(PYTHON_PATH)/lib/python3.8/site-packages/numpy/core/include \
+           -I$(NUMPY_PATH)/core/include \
            -I$(MPI_PATH)/include
 
 #CXXWARN_FLAG := -w1

@@ -30,11 +30,12 @@
 
 ## Installation
 ### libyt
-In `/libyt/src/Makefile`, update `PYTHON_PATH` and `MPI_PATH`:
+In `/libyt/src/Makefile`, update `PYTHON_PATH`, `NUMPY_PATH` and `MPI_PATH`:
 ```makefile
 # Your paths
 ############################################################
 PYTHON_PATH := $(YOUR_PYTHON_PATH)
+NUMPY_PATH  := $(YOUR_NUMPY_PATH)
 MPI_PATH := $(YOUR_MPI_PATH)
 ```
 
