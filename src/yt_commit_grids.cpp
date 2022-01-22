@@ -90,7 +90,7 @@ int yt_commit_grids()
       }
    }
 
-// Set up grid_particle_count, field_data's data_dim, field_data's data_dtype in grids_local
+// Set up grid_particle_count, field_data's data_dimensions, field_data's data_dtype in grids_local
    for (int i = 0; i < g_param_yt.num_grids_local; i = i+1) {
       yt_grid grid = g_param_yt.grids_local[i];
       

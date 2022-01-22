@@ -81,7 +81,7 @@ yt_rma_field::~yt_rma_field()
 //                2. Insert data pointer into m_PrepareData.
 //                3. Insert data information into m_Prepare.
 //                4. In "cell-centered" and "face-centered", we pass full data_ptr, including ghost cell.
-//                5. "derived_func" data type must be YT_DOUBLE, and data_dim must be the same as grid dim
+//                5. "derived_func" data type must be YT_DOUBLE, and data_dimensions must be the same as grid dim
 //                   up to a swap_axes. Because derived_func generates only data without ghost cell.
 //                6. We assume that all gid can be found on this rank.
 //
@@ -124,7 +124,7 @@ int yt_rma_field::prepare_data(long& gid)
             else{
                 // "cell-centered" or "face-centered"
                 for(int d = 0; d < 3; d++){
-                    grid_info.data_dim[d] = g_param_yt.grids_local[lid].field_data[m_FieldIndex].data_dim[d];
+                    grid_info.data_dim[d] = g_param_yt.grids_local[lid].field_data[m_FieldIndex].data_dimensions[d];
                 }
                 grid_info.data_dtype = g_param_yt.grids_local[lid].field_data[m_FieldIndex].data_dtype;
             }
