@@ -8,7 +8,7 @@
 // Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data to python
 //                2. Called and use by yt_commit_grids().
 //                3. If field_data == NULL, we append Py_None to the dictionary.
-//                4. We assign data_dim and data_dtype in yt_data if user only sets its macros in grid_dimensions
+//                4. We assign data_dimensions and data_dtype in yt_data if user only sets its macros in grid_dimensions
 //                   and field_dtype.
 //
 // Parameter   :  yt_grid *grid
@@ -88,35 +88,35 @@ int append_grid( yt_grid *grid ){
             }
 
             // Get the dimension of the input array
-            // Only "cell-centered" will be set to grid_dimensions + ghost cell, else should be set in data_dim.
+            // Only "cell-centered" will be set to grid_dimensions + ghost cell, else should be set in data_dimensions.
             if ( strcmp(g_param_yt.field_list[v].field_define_type, "cell-centered") == 0 ){
                 // Get grid_dimensions and consider swap_axes or not, since grid_dimensions is defined as [x][y][z].
                 if ( g_param_yt.field_list[v].swap_axes == true ){
-                    (grid->field_data)[v].data_dim[0] = (grid->grid_dimensions)[2];
-                    (grid->field_data)[v].data_dim[1] = (grid->grid_dimensions)[1];
-                    (grid->field_data)[v].data_dim[2] = (grid->grid_dimensions)[0];
+                    (grid->field_data)[v].data_dimensions[0] = (grid->grid_dimensions)[2];
+                    (grid->field_data)[v].data_dimensions[1] = (grid->grid_dimensions)[1];
+                    (grid->field_data)[v].data_dimensions[2] = (grid->grid_dimensions)[0];
                 }
                 else{
-                    (grid->field_data)[v].data_dim[0] = (grid->grid_dimensions)[0];
-                    (grid->field_data)[v].data_dim[1] = (grid->grid_dimensions)[1];
-                    (grid->field_data)[v].data_dim[2] = (grid->grid_dimensions)[2];
+                    (grid->field_data)[v].data_dimensions[0] = (grid->grid_dimensions)[0];
+                    (grid->field_data)[v].data_dimensions[1] = (grid->grid_dimensions)[1];
+                    (grid->field_data)[v].data_dimensions[2] = (grid->grid_dimensions)[2];
                 }
                // Plus the ghost cell to get the actual array dimensions.
                for(int d = 0; d < 6; d++) {
-                   (grid->field_data)[v].data_dim[ d / 2 ] += g_param_yt.field_list[v].field_ghost_cell[d];
+                   (grid->field_data)[v].data_dimensions[ d / 2 ] += g_param_yt.field_list[v].field_ghost_cell[d];
                }
             }
-            // See if all data_dim > 0, abort if not.
+            // See if all data_dimensions > 0, abort if not.
             for (int d = 0; d < 3; d++){
-               if ( (grid->field_data)[v].data_dim[d] <= 0 ){
-                  YT_ABORT("Grid ID [ %ld ], field data [ %s ], data_dim[%d] = %d <= 0.\n",
-                            grid->id, g_param_yt.field_list[v].field_name, d, (grid->field_data)[v].data_dim[d]);
+               if ( (grid->field_data)[v].data_dimensions[d] <= 0 ){
+                  YT_ABORT("Grid ID [ %ld ], field data [ %s ], data_dimensions[%d] = %d <= 0.\n",
+                            grid->id, g_param_yt.field_list[v].field_name, d, (grid->field_data)[v].data_dimensions[d]);
                }
             }
 
-            npy_intp grid_dims[3] = { (grid->field_data)[v].data_dim[0],
-                                      (grid->field_data)[v].data_dim[1],
-                                      (grid->field_data)[v].data_dim[2]};
+            npy_intp grid_dims[3] = { (grid->field_data)[v].data_dimensions[0],
+                                      (grid->field_data)[v].data_dimensions[1],
+                                      (grid->field_data)[v].data_dimensions[2]};
             
             // PyArray_SimpleNewFromData simply creates an array wrapper and does not allocate and own the array
             py_field_data = PyArray_SimpleNewFromData( 3, grid_dims, grid_dtype, (grid->field_data)[v].data_ptr );

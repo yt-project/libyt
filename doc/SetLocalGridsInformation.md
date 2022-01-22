@@ -36,11 +36,11 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
   - Usage: Store all the field data under this grid. This is a `yt_data` array, and `libyt` will initialize this for you.
   - Valid Value: Each element in `field_data` is a `yt_data` struct.
     - `data_ptr`: Data pointer to the field data of the grid.
-    - `data_dim[3]`: Dimension of `data_ptr`.
+    - `data_dimensions[3]`: Dimension of `data_ptr`.
     - `data_dtype`: Data type of `data_ptr`.
 
-> :information_source: If it is a cell-centered field, `libyt` will fill in `data_dim` according to `grid_dimensions` in [`yt_grid`](#yt_grid) and `field_ghost_cell` in [`yt_field`](./SetFieldsInformation.md#yt_field).
-> Otherwise, you should always fill in `data_dim`, if you wish to wrap an existing data in memory.
+> :information_source: If it is a cell-centered field, `libyt` will fill in `data_dimensions` according to `grid_dimensions` in [`yt_grid`](#yt_grid) and `field_ghost_cell` in [`yt_field`](./SetFieldsInformation.md#yt_field).
+> Otherwise, you should always fill in `data_dimensions`, if you wish to wrap an existing data in memory.
 
 > :information_source: You only need to set `data_dtype` when this grid's data type is different from the one set in fields'.
 

@@ -17,12 +17,12 @@
 // 
 // Notes       :  1. This struct will be use in yt_grid data member field_data.
 // 
-// Data Member :  data_ptr    : field data pointer
-//                data_dim[3] : dimension of the field data to be passed to python, which is the actual
-//                              size of the array.
-//                              Def => fieldData[ dim[0] ][ dim[1] ][ dim[2] ]
-//                data_dtype  : Data type of the field in specific grid. If this is set as YT_DTYPE_UNKNOWN, 
-//                              then we will use field_dtype define in field_list as input field data type.
+// Data Member :  data_ptr           : field data pointer
+//                data_dimensions[3] : dimension of the field data to be passed to python, which is the actual
+//                                     size of the array.
+//                                     Def => fieldData[ dim[0] ][ dim[1] ][ dim[2] ]
+//                data_dtype         : Data type of the field in specific grid. If this is set as YT_DTYPE_UNKNOWN,
+//                                     then we will use field_dtype define in field_list as input field data type.
 //
 // Methods     : yt_data            : Constructor
 //               ~yt_data           : Destructor, does nothing for now.
@@ -30,7 +30,7 @@
 struct yt_data
 {
    void     *data_ptr;
-   int       data_dim[3];
+   int       data_dimensions[3];
    yt_dtype  data_dtype;
 
     //===================================================================================
@@ -44,7 +44,7 @@ struct yt_data
     yt_data()
     {
         data_ptr = NULL;
-        for(int d=0; d<3; d++){ data_dim[d] = 0; }
+        for(int d=0; d<3; d++){ data_dimensions[d] = 0; }
         data_dtype = YT_DTYPE_UNKNOWN;
     }
     ~yt_data()

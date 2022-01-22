@@ -26,13 +26,13 @@ int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] );
 ```cpp
 int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *field_data);
 ```
-- Get the field data `field_name` in grid `gid`. The result will be in `field_data`.
+- Get the field data `field_name` in grid id `gid`. The result will be stored in `field_data`.
 - yt_data
   - `data_ptr`: Data pointer.
-  - `data_dim[3]`: Dimension of the `data_ptr` array, in the point of view in itself.
+  - `data_dimensions[3]`: Dimension of the `data_ptr` array, in the point of view of itself.
   - `data_dtype`: Data type of the array.
 
-> :information_source: Do not mix grid dimensions get by `yt_getGridInfo_Dimensions` with data dimensions get by `yt_getGridInfo_FieldData`. Grid dimensions are grid length in [0][1][2] <-> [x][y][z]. Whereas data dimensions are just data length in their point of view, which may consist of ghost cells.
+> :information_source: Do not mix grid dimensions get by `yt_getGridInfo_Dimensions` with data dimensions get by `yt_getGridInfo_FieldData`. Grid dimensions are grid length in [0][1][2] <-> [x][y][z]. Whereas data dimensions are just data length in data's point of view, which may consist of ghost cells.
 
 > :warning: You should not be modifying `data_ptr`, as they are those data pointers you passed in and will be used in your later on iterations.
 
