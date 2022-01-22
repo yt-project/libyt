@@ -17,21 +17,21 @@
 // 
 // Notes       :  1. This struct will be use in yt_grid data member field_data.
 // 
-// Data Member :  data_ptr    : field data pointer
-//                data_dim[3] : dimension of the field data to be passed to python, which is the actual
-//                              size of the array.
-//                              Def => fieldData[ dim[0] ][ dim[1] ][ dim[2] ]
-//                data_dtype  : Data type of the field in specific grid. If this is set as YT_DTYPE_UNKNOWN, 
-//                              then we will use field_dtype define in field_list as input field data type.
+// Data Member :  data_ptr           : field data pointer
+//                data_dimensions[3] : dimension of the field data to be passed to python, which is the actual
+//                                     size of the array.
+//                                     Def => fieldData[ dim[0] ][ dim[1] ][ dim[2] ]
+//                data_dtype         : Data type of the field in specific grid. If this is set as YT_DTYPE_UNKNOWN,
+//                                     then we will use field_dtype define in field_list as input field data type.
 //
 // Methods     : yt_data            : Constructor
 //               ~yt_data           : Destructor, does nothing for now.
 //-------------------------------------------------------------------------------------------------------
 struct yt_data
 {
-   void     *data_ptr;
-   int       data_dim[3];
-   yt_dtype  data_dtype;
+    void     *data_ptr;
+    int       data_dimensions[3];
+    yt_dtype  data_dtype;
 
     //===================================================================================
     // Method      :  yt_data
@@ -44,7 +44,7 @@ struct yt_data
     yt_data()
     {
         data_ptr = NULL;
-        for(int d=0; d<3; d++){ data_dim[d] = 0; }
+        for(int d=0; d<3; d++){ data_dimensions[d] = 0; }
         data_dtype = YT_DTYPE_UNKNOWN;
     }
     ~yt_data()
@@ -84,105 +84,105 @@ struct yt_grid
 
 // data members
 // ===================================================================================
-   double    left_edge[3];
-   double    right_edge[3];
+    double    left_edge[3];
+    double    right_edge[3];
 
-   long     *particle_count_list;
-   long      grid_particle_count;
-   long      id;
-   long      parent_id;
+    long     *particle_count_list;
+    long      grid_particle_count;
+    long      id;
+    long      parent_id;
 
-   int       grid_dimensions[3];
-   int       level;
-   int       proc_num;
+    int       grid_dimensions[3];
+    int       level;
+    int       proc_num;
 
-   yt_data  *field_data;
+    yt_data  *field_data;
 
-   //===================================================================================
-   // Method      :  yt_grid
-   // Description :  Constructor of the structure "yt_grid"
-   //
-   // Note        :  Initialize all data members
-   //
-   // Parameter   :  None
-   //===================================================================================
-   yt_grid()
-   {
+    //===================================================================================
+    // Method      :  yt_grid
+    // Description :  Constructor of the structure "yt_grid"
+    //
+    // Note        :  Initialize all data members
+    //
+    // Parameter   :  None
+    //===================================================================================
+    yt_grid()
+    {
 
 //    set defaults
-      for (int d=0; d<3; d++) {
-      left_edge [d]  = DBL_UNDEFINED;
-      right_edge[d]  = DBL_UNDEFINED; }
+        for (int d=0; d<3; d++) {
+            left_edge [d]  = DBL_UNDEFINED;
+            right_edge[d]  = DBL_UNDEFINED; }
 
-      for (int d=0; d<3; d++) {
-      grid_dimensions[d]  = INT_UNDEFINED; }
+        for (int d=0; d<3; d++) {
+            grid_dimensions[d]  = INT_UNDEFINED; }
 
-      grid_particle_count = 0;
-      particle_count_list = NULL;
-      id             = LNG_UNDEFINED;
-      parent_id      = LNG_UNDEFINED;
-      level          = INT_UNDEFINED;
+        grid_particle_count = 0;
+        particle_count_list = NULL;
+        id             = LNG_UNDEFINED;
+        parent_id      = LNG_UNDEFINED;
+        level          = INT_UNDEFINED;
 
-      proc_num       = INT_UNDEFINED;
+        proc_num       = INT_UNDEFINED;
 
-      field_data     = NULL;
+        field_data     = NULL;
 
-   } // METHOD : yt_grid
-
-
-   //===================================================================================
-   // Method      :  ~yt_grid
-   // Description :  Destructor of the structure "yt_grid"
-   //
-   // Note        :  1. Not used currently
-   //                2. We do not free the pointer arrays "field_list" and "field_data" here
-   //                   ==> They are freed by yt_free_gridsPtr
-   //
-   // Parameter   :  None
-   //===================================================================================
-   ~yt_grid()
-   {
-
-   } // METHOD : ~yt_grid
+    } // METHOD : yt_grid
 
 
-   //===================================================================================
-   // Method      :  validate
-   // Description :  Check if all data members have been set properly by users
-   //
-   // Note        :  1. This function does not perform checks that depend on the input
-   //                   YT parameters (e.g., whether left_edge lies within the simulation domain)
-   //                   ==> These checks are performed in check_grid()
-   //                2. If check needs information other than grid info, we will do it elsewhere.
-   //
-   // Parameter   :  None
-   //
-   // Return      :  YT_SUCCESS or YT_FAIL
-   //===================================================================================
-   int validate() const
-   {
+    //===================================================================================
+    // Method      :  ~yt_grid
+    // Description :  Destructor of the structure "yt_grid"
+    //
+    // Note        :  1. Not used currently
+    //                2. We do not free the pointer arrays "field_list" and "field_data" here
+    //                   ==> They are freed by yt_free_gridsPtr
+    //
+    // Parameter   :  None
+    //===================================================================================
+    ~yt_grid()
+    {
 
-      for (int d=0; d<3; d++) {
-      if ( left_edge [d]  == DBL_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "left_edge",  d,  id );
-      if ( right_edge[d]  == DBL_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "right_edge", d,  id ); }
+    } // METHOD : ~yt_grid
 
-      for (int d=0; d<3; d++) {
-      if ( grid_dimensions[d]  == INT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "grid_dimensions", d,  id ); }
-      if ( id             == LNG_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "id",             id );
-      if ( parent_id      == LNG_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "parent_id",      id );
-      if ( level          == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "level",          id );
-      if ( proc_num       == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "proc_num",       id );
-      if ( field_data     == NULL             )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "field_data",     id );
+
+    //===================================================================================
+    // Method      :  validate
+    // Description :  Check if all data members have been set properly by users
+    //
+    // Note        :  1. This function does not perform checks that depend on the input
+    //                   YT parameters (e.g., whether left_edge lies within the simulation domain)
+    //                   ==> These checks are performed in check_grid()
+    //                2. If check needs information other than grid info, we will do it elsewhere.
+    //
+    // Parameter   :  None
+    //
+    // Return      :  YT_SUCCESS or YT_FAIL
+    //===================================================================================
+    int validate() const
+    {
+
+        for (int d=0; d<3; d++) {
+            if ( left_edge [d]  == DBL_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "left_edge",  d,  id );
+            if ( right_edge[d]  == DBL_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "right_edge", d,  id ); }
+
+        for (int d=0; d<3; d++) {
+            if ( grid_dimensions[d]  == INT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "grid_dimensions", d,  id ); }
+        if ( id             == LNG_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "id",             id );
+        if ( parent_id      == LNG_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "parent_id",      id );
+        if ( level          == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "level",          id );
+        if ( proc_num       == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "proc_num",       id );
+        if ( field_data     == NULL             )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "field_data",     id );
 
 //    additional checks
-      for (int d=0; d<3; d++) {
-      if ( grid_dimensions[d] <= 0 )   YT_ABORT( "\"%s[%d]\" == %d <= 0 for grid [%ld]!\n", "grid_dimensions", d, grid_dimensions[d], id ); }
-      if ( id < 0 )               YT_ABORT( "\"%s\" == %d < 0!\n", "id", id );
-      if ( level < 0 )            YT_ABORT( "\"%s\" == %d < 0 for grid [%ld]!\n", "level", level, id );
+        for (int d=0; d<3; d++) {
+            if ( grid_dimensions[d] <= 0 )   YT_ABORT( "\"%s[%d]\" == %d <= 0 for grid [%ld]!\n", "grid_dimensions", d, grid_dimensions[d], id ); }
+        if ( id < 0 )               YT_ABORT( "\"%s\" == %d < 0!\n", "id", id );
+        if ( level < 0 )            YT_ABORT( "\"%s\" == %d < 0 for grid [%ld]!\n", "level", level, id );
 
-      return YT_SUCCESS;
+        return YT_SUCCESS;
 
-   } // METHOD : validate
+    } // METHOD : validate
 
 }; // struct yt_grid
 

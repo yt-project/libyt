@@ -129,7 +129,7 @@ int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *f
 
 					(*field_data).data_ptr = g_param_yt.grids_local[lid].field_data[v].data_ptr;
 					for ( int d = 0; d < 3; d++ ){
-						(*field_data).data_dim[d] = g_param_yt.grids_local[lid].field_data[v].data_dim[d];
+						(*field_data).data_dimensions[d] = g_param_yt.grids_local[lid].field_data[v].data_dimensions[d];
 					}
 					(*field_data).data_dtype = g_param_yt.grids_local[lid].field_data[v].data_dtype;
 					

@@ -8,9 +8,9 @@
 // Note        :  1. User should call this function after yt_set_parameter(), 
 //                   since we need num_grids_local, num_fields, and num_species.
 //                2. Initialize field_data in one grid with
-//                   (1) data_dim[3] = {0, 0, 0}
-//                   (2) data_ptr    = NULL
-//                   (3) data_dtype  = YT_DTYPE_UNKNOWN
+//                   (1) data_dimensions[3] = {0, 0, 0}
+//                   (2) data_ptr           = NULL
+//                   (3) data_dtype         = YT_DTYPE_UNKNOWN
 //                3. If user call this function twice, then it will just return the previously initialized 
 //                   and allocated array.
 //
