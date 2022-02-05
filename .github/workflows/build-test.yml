@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+#       - uses: actions/checkout@v2
       
       # Setup Python environment
       - uses: actions/setup-python@v2
@@ -34,14 +34,13 @@ jobs:
 #           git checkout libyt
 #           pip install .
           
-      - name: Python PATH
+      - name: Set Python PATH
         run: |
           PYTHON_BIN=$(which python)
           PYTHON_PATH=${PYTHON_BIN%/*}
           cd $PYTHON_PATH/
           cd ..
-          export PYTHON_PATH=$(pwd)
-          ls
+          echo "$(pwd)" >> $PYTHON_PATH
           
       - name: Read Python PATH
         run: |
@@ -49,8 +48,6 @@ jobs:
           ls
           
       - name: Build libyt
-        run: |
-          echo $(pwd)
-          echo $GITHUB_ACTION_REPOSITORY
+        run: echo $GITHUB_ACTION_REPOSITORY
       
           
