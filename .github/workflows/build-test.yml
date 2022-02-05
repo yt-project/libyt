@@ -40,12 +40,11 @@ jobs:
           PYTHON_PATH=${PYTHON_BIN%/*}
           cd $PYTHON_PATH/
           cd ..
-          echo "$(pwd)" >> $PYTHON_PATH
+          echo "PYTHON_PATH=$(pwd)" >> $GITHUB_ENV
           
       - name: Read Python PATH
         run: |
-          echo $PYTHON_PATH
-          ls
+          echo "${{ env.PYTHON_PATH }}"
           
       - name: Build libyt
         run: echo $GITHUB_ACTION_REPOSITORY
