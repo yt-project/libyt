@@ -25,12 +25,12 @@ jobs:
           python-version: '3.8'
           architecture: 'x64'
       
-#       - name: Install yt
-#         run: |
-#           git clone --depth 1 -b libyt --single-branch "https://github.com/cindytsai/yt.git" "../yt"
-#           cd ../yt
-#           git checkout libyt
-#           pip install .
+      - name: Install yt
+        run: |
+          git clone --depth 1 -b libyt --single-branch "https://github.com/cindytsai/yt.git" "../yt"
+          cd ../yt
+          git checkout libyt
+          pip install .
           
       - name: Set PYTHON_PATH and NUMPY_PATH
         run: |
@@ -39,8 +39,8 @@ jobs:
           cd $PYTHON_PATH/
           cd ..
           echo "PYTHON_PATH=$(pwd)" >> $GITHUB_ENV
-          cd lib/python3.8
-          pip list -v
+          cd lib/python3.8/site-packages/numpy
+          echo "NUMPY_PATH=$(pwd)" >> $GITHUB_ENV
           
       - name: Read Python PATH
         run: echo "${{ env.PYTHON_PATH }}"
