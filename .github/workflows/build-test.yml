@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Setup MPI environment
         run: |
-          sudo apt install -y openmpi-bin openmpi-dev openmpi-common openmpi-doc libopenmpi-dev
+          sudo apt install -y openmpi-bin libopenmpi-dev
           which mpicc
 
       - uses: actions/setup-python@v2
