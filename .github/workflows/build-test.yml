@@ -18,16 +18,18 @@ jobs:
   build-with-python38:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup MPI environment
-        run: |
-          sudo apt install -y openmpi-bin libopenmpi-dev
-          which mpicc
-
+      # Setup Python environment
       - uses: actions/setup-python@v2
         with:
           python-version: '3.8'
           architecture: 'x64'
-      
+          
+      # Checks-out your repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v2
+          
+      - name: Setup MPI environment
+        run: sudo apt install -y openmpi-bin libopenmpi-dev
+
       - name: Install yt and mpi4py
         run: |
           git clone --depth 1 -b libyt --single-branch "https://github.com/cindytsai/yt.git" "../yt"
@@ -36,7 +38,7 @@ jobs:
           pip install .
           pip install mpi4py
           
-      - name: Set PYTHON_PATH and NUMPY_PATH
+      - name: Set PYTHON_PATH, NUMPY_PATH, MPI_PATH 
         run: |
           PYTHON_BIN=$(which python)
           PYTHON_PATH=${PYTHON_BIN%/*}
@@ -45,17 +47,20 @@ jobs:
           echo "PYTHON_PATH=$(pwd)" >> $GITHUB_ENV
           cd lib/python3.8/site-packages/numpy
           echo "NUMPY_PATH=$(pwd)" >> $GITHUB_ENV
+          echo "MPI_PATH=/usr" >> $GITHUB_ENV
           
       - name: Read Python PATH
         run: echo "${{ env.PYTHON_PATH }}"
           
       - name: Read NumPy PATH
         run: echo "${{ env.NUMPY_PATH }}"
-      
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+        
+      - name: Read MPI PATH
+        run: echo "${{ env.MPI_PATH }}"
       
       - name: Build libyt
-        run: echo $GITHUB_WORKSPACE
+        run: |
+          echo $GITHUB_WORKSPACE
+          ls
       
           
