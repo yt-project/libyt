@@ -35,8 +35,9 @@ jobs:
           
       - name: Python PATH
         run: |
-          echo $(which python)
-          cd $(which python)
+          PYTHON_BIN=$(which python)
+          PYTHON_PATH=${PYTHON_BIN%/*}
+          cd $PYTHON_PATH/
           cd ../lib
           pwd
           ls
