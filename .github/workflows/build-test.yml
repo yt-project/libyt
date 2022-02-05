@@ -47,11 +47,10 @@ jobs:
         run: |
           echo $PYTHON_PATH
           ls
-      
-      - uses: actions/checkout@v2
+          
       - name: Build libyt
         run: |
           echo $(pwd)
-          ls
+          echo $GITHUB_ACTION_REPOSITORY
       
           
