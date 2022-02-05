@@ -60,5 +60,5 @@ You should distinuguish them when referring to fields in inline Python script.
 | Halo Analysis            |           | Not test yet.                            |
 | Isocontours              |           | Not test yet.                            |
 | `volume_render`          | V         | Only when MPI size is even will it work. |
-| `ParticlePlot`           | X         | Generate false figure.                   |
-| `ParticleProjectionPlot` | X         | Generate false figure.                   |
+| `ParticlePlot`           | V         |                                          |
+| `ParticleProjectionPlot` | V         |                                          |
