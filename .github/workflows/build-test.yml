@@ -60,7 +60,7 @@ jobs:
       
       - name: Build libyt
         run: |
-          ln -s -b ${{ env.MPI_PATH }}/bin/mpicc ${{ env.MPI_PATH }}/bin/mpicxx
+          sudo ln -s -b ${{ env.MPI_PATH }}/bin/mpicc ${{ env.MPI_PATH }}/bin/mpicxx
           cd $GITHUB_WORKSPACE/src
           sed -i 's@$(YOUR_PYTHON_PATH)@"${{ env.PYTHON_PATH }}"@' Makefile
           sed -i 's@$(YOUR_NUMPY_PATH)@"${{ env.NUMPY_PATH }}"@' Makefile
