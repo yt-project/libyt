@@ -39,8 +39,8 @@ jobs:
           cd $PYTHON_PATH/
           cd ..
           echo "PYTHON_PATH=$(pwd)" >> $GITHUB_ENV
-          cd lib
-          ls
+          cd lib/python3.8
+          tree
           
       - name: Read Python PATH
         run: echo "${{ env.PYTHON_PATH }}"
