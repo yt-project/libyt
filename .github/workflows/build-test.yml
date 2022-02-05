@@ -35,6 +35,10 @@ jobs:
           
       - name: Python PATH
         run: |
-          echo $RUNNER_TOOL_CACHE
-          ls $RUNNER_TOOL_CACHE/Python/
+          echo $(which python)
+          cd $(which python)
+          cd ../lib
+          pwd
+          ls
+          
           
