@@ -60,8 +60,7 @@ jobs:
       
       - name: Build libyt
         run: |
-          cd $GITHUB_WORKSPACE
-          cd src
+          cd $GITHUB_WORKSPACE/src
           sed -i 's@$(YOUR_PYTHON_PATH)@"${{ env.PYTHON_PATH }}"@' Makefile
           sed -i 's@$(YOUR_NUMPY_PATH)@"${{ env.NUMPY_PATH }}"@' Makefile
           sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
