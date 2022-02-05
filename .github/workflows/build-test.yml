@@ -39,7 +39,7 @@ jobs:
           cd $PYTHON_PATH/
           cd ..
           echo "PYTHON_PATH=$(pwd)" >> $GITHUB_ENV
-          cd lib/python3.8/site-packages/numpy
+          cd lib
           ls
           
       - name: Read Python PATH
