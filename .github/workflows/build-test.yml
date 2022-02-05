@@ -60,7 +60,10 @@ jobs:
       
       - name: Build libyt
         run: |
-          echo $GITHUB_WORKSPACE
-          ls
-      
+          cd $GITHUB_WORKSPACE/src
+          sed -i 's@$(YOUR_PYTHON_PATH)@"${{ env.PYTHON_PATH }}"@' Makefile.txt
+          sed -i 's@$(YOUR_NUMPY_PATH)@"${{ env.NUMPY_PATH }}"@' Makefile.txt
+          sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile.txt
+          make clean
+          make
           
