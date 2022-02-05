@@ -1,4 +1,5 @@
-# Test: If project can build successfully with different version of Python.
+# Test: 1. If project can build successfully with different version of Python or not.
+#       2. Can the example run in serial and in parallel. Are the results the same?
 
 name: build-test
 
@@ -38,8 +39,14 @@ jobs:
           PYTHON_BIN=$(which python)
           PYTHON_PATH=${PYTHON_BIN%/*}
           cd $PYTHON_PATH/
-          cd ../lib
-          pwd
+          cd ..
+          PYTHON_PATH=$(pwd)
+          ls
+          
+      - name: Read Python PATH
+        run: |
+          echo $PYTHON_PATH
+          cd
           ls
           
           
