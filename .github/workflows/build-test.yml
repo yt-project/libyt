@@ -22,8 +22,7 @@ jobs:
       - run: |
           sudo apt install -y openmpi-bin openmpi-dev openmpi-common openmpi-doc libopenmpi-dev
           which mpicc
-      
-      - name: Setup Python environment
+
       - uses: actions/setup-python@v2
         with:
           python-version: '3.8'
