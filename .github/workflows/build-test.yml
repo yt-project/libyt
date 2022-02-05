@@ -19,11 +19,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup MPI environment
-      - run: |
+        run: |
           sudo apt install -y openmpi-bin openmpi-dev openmpi-common openmpi-doc libopenmpi-dev
           which mpicc
 
       - uses: actions/setup-python@v2
+      - name: Setup Python environment
         with:
           python-version: '3.8'
           architecture: 'x64'
