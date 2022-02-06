@@ -48,7 +48,6 @@ jobs:
           git clone --depth 1 -b libyt --single-branch "https://github.com/cindytsai/yt.git" yt
           cd yt
           git checkout libyt
-          python -m pip install --upgrade pip
           pip install .
           pip install mpi4py
           
