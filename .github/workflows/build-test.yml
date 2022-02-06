@@ -18,17 +18,22 @@ jobs:
   build-with-python38:
     runs-on: ubuntu-latest
     steps:
-      # Setup Python environment
-      - uses: actions/setup-python@v2
+      - name: Setup Python environment
+        uses: actions/setup-python@v2
         with:
           python-version: '3.8'
           architecture: 'x64'
+
+      - name: Checkout libyt repo
+        uses: actions/checkout@v2
           
-      # Checks-out your repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v2
-          
+#       - name: Setup MPI environment
+#         run: sudo apt install -y openmpi-bin libopenmpi-dev
+
       - name: Setup MPI environment
-        run: sudo apt install -y openmpi-bin libopenmpi-dev
+        uses: mpi4py/setup-mpi@v1
+        with:
+          mpi: 'openmpi'
 
       - name: Install yt and mpi4py
         run: |
