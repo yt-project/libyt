@@ -23,19 +23,20 @@ jobs:
         with:
           python-version: '3.8'
           architecture: 'x64'
-
-      - name: Checkout libyt repo
-        uses: actions/checkout@v2
-          
-#       - name: Setup MPI environment
-#         run: sudo apt install -y openmpi-bin libopenmpi-dev
+          cache: 'pip'
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r $GITHUB_WORKSPACE/.github/tools/requirements.txt
 
       - name: Setup MPI environment
         uses: mpi4py/setup-mpi@v1
         with:
           mpi: 'openmpi'
 
-      - name: Install yt and mpi4py
+      - name: Checkout libyt repo
+        uses: actions/checkout@v2
+
+      - name: Install cindytsai/yt and mpi4py
         run: |
           cd $GITHUB_WORKSPACE
           cd ..
