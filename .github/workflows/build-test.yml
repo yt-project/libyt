@@ -32,8 +32,11 @@ jobs:
 
       - name: Install yt and mpi4py
         run: |
-          git clone --depth 1 -b libyt --single-branch "https://github.com/cindytsai/yt.git" "../yt"
-          cd ../yt
+          cd $GITHUB_WORKSPACE
+          cd ..
+          git clone --depth 1 -b libyt --single-branch "https://github.com/cindytsai/yt.git" yt
+          ls
+          cd yt
           git checkout libyt
           pip install .
           pip install mpi4py
@@ -48,15 +51,6 @@ jobs:
           cd lib/python3.8/site-packages/numpy
           echo "NUMPY_PATH=$(pwd)" >> $GITHUB_ENV
           echo "MPI_PATH=/usr" >> $GITHUB_ENV
-          
-      - name: Read Python PATH
-        run: echo "${{ env.PYTHON_PATH }}"
-          
-      - name: Read NumPy PATH
-        run: echo "${{ env.NUMPY_PATH }}"
-        
-      - name: Read MPI PATH
-        run: echo "${{ env.MPI_PATH }}"
       
       - name: Build libyt
         run: |
@@ -66,4 +60,19 @@ jobs:
           sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
           make clean
           make
+          cp libyt* ../lib
           
+      - name: Test Run - example - MPI 1
+        run: |
+          cd $GITHUB_WORKSPACE/example
+          sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
+          make clean
+          make
+          mpirun -np 1 ./example
+          
+      - name: Test Run - example - MPI 3
+        run: |
+          cd $GITHUB_WORKSPACE/example
+          make clean
+          make
+          mpirun -np 3 ./example
