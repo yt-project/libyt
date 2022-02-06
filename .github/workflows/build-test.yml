@@ -31,7 +31,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}
+          key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('$GITHUB_WORKSPACE/.github/tools/requirements.txt') }}
       - run: |
           python -m pip install --upgrade pip
           pip install -r $GITHUB_WORKSPACE/.github/tools/requirements.txt
