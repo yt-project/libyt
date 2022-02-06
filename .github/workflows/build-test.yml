@@ -35,9 +35,9 @@ jobs:
           cd $GITHUB_WORKSPACE
           cd ..
           git clone --depth 1 -b libyt --single-branch "https://github.com/cindytsai/yt.git" yt
-          ls
           cd yt
           git checkout libyt
+          python -m pip install --upgrade pip
           pip install .
           pip install mpi4py
           
@@ -61,6 +61,7 @@ jobs:
           make clean
           make
           cp libyt* ../lib
+          echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
           
       - name: Test Run - example - MPI 1
         run: |
