@@ -20,7 +20,7 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        python-version: ['3.7.11', '3.8', '3.9', '3.10']
+        python-version: ['3.7', '3.8', '3.9', '3.10']
     
     steps:
       - name: Checkout libyt repo
@@ -39,6 +39,7 @@ jobs:
       - name: Confirm Python path
         run: |
           ls ${{ env.pythonLocation }}/include/
+          ls ${{ env.pythonLocation }}/lib/
 
       - name: Setup MPI environment
         uses: mpi4py/setup-mpi@v1
@@ -62,6 +63,20 @@ jobs:
           echo "MPI_PATH=/usr" >> $GITHUB_ENV
               
       - name: Build libyt
+        if: ${{ matrix.python-version == '3.7'}}
+        run: |
+          cd $GITHUB_WORKSPACE/src
+          sed -i 's@$(YOUR_PYTHON_PATH)@"${{ env.PYTHON_PATH }}"@' Makefile
+          sed -i 's@$(YOUR_NUMPY_PATH)@"${{ env.NUMPY_PATH }}"@' Makefile
+          sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
+          sed -i 's@$(YOUR_PYTHON_VERSION)@"${{ matrix.python-version }}m"@' Makefile
+          make clean
+          make
+          cp libyt* ../lib
+          echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          
+      - name: Build libyt
+        if: ${{ matrix.python-version != '3.7' }}
         run: |
           cd $GITHUB_WORKSPACE/src
           sed -i 's@$(YOUR_PYTHON_PATH)@"${{ env.PYTHON_PATH }}"@' Makefile
