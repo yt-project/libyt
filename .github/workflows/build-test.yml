@@ -14,31 +14,26 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Job name: "build with python38"
-  build-with-python38:
+  # Job name: "build-test"
+  build-test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.4', '3.5', '3.6', '3.7', '3.8', '3.9', '3.10']
+    
     steps:
       - name: Checkout libyt repo
         uses: actions/checkout@v2
       
-      - name: Setup Python environment
+      - name: Setup Python ${{ matrix.python-version }} environment
         uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
+          python-version: ${{ matrix.python-version }}
           architecture: 'x64'
           cache: 'pip'
       - run: |
           python -m pip install --upgrade pip
           pip install -r $GITHUB_WORKSPACE/.github/tools/requirements.txt
-          
-#       - name: Cache dependencies
-#         uses: actions/cache@v2
-#         with:
-#           path: ${{ env.pythonLocation }}
-#           key: ${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('$GITHUB_WORKSPACE/.github/tools/requirements.txt') }}
-#       - run: |
-#           python -m pip install --upgrade pip
-#           pip install -r $GITHUB_WORKSPACE/.github/tools/requirements.txt
 
       - name: Setup MPI environment
         uses: mpi4py/setup-mpi@v1
