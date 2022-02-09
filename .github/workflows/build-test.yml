@@ -35,6 +35,10 @@ jobs:
       - run: |
           python -m pip install --upgrade pip
           pip install -r $GITHUB_WORKSPACE/.github/tools/requirements.txt
+          
+      - name: Confirm Python path
+        run: |
+          ls ${{ env.pythonLocation }}/include/
 
       - name: Setup MPI environment
         uses: mpi4py/setup-mpi@v1
@@ -53,18 +57,9 @@ jobs:
           
       - name: Set PYTHON_PATH, NUMPY_PATH, MPI_PATH 
         run: |
-          PYTHON_BIN=$(which python)
-          PYTHON_PATH=${PYTHON_BIN%/*}
-          cd $PYTHON_PATH/
-          cd ..
-          echo "PYTHON_PATH=$(pwd)" >> $GITHUB_ENV
-          cd lib/python${{ matrix.python-version }}/site-packages/numpy
-          echo "NUMPY_PATH=$(pwd)" >> $GITHUB_ENV
+          echo "PYTHON_PATH=${{ env.pythonLocation }}" >> $GITHUB_ENV
+          echo "NUMPY_PATH=${{ env.pythonLocation }}/lib/python${{ matrix.python-version }}/site-packages/numpy" >> $GITHUB_ENV
           echo "MPI_PATH=/usr" >> $GITHUB_ENV
-          
-      - name: Confirm Python path
-        run: |
-          ls ${{ env.PYTHON_PATH }}/include/
               
       - name: Build libyt
         run: |
