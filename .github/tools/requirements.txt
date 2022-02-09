@@ -1,0 +1,8 @@
+astropy
+cython
+dask
+h5py
+pandas
+numpy
+pytest
+scipy

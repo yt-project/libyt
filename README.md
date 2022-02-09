@@ -1,4 +1,6 @@
 # libyt
+[![build-test](https://github.com/cindytsai/libyt/actions/workflows/build-test.yml/badge.svg?branch=master)](https://github.com/cindytsai/libyt/actions/workflows/build-test.yml)
+
 `libyt` is a C++ library for Python package [`yt`](https://yt-project.org/).  It aims to let simulation code uses [`yt`](https://yt-project.org/) to do inline-analysis, while the code is still running. In this way, we can skip the step of writing data to local disk first before doing any analysis. This greatly reduce the disk usage, and increase the temporal resolution.
 
 - **Implement `libyt` into your code** :arrow_right:
@@ -30,13 +32,14 @@
 
 ## Installation
 ### libyt
-In `/libyt/src/Makefile`, update `PYTHON_PATH`, `NUMPY_PATH` and `MPI_PATH`:
+In `/libyt/src/Makefile`, update `PYTHON_PATH`, `PYTHON_VERSION`, `NUMPY_PATH` and `MPI_PATH`:
 ```makefile
 # Your paths
 ############################################################
-PYTHON_PATH := $(YOUR_PYTHON_PATH)
-NUMPY_PATH  := $(YOUR_NUMPY_PATH)
-MPI_PATH := $(YOUR_MPI_PATH)
+PYTHON_PATH    := $(YOUR_PYTHON_PATH)
+PYTHON_VERSION := $(YOUR_PYTHON_VERSION)
+NUMPY_PATH     := $(YOUR_NUMPY_PATH)
+MPI_PATH       := $(YOUR_MPI_PATH)
 ```
 
 Compile and move `libyt.so.*` to `/libyt/lib` folder::

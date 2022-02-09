@@ -1,4 +1,4 @@
 *.o
 *.pyc
-libyt.so.1.*
-example/example
+libyt.so
+libyt.so.*

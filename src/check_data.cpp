@@ -201,7 +201,7 @@ int check_grid(){
                     for ( int d = 0; d < 3; d++ ){
                         if ( grid.field_data[v].data_dimensions[d] <= 0 ){
                             YT_ABORT("Grid [%ld], field_data [%s], field_define_type [%s], data_dimensions[%d] == %d <= 0, should be > 0!\n",
-                                     grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_define_type, d, grid.field_data[v].data_dimensions[d]);
+                                      grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_define_type, d, grid.field_data[v].data_dimensions[d]);
                         }
                     }
                 }
@@ -214,7 +214,7 @@ int check_grid(){
                     for ( int d = 0; d < 3; d++ ){
                         if ( grid.field_data[v].data_dimensions[d] <= 0 ){
                             YT_ABORT("Grid [%ld], field_data [%s], field_define_type [%s], data_dimensions[%d] == %d <= 0, should be > 0!\n",
-                                     grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_define_type, d, grid.field_data[v].data_dimensions[d]);
+                                      grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_define_type, d, grid.field_data[v].data_dimensions[d]);
                         }
                     }
                 }

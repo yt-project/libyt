@@ -1,0 +1,105 @@
+# Test: 1. If project can build successfully with different version of Python or not.
+#       2. Can the example run in serial and in parallel. Are the results the same?
+
+name: build-test
+
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - 'doc/**'
+  pull_request:
+    branches: [ master ]
+    paths-ignore:
+      - 'doc/**'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  # Job name: "python-build-test"
+  python-build-test:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+    
+    steps:
+      - name: Checkout libyt repo
+        uses: actions/checkout@v2
+      
+      - name: Setup Python ${{ matrix.python-version }} environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: 'x64'
+          cache: 'pip'
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r $GITHUB_WORKSPACE/.github/tools/requirements.txt
+
+      - name: Setup MPI environment
+        uses: mpi4py/setup-mpi@v1
+        with:
+          mpi: 'openmpi'
+
+      - name: Install cindytsai/yt and mpi4py
+        run: |
+          cd $GITHUB_WORKSPACE
+          cd ..
+          git clone --depth 1 -b libyt --single-branch "https://github.com/cindytsai/yt.git" yt
+          cd yt
+          git checkout libyt
+          pip install .
+          pip install mpi4py
+          
+      - name: Set PYTHON_PATH, NUMPY_PATH, MPI_PATH 
+        run: |
+          echo "PYTHON_PATH=${{ env.pythonLocation }}" >> $GITHUB_ENV
+          echo "NUMPY_PATH=${{ env.pythonLocation }}/lib/python${{ matrix.python-version }}/site-packages/numpy" >> $GITHUB_ENV
+          echo "MPI_PATH=/usr" >> $GITHUB_ENV
+      
+      # setup-python has python3.7m only, idk why. 
+      # So split building libyt into two.
+      - name: Build libyt
+        if: ${{ matrix.python-version == '3.7'}}
+        run: |
+          cd $GITHUB_WORKSPACE/src
+          sed -i 's@$(YOUR_PYTHON_PATH)@"${{ env.PYTHON_PATH }}"@' Makefile
+          sed -i 's@$(YOUR_NUMPY_PATH)@"${{ env.NUMPY_PATH }}"@' Makefile
+          sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
+          sed -i 's@$(YOUR_PYTHON_VERSION)@"${{ matrix.python-version }}m"@' Makefile
+          make clean
+          make
+          cp libyt* ../lib
+          echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          
+      - name: Build libyt
+        if: ${{ matrix.python-version != '3.7' }}
+        run: |
+          cd $GITHUB_WORKSPACE/src
+          sed -i 's@$(YOUR_PYTHON_PATH)@"${{ env.PYTHON_PATH }}"@' Makefile
+          sed -i 's@$(YOUR_NUMPY_PATH)@"${{ env.NUMPY_PATH }}"@' Makefile
+          sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
+          sed -i 's@$(YOUR_PYTHON_VERSION)@"${{ matrix.python-version }}"@' Makefile
+          make clean
+          make
+          cp libyt* ../lib
+          echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          
+      - name: Test Run - example - MPI 1
+        run: |
+          cd $GITHUB_WORKSPACE/example
+          sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
+          make clean
+          make
+          mpirun -np 1 ./example
+          
+      - name: Test Run - example - MPI 3
+        run: |
+          cd $GITHUB_WORKSPACE/example
+          make clean
+          make
+          mpirun -np 3 ./example
