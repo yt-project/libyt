@@ -1,8 +1,9 @@
 # Your paths
 #######################################################################################################
-PYTHON_PATH := $(YOUR_PYTHON_PATH)
-NUMPY_PATH  := $(YOUR_NUMPY_PATH)
-MPI_PATH    := $(YOUR_MPI_PATH)
+PYTHON_PATH    := $(YOUR_PYTHON_PATH)
+PYTHON_VERSION := $(YOUR_PYTHON_VERSION)
+NUMPY_PATH     := $(YOUR_NUMPY_PATH)
+MPI_PATH       := $(YOUR_MPI_PATH)
 
 
 # source files
@@ -24,9 +25,9 @@ LIB_SONAME   := libyt.so.1
 #######################################################################################################
 CXX := $(MPI_PATH)/bin/mpicxx
 
-LIB := -L$(PYTHON_PATH)/lib -lpython3.8
+LIB := -L$(PYTHON_PATH)/lib -lpython$(PYTHON_VERSION)
 
-INCLUDE := -I../include -I$(PYTHON_PATH)/include/python3.8 \
+INCLUDE := -I../include -I$(PYTHON_PATH)/include/python$(PYTHON_VERSION) \
            -I$(NUMPY_PATH)/core/include \
            -I$(MPI_PATH)/include
 
