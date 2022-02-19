@@ -15,7 +15,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
   - Usage: Grid global id.
   - Valid Value: It is 0-index based and should be in between `0` and `num_grids - 1`.
 - `parent_id`
-  - Usage: Parent grid id. 
+  - Usage: Parent grid id.
   - Valide Value:
     - Should be in between `0` and `num_grids - 1`.
     - If the grid does not have parent grid, set to `-1`.
@@ -48,7 +48,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
 
 ```cpp
 /* libyt API */
-yt_grid *grids_local;  
+yt_grid *grids_local;
 yt_get_gridsPtr( &grids_local );
 
 int index_local = 0;
