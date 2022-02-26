@@ -455,7 +455,7 @@ int main( int argc, char *argv[] )
 //    *** libyt API ***
       if ( yt_inline_argument( "yt_inline_ProjectionPlot", 1, "\'density\'" ) != YT_SUCCESS )
       {
-         fprintf( stderr, "ERROR: yt_inline() failed!\n" );
+         fprintf( stderr, "ERROR: yt_inline_argument() failed!\n" );
          exit( EXIT_FAILURE );
       }
 
@@ -471,9 +471,9 @@ int main( int argc, char *argv[] )
          exit( EXIT_FAILURE );
       }
 
-	   if ( yt_inline("test_user_parameter") != YT_SUCCESS )
+	   if ( yt_inline("test_function") != YT_SUCCESS )
 	   {
-         fprintf( stderr, "ERROR: yt_inline() failed!\n" );
+         fprintf( stderr, "ERROR: test_function() failed!\n" );
          exit( EXIT_FAILURE );
       }
 
