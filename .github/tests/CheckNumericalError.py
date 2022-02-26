@@ -20,7 +20,7 @@ class DataIOTestFailed(Exception):
     """
     pass
 
-for rank in range(len(int(sys.argv[1]))):
+for rank in range(int(sys.argv[1])):
     filepath = "MPI" + str(rank) + "_result.txt"
     df = pd.read_csv(filepath, delimiter="\n", header=None)
     df = df.to_numpy().flatten()
