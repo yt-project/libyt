@@ -1,5 +1,5 @@
 # Test: 1. If project can build successfully with different version of Python or not.
-#       2. Can the example run in serial and in parallel. Are the results the same?
+#       2. Can the example run in serial and in parallel.
 
 name: build-test
 
@@ -9,10 +9,12 @@ on:
     branches: [ master ]
     paths-ignore:
       - 'doc/**'
+      - '**.md'
   pull_request:
     branches: [ master ]
     paths-ignore:
       - 'doc/**'
+      - '**.md'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -88,18 +90,29 @@ jobs:
           make
           cp libyt* ../lib
           echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-          
-      - name: Test Run - example - MPI 1
+
+      - name: Prepare Test Script
         run: |
           cd $GITHUB_WORKSPACE/example
+          cp $GITHUB_WORKSPACE/.github/tests/DataIOTest.py .
+          cp $GITHUB_WORKSPACE/.github/tests/CheckNumericalError.py .
           sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
+          sed -i 's/inline_script/DataIOTest/' example.cpp
+
+      - name: Test Run and DataIO Test - example - MPI 1
+        run: |
+          cd $GITHUB_WORKSPACE/example
+          rm -rf MPI*
           make clean
           make
           mpirun -np 1 ./example
+          python CheckNumericalError.py 1
           
-      - name: Test Run - example - MPI 3
+      - name: Test Run and DataIO Test - example - MPI 3
         run: |
           cd $GITHUB_WORKSPACE/example
+          rm -rf MPI*
           make clean
           make
           mpirun -np 3 ./example
+          python CheckNumericalError.py 3
