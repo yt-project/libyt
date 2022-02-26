@@ -22,7 +22,7 @@ class DataIOTestFailed(Exception):
 
 for rank in range(int(sys.argv[1])):
     filepath = "MPI" + str(rank) + "_result.txt"
-    df = pd.read_csv(filepath, delimiter="\n", header=None)
+    df = pd.read_csv(filepath, header=None)
     df = df.to_numpy().flatten()
     for i in range(len(df)):
         if df[i] > criteria:

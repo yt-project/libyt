@@ -48,7 +48,7 @@ def test_function():
     for gid in range(libyt.param_yt["num_grids"]):
         # Get data from control group, this is the original data with no ghost-cell.
         filepath = "../.github/data/step" + str(step) + "/Dens_grid" + str(gid) + ".txt"
-        df = pd.read_csv(filepath, delimiter="\n", header=None)
+        df = pd.read_csv(filepath, header=None)
         control_grid = df.to_numpy()
         control_grid = np.reshape(control_grid, (dimensions[0], dimensions[1], dimensions[2]))
         control_grid = np.swapaxes(control_grid, 0, 2)
