@@ -130,5 +130,6 @@ jobs:
     steps:
       - name: Conclusion of python-build-test
         uses: technote-space/workflow-conclusion-action@v2
+      - name: Check status in each job
         if: env.WORKFLOW_CONCLUSION == 'failure'
         run: exit 1
