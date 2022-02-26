@@ -33,5 +33,5 @@ def yt_inline_ParticlePlot():
 
     par.save()
 
-def test_user_parameter():
+def test_function():
     pass
