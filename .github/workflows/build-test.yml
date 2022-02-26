@@ -116,3 +116,19 @@ jobs:
           make
           mpirun -np 3 ./example
           python CheckNumericalError.py 3
+
+  # Conclusion of all python version
+  conclusion:
+    name: conclusion
+    needs:
+      - python-build-test (3.7)
+      - python-build-test (3.8)
+      - python-build-test (3.9)
+      - python-build-test (3.10)
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Conclusion of python-build-test
+      - uses: technote-space/workflow-conclusion-action@v2
+        if: env.WORKFLOW_CONCLUSION == 'failure'
+        run: exit 1
