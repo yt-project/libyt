@@ -2,11 +2,3 @@
 *.pyc
 libyt.so
 libyt.so.*
-example/example
-
-.idea/*
-*.png
-stderr
-stdout
-lib/*
-Dockerfile
