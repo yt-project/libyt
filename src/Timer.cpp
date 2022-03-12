@@ -41,10 +41,13 @@ void Timer::print_header()
         fputc(ch, output);
     }
 
-    // TODO: Remove temp file.
-
     fclose(output);
     fclose(temp);
+
+    // Remove temp file.
+    char cmd[60];
+    sprintf(cmd, "rm -f %s", temp_FileName);
+    system(cmd);
 }
 
 void Timer::record_time(char *Column, int tag)
