@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mpi.h>
-#include <ctype.h>
 
 Timer::Timer(char *filename)
 : m_PrintHeader(false)
