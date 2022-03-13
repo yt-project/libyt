@@ -18,6 +18,10 @@
 //
 int yt_free_gridsPtr()
 {
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("yt_free_gridsPtr", 0);
+#endif
+
 // check if libyt has been initialized
    if ( !g_param_libyt.libyt_initialized ){
       YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
@@ -84,6 +88,13 @@ int yt_free_gridsPtr()
    g_param_libyt.counter ++;   
 
    g_param_libyt.free_gridsPtr = true;
+
+#ifdef SUPPORT_TIMER
+   // end timer.
+   g_timer->record_time("yt_free_gridsPtr", 1);
+   // print out record time in this iteration.
+   g_timer->print_all_time();
+#endif
 
    return YT_SUCCESS;
 } // FUNCTION: yt_free_gridsPtr()

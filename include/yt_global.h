@@ -39,6 +39,11 @@ SET_GLOBAL( yt_param_libyt, g_param_libyt           );   // libyt runtime parame
                                                          //     initialized during compilation
 SET_GLOBAL( yt_param_yt,    g_param_yt              );   // YT parameters
 
+#ifdef SUPPORT_TIMER
+#include "Timer.h"
+SET_GLOBAL( Timer,         *g_timer,          NULL  );   // Timer for recording performance.
+#endif // #ifdef SUPPORT_TIMER
+
 // add the prefix "g_py_" for all global Python objects
 #ifndef NO_PYTHON
 SET_GLOBAL( PyObject,      *g_py_grid_data,   NULL  );   // Python dictionary to store grid data

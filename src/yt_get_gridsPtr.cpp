@@ -22,6 +22,10 @@
 //
 int yt_get_gridsPtr( yt_grid **grids_local )
 {
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("yt_get_gridsPtr", 0);
+#endif
+
 	// check if libyt has been initialized
    	if ( !g_param_libyt.libyt_initialized ){
     	YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );     	
@@ -87,6 +91,10 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 	// Above all works like charm
 	g_param_libyt.get_gridsPtr = true;
 	log_info( "Getting pointer to local grids information  ... done.\n" );
-	
+
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("yt_get_gridsPtr", 1);
+#endif
+
 	return YT_SUCCESS;
 }
