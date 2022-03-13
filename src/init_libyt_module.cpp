@@ -676,7 +676,15 @@ static PyObject* PyInit_libyt(void)
 //-------------------------------------------------------------------------------------------------------
 int create_libyt_module()
 {
+#ifdef SUPPORT_TIMER
+  g_timer->record_time("create_libyt_module", 0);
+#endif
+
   PyImport_AppendInittab("libyt", &PyInit_libyt);
+
+#ifdef SUPPORT_TIMER
+  g_timer->record_time("create_libyt_module", 1);
+#endif
 
   return YT_SUCCESS;
 }
@@ -694,6 +702,9 @@ int create_libyt_module()
 //-------------------------------------------------------------------------------------------------------
 int init_libyt_module()
 {
+#ifdef SUPPORT_TIMER
+   g_timer->record_time("init_libyt_module", 0);
+#endif
 
 // import newly created libyt module
    if ( PyRun_SimpleString("import libyt\n") == 0 )
@@ -714,6 +725,10 @@ int init_libyt_module()
                 g_param_libyt.script );
 
    free( CallYT );
+
+#ifdef SUPPORT_TIMER
+   g_timer->record_time("init_libyt_module", 1);
+#endif
 
    return YT_SUCCESS;
 

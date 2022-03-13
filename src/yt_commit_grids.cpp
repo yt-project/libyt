@@ -23,6 +23,9 @@
 //-------------------------------------------------------------------------------------------------------
 int yt_commit_grids()
 {
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("yt_commit_grids", 0);
+#endif
 
 // check if libyt has been initialized
    if ( !g_param_libyt.libyt_initialized ){
@@ -229,6 +232,10 @@ int yt_commit_grids()
    // Above all works like charm
    g_param_libyt.commit_grids = true;
    log_info("Loading grids to yt ... done.\n");
+
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("yt_commit_grids", 1);
+#endif
 
    return YT_SUCCESS;
 

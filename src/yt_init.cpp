@@ -23,6 +23,17 @@
 //-------------------------------------------------------------------------------------------------------
 int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt )
 {
+#ifdef SUPPORT_TIMER
+   // Get MPI rank and set record time filename.
+   int MyRank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
+   // initialize timer
+   char filename[50];
+   sprintf(filename, "RecordTime_%d", MyRank);
+   g_timer = new Timer(filename);
+   // start timer.
+   g_timer->record_time("yt_init", 0);
+#endif
 
 // yt_init should only be called once
    static int init_count = 0;
@@ -56,12 +67,18 @@ int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt )
       return YT_FAIL;
    }  
 
-// initialize libyt python module such as parameters.
+// import libyt and inline python script.
    if ( init_libyt_module() == YT_FAIL ) {
       return YT_FAIL;
    }
    
    g_param_libyt.libyt_initialized = true;
+
+#ifdef SUPPORT_TIMER
+   // end timer.
+   g_timer->record_time("yt_init", 1);
+#endif
+
    return YT_SUCCESS;
 
 } // FUNCTION : yt_init

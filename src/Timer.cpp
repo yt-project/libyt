@@ -94,7 +94,7 @@ void Timer::print_all_time()
             fprintf(temp, "%lf,", m_RecordTime[i]);
         }
         else{
-            fprintf(temp, " ,");
+            fprintf(temp, "NaN,");
         }
         m_CheckRecordTime[i] = false;
     }
