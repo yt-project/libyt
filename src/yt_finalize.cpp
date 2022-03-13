@@ -18,6 +18,9 @@
 //-------------------------------------------------------------------------------------------------------
 int yt_finalize()
 {
+#ifdef SUPPORT_TIMER
+   g_timer->record_time("yt_finalize", 0);
+#endif
 
    log_info( "Exiting libyt ...\n" );
 
@@ -31,6 +34,15 @@ int yt_finalize()
    Py_Finalize();
 
    g_param_libyt.libyt_initialized = false;
+
+#ifdef SUPPORT_TIMER
+   // end timer and print.
+   g_timer->record_time("yt_finalize", 1);
+   g_timer->print_all_time();
+   // destroy timer.
+   delete g_timer;
+#endif // #ifdef SUPPORT_TIMER
+
    return YT_SUCCESS;
 
 } // FUNCTION : yt_finalize

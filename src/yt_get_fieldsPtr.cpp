@@ -16,6 +16,10 @@
 //
 int yt_get_fieldsPtr( yt_field **field_list )
 {
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("yt_get_fieldsPtr", 0);
+#endif
+
 	// check if libyt has been initialized
    	if ( !g_param_libyt.libyt_initialized ){
     	YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
@@ -40,6 +44,10 @@ int yt_get_fieldsPtr( yt_field **field_list )
 	// Above all works like charm
 	g_param_libyt.get_fieldsPtr = true;
 	log_info( "Getting pointer to field list information  ... done.\n" );
-	
+
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("yt_get_fieldsPtr", 1);
+#endif
+
 	return YT_SUCCESS;
 }

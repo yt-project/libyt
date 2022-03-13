@@ -21,6 +21,9 @@ static int import_numpy();
 //-------------------------------------------------------------------------------------------------------
 int init_python( int argc, char *argv[] )
 {
+#ifdef SUPPORT_TIMER
+   g_timer->record_time("init_python", 0);
+#endif
 
 // initialize Python interpreter
    Py_SetProgramName( Py_DecodeLocale("yt_inline", NULL) );
@@ -70,6 +73,10 @@ int init_python( int argc, char *argv[] )
    else
       YT_ABORT(  "Importing Python garbage collector ... failed!\n" );
 
+
+#ifdef SUPPORT_TIMER
+   g_timer->record_time("init_python", 1);
+#endif
 
    return YT_SUCCESS;
 
