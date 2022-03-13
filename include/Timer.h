@@ -8,6 +8,7 @@ class Timer
 {
 private:
     char  m_FileName[50];
+    char  m_TempFileName[60];
     long  m_Step;
 
     std::vector<double> m_RecordTime;

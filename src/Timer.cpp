@@ -11,6 +11,7 @@ Timer::Timer(char *filename)
 {
     // Save write-to filename and path.
     strcpy(m_FileName, filename);
+    sprintf(m_TempFileName, "%s_temp", m_FileName);
 }
 
 Timer::~Timer()
@@ -19,6 +20,11 @@ Timer::~Timer()
     m_RecordTime.clear();
     m_CheckRecordTime.clear();
     m_Column.clear();
+
+    // Remove temp file.
+    char cmd[60];
+    sprintf(cmd, "rm -f %s", m_TempFileName);
+    system(cmd);
 }
 
 void Timer::print_header()
@@ -26,9 +32,7 @@ void Timer::print_header()
     // Print out header.
     FILE *output, *temp;
     output = fopen(m_FileName, "a");
-    char temp_FileName[50];
-    sprintf(temp_FileName, "%s_temp", m_FileName);
-    temp   = fopen(temp_FileName, "r");
+    temp   = fopen(m_TempFileName, "r");
 
     for(int i = 0; i < m_Column.size(); i++){
         fprintf(output, "%s,", m_Column[i].c_str());
@@ -43,11 +47,6 @@ void Timer::print_header()
 
     fclose(output);
     fclose(temp);
-
-    // Remove temp file.
-    char cmd[60];
-    sprintf(cmd, "rm -f %s", temp_FileName);
-    system(cmd);
 }
 
 void Timer::record_time(char *Column, int tag)
@@ -87,11 +86,9 @@ void Timer::print_all_time()
 {
     // Open temp file
     FILE *temp;
-    char temp_FileName[50];
-    sprintf(temp_FileName, "%s_temp", m_FileName);
-    temp = fopen(temp_FileName, "a");
+    temp = fopen(m_TempFileName, "a");
 
-    // Flush all saved time.
+    // Flush all saved time, and reset check m_CheckRecordTime.
     for(int i = 0; i < m_Column.size(); i++){
         if(m_CheckRecordTime[i]){
             fprintf(temp, "%lf,", m_RecordTime[i]);
@@ -99,13 +96,11 @@ void Timer::print_all_time()
         else{
             fprintf(temp, " ,");
         }
-    }
-    fclose(temp);
-
-    // Reset check m_CheckRecordTime.
-    for(int i = 0; i < m_CheckRecordTime.size(); i++){
         m_CheckRecordTime[i] = false;
     }
+    fprintf(temp, "\n");
+
+    fclose(temp);
 }
 
 #endif // #ifdef SUPPORT_TIMER
