@@ -39,8 +39,6 @@ int yt_finalize()
    // end timer and print.
    g_timer->record_time("yt_finalize", 1);
    g_timer->print_all_time();
-   // print header.
-   g_timer->print_header();
    // destroy timer.
    delete g_timer;
 #endif // #ifdef SUPPORT_TIMER

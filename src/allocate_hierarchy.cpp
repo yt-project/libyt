@@ -15,6 +15,10 @@
 int allocate_hierarchy()
 {
 
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("allocate_hierarchy", 0);
+#endif
+
 // remove all key-value pairs if one wants to overwrite the existing dictionary
 // ==> it should happen only if one calls yt_set_parameter() more than once
    if ( PyDict_Size( g_py_hierarchy ) > 0 )
@@ -51,6 +55,10 @@ int allocate_hierarchy()
    ADD_DICT( 1, "proc_num",            NPY_INT  );
 
 #  undef ADD_DICT
+
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("allocate_hierarchy", 1);
+#endif
 
    return YT_SUCCESS;
 
