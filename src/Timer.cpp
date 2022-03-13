@@ -5,13 +5,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mpi.h>
+#include <ctype.h>
 
 Timer::Timer(char *filename)
-: m_Step(0)
+: m_PrintHeader(false)
 {
     // Save write-to filename and path.
     strcpy(m_FileName, filename);
-    sprintf(m_TempFileName, "%s_temp", m_FileName);
+    sprintf(m_TempFileName, "%s_temp", filename);
 }
 
 Timer::~Timer()
@@ -20,33 +21,41 @@ Timer::~Timer()
     m_RecordTime.clear();
     m_CheckRecordTime.clear();
     m_Column.clear();
-
-    // Remove temp file.
-    char cmd[60];
-    sprintf(cmd, "rm -f %s", m_TempFileName);
-    system(cmd);
 }
 
 void Timer::print_header()
 {
-    // Print out header.
-    FILE *output, *temp;
-    output = fopen(m_FileName, "a");
-    temp   = fopen(m_TempFileName, "r");
+    // Read original file, and create a temporary new file.
+    FILE *original, *output;
+    original = fopen(m_FileName, "r");
+    output   = fopen(m_TempFileName, "w");
 
     for(int i = 0; i < m_Column.size(); i++){
         fprintf(output, "%s,", m_Column[i].c_str());
     }
     fprintf(output, "\n");
 
-    // Move temperary record time to here.
-    char ch;
-    while( (ch = fgetc(temp)) != EOF ){
-        fputc(ch, output);
+    // Move original record time to temp.
+    // If original exists, then it must have contain headers. So we skip first line.
+    if( original ){
+        char ch;
+        bool first_line = true;
+        while( (ch = fgetc(original)) != EOF ){
+            if( !first_line ){
+                fputc(ch, output);
+            }
+            else if( ch == '\n' ){
+                first_line = false;
+            }
+        }
+        fclose(original);
     }
-
     fclose(output);
-    fclose(temp);
+
+    // Remove original file and rename temp file to replace origin.
+    char cmd[60];
+    sprintf(cmd, "rm -f %s; mv %s %s", m_FileName, m_TempFileName, m_FileName);
+    system(cmd);
 }
 
 void Timer::record_time(char *Column, int tag)
@@ -70,6 +79,7 @@ void Timer::record_time(char *Column, int tag)
         m_Column.push_back(s);
         m_RecordTime.push_back(0);
         m_CheckRecordTime.push_back(false);
+        m_PrintHeader = true;
     }
 
     // Record time, if tag = 0. Calculate time pass, if tag = 1.
@@ -84,23 +94,27 @@ void Timer::record_time(char *Column, int tag)
 
 void Timer::print_all_time()
 {
-    // Open temp file
-    FILE *temp;
-    temp = fopen(m_TempFileName, "a");
+    if( m_PrintHeader ){
+        print_header();
+        m_PrintHeader = false;
+    }
+
+    // Open file
+    FILE *output;
+    output = fopen(m_FileName, "a");
 
     // Flush all saved time, and reset check m_CheckRecordTime.
     for(int i = 0; i < m_Column.size(); i++){
         if(m_CheckRecordTime[i]){
-            fprintf(temp, "%lf,", m_RecordTime[i]);
+            fprintf(output, "%lf,", m_RecordTime[i]);
         }
         else{
-            fprintf(temp, "NaN,");
+            fprintf(output, "NaN,");
         }
         m_CheckRecordTime[i] = false;
     }
-    fprintf(temp, "\n");
-
-    fclose(temp);
+    fprintf(output, "\n");
+    fclose(output);
 }
 
 #endif // #ifdef SUPPORT_TIMER
