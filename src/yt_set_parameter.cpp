@@ -26,6 +26,10 @@
 //-------------------------------------------------------------------------------------------------------
 int yt_set_parameter( yt_param_yt *param_yt )
 {
+#ifdef SUPPORT_TIMER
+   // start timer.
+   g_timer->record_time("yt_set_parameter", 0);
+#endif
 
 // check if libyt has been initialized
    if ( !g_param_libyt.libyt_initialized ){
@@ -192,6 +196,11 @@ int yt_set_parameter( yt_param_yt *param_yt )
    g_param_libyt.param_yt_set  = true;
    g_param_libyt.free_gridsPtr = false;
    log_info( "Setting YT parameters ... done.\n" );
+
+#ifdef SUPPORT_TIMER
+   // end timer.
+   g_timer->record_time("yt_set_parameter", 1);
+#endif
 
    return YT_SUCCESS;
 
