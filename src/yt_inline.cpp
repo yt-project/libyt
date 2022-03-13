@@ -18,6 +18,11 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_inline_argument( char *function_name, int argc, ... ){
+
+#ifdef SUPPORT_TIMER
+    g_timer->record_time(function_name, 0);
+#endif
+
 // check if libyt has been initialized
    if ( !g_param_libyt.libyt_initialized ){
       YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
@@ -96,6 +101,10 @@ int yt_inline_argument( char *function_name, int argc, ... ){
    log_info( "Performing YT inline analysis <%s> ... done.\n", CallYT);
    free( CallYT );
 
+#ifdef SUPPORT_TIMER
+    g_timer->record_time(function_name, 1);
+#endif
+
    return YT_SUCCESS;
 }
 
@@ -112,6 +121,10 @@ int yt_inline_argument( char *function_name, int argc, ... ){
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_inline( char *function_name ){
+#ifdef SUPPORT_TIMER
+    g_timer->record_time(function_name, 0);
+#endif
+
 // check if libyt has been initialized
    if ( !g_param_libyt.libyt_initialized ){
       YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
@@ -163,6 +176,10 @@ int yt_inline( char *function_name ){
 
    log_info( "Performing YT inline analysis <%s> ... done.\n", CallYT);
    free( CallYT );
+
+#ifdef SUPPORT_TIMER
+    g_timer->record_time(function_name, 1);
+#endif
 
    return YT_SUCCESS;
 }

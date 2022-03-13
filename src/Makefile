@@ -5,6 +5,24 @@ PYTHON_VERSION := $(YOUR_PYTHON_VERSION)
 NUMPY_PATH     := $(YOUR_NUMPY_PATH)
 MPI_PATH       := $(YOUR_MPI_PATH)
 
+# Options
+#######################################################################################################
+# turn on the timer in each libyt substep.
+#OPTIONS := -DSUPPORT_TIMER
+
+# source files
+#######################################################################################################
+# libyt
+CC_FILE := yt_init.cpp  yt_finalize.cpp  yt_set_parameter.cpp  yt_inline.cpp  yt_add_user_parameter.cpp \
+           yt_commit_grids.cpp yt_get_gridsPtr.cpp yt_get_fieldsPtr.cpp yt_get_particlesPtr.cpp         \
+           yt_free_gridsPtr.cpp yt_getGridInfo.cpp yt_rma_field.cpp yt_rma_particle.cpp
+CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp    \
+		   check_data.cpp append_grid.cpp get_dtype_property.cpp big_mpi.cpp
+
+# for testing and performance measuring
+ifeq "$(filter -DSUPPORT_TIMER, $(OPTIONS))" "-DSUPPORT_TIMER"
+CC_FILE += Timer.cpp
+endif
 
 # source files
 #######################################################################################################
@@ -33,7 +51,7 @@ INCLUDE := -I../include -I$(PYTHON_PATH)/include/python$(PYTHON_VERSION) \
 
 #CXXWARN_FLAG := -w1
 CXXWARN_FLAG := -Wall -Wno-write-strings
-CXXFLAG := $(CXXWARN_FLAG) $(INCLUDE) $(SIMU_OPTION) -O2 -fPIC
+CXXFLAG := $(CXXWARN_FLAG) $(INCLUDE) $(OPTIONS) -O2 -fPIC
 
 
 # rules and targets

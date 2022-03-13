@@ -23,6 +23,9 @@
 //-------------------------------------------------------------------------------------------------------
 int yt_commit_grids()
 {
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("yt_commit_grids", 0);
+#endif
 
 // check if libyt has been initialized
    if ( !g_param_libyt.libyt_initialized ){
@@ -176,6 +179,10 @@ int yt_commit_grids()
 // If num_grids > INT_MAX chop it to chunks, then broadcast.
    big_MPI_Bcast(RootRank, g_param_yt.num_grids, (void*) hierarchy_full, &yt_hierarchy_mpi_type, 0);
 
+#ifdef SUPPORT_TIMER
+   g_timer->record_time("append_grids", 0);
+#endif
+
 // append grid to YT
 // We pass hierarchy to each rank as well.
 // Combine full hierarchy and the grid data that one rank has, otherwise fill in NULL in grid data.
@@ -217,6 +224,10 @@ int yt_commit_grids()
       }
    }
 
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("append_grids", 1);
+#endif
+
    log_debug( "Append grids to libyt.grid_data ... done!\n" );
    MPI_Barrier( MPI_COMM_WORLD );
 
@@ -229,6 +240,10 @@ int yt_commit_grids()
    // Above all works like charm
    g_param_libyt.commit_grids = true;
    log_info("Loading grids to yt ... done.\n");
+
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("yt_commit_grids", 1);
+#endif
 
    return YT_SUCCESS;
 

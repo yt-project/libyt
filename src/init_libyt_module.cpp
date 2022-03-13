@@ -676,7 +676,15 @@ static PyObject* PyInit_libyt(void)
 //-------------------------------------------------------------------------------------------------------
 int create_libyt_module()
 {
+#ifdef SUPPORT_TIMER
+  g_timer->record_time("create_libyt_module", 0);
+#endif
+
   PyImport_AppendInittab("libyt", &PyInit_libyt);
+
+#ifdef SUPPORT_TIMER
+  g_timer->record_time("create_libyt_module", 1);
+#endif
 
   return YT_SUCCESS;
 }
@@ -694,6 +702,13 @@ int create_libyt_module()
 //-------------------------------------------------------------------------------------------------------
 int init_libyt_module()
 {
+#ifdef SUPPORT_TIMER
+   g_timer->record_time("init_libyt_module", 0);
+#endif
+
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("import-libyt", 0);
+#endif
 
 // import newly created libyt module
    if ( PyRun_SimpleString("import libyt\n") == 0 )
@@ -701,7 +716,13 @@ int init_libyt_module()
    else
       YT_ABORT(  "Import libyt module ... failed!\n" );
 
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("import-libyt", 1);
+#endif
 
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("import-userscript", 0);
+#endif
 // import YT inline analysis script
    const int CallYT_CommandWidth = 8 + strlen( g_param_libyt.script );   // 8 = "import " + '\0'
    char *CallYT = (char*) malloc( CallYT_CommandWidth*sizeof(char) );
@@ -714,6 +735,13 @@ int init_libyt_module()
                 g_param_libyt.script );
 
    free( CallYT );
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("import-userscript", 1);
+#endif
+
+#ifdef SUPPORT_TIMER
+   g_timer->record_time("init_libyt_module", 1);
+#endif
 
    return YT_SUCCESS;
 

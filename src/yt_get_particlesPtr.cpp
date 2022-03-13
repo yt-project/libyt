@@ -15,6 +15,10 @@
 //
 int yt_get_particlesPtr( yt_particle **particle_list )
 {
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("yt_get_particlesPtr", 0);
+#endif
+
 	// check if libyt has been initialized
    	if ( !g_param_libyt.libyt_initialized ){
     	YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );     	
@@ -37,6 +41,10 @@ int yt_get_particlesPtr( yt_particle **particle_list )
 
    	g_param_libyt.get_particlesPtr = true;
 	log_info( "Getting pointer to particle list information  ... done.\n" );
-	
+
+#ifdef SUPPORT_TIMER
+    g_timer->record_time("yt_get_particlesPtr", 1);
+#endif
+
 	return YT_SUCCESS;
 }
