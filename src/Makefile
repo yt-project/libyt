@@ -24,7 +24,6 @@ ifeq "$(filter -DSUPPORT_TIMER, $(OPTIONS))" "-DSUPPORT_TIMER"
 CC_FILE += Timer.cpp
 endif
 
-
 # library name
 #######################################################################################################
 LIB_REALNAME := libyt.so.1.0.0
