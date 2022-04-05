@@ -449,7 +449,7 @@ int main( int argc, char *argv[] )
             grids_local[index_local].parent_id      = sim_grids[gid].parent_id;
             grids_local[index_local].level          = sim_grids[gid].level;
 
-            for (int v = 0; v < param_yt.num_fields; v = v + 1){
+            for (int v = 0; v < num_fields; v = v + 1){
                grids_local[index_local].field_data[v].data_ptr = sim_grids[gid].field_data[v].data_ptr;
             }
 
