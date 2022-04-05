@@ -41,8 +41,12 @@ void log_warning(const char *Format, ...);
 //                char    *field_display_name   : Set display name on the plottings, if not set, yt will 
 //                                                use field_name as display name.
 //
-//                (func pointer) derived_func : pointer to function that has argument (long, double *)
-//                                              and no return.
+//                (func pointer) derived_func          : pointer to function that has argument (long, double *)
+//                                                       and no return.
+//                (func pointer) derived_func_with_name: pointer to function that has argument (long, char *, double *)
+//                                                       and no return. libyt will first look for derived_func, before
+//                                                       coming to this. When libyt API call this function, it will pass
+//                                                       in field name.
 //
 // Method      :  yt_field  : Constructor
 //               ~yt_field  : Destructor
@@ -64,6 +68,7 @@ struct yt_field
 	char     *field_display_name;
 
 	void (*derived_func) (long, double *);
+    void (*derived_func_with_name) (long, char *, double *);
 
 
 //=======================================================================================================
@@ -89,6 +94,7 @@ struct yt_field
 		field_display_name = NULL;
 
 		derived_func = NULL;
+        derived_func_with_name = NULL;
 	} // METHOD : yt_field
 
 //=======================================================================================================
@@ -113,7 +119,8 @@ struct yt_field
 //                  (1) field_name is set != NULL.
 //                  (2) field_define_type can only be : "cell-centered", "face-centered", "derived_func".
 //                  (3) Check if field_dtype is set.
-//                  (4) Raise warning if derived_func == NULL and field_define_type is set to "derived_func".
+//                  (4) Raise warning if derived_func and derived_func_with_name both == NULL and field_define_type
+//                      is set to "derived_func".
 //                  (5) field_ghost_cell cannot be smaller than 0.
 //               2. Used in check_field_list()
 // 
@@ -153,9 +160,9 @@ struct yt_field
                        field_name, field_define_type);
         }
 
-        // Raise warning if derived_func == NULL and field_define_type is set to "derived_func".
-        if ( strcmp(field_define_type, "derived_func") == 0 && derived_func == NULL ){
-            log_warning("In field [%s], field_define_type == %s, but derived_func not set!\n",
+        // Raise warning if derived_func and derived_func_with_name == NULL and field_define_type is set to "derived_func".
+        if ( strcmp(field_define_type, "derived_func") == 0 && derived_func == NULL && derived_func_with_name == NULL ){
+            log_warning("In field [%s], field_define_type == %s, set derived_func or derived_func_with_name!\n",
                           field_name, field_define_type);
         }
 
