@@ -156,13 +156,21 @@ int yt_rma_field::prepare_data(long& gid)
             temp[i] = 0.0;
         }
         // Generate data.
-        void (*derived_func) (long, double*);
-        derived_func = g_param_yt.field_list[m_FieldIndex].derived_func;
-        if( derived_func == NULL ){
-            YT_ABORT("yt_rma_field: In field [%s], field_define_type == %s, but derived_func not set!\n",
+        // Derived function used order: (1) derived_func (2) derived_func_with_name
+        if ( g_param_yt.field_list[m_FieldIndex].derived_func != NULL ){
+            void (*derived_func) (long, double*);
+            derived_func = g_param_yt.field_list[m_FieldIndex].derived_func;
+            (*derived_func) (gid, (double*) data_ptr);
+        }
+        else if ( g_param_yt.field_list[m_FieldIndex].derived_func_with_name != NULL ){
+            void (*derived_func_with_name) (long, char*, double*);
+            derived_func_with_name = g_param_yt.field_list[m_FieldIndex].derived_func_with_name;
+            (*derived_func_with_name) (gid, m_FieldName, (double*) data_ptr);
+        }
+        else{
+            YT_ABORT("yt_rma_field: In field [%s], field_define_type == %s, but derived_func or derived_func_with_name not set!\n",
                       m_FieldName, m_FieldDefineType);
         }
-        (*derived_func) (gid, (double*) data_ptr);
     }
 
     // Attach buffer to window.
