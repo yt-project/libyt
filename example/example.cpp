@@ -1,17 +1,18 @@
 /*
  [Description]
- This example is to show how libyt load all the data and information into yt,
- then use yt to do analysis on the go. And also, to illustrates the basic
+ This example is to show how libyt loads all the data and information into yt,
+ then use yt to do analysis on the go. And also, to illustrate the basic
  usage of libyt in steps 0 - 9.
 
  We have a set of pre-calculated data. We assign each grid to one MPI rank
- randomly to stimulate the actual code of having grid data on different rank.
- Then we demonstrate how to pass in the grid data and their hierarchy located
+ randomly to stimulate the actual code of having grid data on different ranks.
+ Then we demonstrate how to pass in the grid data and their hierarchies located
  on current MPI rank to libyt. Finally, we use those passed in data to do a
  series of analysis with yt.
+
  Above description can be concentrated to following steps:
      1. Assign pre-calculated grids to one MPI rank.
-     2. Each MPI rank will only pass "its" hierarchy to yt
+     2. Each MPI rank will only pass local data and their hierarchies to libyt
         ---> Here, we calculate all the grids (sim_grids) first,
              then distribute them to grids_local, to simulate the working process.
      3. Do analysis using yt.
@@ -523,7 +524,7 @@ int main( int argc, char *argv[] )
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  set_density
-// Description :  Return density at give coordinates and time
+// Description :  Return density at given coordinates and time
 //-------------------------------------------------------------------------------------------------------
 real set_density( const double x, const double y, const double z, const double t, const double v )
 {
@@ -539,7 +540,8 @@ real set_density( const double x, const double y, const double z, const double t
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get an array of random number in range 0 ~ NRank-1
-// Description :  To random distribute grids to MPI rank
+// Description :  To random distribute grids to MPI rank, so that we can mimic what happen in real world
+//                simulation code.
 //-------------------------------------------------------------------------------------------------------
 void get_randArray(int *array, int length) {
    
@@ -559,11 +561,11 @@ void get_randArray(int *array, int length) {
 // Description :  For particle type "io" to return their attribute.
 // 
 // Notes       :  1. Prototype must be void func(long, char*, void*)
-//                2. This function will be concatenate into python C extension, so that yt can reach 
+//                2. This function will be concatenated into python C extension, so that yt can reach
 //                   particle attributes when it is needed.
 //                3. In this example, we will create particle with position at the center of the grid it
 //                   belongs to with Level equals to the level of the grid.
-//                4. Write results to void *data.
+//                4. Write results to void *data in series.
 // 
 // Parameter   : long  gid      : particle in grid gid to be return
 //               char *attribute: get the attribute of the particle
