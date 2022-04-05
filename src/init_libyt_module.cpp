@@ -50,19 +50,31 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
 
     // Get the derived_func define in field_list according to field_name.
     // If cannot find field_name inside field_list, raise an error.
-    // If we successfully find the field_name, but the derived_func is not assigned (is NULL), raise an error.
+    // If we successfully find the field_name, but the derived_func or derived_func_with_name
+    // is not assigned (is NULL), raise an error.
     void (*derived_func) (long, double*);
+    void (*derived_func_with_name) (long, char*, double*);
     bool have_FieldName = false;
+    short derived_func_option = 0;
+
+    derived_func = NULL;
+    derived_func_with_name = NULL;
 
     for (int v = 0; v < g_param_yt.num_fields; v++){
         if ( strcmp(g_param_yt.field_list[v].field_name, field_name) == 0 ){
             have_FieldName = true;
             field_id = v;
+            // The order of derived function being used: (1) derived_func (2) derived_func_with_name
             if ( g_param_yt.field_list[v].derived_func != NULL ){
                 derived_func = g_param_yt.field_list[v].derived_func;
+                derived_func_option = 1;
+            }
+            else if ( g_param_yt.field_list[v].derived_func_with_name != NULL ){
+                derived_func_with_name = g_param_yt.field_list[v].derived_func_with_name;
+                derived_func_option = 2;
             }
             else {
-                PyErr_Format(PyExc_NotImplementedError, "In field_list, field_name [ %s ], derived_func does not set properly.\n", 
+                PyErr_Format(PyExc_NotImplementedError, "In field_list, field_name [ %s ], derived_func or derived_func_with_name does not set properly.\n",
                              g_param_yt.field_list[v].field_name);
                 return NULL;
             }
@@ -76,8 +88,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     }
 
     // Get the grid's dimension[3] according to the gid.
-    // We assume that parallelism in yt will make each rank only has to deal with the local grids.
-    // We can always find grid with id = gid inside grids_local.
+    // We can always find grid with id = gid inside grids_local, since we had filtered them.
     int  grid_dimensions[3];
     bool have_Grid = false;
 
@@ -99,7 +110,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     }
 
     // Allocate 1D array with size of grid dimension, initialized with 0.
-    // derived_func will make changes to this array.
+    // derived_func, derived_func_with_name will make changes to this array.
     // This array will be wrapped by Numpy API and will be return. 
     // The called object will then OWN this numpy array, so that we don't have to free it.
     long gridTotalSize = grid_dimensions[0] * grid_dimensions[1] * grid_dimensions[2];
@@ -108,8 +119,13 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
         output[i] = (double) 0;
     }
 
-    // Call the derived_func, result will be made inside output 1D array.
-    (*derived_func) (gid, output);
+    // Call (1)derived_func or (2)derived_func_with_name, result will be made inside output 1D array.
+    if ( derived_func_option == 1 ){
+        (*derived_func) (gid, output);
+    }
+    else if ( derived_func_option == 2 ){
+        (*derived_func_with_name) (gid, field_name, output);
+    }
 
     // Wrapping the C allocated 1D array into 3D numpy array.
     // grid_dimensions[3] is in [x][y][z] coordinate, 
