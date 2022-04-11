@@ -490,8 +490,14 @@ int main( int argc, char *argv[] )
          exit( EXIT_FAILURE );
       }
 
-	   if ( yt_inline("test_function") != YT_SUCCESS )
-	   {
+	  if ( yt_inline("yt_derived_field_demo") != YT_SUCCESS )
+	  {
+         fprintf( stderr, "ERROR: yt_derived_field_demo() failed!\n" );
+         exit( EXIT_FAILURE );
+      }
+
+      if ( yt_inline("test_function") != YT_SUCCESS )
+	  {
          fprintf( stderr, "ERROR: test_function() failed!\n" );
          exit( EXIT_FAILURE );
       }
