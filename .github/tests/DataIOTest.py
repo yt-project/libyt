@@ -30,8 +30,17 @@ def yt_inline_ParticlePlot():
     ## ParticlePlot
     #==========================
     par = yt.ParticlePlot(ds, "particle_position_x", "particle_position_y", "Level", center = 'c')
+    if yt.is_root():
+        par.save()
 
-    par.save()
+def yt_derived_field_demo():
+    ds = yt.frontends.libyt.libytDataset()
+    slc1 = yt.SlicePlot(ds, "z", ("gamer", "level_derived_func"))
+    slc2 = yt.SlicePlot(ds, "z", ("gamer", "level_derived_func_with_name"))
+
+    if yt.is_root():
+        slc1.save()
+        slc2.save()
 
 def test_function():
     import pandas as pd
