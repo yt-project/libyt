@@ -51,7 +51,7 @@ int check_procedure( const char *callFunc ){
 // Function    :  yt_getGridInfo_Dimensions
 // Description :  Get dimension of the grid with grid id = gid.
 //
-// Note        :  1. This function will be called inside user's field derived_func.
+// Note        :  1. This function will be called inside user's field derived_func or derived_func_with_name.
 //                2. Return YT_FAIL if cannot find grid id = gid.
 //                3. grid_dimensions is defined in [x][y][z] <-> [0][1][2] coordinate.
 //
@@ -97,7 +97,7 @@ int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] ){
 // Function    :  yt_getGridInfo_FieldData
 // Description :  Get field_data of field_name in the grid with grid id = gid .
 //
-// Note        :  1. This function will be called inside user's field derived_func.
+// Note        :  1. This function will be called inside user's field derived_func or derived_func_with_name.
 //                2. Return YT_FAIL if cannot find grid id = gid or if field_name is not in field_list.
 //                3. User should cast to their own datatype after receiving the pointer.
 //

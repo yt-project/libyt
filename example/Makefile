@@ -12,4 +12,4 @@ clean:
 	rm -f $(BIN)
 	rm -rf log
 	rm -rf __pycache__
-	rm -f *.png *.gif
+	rm -f *.png *.gif RecordTime_*
