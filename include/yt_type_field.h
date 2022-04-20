@@ -155,15 +155,14 @@ struct yt_field
                 break;
             }
         }
-        if ( check2 == false && strcmp(field_define_type, "derived_func") != 0 ){
-            YT_ABORT("In field [%s], field_define_type == %s, but field_dtype not set!\n",
-                       field_name, field_define_type);
+        if ( check2 == false ){
+            YT_ABORT("In field [%s], field_dtype not set!\n", field_name);
         }
 
         // Raise warning if derived_func and derived_func_with_name == NULL and field_define_type is set to "derived_func".
         if ( strcmp(field_define_type, "derived_func") == 0 && derived_func == NULL && derived_func_with_name == NULL ){
-            log_warning("In field [%s], field_define_type == %s, set derived_func or derived_func_with_name!\n",
-                          field_name, field_define_type);
+            YT_ABORT("In field [%s], field_define_type == %s, set derived_func or derived_func_with_name!\n",
+                     field_name, field_define_type);
         }
 
         // field_ghost_cell cannot be smaller than 0.
