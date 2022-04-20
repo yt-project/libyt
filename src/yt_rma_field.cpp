@@ -345,13 +345,13 @@ int yt_rma_field::clean_up()
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOSUCCEED, m_Window);
 
     // Detach m_PrepareData from m_Window.
-    for(int i = 0; i < m_PrepareData.size(); i++){
+    for(int i = 0; i < (int)m_PrepareData.size(); i++){
         MPI_Win_detach(m_Window, m_PrepareData[i]);
     }
 
     // Free local prepared data m_Prepare, m_PrepareData if field_define_type == "derived_func".
     if( strcmp(m_FieldDefineType, "derived_func") == 0 ) {
-        for(int i = 0; i < m_PrepareData.size(); i++) {
+        for(int i = 0; i < (int)m_PrepareData.size(); i++) {
             free( m_PrepareData[i] );
         }
     }

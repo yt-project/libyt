@@ -29,7 +29,7 @@ void Timer::print_header()
     original = fopen(m_FileName, "r");
     output   = fopen(m_TempFileName, "w");
 
-    for(int i = 0; i < m_Column.size(); i++){
+    for(int i = 0; i < (int)m_Column.size(); i++){
         fprintf(output, "%s,", m_Column[i].c_str());
     }
     fprintf(output, "\n");
@@ -52,7 +52,7 @@ void Timer::print_header()
     fclose(output);
 
     // Remove original file and rename temp file to replace origin.
-    char cmd[60];
+    char cmd[200];
     sprintf(cmd, "rm -f %s; mv %s %s", m_FileName, m_TempFileName, m_FileName);
     system(cmd);
 }
@@ -64,7 +64,7 @@ void Timer::record_time(char *Column, int tag)
 
     // Search column index.
     int column_index = -1;
-    for(int i = 0; i < m_Column.size(); i++){
+    for(int i = 0; i < (int)m_Column.size(); i++){
         if( strcmp(m_Column[i].c_str(), Column) == 0){
             column_index = i;
             break;
@@ -103,7 +103,7 @@ void Timer::print_all_time()
     output = fopen(m_FileName, "a");
 
     // Flush all saved time, and reset check m_CheckRecordTime.
-    for(int i = 0; i < m_Column.size(); i++){
+    for(int i = 0; i < (int)m_Column.size(); i++){
         if(m_CheckRecordTime[i]){
             fprintf(output, "%lf,", m_RecordTime[i]);
         }
