@@ -26,6 +26,7 @@ enum yt_dtype : int { YT_FLOAT=0, YT_DOUBLE, YT_INT, YT_LONG, YT_DTYPE_UNKNOWN }
 #include "yt_type_grid.h"
 #include "yt_type_field.h"
 #include "yt_type_particle.h"
+#include "yt_type_array.h"
 
 
 #endif // #ifndef __YT_TYPE_H__
