@@ -11,6 +11,7 @@
 
 // include relevant headers/prototypes
 #include <string.h>
+#include "yt_type_array.h"
 void log_debug( const char *Format, ... );
 void log_warning(const char *Format, ...);
 
@@ -41,9 +42,9 @@ void log_warning(const char *Format, ...);
 //                char    *field_display_name   : Set display name on the plottings, if not set, yt will 
 //                                                use field_name as display name.
 //
-//                (func pointer) derived_func          : pointer to function that has argument (long, double *)
+//                (func pointer) derived_func          : pointer to function that has argument (int, long*, yt_array*)
 //                                                       and no return.
-//                (func pointer) derived_func_with_name: pointer to function that has argument (long, char *, double *)
+//                (func pointer) derived_func_with_name: pointer to function that has argument (int, long*, char*, yt_array*)
 //                                                       and no return. libyt will first look for derived_func, before
 //                                                       coming to this. When libyt API call this function, it will pass
 //                                                       in field name.
@@ -67,8 +68,8 @@ struct yt_field
 	char    **field_name_alias;
 	char     *field_display_name;
 
-	void (*derived_func) (long, double *);
-    void (*derived_func_with_name) (long, char *, double *);
+	void (*derived_func) (int list_length, long *list_gid, yt_array *data_array);
+    void (*derived_func_with_name) (int list_length, long *list_gid, char *field, yt_array *data_array);
 
 
 //=======================================================================================================
