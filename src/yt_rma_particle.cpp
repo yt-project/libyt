@@ -312,10 +312,10 @@ int yt_rma_particle::clean_up()
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOSUCCEED, m_Window);
 
     // Detach m_PrepareData from m_Window and free it, if data length > 0.
-    for(int i = 0; i < m_Prepare.size(); i++){
+    for(int i = 0; i < (int)m_Prepare.size(); i++){
         if( m_Prepare[i].data_len > 0 ){
             MPI_Win_detach(m_Window, m_PrepareData[i]);
-            delete [] m_PrepareData[i];
+            free( m_PrepareData[i] );
         }
     }
 
