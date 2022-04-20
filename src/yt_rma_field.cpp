@@ -1,4 +1,5 @@
 #include "yt_rma_field.h"
+#include "yt_type_array.h"
 #include <string.h>
 
 //-------------------------------------------------------------------------------------------------------
@@ -10,7 +11,7 @@
 //                2. Copy the input fname to m_FieldName, in case it is freed.
 //                3. Find the corresponding field_define_type and swap_axes in field_list, and assign to
 //                   m_FieldDefineType and m_FieldSwapAxes.
-//                   (We assume that the lifetime of its element exist.)
+//                   (We assume that the lifetime of field_list element exist.)
 //                4. Find field index inside field_list and assign to m_FieldIndex.
 //                5. Set the std::vector capacity.
 //
@@ -74,16 +75,16 @@ yt_rma_field::~yt_rma_field()
 //-------------------------------------------------------------------------------------------------------
 // Class       :  yt_rma_field
 // Method      :  prepare_data
-// Description :  Prepare data grid = gid and field = m_FieldName, create data if not exist,
-//                then attach grid data to window and get address.
+// Description :  Prepare data grid = gid and field = m_FieldName, then attach grid data to window and
+//                get rma address.
 //
 // Notes       :  1. Prepare the grid data with id = gid, and attach grid data to window.
 //                2. Insert data pointer into m_PrepareData.
 //                3. Insert data information into m_Prepare.
 //                4. In "cell-centered" and "face-centered", we pass full data_ptr, including ghost cell.
-//                5. "derived_func" data type must be YT_DOUBLE, and data_dimensions must be the same as grid dim
-//                   up to a swap_axes. Because derived_func generates only data without ghost cell.
-//                6. We assume that all gid can be found on this rank.
+//                5. "derived_func" data_dimensions must be the same as grid dim up to a swap_axes.
+//                   Because derived_func generates only data without ghost cell.
+//                6. We assume that all input gid can be found on this rank.
 //
 // Arguments   :  long gid : Grid id to prepare.
 // Return      :  YT_SUCCESS or YT_FAIL
@@ -119,15 +120,15 @@ int yt_rma_field::prepare_data(long& gid)
                     grid_info.data_dim[1] = g_param_yt.grids_local[lid].grid_dimensions[1];
                     grid_info.data_dim[2] = g_param_yt.grids_local[lid].grid_dimensions[2];
                 }
-                grid_info.data_dtype = YT_DOUBLE;
             }
             else{
                 // "cell-centered" or "face-centered"
                 for(int d = 0; d < 3; d++){
                     grid_info.data_dim[d] = g_param_yt.grids_local[lid].field_data[m_FieldIndex].data_dimensions[d];
                 }
-                grid_info.data_dtype = g_param_yt.grids_local[lid].field_data[m_FieldIndex].data_dtype;
             }
+
+            grid_info.data_dtype = g_param_yt.grids_local[lid].field_data[m_FieldIndex].data_dtype;
 
             break;
         }
@@ -148,24 +149,34 @@ int yt_rma_field::prepare_data(long& gid)
         data_ptr = g_param_yt.grids_local[local_index].field_data[m_FieldIndex].data_ptr;
     }
     else if( strcmp(m_FieldDefineType, "derived_func") == 0 ){
+        // TODO: Hybrid OpenMP/MPI, we might want to prepare a list of grid data at once.
         // Allocate memory.
         long gridLength = grid_info.data_dim[0] * grid_info.data_dim[1] * grid_info.data_dim[2];
-        data_ptr = malloc( gridLength * sizeof(double) );
-        double *temp = (double *) data_ptr;
-        for(long i = 0; i < gridLength; i++){
-            temp[i] = 0.0;
+        if ( grid_info.data_dtype == YT_FLOAT ){
+            data_ptr = malloc( gridLength * sizeof(float) );
+            for(long i = 0; i < gridLength; i++){ ((float *) data_ptr)[i] = 0.0; }
         }
+        else if ( grid_info.data_dtype == YT_DOUBLE ){
+            data_ptr = malloc( gridLength * sizeof(double) );
+            for(long i = 0; i < gridLength; i++){ ((double *) data_ptr)[i] = 0.0; }
+        }
+
         // Generate data.
         // Derived function used order: (1) derived_func (2) derived_func_with_name
+        int  list_length = 1;
+        long list_gid[1] = {gid};
+        yt_array data_array[1];
+        data_array[0].gid = gid; data_array[0].data_length = gridLength; data_array[0].data_ptr = data_ptr;
+
         if ( g_param_yt.field_list[m_FieldIndex].derived_func != NULL ){
-            void (*derived_func) (long, double*);
+            void (*derived_func) (int, long*, yt_array*);
             derived_func = g_param_yt.field_list[m_FieldIndex].derived_func;
-            (*derived_func) (gid, (double*) data_ptr);
+            (*derived_func) (list_length, list_gid, data_array);
         }
         else if ( g_param_yt.field_list[m_FieldIndex].derived_func_with_name != NULL ){
-            void (*derived_func_with_name) (long, char*, double*);
+            void (*derived_func_with_name) (int, long*, char*, yt_array*);
             derived_func_with_name = g_param_yt.field_list[m_FieldIndex].derived_func_with_name;
-            (*derived_func_with_name) (gid, m_FieldName, (double*) data_ptr);
+            (*derived_func_with_name) (list_length, list_gid, m_FieldName, data_array);
         }
         else{
             YT_ABORT("yt_rma_field: In field [%s], field_define_type == %s, but derived_func or derived_func_with_name not set!\n",
@@ -341,7 +352,7 @@ int yt_rma_field::clean_up()
     // Free local prepared data m_Prepare, m_PrepareData if field_define_type == "derived_func".
     if( strcmp(m_FieldDefineType, "derived_func") == 0 ) {
         for(int i = 0; i < m_PrepareData.size(); i++) {
-            delete [] m_PrepareData[i];
+            free( m_PrepareData[i] );
         }
     }
 

@@ -2,7 +2,7 @@
 #include <string.h>
 #include "yt_rma_field.h"
 #include "yt_rma_particle.h"
-#include "yt_type_array"
+#include "yt_type_array.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Description :  List of libyt C extension python methods
@@ -123,17 +123,11 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     void *output;
     if ( g_param_yt.field_list[field_id].field_dtype == YT_FLOAT ){
         output = malloc( gridTotalSize * sizeof(float) );
-        float *temp = (float *) output;
-        for (long i = 0; i < gridTotalSize; i++) {
-            temp[i] = 0.0;
-        }
+        for (long i = 0; i < gridTotalSize; i++) { ((float *) output)[i] = 0.0; }
     }
     else if ( g_param_yt.field_list[field_id].field_dtype == YT_DOUBLE ){
         output = malloc( gridTotalSize * sizeof(double) );
-        double *temp = (double *) temp;
-        for (long i = 0; i < gridTotalSize; i++) {
-            temp[i] = 0.0;
-        }
+        for (long i = 0; i < gridTotalSize; i++) { ((double *) output)[i] = 0.0; }
     }
 
     // Call (1)derived_func or (2)derived_func_with_name, result will be made inside output 1D array.
@@ -395,7 +389,8 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
         yt_rma_field RMAOperation = yt_rma_field( fname, len_prepare, len_get_grid );
 
         // Prepare grid with field fname and id = gid.
-        // TODO: Hybrid OpenMP/OpenMPI, we might want to prepare a list of gid at one call.
+        // TODO: Hybrid OpenMP/OpenMPI, we might want to prepare a list of gid at one call
+        //       if it is a derived field.
         for(int i = 0; i < len_prepare; i++){
             py_prepare_grid_id = PyList_GetItem(py_prepare_grid_id_list, i);
             long gid = PyLong_AsLong( py_prepare_grid_id );
