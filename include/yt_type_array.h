@@ -41,7 +41,7 @@ struct yt_array
     //===================================================================================
     yt_array()
     {
-        gid = -1;
+        gid = LNG_UNDEFINED;
         data_length = 0;
         data_ptr = NULL;
     }
