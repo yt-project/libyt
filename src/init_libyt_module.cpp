@@ -2,6 +2,7 @@
 #include <string.h>
 #include "yt_rma_field.h"
 #include "yt_rma_particle.h"
+#include "yt_type_array"
 
 //-------------------------------------------------------------------------------------------------------
 // Description :  List of libyt C extension python methods
@@ -20,15 +21,17 @@
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  libyt_field_derived_func
-// Description :  Use the derived_func defined inside yt_field struct to derived the field according to 
-//                this function.
+// Description :  Use the derived function inside yt_field struct to generate the field, then pass back
+//                to Python.
 //
 // Note        :  1. Support only grid dimension = 3 for now.
-//                2. We assume that parallelism in yt will make each rank only has to deal with the local
-//                   grids. So we can always find one grid with id = gid inside grids_local.
-//                   (Maybe we can add feature get grids data from other rank in the future!)
-//                3. The returned numpy array data type is numpy.double.
+//                2. This function only needs to deal with the local grids. So we can always find one
+//                   grid with id = gid inside grids_local.
+//                3. The returned numpy array data type is according to field's field_dtype defined at
+//                   yt_field.
 //                4. grid_dimensions[3] is in [x][y][z] coordinate.
+//                5. Now, input from Python only contains gid and field name. In the future, when we
+//                   support hybrid OpenMP/MPI, it can accept list and a string.
 //                
 // Parameter   :  int : GID of the grid
 //                str : field name
@@ -43,17 +46,18 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     char *field_name;
     int   field_id;
 
+    // TODO: Hybrid OpenMP/MPI, accept a list of gid and a string.
     if ( !PyArg_ParseTuple(args, "ls", &gid, &field_name) ){
         PyErr_SetString(PyExc_TypeError, "Wrong input type, expect to be libyt.derived_func(int, str).");
         return NULL;
     }
 
     // Get the derived_func define in field_list according to field_name.
-    // If cannot find field_name inside field_list, raise an error.
-    // If we successfully find the field_name, but the derived_func or derived_func_with_name
-    // is not assigned (is NULL), raise an error.
-    void (*derived_func) (long, double*);
-    void (*derived_func_with_name) (long, char*, double*);
+    //  (1) If cannot find field_name inside field_list, raise an error.
+    //  (2) If we successfully find the field_name, but the derived_func or derived_func_with_name
+    //      is not assigned (is NULL), raise an error.
+    void (*derived_func) (int, long*, yt_array*);
+    void (*derived_func_with_name) (int, long*, char*, yt_array*);
     bool have_FieldName = false;
     short derived_func_option = 0;
 
@@ -109,27 +113,48 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    // Allocate 1D array with size of grid dimension, initialized with 0.
-    // derived_func, derived_func_with_name will make changes to this array.
-    // This array will be wrapped by Numpy API and will be return. 
-    // The called object will then OWN this numpy array, so that we don't have to free it.
+    // Generate data using derived_func or derived_func_with_name
+    //  (1) Allocate 1D array with size of grid dimension, initialized with 0.
+    //  (2) Call derived function.
+    //  (3) This array will be wrapped by Numpy API and will be return.
+    //      The called object will then OWN this numpy array, so that we don't have to free it.
+    // TODO: Hybrid OpenMP/MPI, need to allocate for a list of gid.
     long gridTotalSize = grid_dimensions[0] * grid_dimensions[1] * grid_dimensions[2];
-    double *output = (double *) malloc( gridTotalSize * sizeof(double) );
-    for (long i = 0; i < gridTotalSize; i++) {
-        output[i] = (double) 0;
+    void *output;
+    if ( g_param_yt.field_list[field_id].field_dtype == YT_FLOAT ){
+        output = malloc( gridTotalSize * sizeof(float) );
+        float *temp = (float *) output;
+        for (long i = 0; i < gridTotalSize; i++) {
+            temp[i] = 0.0;
+        }
+    }
+    else if ( g_param_yt.field_list[field_id].field_dtype == YT_DOUBLE ){
+        output = malloc( gridTotalSize * sizeof(double) );
+        double *temp = (double *) temp;
+        for (long i = 0; i < gridTotalSize; i++) {
+            temp[i] = 0.0;
+        }
     }
 
     // Call (1)derived_func or (2)derived_func_with_name, result will be made inside output 1D array.
+    // TODO: Hybrid OpenMP/OpenMPI, dynamically ask a list of grid data from derived function.
+    //       I assume we get one grid at a time here. Will change later...
+    int  list_length = 1;
+    long list_gid[1] = {gid};
+    yt_array data_array[1];
+    data_array[0].gid = gid; data_array[0].data_length = gridTotalSize; data_array[0].data_ptr = output;
+
     if ( derived_func_option == 1 ){
-        (*derived_func) (gid, output);
+        (*derived_func) (list_length, list_gid, data_array);
     }
     else if ( derived_func_option == 2 ){
-        (*derived_func_with_name) (gid, field_name, output);
+        (*derived_func_with_name) (list_length, list_gid, field_name, data_array);
     }
 
     // Wrapping the C allocated 1D array into 3D numpy array.
     // grid_dimensions[3] is in [x][y][z] coordinate, 
     // thus we have to check if the field has swap_axes == true or false.
+    // TODO: Hybrid OpenMP/MPI, we will need to further pack up a list of gid's field data into Python dictionary.
     int      nd = 3;
     int      typenum = NPY_DOUBLE;
     npy_intp dims[3];
@@ -319,6 +344,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
 // Note        :  1. Support only grid dimension = 3 for now.
 //                2. We return in dictionary objects.
 //                3. We assume that the fname_list passed in has the same fname order in each rank.
+//                4. This function will get all the desired fields and grids.
 //                
 // Parameter   :  list obj : fname_list   : list of field name to get.
 //                list obj : to_prepare   : list of grid ids you need to prepare.
