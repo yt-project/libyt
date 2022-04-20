@@ -395,6 +395,7 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
         yt_rma_field RMAOperation = yt_rma_field( fname, len_prepare, len_get_grid );
 
         // Prepare grid with field fname and id = gid.
+        // TODO: Hybrid OpenMP/OpenMPI, we might want to prepare a list of gid at one call.
         for(int i = 0; i < len_prepare; i++){
             py_prepare_grid_id = PyList_GetItem(py_prepare_grid_id_list, i);
             long gid = PyLong_AsLong( py_prepare_grid_id );
