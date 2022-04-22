@@ -45,6 +45,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     long  gid;
     char *field_name;
     int   field_id;
+    yt_dtype field_dtype;
 
     // TODO: Hybrid OpenMP/MPI, accept a list of gid and a string.
     if ( !PyArg_ParseTuple(args, "ls", &gid, &field_name) ){
@@ -68,6 +69,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
         if ( strcmp(g_param_yt.field_list[v].field_name, field_name) == 0 ){
             have_FieldName = true;
             field_id = v;
+            field_dtype = g_param_yt.field_list[v].field_dtype;
             // The order of derived function being used: (1) derived_func (2) derived_func_with_name
             if ( g_param_yt.field_list[v].derived_func != NULL ){
                 derived_func = g_param_yt.field_list[v].derived_func;
@@ -121,13 +123,25 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     // TODO: Hybrid OpenMP/MPI, need to allocate for a list of gid.
     long gridTotalSize = grid_dimensions[0] * grid_dimensions[1] * grid_dimensions[2];
     void *output;
-    if ( g_param_yt.field_list[field_id].field_dtype == YT_FLOAT ){
+    if ( field_dtype == YT_FLOAT ){
         output = malloc( gridTotalSize * sizeof(float) );
         for (long i = 0; i < gridTotalSize; i++) { ((float *) output)[i] = 0.0; }
     }
-    else if ( g_param_yt.field_list[field_id].field_dtype == YT_DOUBLE ){
+    else if ( field_dtype == YT_DOUBLE ){
         output = malloc( gridTotalSize * sizeof(double) );
         for (long i = 0; i < gridTotalSize; i++) { ((double *) output)[i] = 0.0; }
+    }
+    else if ( field_dtype == YT_INT ){
+        output = malloc( gridTotalSize * sizeof(int) );
+        for (long i = 0; i < gridTotalSize; i++) { ((int *) output)[i] = 0; }
+    }
+    else if ( field_dtype == YT_LONG ){
+        output = malloc( gridTotalSize * sizeof(long) );
+        for (long i = 0; i < gridTotalSize; i++) { ((long *) output)[i] = 0; }
+    }
+    else{
+        PyErr_Format(PyExc_ValueError, "Unknown field_dtype in field [%s]\n", field_name);
+        return NULL;
     }
 
     // Call (1)derived_func or (2)derived_func_with_name, result will be made inside output 1D array.
@@ -150,8 +164,14 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     // thus we have to check if the field has swap_axes == true or false.
     // TODO: Hybrid OpenMP/MPI, we will need to further pack up a list of gid's field data into Python dictionary.
     int      nd = 3;
-    int      typenum = NPY_DOUBLE;
+    int      typenum;
     npy_intp dims[3];
+
+    if ( get_npy_dtype(field_dtype, &typenum) != YT_SUCCESS ){
+        PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
+        return NULL;
+    }
+
     if ( g_param_yt.field_list[field_id].swap_axes == true ){
         dims[0] = grid_dimensions[2];
         dims[1] = grid_dimensions[1];

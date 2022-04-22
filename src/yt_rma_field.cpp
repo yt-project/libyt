@@ -160,6 +160,14 @@ int yt_rma_field::prepare_data(long& gid)
             data_ptr = malloc( gridLength * sizeof(double) );
             for(long i = 0; i < gridLength; i++){ ((double *) data_ptr)[i] = 0.0; }
         }
+        else if ( grid_info.data_dtype == YT_INT ){
+            data_ptr = malloc( gridLength * sizeof(int) );
+            for(long i = 0; i < gridLength; i++){ ((int *) data_ptr)[i] = 0; }
+        }
+        else if ( grid_info.data_dtype == YT_LONG ){
+            data_ptr = malloc( gridLength * sizeof(long) );
+            for(long i = 0; i < gridLength; i++){ ((long *) data_ptr)[i] = 0; }
+        }
 
         // Generate data.
         // Derived function used order: (1) derived_func (2) derived_func_with_name
@@ -244,6 +252,7 @@ int yt_rma_field::gather_all_prepare_data(int root)
 
     // Gather PreparedInfoList, which is m_Prepare in each rank
     // (1) Create MPI_Datatype for yt_rma_grid_info
+    // TODO: I should create this MPI_Datatype once and for all...
     MPI_Datatype yt_rma_grid_info_mpi_type;
     int lengths[5] = {1, 1, 1, 1, 3};
     const MPI_Aint displacements[5] = {0,
