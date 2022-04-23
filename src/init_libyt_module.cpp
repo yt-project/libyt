@@ -101,9 +101,13 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     for (int lid = 0; lid < g_param_yt.num_grids_local; lid++){
         if ( g_param_yt.grids_local[lid].id == gid ){
             have_Grid = true;
-            grid_dimensions[0] = g_param_yt.grids_local[lid].grid_dimensions[0];
-            grid_dimensions[1] = g_param_yt.grids_local[lid].grid_dimensions[1];
-            grid_dimensions[2] = g_param_yt.grids_local[lid].grid_dimensions[2];
+            for (int d=0; d<3; d++){
+                if ( g_param_yt.grids_local[lid].grid_dimensions[d] < 0 ) {
+                    PyErr_Format(PyExc_ValueError, "GID [ %ld ], grid_dimensions[%d] smaller than zero.\n", gid, d);
+                    return NULL;
+                }
+                grid_dimensions[d] = g_param_yt.grids_local[lid].grid_dimensions[d];
+            }
             break;
         }
     }
