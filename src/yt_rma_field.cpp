@@ -120,15 +120,15 @@ int yt_rma_field::prepare_data(long& gid)
                     grid_info.data_dim[1] = g_param_yt.grids_local[lid].grid_dimensions[1];
                     grid_info.data_dim[2] = g_param_yt.grids_local[lid].grid_dimensions[2];
                 }
+                grid_info.data_dtype = g_param_yt.field_list[m_FieldIndex].field_dtype;
             }
             else{
                 // "cell-centered" or "face-centered"
                 for(int d = 0; d < 3; d++){
                     grid_info.data_dim[d] = g_param_yt.grids_local[lid].field_data[m_FieldIndex].data_dimensions[d];
                 }
+                grid_info.data_dtype = g_param_yt.grids_local[lid].field_data[m_FieldIndex].data_dtype;
             }
-
-            grid_info.data_dtype = g_param_yt.grids_local[lid].field_data[m_FieldIndex].data_dtype;
 
             break;
         }
@@ -167,6 +167,9 @@ int yt_rma_field::prepare_data(long& gid)
         else if ( grid_info.data_dtype == YT_LONG ){
             data_ptr = malloc( gridLength * sizeof(long) );
             for(long i = 0; i < gridLength; i++){ ((long *) data_ptr)[i] = 0; }
+        }
+        else{
+            YT_ABORT("yt_rma_field: Unknown field_dtype.\n");
         }
 
         // Generate data.
