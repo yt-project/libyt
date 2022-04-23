@@ -11,7 +11,6 @@
 //                2. Copy the input fname to m_FieldName, in case it is freed.
 //                3. Find the corresponding field_define_type and swap_axes in field_list, and assign to
 //                   m_FieldDefineType and m_FieldSwapAxes.
-//                   (We assume that the lifetime of field_list element exist.)
 //                4. Find field index inside field_list and assign to m_FieldIndex.
 //                5. Set the std::vector capacity.
 //
@@ -85,6 +84,7 @@ yt_rma_field::~yt_rma_field()
 //                5. "derived_func" data_dimensions must be the same as grid dim up to a swap_axes.
 //                   Because derived_func generates only data without ghost cell.
 //                6. We assume that all input gid can be found on this rank.
+//                7. Check that we indeed get data pointer and its dimensions and data type.
 //
 // Arguments   :  long gid : Grid id to prepare.
 // Return      :  YT_SUCCESS or YT_FAIL
@@ -140,8 +140,14 @@ int yt_rma_field::prepare_data(long& gid)
         YT_ABORT("yt_rma_field: Cannot find grid id [ %ld ] on MPI rank [ %d ].\n", gid, myrank);
     }
 
+    for(int d=0; d<3; d++){
+        if( grid_info.data_dim[d] < 0 ){
+            YT_ABORT("yt_rma_field: GID [%ld], data dimensions < 0.\n", gid);
+        }
+    }
+
     // Get data pointer
-    void *data_ptr;
+    void *data_ptr = NULL;
     if( strcmp(m_FieldDefineType, "cell-centered") == 0 ){
         data_ptr = g_param_yt.grids_local[local_index].field_data[m_FieldIndex].data_ptr;
     }
@@ -194,10 +200,19 @@ int yt_rma_field::prepare_data(long& gid)
                       m_FieldName, m_FieldDefineType);
         }
     }
+    else{
+        YT_ABORT("yt_rma_field: In field [%s], unknown field_define_type [%s].\n", m_FieldName, m_FieldDefineType);
+    }
 
     // Attach buffer to window.
     int size;
-    get_dtype_size( grid_info.data_dtype, &size );
+    if( get_dtype_size( grid_info.data_dtype, &size ) != YT_SUCCESS ){
+        YT_ABORT("yt_rma_field: Unknown data type.\n");
+    }
+    if( data_ptr == NULL ){
+        YT_ABORT("yt_rma_field: Unable to get GID [%ld] field [%s] data.\n", gid, m_FieldName);
+    }
+
     if( MPI_Win_attach(m_Window, data_ptr, grid_info.data_dim[0] * grid_info.data_dim[1] * grid_info.data_dim[2] * size) != MPI_SUCCESS ){
         YT_ABORT("yt_rma_field: Attach buffer to window failed.\n");
     }
