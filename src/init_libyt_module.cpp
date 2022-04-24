@@ -203,7 +203,6 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
 //                2. We assume that parallelism in yt will make each rank only has to deal with the local
 //                   grids. So we can always find one grid with id = gid inside grids_local. We will only
 //                   get particle that belongs to this id.
-//                   (Maybe we can add feature get grids data from other rank in the future!)
 //                3. The returned numpy array data type well be set by attr_dtype.
 //                4. We will always return 1D numpy array, with length equal particle count of the species 
 //                   in that grid.
@@ -232,11 +231,11 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     // Get attr_dtype of the attr_name.
     // If cannot find ptype or attr_name, raise an error.
     // If find them successfully, but get_attr not set, which is == NULL, raise an error.
-    void    (*get_attr) (long, char*, void*);
+    void    (*get_attr) (int, long*, char*, yt_array*);
     yt_dtype attr_dtype;
+    int      species_index;
     bool     have_ptype = false;
     bool     have_attr_name = false;
-    int      species_index;
 
     for ( int s = 0; s < g_param_yt.num_species; s++ ){
         if ( strcmp(g_param_yt.particle_list[s].species_name, ptype) == 0 ){
@@ -257,8 +256,6 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
             for ( int p = 0; p < g_param_yt.particle_list[s].num_attr; p++ ){
                 if ( strcmp(g_param_yt.particle_list[s].attr_list[p].attr_name, attr_name) == 0 ){
                     have_attr_name = true;
-                    // Since in yt_attribute validate(), we have already make sure that attr_dtype is set.
-                    // So we don't need additional check
                     attr_dtype = g_param_yt.particle_list[s].attr_list[p].attr_dtype;
                     break;
                 }
@@ -279,7 +276,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     }
 
 
-    // Get lenght of the returned 1D numpy array, which is equal to particle_count_list in the grid.
+    // Get length of the returned 1D numpy array, which is equal to particle_count_list in the grid.
     long  array_length;
     bool  have_Grid = false;
 
@@ -289,6 +286,11 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
             array_length = g_param_yt.grids_local[lid].particle_count_list[species_index];
             
             if ( array_length == 0 ){
+                Py_INCREF(Py_None);
+                return Py_None;
+            }
+            else if ( array_length < 0 ){
+                log_error("In GID [ %ld ] species [ %s ], particle count smaller than 0, return None to Python.\n", gid, ptype);
                 Py_INCREF(Py_None);
                 return Py_None;
             }
@@ -322,31 +324,31 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     // Initialize output array
     if ( attr_dtype == YT_INT ){
         output = malloc( array_length * sizeof(int) );
-        for ( long i = 0; i < array_length; i++ ){ 
-            ((int *)output)[i] = 0;
-        }
+        for ( long i = 0; i < array_length; i++ ){ ((int *)output)[i] = 0; }
     }
     else if ( attr_dtype == YT_FLOAT ){
         output = malloc( array_length * sizeof(float) );
-        for ( long i = 0; i < array_length; i++ ){ 
-            ((float *)output)[i] = 0;
-        }
+        for ( long i = 0; i < array_length; i++ ){ ((float *)output)[i] = 0.0; }
     }
     else if ( attr_dtype == YT_DOUBLE ){
         output = malloc( array_length * sizeof(double) );
-        for ( long i = 0; i < array_length; i++ ){ 
-            ((double *)output)[i] = 0;
-        }
+        for ( long i = 0; i < array_length; i++ ){ ((double *)output)[i] = 0.0; }
     }
     else if ( attr_dtype == YT_LONG ){
         output = malloc( array_length * sizeof(long) );
-        for ( long i = 0; i < array_length; i++ ){
-            ((long *)output)[i] = 0;
-        }
+        for ( long i = 0; i < array_length; i++ ){ ((long *)output)[i] = 0; }
+    }
+    else{
+        PyErr_Format(PyExc_ValueError, "In species [ %s ] attribute [ %s ], unknown yt_dtype.\n", ptype, attr_name);
+        return NULL;
     }
     
     // Call get_attr function pointer
-    get_attr(gid, attr_name, output);
+    int  list_length = 1;
+    long list_gid[1] = { gid };
+    yt_array data_array[1];
+    data_array[0].gid = gid; data_array[0].data_length = array_length; data_array[0].data_ptr = output;
+    get_attr(list_length, list_gid, attr_name, data_array);
 
     // Wrap the output and return back to python
     PyObject *outputNumpyArray = PyArray_SimpleNewFromData(nd, dims, typenum, output);
@@ -500,7 +502,6 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
 //                2. We assume that the list of to-get attribute has the same ptype and attr order in each
 //                   rank.
 //                3. If there are no particles in one grid, then we write Py_None to it.
-//                4.
 //
 // Parameter   :  dict obj : ptf          : {<ptype>: [<attr1>, <attr2>, ...]} particle type and attributes
 //                                          to read.
