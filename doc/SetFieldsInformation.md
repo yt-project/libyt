@@ -31,7 +31,7 @@ int yt_get_fieldsPtr( yt_field **field_list )
   - Valid Value: 
     - `YT_FLOAT`: C type float.
     - `YT_DOUBLE`: C type double.
-    - `YT_INT`: C type int. We do not guaranty that an `int` array will work or not, because `yt` requires a 64-bit float array ([links](https://github.com/yt-project/yt/blob/03f7a8bd0d75434034f3762c12daacb5efeb7527/yt/frontends/_skeleton/io.py#L31)).
+    - `YT_INT`: C type int. We do not guaranty this will work.
     - `YT_LONG`: C type long. We do not guaranty this will work.
 - `swap_axes` (Default=`true`)
   - Usage: Is the 3D data array define as [z][y][x], which is x address alters first.
@@ -39,7 +39,9 @@ int yt_get_fieldsPtr( yt_field **field_list )
     - `true`: Data is in x-address alters first orientation, which is [z][y][x].
     - `false`: Data is in z-address alters first orientation, which is [x][y][z].
 - `derived_func` (Default=`NULL`)
-  - Usage: Function pointer to get derived field data. This is only used in derived field, which is when `field_define_type` set to `derived_func`. See [Derived Field](./DerivedField.md) for more information.
+  - Usage: Function pointer to generate derived field data when input grid id. This is only used in derived field, which is when `field_define_type` set to `derived_func`. See [Derived Field](./DerivedField.md) for more information.
+- `derived_func_with_name` (Default=`NULL`)
+  - Usage: Function pointer to generate derived field data when input grid id and field name. This is only used in derived field, which is when `field_define_type` set to `derived_func`. See [Derived Field](./DerivedField.md) for more information.
 - `field_unit` (Default=`""`)
   - Usage: Unit of the field, using `yt` unit system.
 - `num_field_name_alias` (Default=`0`)
@@ -58,7 +60,8 @@ int yt_get_fieldsPtr( yt_field **field_list )
 yt_field *field_list;  
 yt_get_fieldsPtr( &field_list );
 
-/* We only have one field in this example. */ 
+/* We have three field in this example. */ 
+// (1) cell-centered type field "Dens" 
 field_list[0].field_name = "Dens";  
 field_list[0].field_define_type = "cell-centered";  
 field_list[0].field_dtype = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;  
