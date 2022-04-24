@@ -62,8 +62,8 @@ void level_derived_func(int list_len, long *gid_list, yt_array *data_array);    
 void level_derived_func_with_name(int list_len, long *gid_list, char *field, yt_array *data_array);
 
 
-void par_io_get_attr(long gid, char *attribute, void *data);   // Must have for yt to get particle's attribute.
-                                                               // One particle type need to setup one get_attr.
+void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array);   // Must have for yt to get particle's attribute.
+                                                                                             // One particle type need to setup one get_attr.
 void getPositionByGID( long gid, real (*Pos)[3] );  // These function is for getting particle position and level info.
 void getLevelByGID( long gid, int *Level );         // Used by par_io_get_attr.
 yt_grid *gridsPtr;
@@ -670,41 +670,46 @@ void level_derived_func_with_name(int list_len, long *gid_list, char *field, yt_
 // Function    :  par_io_get_attr
 // Description :  For particle type "io" to return their attribute.
 // 
-// Notes       :  1. Prototype must be void func(long, char*, void*)
+// Notes       :  1. Prototype must be void func(int, long*, char*, yt_array*).
 //                2. This function will be concatenated into python C extension, so that yt can reach
-//                   particle attributes when it is needed.
+//                   particle attributes when it needs them.
 //                3. In this example, we will create particle with position at the center of the grid it
 //                   belongs to with Level equals to the level of the grid.
-//                4. Write results to void *data in series.
+//                4. Write results to yt_array *data_array in series.
 // 
-// Parameter   : long  gid      : particle in grid gid to be return
-//               char *attribute: get the attribute of the particle
-//               void *data     : write the requested particle data to this array
+// Parameter   : int   list_len      : number of gid in the list gid_list.
+//               long *gid_list      : a list of gid to prepare.
+//               char *attribute     : get the attribute of the particle inside gid.
+//               yt_array *data_array: write the requested particle data to this array correspondingly.
 //-------------------------------------------------------------------------------------------------------
-void par_io_get_attr(long gid, char *attribute, void *data){
-   // Since we set the particle data to be level, which means length = 1.
-   long len_array = 1;
-   
-   real Pos[3];
-   getPositionByGID( gid, &Pos );
+void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array){
+    // loop over gid_list, and fill in particle attribute data inside data_array.
+    for(int lid=0; lid<list_len; lid++){
+        // the particle position and level can be generated via getPositionByGID and getLevelByGID in this example.
+        int Level;
+        real Pos[3];
+        getPositionByGID( gid_list[lid], &Pos );
+        getLevelByGID( gid_list[lid], &Level );
 
-   int Level;
-   getLevelByGID( gid, &Level );
+        // fill in particle data.
+        // we can get the length of the array to fill in like this, though this example only has one particle in each grids.
+        for(int i=0; i<data_array[lid].data_length; i++){
+            // fill in particle data according to the attribute.
+            if ( strcmp(attribute, "ParPosX") == 0 ){
+                ((real *)data_array[lid].data_ptr)[0] = Pos[0];
+            }
+            else if ( strcmp(attribute, "ParPosY") == 0 ){
+                ((real *)data_array[lid].data_ptr)[0] = Pos[1];
+            }
+            else if ( strcmp(attribute, "ParPosZ") == 0 ){
+                ((real *)data_array[lid].data_ptr)[0] = Pos[2];
+            }
+            else if ( strcmp(attribute, "Level") == 0 ){
+                ((int  *)data_array[lid].data_ptr)[0] = Level;
+            }
+        }
+    }
 
-   // Since this example is very simple, we only have one particle in each grids.
-   // So we ignore the for loop.
-   if ( strcmp(attribute, "ParPosX") == 0 ){
-      ((real *)data)[0] = Pos[0];
-   }
-   else if ( strcmp(attribute, "ParPosY") == 0 ){
-      ((real *)data)[0] = Pos[1];
-   }
-   else if ( strcmp(attribute, "ParPosZ") == 0 ){
-      ((real *)data)[0] = Pos[2];
-   }
-   else if ( strcmp(attribute, "Level") == 0 ){
-      ((int  *)data)[0] = Level;
-   }
 }
 
 //-------------------------------------------------------------------------------------------------------
