@@ -42,13 +42,26 @@ int yt_get_particlesPtr( yt_particle **particle_list );
 > If you are adding a totally new particle attribute, please add them. `libyt` will add these new attributes information alongside with your original one.
 
 ## Get Attribute Function
-For each particle type, there should be one get attribute function `get_attr`. This function is able to write particle attribute to a 1-dimensional array, just through knowing the grid id and attribute to get.
+For each particle type, there should be one get attribute function `get_attr`. This function is able to write particle attribute to an array, just through knowing the grid id and attribute name.
 
-`get_attr` must have a prototype like this:
-```cpp
-void GetAttr(long gid, char *attr_name, void *output);
-```
-The first argument is grid id, the second argument is attribute. This function is capable of writing attribute data in grid id into the third argument, a 1-dimensional array.
+Get particle attribute function must have a prototype like this:
+- `get_attr(int, long*, char*, yt_array*)`: generate particle attribute in that grid when input grid id and particle attribute name.
+
+  ```cpp
+  void GetAttr(int list_len, long *list_gid, char *attr_name, yt_array *data_array);
+  ```
+  - `int list_len`: number of gid in `list_gid`.
+  - `long *list_gid`: prepare particle data inside the list.
+  - `char *attr_name`: target attribute to get.
+  - `yt_array *data_array`: write generated particle data to the pointer in this array correspondingly. See below for how to fill in data.
+
+Fill in particle attribute inside `yt_array` array according to grid id.
+- `yt_array`
+  - Usage: a struct used in derived function and get particle attribute function.
+  - Data Member:
+    - `long gid`: grid id.
+    - `long data_length`: length of `data_ptr`.
+    - `void *data_ptr`: data pointer where you should write in particle data of this grid.
 
 > :warning: You should always write your particle data in the same order, since we get attributes separately.
 
@@ -90,34 +103,41 @@ int main(){
     particle_list[0].get_attr = par_io_get_attr;
 }
 
+/* Get attribute function. */
+void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array){
+    // loop over gid_list, and fill in particle attribute data inside data_array.
+    for(int lid=0; lid<list_len; lid++){
+        // the particle position and level can be generated via getPositionByGID and getLevelByGID in this example.
+        int Level;
+        real Pos[3];
+        getPositionByGID( gid_list[lid], &Pos );
+        getLevelByGID( gid_list[lid], &Level );
+
+        // fill in particle data.
+        // we can get the length of the array to fill in like this, though this example only has one particle in each grids.
+        for(int i=0; i<data_array[lid].data_length; i++){
+            // fill in particle data according to the attribute.
+            if ( strcmp(attribute, "ParPosX") == 0 ){
+                ((real *)data_array[lid].data_ptr)[0] = Pos[0];
+            }
+            else if ( strcmp(attribute, "ParPosY") == 0 ){
+                ((real *)data_array[lid].data_ptr)[0] = Pos[1];
+            }
+            else if ( strcmp(attribute, "ParPosZ") == 0 ){
+                ((real *)data_array[lid].data_ptr)[0] = Pos[2];
+            }
+            else if ( strcmp(attribute, "Level") == 0 ){
+                ((int  *)data_array[lid].data_ptr)[0] = Level;
+            }
+        }
+    }
+}
+
 void getPositionByGID( long gid, real (*Pos)[3] ){
-    // Get the center position of the grid id = gid.
+    /* Get the center position of the grid id = gid. */
 }
 
 void getLevelByGID( long gid, int *Level ){
-    // Get the level of the grid id = gid.
-}
-
-/* Get attribute function. */
-void par_io_get_attr(long gid, char *attribute, void *data){
-    long len_array = 1;
-    real Pos[3];
-    getPositionByGID( gid, &Pos );
-
-    int Level;
-    getLevelByGID( gid, &Level );
-
-    if ( strcmp(attribute, "ParPosX") == 0 ){
-        ((real *)data)[0] = Pos[0];
-    }
-    else if ( strcmp(attribute, "ParPosY") == 0 ){
-        ((real *)data)[0] = Pos[1];
-    }
-    else if ( strcmp(attribute, "ParPosZ") == 0 ){
-        ((real *)data)[0] = Pos[2];
-    }
-    else if ( strcmp(attribute, "Level") == 0 ){
-        ((int  *)data)[0] = Level;
-    }
+    /* Get the level of the grid id = gid. */
 }
 ```

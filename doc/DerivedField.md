@@ -9,6 +9,7 @@ These functions will only be called when `yt` is doing analysis, which is when  
 
 Derived functions have prototype like this respectively:
 - `derived_func(int, long*, yt_array*)`: generate field data of that grid when input grid id.
+
   ```c++
   void DerivedFunc(int list_len, long *list_gid, yt_array *data_array);
   ```
@@ -16,6 +17,7 @@ Derived functions have prototype like this respectively:
   - `long *list_gid`: a list of grid id data to prepare.
   - `yt_array *data_array`: write generated data to the pointer in this array correspondingly. See below for how to fill in data.
 - `derived_func_with_name(int, long*, char*, yt_array*)`: generate field data of that grid when input grid id and field name.
+
   ```c++
   void DerivedFuncWithName(int list_len, long *list_gid, char *field, yt_array *data_array);
   ```
@@ -24,10 +26,10 @@ Derived functions have prototype like this respectively:
   - `char *field`: target field name.
   - `yt_array *data_array`: write generated data to the pointer in this array correspondingly. See below for how to fill in data.
 
-Derived functions `derived_func` and `derived_function_with_name` should be able to generate required data and write data inside `yt_array` array without ghost cell. Make sure your function writes the data in x-address alters first orientation (which is [z][y][x]), if `swap_axes` is set to `true`. Write the data in z-address alters first orientation (which is [x][y][z]), if `swap_axes` is set to `false`.
+Derived functions `derived_func` and `derived_function_with_name` should be able to generate required data and write data to `yt_array` array data member `data_ptr` without ghost cell. Make sure your function writes the data in x-address alters first orientation (which is [z][y][x]), if `swap_axes` is set to `true`. Write the data in z-address alters first orientation (which is [x][y][z]), if `swap_axes` is set to `false`.
 
 - `yt_array`
-  - Usage: a struct used in derived function.
+  - Usage: a struct used in derived function and get particle attribute function.
   - Data Member:
     - `long gid`: grid id.
     - `long data_length`: length of `data_ptr`.
@@ -109,4 +111,13 @@ void level_derived_func(int list_len, long *gid_list, yt_array *data_array){
 void level_derived_func_with_name(int list_len, long *gid_list, char *field, yt_array *data_array){
     /* Same as above.*/
 }
+
+void getPositionByGID( long gid, real (*Pos)[3] ){
+    /* Get the center position of the grid id = gid. */
+}
+
+void getLevelByGID( long gid, int *Level ){
+    /* Get the level of the grid id = gid. */
+}
+
 ```
