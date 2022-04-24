@@ -1,4 +1,5 @@
 #include "yt_rma_particle.h"
+#include "yt_type_array.h"
 #include <string.h>
 
 //-------------------------------------------------------------------------------------------------------
@@ -121,7 +122,10 @@ int yt_rma_particle::prepare_data(long& gid)
         if( g_param_yt.grids_local[lid].id == gid ){
             par_info.rank = g_param_yt.grids_local[lid].proc_num;
             par_info.data_len = g_param_yt.grids_local[lid].particle_count_list[m_ParticleIndex];
-
+            if ( par_info.data_len < 0 ){
+                log_error("yt_rma_particle: In GID [ %ld ] species name [ %s ], particle count smaller than zero.\n",
+                          gid, m_ParticleType);
+            }
             get_local_gid = true;
             break;
         }
@@ -133,19 +137,27 @@ int yt_rma_particle::prepare_data(long& gid)
     }
 
     // Generate particle data
-    void (*get_attr) (long, char*, void*);
+    void (*get_attr) (int, long*, char*, yt_array*);
     get_attr = g_param_yt.particle_list[m_ParticleIndex].get_attr;
     if( get_attr == NULL ){
-        YT_ABORT("yt_rma_particle: In particle [%s], get_attr not set!\n", m_ParticleType);
+        YT_ABORT("yt_rma_particle: In species [%s], get_attr not set!\n", m_ParticleType);
     }
 
     int dtype_size;
-    get_dtype_size(m_AttributeDataType, &dtype_size);
+    if ( get_dtype_size(m_AttributeDataType, &dtype_size) != YT_SUCCESS ){
+        YT_ABORT("yt_rma_particle: In species [%s] attribute [%s], unknown yt_dtype.\n", m_ParticleType, m_AttributeName);
+    }
+
     void *data_ptr;
     if( par_info.data_len > 0 ){
         // Generate buffer.
         data_ptr = malloc( par_info.data_len * dtype_size );
-        (*get_attr) (gid, m_AttributeName, data_ptr);
+        int list_len = 1;
+        long list_gid[1] = { gid };
+        yt_array data_array[1];
+        data_array[0].gid = gid; data_array[0].data_length = par_info.data_len; data_array[0].data_ptr = data_ptr;
+
+        (*get_attr) (list_len, list_gid, m_AttributeName, data_array);
 
         // Attach buffer to window.
         if( MPI_Win_attach(m_Window, data_ptr, par_info.data_len * dtype_size ) != MPI_SUCCESS ){
@@ -212,6 +224,7 @@ int yt_rma_particle::gather_all_prepare_data(int root)
 
     // Gather PreparedInfoList, which is m_Prepare in each rank
     // (1) Create MPI_Datatype for yt_rma_particle_info
+    // TODO: I should create this MPI_Datatype once and for all...
     MPI_Datatype yt_rma_particle_info_mpi_type;
     int lengths[4] = {1, 1, 1, 1};
     const MPI_Aint displacements[4] = {0,
