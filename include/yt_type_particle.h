@@ -10,6 +10,7 @@
 ********************************************************************************/
 
 #include <string.h>
+#include "yt_type_array.h"
 void log_debug( const char *Format, ... );
 void log_warning(const char *Format, ...);
 
@@ -166,7 +167,7 @@ struct yt_attribute
 //                char         *coor_y        : Attribute name of coordinate y.
 //                char         *coor_z        : Attribute name of coordinate z.
 //                
-//                (func pointer) get_attr     : pointer to function with arguments (long, char*, void*) 
+//                (func pointer) get_attr     : pointer to function with arguments (int, long*, char*, yt_array*)
 //                                              that gets particle attribute.
 //
 // Method      :  yt_particle  : Constructor
@@ -186,7 +187,7 @@ struct yt_particle
 	char         *coor_y;
 	char         *coor_z;
 
-	void        (*get_attr) (long, char*, void*);
+	void        (*get_attr) (int, long*, char*, yt_array*);
 
 
 //=======================================================================================================
@@ -287,7 +288,7 @@ struct yt_particle
 
    		// if didn't input get_attr, yt cannot function properly for this particle.
    		if ( get_attr == NULL ){
-   			log_warning("In particle species [ %s ], function that gets particle attribute get_attr not set!\n", species_name);
+   			YT_ABORT("In particle species [ %s ], function that gets particle attribute get_attr not set!\n", species_name);
    		}
 
       	return YT_SUCCESS;

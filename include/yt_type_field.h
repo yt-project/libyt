@@ -11,6 +11,7 @@
 
 // include relevant headers/prototypes
 #include <string.h>
+#include "yt_type_array.h"
 void log_debug( const char *Format, ... );
 void log_warning(const char *Format, ...);
 
@@ -41,9 +42,9 @@ void log_warning(const char *Format, ...);
 //                char    *field_display_name   : Set display name on the plottings, if not set, yt will 
 //                                                use field_name as display name.
 //
-//                (func pointer) derived_func          : pointer to function that has argument (long, double *)
+//                (func pointer) derived_func          : pointer to function that has argument (int, long*, yt_array*)
 //                                                       and no return.
-//                (func pointer) derived_func_with_name: pointer to function that has argument (long, char *, double *)
+//                (func pointer) derived_func_with_name: pointer to function that has argument (int, long*, char*, yt_array*)
 //                                                       and no return. libyt will first look for derived_func, before
 //                                                       coming to this. When libyt API call this function, it will pass
 //                                                       in field name.
@@ -67,8 +68,8 @@ struct yt_field
 	char    **field_name_alias;
 	char     *field_display_name;
 
-	void (*derived_func) (long, double *);
-    void (*derived_func_with_name) (long, char *, double *);
+	void (*derived_func) (int list_length, long *list_gid, yt_array *data_array);
+    void (*derived_func_with_name) (int list_length, long *list_gid, char *field, yt_array *data_array);
 
 
 //=======================================================================================================
@@ -155,15 +156,14 @@ struct yt_field
                 break;
             }
         }
-        if ( check2 == false && strcmp(field_define_type, "derived_func") != 0 ){
-            YT_ABORT("In field [%s], field_define_type == %s, but field_dtype not set!\n",
-                       field_name, field_define_type);
+        if ( check2 == false ){
+            YT_ABORT("In field [%s], field_dtype not set!\n", field_name);
         }
 
         // Raise warning if derived_func and derived_func_with_name == NULL and field_define_type is set to "derived_func".
         if ( strcmp(field_define_type, "derived_func") == 0 && derived_func == NULL && derived_func_with_name == NULL ){
-            log_warning("In field [%s], field_define_type == %s, set derived_func or derived_func_with_name!\n",
-                          field_name, field_define_type);
+            YT_ABORT("In field [%s], field_define_type == %s, set derived_func or derived_func_with_name!\n",
+                     field_name, field_define_type);
         }
 
         // field_ghost_cell cannot be smaller than 0.

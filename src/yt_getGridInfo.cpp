@@ -52,7 +52,7 @@ int check_procedure( const char *callFunc ){
 // Description :  Get dimension of the grid with grid id = gid.
 //
 // Note        :  1. This function will be called inside user's field derived_func or derived_func_with_name.
-//                2. Return YT_FAIL if cannot find grid id = gid.
+//                2. Return YT_FAIL if cannot find grid id = gid or grid dimension < 0.
 //                3. grid_dimensions is defined in [x][y][z] <-> [0][1][2] coordinate.
 //
 // Parameter   :  const long  gid               : Target grid id
@@ -75,6 +75,11 @@ int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] ){
 		if ( g_param_yt.grids_local[lid].id == gid ){
 			have_Grid = true;
 			for ( int d = 0; d < 3; d++ ){
+                if (g_param_yt.grids_local[lid].grid_dimensions[d] < 0){
+                    log_warning("In %s, GID [ %ld ] grid_dimensions[%d] = %d < 0.\n",
+                                __FUNCTION__, gid, d, g_param_yt.grids_local[lid].grid_dimensions[d]);
+                    return YT_FAIL;
+                }
 				(*dimensions)[d] = g_param_yt.grids_local[lid].grid_dimensions[d];
 			}
 			break;
@@ -126,6 +131,11 @@ int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *f
 			for ( int v = 0; v < g_param_yt.num_fields; v++ ){
 				if ( strcmp(g_param_yt.field_list[v].field_name, field_name) == 0 ){
 					have_Field = true;
+                    if ( g_param_yt.grids_local[lid].field_data[v].data_ptr == NULL ){
+                        log_warning("In %s, GID [ %ld ] field [ %s ] data_ptr not set.\n",
+                                    __FUNCTION__, gid, field_name);
+                        return YT_FAIL;
+                    }
 
 					(*field_data).data_ptr = g_param_yt.grids_local[lid].field_data[v].data_ptr;
 					for ( int d = 0; d < 3; d++ ){

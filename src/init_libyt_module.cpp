@@ -2,6 +2,7 @@
 #include <string.h>
 #include "yt_rma_field.h"
 #include "yt_rma_particle.h"
+#include "yt_type_array.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Description :  List of libyt C extension python methods
@@ -20,15 +21,17 @@
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  libyt_field_derived_func
-// Description :  Use the derived_func defined inside yt_field struct to derived the field according to 
-//                this function.
+// Description :  Use the derived function inside yt_field struct to generate the field, then pass back
+//                to Python.
 //
 // Note        :  1. Support only grid dimension = 3 for now.
-//                2. We assume that parallelism in yt will make each rank only has to deal with the local
-//                   grids. So we can always find one grid with id = gid inside grids_local.
-//                   (Maybe we can add feature get grids data from other rank in the future!)
-//                3. The returned numpy array data type is numpy.double.
+//                2. This function only needs to deal with the local grids. So we can always find one
+//                   grid with id = gid inside grids_local.
+//                3. The returned numpy array data type is according to field's field_dtype defined at
+//                   yt_field.
 //                4. grid_dimensions[3] is in [x][y][z] coordinate.
+//                5. Now, input from Python only contains gid and field name. In the future, when we
+//                   support hybrid OpenMP/MPI, it can accept list and a string.
 //                
 // Parameter   :  int : GID of the grid
 //                str : field name
@@ -42,18 +45,20 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     long  gid;
     char *field_name;
     int   field_id;
+    yt_dtype field_dtype;
 
+    // TODO: Hybrid OpenMP/MPI, accept a list of gid and a string.
     if ( !PyArg_ParseTuple(args, "ls", &gid, &field_name) ){
         PyErr_SetString(PyExc_TypeError, "Wrong input type, expect to be libyt.derived_func(int, str).");
         return NULL;
     }
 
     // Get the derived_func define in field_list according to field_name.
-    // If cannot find field_name inside field_list, raise an error.
-    // If we successfully find the field_name, but the derived_func or derived_func_with_name
-    // is not assigned (is NULL), raise an error.
-    void (*derived_func) (long, double*);
-    void (*derived_func_with_name) (long, char*, double*);
+    //  (1) If cannot find field_name inside field_list, raise an error.
+    //  (2) If we successfully find the field_name, but the derived_func or derived_func_with_name
+    //      is not assigned (is NULL), raise an error.
+    void (*derived_func) (int, long*, yt_array*);
+    void (*derived_func_with_name) (int, long*, char*, yt_array*);
     bool have_FieldName = false;
     short derived_func_option = 0;
 
@@ -64,6 +69,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
         if ( strcmp(g_param_yt.field_list[v].field_name, field_name) == 0 ){
             have_FieldName = true;
             field_id = v;
+            field_dtype = g_param_yt.field_list[v].field_dtype;
             // The order of derived function being used: (1) derived_func (2) derived_func_with_name
             if ( g_param_yt.field_list[v].derived_func != NULL ){
                 derived_func = g_param_yt.field_list[v].derived_func;
@@ -95,9 +101,13 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     for (int lid = 0; lid < g_param_yt.num_grids_local; lid++){
         if ( g_param_yt.grids_local[lid].id == gid ){
             have_Grid = true;
-            grid_dimensions[0] = g_param_yt.grids_local[lid].grid_dimensions[0];
-            grid_dimensions[1] = g_param_yt.grids_local[lid].grid_dimensions[1];
-            grid_dimensions[2] = g_param_yt.grids_local[lid].grid_dimensions[2];
+            for (int d=0; d<3; d++){
+                if ( g_param_yt.grids_local[lid].grid_dimensions[d] < 0 ) {
+                    PyErr_Format(PyExc_ValueError, "GID [ %ld ], grid_dimensions[%d] smaller than zero.\n", gid, d);
+                    return NULL;
+                }
+                grid_dimensions[d] = g_param_yt.grids_local[lid].grid_dimensions[d];
+            }
             break;
         }
     }
@@ -109,30 +119,63 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    // Allocate 1D array with size of grid dimension, initialized with 0.
-    // derived_func, derived_func_with_name will make changes to this array.
-    // This array will be wrapped by Numpy API and will be return. 
-    // The called object will then OWN this numpy array, so that we don't have to free it.
+    // Generate data using derived_func or derived_func_with_name
+    //  (1) Allocate 1D array with size of grid dimension, initialized with 0.
+    //  (2) Call derived function.
+    //  (3) This array will be wrapped by Numpy API and will be return.
+    //      The called object will then OWN this numpy array, so that we don't have to free it.
+    // TODO: Hybrid OpenMP/MPI, need to allocate for a list of gid.
     long gridTotalSize = grid_dimensions[0] * grid_dimensions[1] * grid_dimensions[2];
-    double *output = (double *) malloc( gridTotalSize * sizeof(double) );
-    for (long i = 0; i < gridTotalSize; i++) {
-        output[i] = (double) 0;
+    void *output;
+    if ( field_dtype == YT_FLOAT ){
+        output = malloc( gridTotalSize * sizeof(float) );
+        for (long i = 0; i < gridTotalSize; i++) { ((float *) output)[i] = 0.0; }
+    }
+    else if ( field_dtype == YT_DOUBLE ){
+        output = malloc( gridTotalSize * sizeof(double) );
+        for (long i = 0; i < gridTotalSize; i++) { ((double *) output)[i] = 0.0; }
+    }
+    else if ( field_dtype == YT_INT ){
+        output = malloc( gridTotalSize * sizeof(int) );
+        for (long i = 0; i < gridTotalSize; i++) { ((int *) output)[i] = 0; }
+    }
+    else if ( field_dtype == YT_LONG ){
+        output = malloc( gridTotalSize * sizeof(long) );
+        for (long i = 0; i < gridTotalSize; i++) { ((long *) output)[i] = 0; }
+    }
+    else{
+        PyErr_Format(PyExc_ValueError, "Unknown field_dtype in field [%s]\n", field_name);
+        return NULL;
     }
 
     // Call (1)derived_func or (2)derived_func_with_name, result will be made inside output 1D array.
+    // TODO: Hybrid OpenMP/OpenMPI, dynamically ask a list of grid data from derived function.
+    //       I assume we get one grid at a time here. Will change later...
+    int  list_length = 1;
+    long list_gid[1] = {gid};
+    yt_array data_array[1];
+    data_array[0].gid = gid; data_array[0].data_length = gridTotalSize; data_array[0].data_ptr = output;
+
     if ( derived_func_option == 1 ){
-        (*derived_func) (gid, output);
+        (*derived_func) (list_length, list_gid, data_array);
     }
     else if ( derived_func_option == 2 ){
-        (*derived_func_with_name) (gid, field_name, output);
+        (*derived_func_with_name) (list_length, list_gid, field_name, data_array);
     }
 
     // Wrapping the C allocated 1D array into 3D numpy array.
     // grid_dimensions[3] is in [x][y][z] coordinate, 
     // thus we have to check if the field has swap_axes == true or false.
+    // TODO: Hybrid OpenMP/MPI, we will need to further pack up a list of gid's field data into Python dictionary.
     int      nd = 3;
-    int      typenum = NPY_DOUBLE;
+    int      typenum;
     npy_intp dims[3];
+
+    if ( get_npy_dtype(field_dtype, &typenum) != YT_SUCCESS ){
+        PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
+        return NULL;
+    }
+
     if ( g_param_yt.field_list[field_id].swap_axes == true ){
         dims[0] = grid_dimensions[2];
         dims[1] = grid_dimensions[1];
@@ -160,7 +203,6 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
 //                2. We assume that parallelism in yt will make each rank only has to deal with the local
 //                   grids. So we can always find one grid with id = gid inside grids_local. We will only
 //                   get particle that belongs to this id.
-//                   (Maybe we can add feature get grids data from other rank in the future!)
 //                3. The returned numpy array data type well be set by attr_dtype.
 //                4. We will always return 1D numpy array, with length equal particle count of the species 
 //                   in that grid.
@@ -189,11 +231,11 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     // Get attr_dtype of the attr_name.
     // If cannot find ptype or attr_name, raise an error.
     // If find them successfully, but get_attr not set, which is == NULL, raise an error.
-    void    (*get_attr) (long, char*, void*);
+    void    (*get_attr) (int, long*, char*, yt_array*);
     yt_dtype attr_dtype;
+    int      species_index;
     bool     have_ptype = false;
     bool     have_attr_name = false;
-    int      species_index;
 
     for ( int s = 0; s < g_param_yt.num_species; s++ ){
         if ( strcmp(g_param_yt.particle_list[s].species_name, ptype) == 0 ){
@@ -214,8 +256,6 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
             for ( int p = 0; p < g_param_yt.particle_list[s].num_attr; p++ ){
                 if ( strcmp(g_param_yt.particle_list[s].attr_list[p].attr_name, attr_name) == 0 ){
                     have_attr_name = true;
-                    // Since in yt_attribute validate(), we have already make sure that attr_dtype is set.
-                    // So we don't need additional check
                     attr_dtype = g_param_yt.particle_list[s].attr_list[p].attr_dtype;
                     break;
                 }
@@ -236,7 +276,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     }
 
 
-    // Get lenght of the returned 1D numpy array, which is equal to particle_count_list in the grid.
+    // Get length of the returned 1D numpy array, which is equal to particle_count_list in the grid.
     long  array_length;
     bool  have_Grid = false;
 
@@ -246,6 +286,11 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
             array_length = g_param_yt.grids_local[lid].particle_count_list[species_index];
             
             if ( array_length == 0 ){
+                Py_INCREF(Py_None);
+                return Py_None;
+            }
+            else if ( array_length < 0 ){
+                log_error("In GID [ %ld ] species [ %s ], particle count smaller than 0, return None to Python.\n", gid, ptype);
                 Py_INCREF(Py_None);
                 return Py_None;
             }
@@ -279,31 +324,31 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     // Initialize output array
     if ( attr_dtype == YT_INT ){
         output = malloc( array_length * sizeof(int) );
-        for ( long i = 0; i < array_length; i++ ){ 
-            ((int *)output)[i] = 0;
-        }
+        for ( long i = 0; i < array_length; i++ ){ ((int *)output)[i] = 0; }
     }
     else if ( attr_dtype == YT_FLOAT ){
         output = malloc( array_length * sizeof(float) );
-        for ( long i = 0; i < array_length; i++ ){ 
-            ((float *)output)[i] = 0;
-        }
+        for ( long i = 0; i < array_length; i++ ){ ((float *)output)[i] = 0.0; }
     }
     else if ( attr_dtype == YT_DOUBLE ){
         output = malloc( array_length * sizeof(double) );
-        for ( long i = 0; i < array_length; i++ ){ 
-            ((double *)output)[i] = 0;
-        }
+        for ( long i = 0; i < array_length; i++ ){ ((double *)output)[i] = 0.0; }
     }
     else if ( attr_dtype == YT_LONG ){
         output = malloc( array_length * sizeof(long) );
-        for ( long i = 0; i < array_length; i++ ){
-            ((long *)output)[i] = 0;
-        }
+        for ( long i = 0; i < array_length; i++ ){ ((long *)output)[i] = 0; }
+    }
+    else{
+        PyErr_Format(PyExc_ValueError, "In species [ %s ] attribute [ %s ], unknown yt_dtype.\n", ptype, attr_name);
+        return NULL;
     }
     
     // Call get_attr function pointer
-    get_attr(gid, attr_name, output);
+    int  list_length = 1;
+    long list_gid[1] = { gid };
+    yt_array data_array[1];
+    data_array[0].gid = gid; data_array[0].data_length = array_length; data_array[0].data_ptr = output;
+    get_attr(list_length, list_gid, attr_name, data_array);
 
     // Wrap the output and return back to python
     PyObject *outputNumpyArray = PyArray_SimpleNewFromData(nd, dims, typenum, output);
@@ -319,6 +364,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
 // Note        :  1. Support only grid dimension = 3 for now.
 //                2. We return in dictionary objects.
 //                3. We assume that the fname_list passed in has the same fname order in each rank.
+//                4. This function will get all the desired fields and grids.
 //                
 // Parameter   :  list obj : fname_list   : list of field name to get.
 //                list obj : to_prepare   : list of grid ids you need to prepare.
@@ -369,6 +415,8 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
         yt_rma_field RMAOperation = yt_rma_field( fname, len_prepare, len_get_grid );
 
         // Prepare grid with field fname and id = gid.
+        // TODO: Hybrid OpenMP/OpenMPI, we might want to prepare a list of gid at one call
+        //       if it is a derived field.
         for(int i = 0; i < len_prepare; i++){
             py_prepare_grid_id = PyList_GetItem(py_prepare_grid_id_list, i);
             long gid = PyLong_AsLong( py_prepare_grid_id );
@@ -454,7 +502,6 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
 //                2. We assume that the list of to-get attribute has the same ptype and attr order in each
 //                   rank.
 //                3. If there are no particles in one grid, then we write Py_None to it.
-//                4.
 //
 // Parameter   :  dict obj : ptf          : {<ptype>: [<attr1>, <attr2>, ...]} particle type and attributes
 //                                          to read.
