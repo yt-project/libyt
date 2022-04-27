@@ -122,8 +122,8 @@ int check_particle_list(){
 //                  (6) grid right edge <= domain right edge.
 //                  (7) grid left edge <= grid right edge. 
 //                      (Not sure if this still holds for periodic condition.)
-//                  (8) Raise warning if field_define_type = "cell-centered", and data_ptr == NULL.
-//                  (9) Raise warning if field_define_type = "face-centered", and data_ptr == NULL.
+//                  (8) Abort if field_define_type = "cell-centered", and data_ptr == NULL.
+//                  (9) Abort if field_define_type = "face-centered", and data_ptr == NULL.
 //                  (10) If data_ptr != NULL, then data_dimensions > 0
 //
 // Parameter   :  None
@@ -183,7 +183,7 @@ int check_grid(){
 
                 // (8) Raise warning if field_define_type = "cell-centered", and data_ptr is not set == NULL.
                 if ( grid.field_data[v].data_ptr == NULL ){
-                    log_warning( "Grid [%ld], field_data [%s], field_define_type [%s], data_ptr is NULL, not set yet!",
+                    YT_ABORT( "Grid [%ld], field_data [%s], field_define_type [%s], data_ptr is NULL, not set yet!",
                                  grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_define_type);
                 }
             }
@@ -193,7 +193,7 @@ int check_grid(){
 
                 // (9) Raise warning if field_define_type = "face-centered", and data_ptr is not set == NULL.
                 if ( grid.field_data[v].data_ptr == NULL ){
-                    log_warning( "Grid [%ld], field_data [%s], field_define_type [%s], data_ptr is NULL, not set yet!",
+                    YT_ABORT( "Grid [%ld], field_data [%s], field_define_type [%s], data_ptr is NULL, not set yet!",
                                  grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_define_type);
                 }
                 else{
