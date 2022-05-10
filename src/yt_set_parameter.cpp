@@ -15,7 +15,7 @@
 //                   To make loading field_list and particle_list more systematic, we will allocate both
 //                   field_list (if num_fields>0 ) and particle_list (if num_species>0) here.
 //                2. Should be called after yt_init().
-//                3. Check the validaty of the data in param_yt.
+//                3. Check the validation of the data in param_yt.
 //                4. Initialize python hierarchy allocate_hierarchy() and particle_list.
 //                5. Gather each ranks number of local grids, we need this info in yt_commit_grid().
 //

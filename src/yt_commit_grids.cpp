@@ -122,6 +122,7 @@ int yt_commit_grids()
    MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
 
 // Create MPI_Datatype for struct yt_hierarchy
+// TODO: Make this public, we create this multiple times.
    MPI_Datatype yt_hierarchy_mpi_type;
    int lengths[8] = { 3, 3, 1, 1, 1, 3, 1, 1 };
    const MPI_Aint displacements[8] = { 0, 3 * sizeof(double), 6 * sizeof(double),
