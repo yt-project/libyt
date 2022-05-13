@@ -46,13 +46,13 @@ int allocate_hierarchy()
       Py_DECREF( py_obj );                                                             \
    }
 
-   ADD_DICT( 3, "grid_left_edge",      NPY_DOUBLE );
-   ADD_DICT( 3, "grid_right_edge",     NPY_DOUBLE );
-   ADD_DICT( 3, "grid_dimensions",     NPY_LONG );
-   ADD_DICT( 1, "grid_particle_count", NPY_LONG );
-   ADD_DICT( 1, "grid_parent_id",      NPY_LONG );
-   ADD_DICT( 1, "grid_levels",         NPY_LONG );
-   ADD_DICT( 1, "proc_num",            NPY_INT  );
+   ADD_DICT( 3, "grid_left_edge",      NPY_DOUBLE )
+   ADD_DICT( 3, "grid_right_edge",     NPY_DOUBLE )
+   ADD_DICT( 3, "grid_dimensions",     NPY_LONG )
+   ADD_DICT( 1, "grid_particle_count", NPY_LONG )  // TODO: Insert by libyt if not using particle.
+   ADD_DICT( 1, "grid_parent_id",      NPY_LONG )
+   ADD_DICT( 1, "grid_levels",         NPY_LONG )  // TODO: Change to NPY_INT
+   ADD_DICT( 1, "proc_num",            NPY_INT  )
 
 #  undef ADD_DICT
 
