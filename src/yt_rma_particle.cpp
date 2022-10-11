@@ -1,5 +1,5 @@
 #include "yt_rma_particle.h"
-#include "yt_type_array.h"
+#include "yt_combo.h"
 #include <string.h>
 
 //-------------------------------------------------------------------------------------------------------
@@ -222,20 +222,7 @@ int yt_rma_particle::gather_all_prepare_data(int root)
     }
     m_LenAllPrepare = m_SearchRange[ NRank ];
 
-    // Gather PreparedInfoList, which is m_Prepare in each rank
-    // (1) Create MPI_Datatype for yt_rma_particle_info
-    // TODO: I should create this MPI_Datatype once and for all...
-    MPI_Datatype yt_rma_particle_info_mpi_type;
-    int lengths[4] = {1, 1, 1, 1};
-    const MPI_Aint displacements[4] = {0,
-                                       1 * sizeof(long),
-                                       1 * sizeof(long) + 1 * sizeof(MPI_Aint),
-                                       2 * sizeof(long) + 1 * sizeof(MPI_Aint)};
-    MPI_Datatype types[4] = {MPI_LONG, MPI_AINT, MPI_LONG, MPI_INT};
-    MPI_Type_create_struct(4, lengths, displacements, types, &yt_rma_particle_info_mpi_type);
-    MPI_Type_commit(&yt_rma_particle_info_mpi_type);
-
-    // (2) Perform big_MPI_Gatherv and big_MPI_Bcast
+    // Gather PreparedInfoList, which is m_Prepare in each rank, perform big_MPI_Gatherv and big_MPI_Bcast
     m_AllPrepare = new yt_rma_particle_info [m_LenAllPrepare];
     big_MPI_Gatherv(root, SendCount, (void*)PreparedInfoList, &yt_rma_particle_info_mpi_type, (void*)m_AllPrepare, 2);
     big_MPI_Bcast(root, m_LenAllPrepare, (void*)m_AllPrepare, &yt_rma_particle_info_mpi_type, 2);

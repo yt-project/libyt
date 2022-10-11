@@ -39,6 +39,13 @@ SET_GLOBAL( yt_param_libyt, g_param_libyt           );   // libyt runtime parame
                                                          //     initialized during compilation
 SET_GLOBAL( yt_param_yt,    g_param_yt              );   // YT parameters
 
+// user-defined MPI data type
+SET_GLOBAL( MPI_Datatype,   yt_hierarchy_mpi_type         );
+
+SET_GLOBAL( MPI_Datatype,   yt_rma_grid_info_mpi_type     );
+
+SET_GLOBAL( MPI_Datatype,   yt_rma_particle_info_mpi_type );
+
 #ifdef SUPPORT_TIMER
 #include "Timer.h"
 SET_GLOBAL( Timer,         *g_timer,          NULL  );   // Timer for recording performance.
