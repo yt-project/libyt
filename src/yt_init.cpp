@@ -7,6 +7,7 @@
 static void init_yt_hierarchy_mpi_type();
 static void init_yt_rma_grid_info_mpi_type();
 static void init_yt_rma_particle_info_mpi_type();
+static void init_general_info();
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -16,7 +17,7 @@ static void init_yt_rma_particle_info_mpi_type();
 // Note        :  1. Input "param_libyt" will be backed up to a libyt global variable
 //                2. This function should not be called more than once (even if yt_finalize has been called)
 //                   since some extensions (e.g., NumPy) may not work properly.
-//                3. Initialize user-defined MPI data type.
+//                3. Initialize general info and user-defined MPI data type.
 //
 // Parameter   :  argc        : Argument count
 //                argv        : Argument vector
@@ -75,7 +76,10 @@ int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt )
       return YT_FAIL;
    }
 
-   // Initialize user-defined MPI data type:
+   // Initialize general info
+   init_general_info();
+
+   // Initialize user-defined MPI data type
    init_yt_hierarchy_mpi_type();
    init_yt_rma_grid_info_mpi_type();
    init_yt_rma_particle_info_mpi_type();
@@ -90,6 +94,11 @@ int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt )
    return YT_SUCCESS;
 
 } // FUNCTION : yt_init
+
+static void init_general_info(){
+    MPI_Comm_size(MPI_COMM_WORLD, &g_mysize);
+    MPI_Comm_rank(MPI_COMM_WORLD, &g_myrank);
+}
 
 static void init_yt_hierarchy_mpi_type(){
     int lengths[8] = { 3, 3, 1, 1, 1, 3, 1, 1 };

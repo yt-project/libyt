@@ -39,6 +39,10 @@ SET_GLOBAL( yt_param_libyt, g_param_libyt           );   // libyt runtime parame
                                                          //     initialized during compilation
 SET_GLOBAL( yt_param_yt,    g_param_yt              );   // YT parameters
 
+SET_GLOBAL( int,            g_myrank                );   // My current MPI rank
+
+SET_GLOBAL( int,            g_mysize                );   // My current MPI size
+
 // user-defined MPI data type
 SET_GLOBAL( MPI_Datatype,   yt_hierarchy_mpi_type         );
 
