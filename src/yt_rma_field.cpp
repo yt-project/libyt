@@ -93,9 +93,7 @@ int yt_rma_field::prepare_data(long& gid)
 {
     // Make sure that the field exist.
     if( m_FieldIndex == -1 ){
-        int myrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-        YT_ABORT("yt_rma_field: Cannot find field name [ %s ] in field_list on MPI rank [ %d ].\n", m_FieldName, myrank);
+        YT_ABORT("yt_rma_field: Cannot find field name [ %s ] in field_list on MPI rank [ %d ].\n", m_FieldName, g_myrank);
     }
 
     // Get grid info
@@ -135,9 +133,7 @@ int yt_rma_field::prepare_data(long& gid)
     }
 
     if(local_index == -1){
-        int myrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-        YT_ABORT("yt_rma_field: Cannot find grid id [ %ld ] on MPI rank [ %d ].\n", gid, myrank);
+        YT_ABORT("yt_rma_field: Cannot find grid id [ %ld ] on MPI rank [ %d ].\n", gid, g_myrank);
     }
 
     for(int d=0; d<3; d++){
@@ -321,10 +317,8 @@ int yt_rma_field::fetch_remote_data(long& gid, int& rank)
         }
     }
     if( get_remote_grid != true ){
-        int myrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
         YT_ABORT("yt_rma_field: Cannot get remote grid id [ %ld ] located in rank [ %d ] on MPI rank [ %d ].\n",
-                 gid, rank, myrank);
+                 gid, rank, g_myrank);
     }
     void *fetchedData = malloc( gridLength * dtype_size );
 

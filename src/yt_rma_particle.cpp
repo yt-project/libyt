@@ -102,15 +102,11 @@ int yt_rma_particle::prepare_data(long& gid)
 {
     // Make sure particle type and its attribute name exist.
     if( m_ParticleIndex == -1 ){
-        int myrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-        YT_ABORT("yt_rma_particle: Cannot find species name [ %s ] in particle_list on MPI rank [ %d ].\n", m_ParticleType, myrank);
+        YT_ABORT("yt_rma_particle: Cannot find species name [ %s ] in particle_list on MPI rank [ %d ].\n", m_ParticleType, g_myrank);
     }
     if( m_AttributeIndex == -1 ){
-        int myrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
         YT_ABORT("yt_rma_particle: Cannot find attribute name [ %s ] in species name [ %s ] on MPI rank [ %d ].\n",
-                 m_AttributeName, m_ParticleType, myrank);
+                 m_AttributeName, m_ParticleType, g_myrank);
     }
 
     // Get particle info
@@ -131,9 +127,7 @@ int yt_rma_particle::prepare_data(long& gid)
         }
     }
     if( get_local_gid != true ){
-        int myrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-        YT_ABORT("yt_rma_particle: Cannot find grid id [ %ld ] on MPI rank [ %d ].\n", gid, myrank);
+        YT_ABORT("yt_rma_particle: Cannot find grid id [ %ld ] on MPI rank [ %d ].\n", gid, g_myrank);
     }
 
     // Generate particle data
@@ -265,10 +259,8 @@ int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
         }
     }
     if( get_remote_gid != true ){
-        int myrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
         YT_ABORT("yt_rma_particle: Cannot get remote grid id [ %ld ] located in rank [ %d ] on MPI rank [ %d ].\n",
-                 gid, rank, myrank);
+                 gid, rank, g_myrank);
     }
     void *fetchedData;
 
