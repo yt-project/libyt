@@ -28,12 +28,9 @@ static void init_general_info();
 int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt )
 {
 #ifdef SUPPORT_TIMER
-   // Get MPI rank and set record time filename.
-   int MyRank;
-   MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
    // initialize timer
    char filename[50];
-   sprintf(filename, "RecordTime_%d", MyRank);
+   sprintf(filename, "RecordTime_%d", g_myrank);
    g_timer = new Timer(filename);
    // start timer.
    g_timer->record_time("yt_init", 0);

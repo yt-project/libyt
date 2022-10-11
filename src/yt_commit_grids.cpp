@@ -113,13 +113,7 @@ int yt_commit_grids()
    }
 
 // Prepare to gather full hierarchy from different rank to root rank.
-// Get MPI rank and size
-   int MyRank;
-   int NRank;
    int RootRank = 0;
-
-   MPI_Comm_size(MPI_COMM_WORLD, &NRank);
-   MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
 
 // Grep hierarchy data from g_param_yt.grids_local, and allocate receive buffer
    yt_hierarchy *hierarchy_full  = new yt_hierarchy [g_param_yt.num_grids];
@@ -151,7 +145,7 @@ int yt_commit_grids()
    big_MPI_Gatherv(RootRank, g_param_yt.num_grids_local_MPI, (void*)hierarchy_local, &yt_hierarchy_mpi_type, (void*)hierarchy_full, 0);
 
 // Check that the hierarchy are correct, do the test on RootRank only
-   if ( g_param_libyt.check_data == true && MyRank == RootRank ){
+   if ( g_param_libyt.check_data == true && g_myrank == RootRank ){
       if ( check_hierarchy( hierarchy_full ) == YT_SUCCESS ) {
          log_debug("Validating the parent-children relationship ... done!\n");
       }
@@ -176,7 +170,7 @@ int yt_commit_grids()
 // Combine full hierarchy and the grid data that one rank has, otherwise fill in NULL in grid data.
    long start_block = 0;
    long end_block;
-   for(int rank = 0; rank < MyRank; rank++){
+   for(int rank = 0; rank < g_myrank; rank++){
        start_block += g_param_yt.num_grids_local_MPI[rank];
    }
    end_block = start_block + g_param_yt.num_grids_local;

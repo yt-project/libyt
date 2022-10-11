@@ -1,9 +1,9 @@
 # Your paths
 #######################################################################################################
-PYTHON_PATH    := $(YOUR_PYTHON_PATH)
-PYTHON_VERSION := $(YOUR_PYTHON_VERSION)
-NUMPY_PATH     := $(YOUR_NUMPY_PATH)
-MPI_PATH       := $(YOUR_MPI_PATH)
+PYTHON_PATH    := /home/cindytsai/software/python/python3.8
+PYTHON_VERSION := 3.8
+NUMPY_PATH     := /home/cindytsai/.local/lib/python3.8/site-packages/numpy
+MPI_PATH       := /home/cindytsai/software/openmpi/3.1.5-gnu
 
 # Options
 #######################################################################################################
