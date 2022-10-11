@@ -121,19 +121,6 @@ int yt_commit_grids()
    MPI_Comm_size(MPI_COMM_WORLD, &NRank);
    MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
 
-// Create MPI_Datatype for struct yt_hierarchy
-// TODO: Make this public, we create this multiple times.
-   MPI_Datatype yt_hierarchy_mpi_type;
-   int lengths[8] = { 3, 3, 1, 1, 1, 3, 1, 1 };
-   const MPI_Aint displacements[8] = { 0, 3 * sizeof(double), 6 * sizeof(double),
-                                       6 * sizeof(double) + sizeof(long), 6 * sizeof(double) + 2 * sizeof(long), 
-                                       6 * sizeof(double) + 3 * sizeof(long),
-                                       6 * sizeof(double) + 3 * sizeof(long) + 3 * sizeof(int), 
-                                       6 * sizeof(double) + 3 * sizeof(long) + 4 * sizeof(int)};
-   MPI_Datatype types[8] = { MPI_DOUBLE, MPI_DOUBLE, MPI_LONG, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT };
-   MPI_Type_create_struct(8, lengths, displacements, types, &yt_hierarchy_mpi_type);
-   MPI_Type_commit(&yt_hierarchy_mpi_type);
-
 // Grep hierarchy data from g_param_yt.grids_local, and allocate receive buffer
    yt_hierarchy *hierarchy_full  = new yt_hierarchy [g_param_yt.num_grids];
    yt_hierarchy *hierarchy_local;
