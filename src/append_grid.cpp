@@ -121,6 +121,9 @@ int append_grid( yt_grid *grid ){
                 // PyArray_SimpleNewFromData simply creates an array wrapper and does not allocate and own the array
                 py_field_data = PyArray_SimpleNewFromData( 3, grid_dims, grid_dtype, (grid->field_data)[v].data_ptr );
 
+                // Mark this memory (NumPy array) read-only
+                PyArray_CLEARFLAGS( (PyArrayObject*) py_field_data, NPY_ARRAY_WRITEABLE);
+
                 // add the field data to dict "libyt.grid_data[grid_id][field_list.field_name]"
                 PyDict_SetItemString( py_field_labels, g_param_yt.field_list[v].field_name, py_field_data );
 
