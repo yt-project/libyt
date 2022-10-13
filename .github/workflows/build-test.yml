@@ -94,8 +94,8 @@ jobs:
       - name: Prepare Test Script
         run: |
           cd $GITHUB_WORKSPACE/example
-          cp $GITHUB_WORKSPACE/.github/tests/DataIOTest.py .
-          cp $GITHUB_WORKSPACE/.github/tests/CheckNumericalError.py .
+          cp $GITHUB_WORKSPACE/.github/tests/test-DataIO/DataIOTest.py .
+          cp $GITHUB_WORKSPACE/.github/tests/test-DataIO/CheckNumericalError.py .
           sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
           sed -i 's/inline_script/DataIOTest/' example.cpp
 
