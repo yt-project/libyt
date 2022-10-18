@@ -20,6 +20,7 @@ static const int LogPrefixWidth = 10;
 //                2. Messages are printed out to standard output with a prefix "[YT_INFO] "
 //                3. Use the variable argument lists provided in "stdarg"
 //                   --> It is equivalent to call "fprintf( stdout, format, ... );   fflush( Type );"
+//                4. Print INFO only in root rank.
 //
 // Parameter   :  format : Output format
 //                ...    : Arguments in vfprintf
@@ -28,6 +29,7 @@ static const int LogPrefixWidth = 10;
 //-------------------------------------------------------------------------------------------------------
 void log_info( const char *format, ... )
 {
+    if ( g_myrank != 0 ) return;
 
 // work only for verbose level >= YT_VERBOSE_INFO
    if ( g_param_libyt.verbose < YT_VERBOSE_INFO )   return;
