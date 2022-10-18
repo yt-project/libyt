@@ -1,7 +1,20 @@
 import yt
+from mpi4py import MPI
+import pandas as pd
+import numpy as np
 
 yt.enable_parallelism()
 step = 0
+comm = MPI.COMM_WORLD
+myrank = comm.Get_rank()
+
+class DataIOTestFailed(Exception):
+    """
+    Raised when the grid data read by libyt DataIO and
+    grid data in C++ array in a cell differ more than
+    1e-6.
+    """
+    criteria = 1e-9
 
 def yt_inline_ProjectionPlot( fields ):
     # Load the data, just like using yt.load()
@@ -43,33 +56,28 @@ def yt_derived_field_demo():
         slc2.save()
 
 def test_function():
-    import pandas as pd
-    import numpy as np
-    import libyt
-    from mpi4py import MPI
-
     global step
-    comm = MPI.COMM_WORLD
-    myrank = comm.Get_rank()
+
     ds = yt.frontends.libyt.libytDataset()
-    dimensions = [8, 8, 8]
 
-    for gid in range(libyt.param_yt["num_grids"]):
-        # Get data from control group, this is the original data with no ghost-cell.
-        filepath = "../.github/data/step" + str(step) + "/Dens_grid" + str(gid) + ".txt"
+    for gid in range(ds.index.num_grids):
+        # Read simulation data, this is the original data in [x][y][z] orientation.
+        filepath = "./data/Dens_grid{}_step{}.txt".format("%d" % gid, "%d" % step)
         df = pd.read_csv(filepath, header=None)
-        control_grid = df.to_numpy()
-        control_grid = np.reshape(control_grid, (dimensions[0], dimensions[1], dimensions[2]))
-        control_grid = np.swapaxes(control_grid, 0, 2)
+        sim_data = df.to_numpy()
+        dimensions = ds.index.grid_dimensions[gid]
+        sim_data = sim_data.reshape(dimensions).swapaxes(0, 2)
 
-        # Get data from libyt DataIO, the grid does not contain ghost-cell.
-        grid = ds.index.grids[gid]["gamer", "Dens"]
-        grid = np.asarray(grid)
+        # Get data from libyt DataIO.
+        data_io = ds.index.grids[gid][("gamer", "Dens")]
+        data_io = np.asarray(data_io)
 
-        # Compare them and print the result in file
-        with open("MPI" + str(myrank) + "_result.txt", "a") as f:
-            errors = np.sum(control_grid - grid) / (dimensions[0] * dimensions[1] * dimensions[2])
-            f.write(str(errors) + "\n")
+        # Compare them, if bigger than criteria, raise an error
+        diff = np.sum(np.absolute(sim_data - data_io)) / (dimensions[0] * dimensions[1] * dimensions[2])
+        if diff > DataIOTestFailed.criteria:
+            err_msg = "On MPI rank {}, step {}, density grid (id={}) is different from simulation data {}.\n" \
+                      "DataIOTest FAILED.\n".format("%d" % myrank, "%d" % step, "%d" % gid, "%.10e" % diff)
+            raise DataIOTestFailed(err_msg)
 
     step += 1
 
