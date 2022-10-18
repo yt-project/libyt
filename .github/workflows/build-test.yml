@@ -94,25 +94,27 @@ jobs:
       - name: Prepare Test Script
         run: |
           cd $GITHUB_WORKSPACE/example
-          cp $GITHUB_WORKSPACE/.github/tests/DataIOTest.py .
-          cp $GITHUB_WORKSPACE/.github/tests/CheckNumericalError.py .
+          cp $GITHUB_WORKSPACE/.github/tests/test-DataIO/DataIOTest.py .
           sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
           sed -i 's/inline_script/DataIOTest/' example.cpp
+
+      - name: Generate Density Data for Testing
+        run: |
+          cd $GITHUB_WORKSPACE/example
+          cp $GITHUB_WORKSPACE/.github/tools/generate_density_data.cpp .
+          g++ -o generate_density_data generate_density_data.cpp
+          ./generate_density_data
 
       - name: Test Run and DataIO Test - example - MPI 1
         run: |
           cd $GITHUB_WORKSPACE/example
-          rm -rf MPI*
           make clean
           make
           mpirun -np 1 ./example
-          python CheckNumericalError.py 1
           
       - name: Test Run and DataIO Test - example - MPI 3
         run: |
           cd $GITHUB_WORKSPACE/example
-          rm -rf MPI*
           make clean
           make
           mpirun -np 3 ./example
-          python CheckNumericalError.py 3

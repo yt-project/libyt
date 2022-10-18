@@ -1,5 +1,5 @@
 #include "yt_rma_field.h"
-#include "yt_type_array.h"
+#include "yt_combo.h"
 #include <string.h>
 
 //-------------------------------------------------------------------------------------------------------
@@ -93,9 +93,7 @@ int yt_rma_field::prepare_data(long& gid)
 {
     // Make sure that the field exist.
     if( m_FieldIndex == -1 ){
-        int myrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-        YT_ABORT("yt_rma_field: Cannot find field name [ %s ] in field_list on MPI rank [ %d ].\n", m_FieldName, myrank);
+        YT_ABORT("yt_rma_field: Cannot find field name [ %s ] in field_list on MPI rank [ %d ].\n", m_FieldName, g_myrank);
     }
 
     // Get grid info
@@ -135,9 +133,7 @@ int yt_rma_field::prepare_data(long& gid)
     }
 
     if(local_index == -1){
-        int myrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-        YT_ABORT("yt_rma_field: Cannot find grid id [ %ld ] on MPI rank [ %d ].\n", gid, myrank);
+        YT_ABORT("yt_rma_field: Cannot find grid id [ %ld ] on MPI rank [ %d ].\n", gid, g_myrank);
     }
 
     for(int d=0; d<3; d++){
@@ -268,21 +264,7 @@ int yt_rma_field::gather_all_prepare_data(int root)
     }
     m_LenAllPrepare = m_SearchRange[ NRank ];
 
-    // Gather PreparedInfoList, which is m_Prepare in each rank
-    // (1) Create MPI_Datatype for yt_rma_grid_info
-    // TODO: I should create this MPI_Datatype once and for all...
-    MPI_Datatype yt_rma_grid_info_mpi_type;
-    int lengths[5] = {1, 1, 1, 1, 3};
-    const MPI_Aint displacements[5] = {0,
-                                       1 * sizeof(long),
-                                       1 * sizeof(long) + 1 * sizeof(MPI_Aint),
-                                       1 * sizeof(long) + 1 * sizeof(MPI_Aint) + 1 * sizeof(int),
-                                       1 * sizeof(long) + 1 * sizeof(MPI_Aint) + 2 * sizeof(int)};
-    MPI_Datatype types[5] = {MPI_LONG, MPI_AINT, MPI_INT, MPI_INT, MPI_INT};
-    MPI_Type_create_struct(5, lengths, displacements, types, &yt_rma_grid_info_mpi_type);
-    MPI_Type_commit(&yt_rma_grid_info_mpi_type);
-
-    // (2) Perform big_MPI_Gatherv and big_MPI_Bcast
+    // Gather PreparedInfoList, which is m_Prepare in each rank, perform big_MPI_Gatherv and big_MPI_Bcast
     m_AllPrepare = new yt_rma_grid_info [m_LenAllPrepare];
     big_MPI_Gatherv(root, SendCount, (void*)PreparedInfoList, &yt_rma_grid_info_mpi_type, (void*)m_AllPrepare, 1);
     big_MPI_Bcast(root, m_LenAllPrepare, (void*)m_AllPrepare, &yt_rma_grid_info_mpi_type, 1);
@@ -335,10 +317,8 @@ int yt_rma_field::fetch_remote_data(long& gid, int& rank)
         }
     }
     if( get_remote_grid != true ){
-        int myrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
         YT_ABORT("yt_rma_field: Cannot get remote grid id [ %ld ] located in rank [ %d ] on MPI rank [ %d ].\n",
-                 gid, rank, myrank);
+                 gid, rank, g_myrank);
     }
     void *fetchedData = malloc( gridLength * dtype_size );
 

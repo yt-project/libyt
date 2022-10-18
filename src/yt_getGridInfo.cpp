@@ -87,10 +87,8 @@ int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] ){
 	}
 
 	if ( !have_Grid ){
-		int MyRank;
-		MPI_Comm_rank( MPI_COMM_WORLD, &MyRank );
 		log_warning("In %s, cannot find grid with GID [ %ld ] on MPI rank [%d].\n", 
-			         __FUNCTION__, gid, MyRank);
+			         __FUNCTION__, gid, g_myrank);
 		return YT_FAIL;
 	}
 
@@ -156,10 +154,8 @@ int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *f
 	}
 
 	if ( !have_Grid ){
-		int MyRank;
-		MPI_Comm_rank( MPI_COMM_WORLD, &MyRank );
 		log_warning("In %s, cannot find grid with GID [ %ld ] on MPI rank [%d].\n", 
-			         __FUNCTION__, gid, MyRank);
+			         __FUNCTION__, gid, g_myrank);
 		return YT_FAIL;
 	}
 

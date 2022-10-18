@@ -113,9 +113,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     }
 
     if ( !have_Grid ){
-        int MyRank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
-        PyErr_Format(PyExc_ValueError, "Cannot find grid with GID [ %ld ] on MPI rank [%d].\n", gid, MyRank);
+        PyErr_Format(PyExc_ValueError, "Cannot find grid with GID [ %ld ] on MPI rank [%d].\n", gid, g_myrank);
         return NULL;
     }
 
@@ -300,9 +298,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     }
 
     if ( !have_Grid ){
-        int MyRank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
-        PyErr_Format(PyExc_ValueError, "Cannot find grid with GID [ %ld ] on MPI rank [%d].\n", gid, MyRank);
+        PyErr_Format(PyExc_ValueError, "Cannot find grid with GID [ %ld ] on MPI rank [%d].\n", gid, g_myrank);
         return NULL;
     }
 
