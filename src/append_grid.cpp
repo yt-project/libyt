@@ -35,10 +35,10 @@ int append_grid( yt_grid *grid ){
 
     FILL_ARRAY( "grid_left_edge",       grid->left_edge,           3, npy_double )
     FILL_ARRAY( "grid_right_edge",      grid->right_edge,          3, npy_double )
-    FILL_ARRAY( "grid_dimensions",      grid->grid_dimensions,     3, npy_long   )
-    FILL_ARRAY( "grid_particle_count", &grid->grid_particle_count, 1, npy_long   )
+    FILL_ARRAY( "grid_dimensions",      grid->grid_dimensions,     3, npy_int    )
+    FILL_ARRAY( "grid_particle_count", &grid->grid_particle_count, 1, npy_int    )
     FILL_ARRAY( "grid_parent_id",      &grid->parent_id,           1, npy_long   )
-    FILL_ARRAY( "grid_levels",         &grid->level,               1, npy_int   )
+    FILL_ARRAY( "grid_levels",         &grid->level,               1, npy_int    )
     FILL_ARRAY( "proc_num",            &grid->proc_num,            1, npy_int    )
     log_debug( "Inserting grid [%ld] info to libyt.hierarchy ... done\n", grid->id );
 
