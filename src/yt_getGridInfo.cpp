@@ -1,7 +1,14 @@
 #include "yt_combo.h"
 #include "libyt.h"
 
-// TODO: Define MACRO GET_ARRAY
+
+#define GET_ARRAY( KEY, ARRAY, DIM, TYPE, GID )                                                          \
+   {                                                                                                     \
+      PyArrayObject *py_array_obj = (PyArrayObject*) PyDict_GetItemString( g_py_hierarchy, KEY );        \
+      for (int t=0; t<DIM; t++) {                                                                        \
+         (ARRAY)[t] = *(TYPE*)PyArray_GETPTR2( py_array_obj, GID, t );                                   \
+      }                                                                                                  \
+   }
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  check_procedure
@@ -72,13 +79,7 @@ int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] ){
 		YT_ABORT( "Please follow the libyt procedure.\n" );
 	}
 
-    // Get grid_dimensions NumPy array under libyt.hierarchy
-    PyArrayObject *py_grid_dimensions_array = (PyArrayObject*)PyDict_GetItemString( g_py_hierarchy, "grid_dimensions" );
-
-    // Read grid_dimensions
-    for (int t=0; t<3; t++){
-        (*dimensions)[t] = *(int*)PyArray_GETPTR2( py_grid_dimensions_array, gid, t );
-    }
+    GET_ARRAY( "grid_dimensions", *dimensions, 3, int, gid )
 
 	return YT_SUCCESS;
 }
