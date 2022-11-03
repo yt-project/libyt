@@ -1,6 +1,8 @@
 #include "yt_combo.h"
 #include "libyt.h"
 
+// TODO: Define MACRO GET_ARRAY
+
 //-------------------------------------------------------------------------------------------------------
 // Function    :  check_procedure
 // Description :  Check if libyt is properly set.
@@ -52,7 +54,8 @@ int check_procedure( const char *callFunc ){
 // Description :  Get dimension of the grid with grid id = gid.
 //
 // Note        :  1. This function will be called inside user's field derived_func or derived_func_with_name.
-//                2. Return YT_FAIL if cannot find grid id = gid or grid dimension < 0.
+//                2. It searches libyt.hierarchy for grid's dimensions, and does not check whether the grid
+//                   is on this rank or not.
 //                3. grid_dimensions is defined in [x][y][z] <-> [0][1][2] coordinate.
 //
 // Parameter   :  const long  gid               : Target grid id
@@ -69,28 +72,13 @@ int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] ){
 		YT_ABORT( "Please follow the libyt procedure.\n" );
 	}
 
-	bool have_Grid = false;
+    // Get grid_dimensions NumPy array under libyt.hierarchy
+    PyArrayObject *py_grid_dimensions_array = (PyArrayObject*)PyDict_GetItemString( g_py_hierarchy, "grid_dimensions" );
 
-	for ( int lid = 0; lid < g_param_yt.num_grids_local; lid++ ){
-		if ( g_param_yt.grids_local[lid].id == gid ){
-			have_Grid = true;
-			for ( int d = 0; d < 3; d++ ){
-                if (g_param_yt.grids_local[lid].grid_dimensions[d] < 0){
-                    log_warning("In %s, GID [ %ld ] grid_dimensions[%d] = %d < 0.\n",
-                                __FUNCTION__, gid, d, g_param_yt.grids_local[lid].grid_dimensions[d]);
-                    return YT_FAIL;
-                }
-				(*dimensions)[d] = g_param_yt.grids_local[lid].grid_dimensions[d];
-			}
-			break;
-		}
-	}
-
-	if ( !have_Grid ){
-		log_warning("In %s, cannot find grid with GID [ %ld ] on MPI rank [%d].\n", 
-			         __FUNCTION__, gid, g_myrank);
-		return YT_FAIL;
-	}
+    // Read grid_dimensions
+    for (int t=0; t<3; t++){
+        (*dimensions)[t] = *(int*)PyArray_GETPTR2( py_grid_dimensions_array, gid, t );
+    }
 
 	return YT_SUCCESS;
 }
