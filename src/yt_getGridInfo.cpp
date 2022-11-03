@@ -10,52 +10,7 @@
       }                                                                                                  \
    }
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  check_procedure
-// Description :  Check if libyt is properly set.
-//
-// Note        :  1. This function will only be use in yt_getGridInfo_*().
-//
-// Parameter   :  const char *callFunc : function that calls check_procedure.
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
-int check_procedure( const char *callFunc ){
 
-	// check if libyt has been initialized
-   	if ( !g_param_libyt.libyt_initialized ){
-    	YT_ABORT( "Please follow the libyt procedure, forgot to invoke yt_init() before calling %s()!\n", callFunc );
-   	}
-
-	// check if YT parameters have been set
-   	if ( !g_param_libyt.param_yt_set ){
-    	YT_ABORT( "Please follow the libyt procedure, forgot to invoke yt_set_parameter() before calling %s()!\n", callFunc );
-   	}
-
-	// check if user sets field_list
-   	if ( !g_param_libyt.get_fieldsPtr ){
-      	YT_ABORT( "num_fields == %d, please invoke yt_get_fieldsPtr() before calling %s()!\n",
-                   g_param_yt.num_fields, callFunc );
-   	}
-
-	// check if user sets particle_list
-   	if ( !g_param_libyt.get_particlesPtr ){
-      	YT_ABORT( "num_species == %d, please invoke yt_get_particlesPtr() before calling %s()!\n",
-                   g_param_yt.num_species, callFunc );
-   	}
-
-	// check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
-   	if ( !g_param_libyt.get_gridsPtr ){
-      	YT_ABORT( "Please follow the libyt procedure, forgot to invoke yt_get_gridsPtr() before calling %s()!\n", callFunc );
-   	}
-
-	// check if user has call yt_commit_grids(), so that grids are checked and appended to YT.
-   	if ( !g_param_libyt.commit_grids ){
-      	YT_ABORT( "Please follow the libyt procedure, forgot to invoke yt_commit_grids() before calling %s()!\n", callFunc );
-   	}
-
-	return YT_SUCCESS;
-}
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_getGridInfo_Dimensions
 // Description :  Get dimension of the grid with grid id = gid.
@@ -75,9 +30,9 @@ int check_procedure( const char *callFunc ){
 //-------------------------------------------------------------------------------------------------------
 int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] ){
 
-	if ( check_procedure( __FUNCTION__ ) != YT_SUCCESS ){
-		YT_ABORT( "Please follow the libyt procedure.\n" );
-	}
+    if ( !g_param_libyt.commit_grids ){
+        YT_ABORT( "Please follow the libyt procedure, forgot to invoke yt_commit_grids() before calling %s()!\n", __FUNCTION__ );
+    }
 
     GET_ARRAY( "grid_dimensions", *dimensions, 3, int, gid )
 
@@ -105,9 +60,9 @@ int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] ){
 //-------------------------------------------------------------------------------------------------------
 int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *field_data){
 
-	if ( check_procedure( __FUNCTION__ ) != YT_SUCCESS ){
-		YT_ABORT( "Please follow the libyt procedure.\n" );
-	}
+    if ( !g_param_libyt.commit_grids ){
+        YT_ABORT( "Please follow the libyt procedure, forgot to invoke yt_commit_grids() before calling %s()!\n", __FUNCTION__ );
+    }
 
 	bool have_Grid  = false;
 	bool have_Field = false;
