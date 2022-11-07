@@ -31,7 +31,7 @@
         }                                                                                                \
     }
 
-// function factory for yt_getGridInfo_Dimensions, yt_getGridInfo_LeftEdge, yt_getGridInfo_RightEdge
+// function factory
 #define GET_GRIDINFO_DIM3(NAME, KEY, TYPE)                                                                            \
     int yt_getGridInfo_##NAME(const long gid, TYPE (*NAME)[3])                                                        \
     {                                                                                                                 \
@@ -43,7 +43,7 @@
         return YT_SUCCESS;                                                                                            \
     }                                                                                                                 \
 
-// function factory for
+// function factory
 #define GET_GRIDINFO_DIM1(NAME, KEY, TYPE)                                                                            \
     int yt_getGridInfo_##NAME(const long gid, TYPE *NAME)                                                             \
     {                                                                                                                 \
@@ -57,26 +57,34 @@
         return YT_SUCCESS;                                                                                            \
     }                                                                                                                 \
 
-
+// int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] )
 GET_GRIDINFO_DIM3(Dimensions, "grid_dimensions", int)
 
+// int yt_getGridInfo_LeftEdge(const long, double (*)[3])
 GET_GRIDINFO_DIM3(LeftEdge, "grid_left_edge", double)
 
+// int yt_getGridInfo_RightEdge(const long, double (*)[3])
 GET_GRIDINFO_DIM3(RightEdge, "grid_right_edge", double)
 
+//int yt_getGridInfo_ParentId(const long, long *)
 GET_GRIDINFO_DIM1(ParentId, "grid_parent_id", long)
 
+// int yt_getGridInfo_Level(const long, int *)
 GET_GRIDINFO_DIM1(Level, "grid_levels", int)
 
+// int yt_getGridInfo_ProcNum(const long, int *)
 GET_GRIDINFO_DIM1(ProcNum, "proc_num", int)
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_getGridInfo_FieldData
 // Description :  Get field_data of field_name in the grid with grid id = gid .
 //
-// Note        :  1. This function will be called inside user's field derived_func or derived_func_with_name.
-//                2. Return YT_FAIL if cannot find grid id = gid or if field_name is not in field_list.
-//                3. User should cast to their own datatype after receiving the pointer.
+// Note        :  1. It searches libyt.grid_data[gid][fname], and return YT_FAIL if it cannot find
+//                   corresponding data.
+//                2. User should cast to their own datatype after receiving the pointer.
+//                3. Returns an existing data pointer and data dimensions user passed in,
+//                   and does not make a copy of it!!
+//                4. Works only for 3-dim data.
 //
 // Parameter   :  const long   gid              : Target grid id.
 //                const char  *field_name       : Target field name.
@@ -95,44 +103,40 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
                  __FUNCTION__);
     }
 
-    bool have_Grid = false;
-    bool have_Field = false;
-
-    for (int lid = 0; lid < g_param_yt.num_grids_local; lid++) {
-        if (g_param_yt.grids_local[lid].id == gid) {
-            have_Grid = true;
-            for (int v = 0; v < g_param_yt.num_fields; v++) {
-                if (strcmp(g_param_yt.field_list[v].field_name, field_name) == 0) {
-                    have_Field = true;
-                    if (g_param_yt.grids_local[lid].field_data[v].data_ptr == NULL) {
-                        log_warning("In %s, GID [ %ld ] field [ %s ] data_ptr not set.\n",
-                                    __FUNCTION__, gid, field_name);
-                        return YT_FAIL;
-                    }
-
-                    (*field_data).data_ptr = g_param_yt.grids_local[lid].field_data[v].data_ptr;
-                    for (int d = 0; d < 3; d++) {
-                        (*field_data).data_dimensions[d] = g_param_yt.grids_local[lid].field_data[v].data_dimensions[d];
-                    }
-                    (*field_data).data_dtype = g_param_yt.grids_local[lid].field_data[v].data_dtype;
-
-                    break;
-                }
-            }
-            break;
-        }
+    // get dictionary libyt.grid_data[gid]
+    PyObject *py_grid_id = PyLong_FromLong(gid);
+    PyObject *py_field_data_list = PyDict_GetItem(g_py_grid_data, py_grid_id);
+    if ( py_field_data_list == NULL ) {
+        YT_ABORT("Cannot find grid data [%ld] on MPI rank [%d].\n", gid, g_myrank);
     }
 
-    if (!have_Field) {
-        log_warning("In %s, cannot find field_name [ %s ] in field_list.\n", __FUNCTION__, field_name);
-        return YT_FAIL;
+    // read NumPy array libyt.grid_data[gid][field_name]
+    PyArrayObject *py_array_obj = (PyArrayObject*) PyDict_GetItemString(py_field_data_list, field_name);
+    if ( py_array_obj == NULL ) {
+        YT_ABORT("Cannot find grid [%ld] data [%s] on MPI rank [%d].\n", gid, field_name, g_myrank);
     }
 
-    if (!have_Grid) {
-        log_warning("In %s, cannot find grid with GID [ %ld ] on MPI rank [%d].\n",
-                    __FUNCTION__, gid, g_myrank);
-        return YT_FAIL;
+    // get NumPy array dimensions.
+    npy_intp *py_array_dims = PyArray_DIMS(py_array_obj);
+    for ( int d=0; d<3; d++ ){
+        (*field_data).data_dimensions[d] = (int) py_array_dims[d];
     }
+
+    // get NumPy data pointer.
+    (*field_data).data_ptr = PyArray_DATA(py_array_obj);
+
+    // get NumPy data dtype, and convert to YT_DTYPE.
+    PyArray_Descr *py_array_info = PyArray_DESCR(py_array_obj);
+    if ((py_array_info->type_num) == NPY_FLOAT)        (*field_data).data_dtype = YT_FLOAT;
+    else if ((py_array_info->type_num) == NPY_DOUBLE)  (*field_data).data_dtype = YT_DOUBLE;
+    else if ((py_array_info->type_num) == NPY_INT)     (*field_data).data_dtype = YT_INT;
+    else if ((py_array_info->type_num) == NPY_LONG)    (*field_data).data_dtype = YT_LONG;
+    else {
+        YT_ABORT("No matching yt_dtype for NumPy data type num [%d].\n", py_array_info->type_num);
+    }
+
+    // dereference
+    Py_DECREF(py_grid_id);
 
     return YT_SUCCESS;
 }
