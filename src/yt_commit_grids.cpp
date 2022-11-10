@@ -134,7 +134,7 @@ int yt_commit_grids()
    // Big MPI_Gatherv, this is just a workaround method.
    big_MPI_Gatherv(RootRank, g_param_yt.num_grids_local_MPI, (void*)hierarchy_local, &yt_hierarchy_mpi_type, (void*)hierarchy_full, 0);
    for (int s=0; s<g_param_yt.num_species; s++){
-       big_MPI_Gatherv(RootRank, g_param_yt.num_grids_local_MPI, (void*)particle_count_list_local[s], &MPI_LONG, (void*)particle_count_list_full[s], 3);
+       big_MPI_Gatherv(RootRank, g_param_yt.num_grids_local_MPI, (void*)particle_count_list_local[s], &yt_long_mpi_type, (void*)particle_count_list_full[s], 3);
    }
 
 // Check that the hierarchy are correct, do the test on RootRank only
@@ -153,7 +153,13 @@ int yt_commit_grids()
 // broadcast hierarchy_full, particle_count_list_full to each rank as well.
    big_MPI_Bcast(RootRank, g_param_yt.num_grids, (void*) hierarchy_full, &yt_hierarchy_mpi_type, 0);
    for (int s=0; s<g_param_yt.num_species; s++){
-       big_MPI_Bcast(RootRank, g_param_yt.num_grids, (void*) particle_count_list_full, &MPI_LONG, 3);
+       big_MPI_Bcast(RootRank, g_param_yt.num_grids, (void*) particle_count_list_full[s], &yt_long_mpi_type, 3);
+   }
+
+   for(int s=0; s<g_param_yt.num_species; s++){
+       for(long i=0; i<g_param_yt.num_grids; i++){
+           printf("particle_count_list_full[%d][%ld] = %ld\n", s, i, particle_count_list_full[s][i]);
+       }
    }
 
 #ifdef SUPPORT_TIMER

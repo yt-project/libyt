@@ -44,6 +44,8 @@ SET_GLOBAL( int,            g_myrank                );   // My current MPI rank
 SET_GLOBAL( int,            g_mysize                );   // My current MPI size
 
 // user-defined MPI data type
+SET_GLOBAL( MPI_Datatype,   yt_long_mpi_type              );
+
 SET_GLOBAL( MPI_Datatype,   yt_hierarchy_mpi_type         );
 
 SET_GLOBAL( MPI_Datatype,   yt_rma_grid_info_mpi_type     );
