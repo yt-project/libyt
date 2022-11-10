@@ -98,14 +98,16 @@ static void init_general_info(){
 }
 
 static void init_yt_hierarchy_mpi_type(){
-    int lengths[8] = { 3, 3, 1, 1, 1, 3, 1, 1 };
-    const MPI_Aint displacements[8] = { 0, 3 * sizeof(double), 6 * sizeof(double),
-                                        6 * sizeof(double) + sizeof(long), 6 * sizeof(double) + 2 * sizeof(long),
-                                        6 * sizeof(double) + 3 * sizeof(long),
-                                        6 * sizeof(double) + 3 * sizeof(long) + 3 * sizeof(int),
-                                        6 * sizeof(double) + 3 * sizeof(long) + 4 * sizeof(int)};
-    MPI_Datatype types[8] = { MPI_DOUBLE, MPI_DOUBLE, MPI_LONG, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT };
-    MPI_Type_create_struct(8, lengths, displacements, types, &yt_hierarchy_mpi_type);
+    int lengths[7] = { 3, 3, 1, 1, 3, 1, 1 };
+    const MPI_Aint displacements[7] = { 0,
+                                        3 * sizeof(double),
+                                        6 * sizeof(double),
+                                        6 * sizeof(double) + sizeof(long),
+                                        6 * sizeof(double) + 2 * sizeof(long),
+                                        6 * sizeof(double) + 2 * sizeof(long) + 3 * sizeof(int),
+                                        6 * sizeof(double) + 2 * sizeof(long) + 4 * sizeof(int)};
+    MPI_Datatype types[7] = { MPI_DOUBLE, MPI_DOUBLE, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT };
+    MPI_Type_create_struct(7, lengths, displacements, types, &yt_hierarchy_mpi_type);
     MPI_Type_commit(&yt_hierarchy_mpi_type);
 }
 
