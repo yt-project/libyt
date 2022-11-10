@@ -93,48 +93,38 @@ int yt_commit_grids()
       }
    }
 
-// Set up grid_particle_count, field_data's data_dimensions, field_data's data_dtype in grids_local
-   for (int i = 0; i < g_param_yt.num_grids_local; i = i+1) {
-      yt_grid grid = g_param_yt.grids_local[i];
-      
-      // (1) Calculate grid_particle_count, 
-      // check particle_count_list element > 0 if this array is set.
-      // and sum it up. Be careful the copy of struct, we wish to write changes in g_param_yt.grids_local
-      g_param_yt.grids_local[i].grid_particle_count = 0;
-      for ( int s = 0; s < g_param_yt.num_species; s++ ){
-         if ( grid.particle_count_list[s] >= 0 ){
-            g_param_yt.grids_local[i].grid_particle_count += grid.particle_count_list[s];
-         }
-         else{
-            YT_ABORT("Grid ID [%ld], particle count == %ld < 0, in particle species [%s]!\n",
-                      grid.id, grid.particle_count_list[s], g_param_yt.particle_list[s].species_name);
-         }
-      }
-   }
-
 // Prepare to gather full hierarchy from different rank to root rank.
    int RootRank = 0;
 
-// Grep hierarchy data from g_param_yt.grids_local, and allocate receive buffer
-   yt_hierarchy *hierarchy_full  = new yt_hierarchy [g_param_yt.num_grids];
-   yt_hierarchy *hierarchy_local;
-   
-// To avoid using new [0]
-   if ( g_param_yt.num_grids_local > 0 ){
-      hierarchy_local = new yt_hierarchy [g_param_yt.num_grids_local];
+// initialize hierarchy array, prepare for collecting hierarchy in different ranks.
+   yt_hierarchy *hierarchy_full, *hierarchy_local;
+
+// initialize hierarchy_full, hierarchy_local and to avoid new [0].
+   if ( g_param_yt.num_grids > 0 ) hierarchy_full = new yt_hierarchy [g_param_yt.num_grids];
+   if ( g_param_yt.num_grids_local > 0 ) hierarchy_local = new yt_hierarchy [g_param_yt.num_grids_local];
+
+// initialize particle_count_list[ptype_label][grid_id]
+   long **particle_count_list_full, **particle_count_list_local;
+   if ( g_param_yt.num_species > 0 ) {
+       particle_count_list_full  = new long* [g_param_yt.num_species];
+       particle_count_list_local = new long* [g_param_yt.num_species];
+       for (int s=0; s<g_param_yt.num_species; s++){
+           if ( g_param_yt.num_grids > 0 ) particle_count_list_full[s] = new long [g_param_yt.num_grids];
+           if ( g_param_yt.num_grids_local > 0 ) particle_count_list_local[s] = new long [g_param_yt.num_grids_local];
+       }
    }
 
+// move user passed in data to hierarchy_local and particle_count_list_local for later MPI process
    for (int i = 0; i < g_param_yt.num_grids_local; i = i+1) {
-
       yt_grid grid = g_param_yt.grids_local[i];
-
       for (int d = 0; d < 3; d = d+1) {
          hierarchy_local[i].left_edge[d]  = grid.left_edge[d];
          hierarchy_local[i].right_edge[d] = grid.right_edge[d];
          hierarchy_local[i].dimensions[d] = grid.grid_dimensions[d];
       }
-
-      hierarchy_local[i].grid_particle_count = grid.grid_particle_count;
+      for (int s = 0; s < g_param_yt.num_species; s = s+1) {
+          particle_count_list_local[s][i] = grid.particle_count_list[s];
+      }
       hierarchy_local[i].id                  = grid.id;
       hierarchy_local[i].parent_id           = grid.parent_id;
       hierarchy_local[i].level               = grid.level;
@@ -143,6 +133,9 @@ int yt_commit_grids()
 
    // Big MPI_Gatherv, this is just a workaround method.
    big_MPI_Gatherv(RootRank, g_param_yt.num_grids_local_MPI, (void*)hierarchy_local, &yt_hierarchy_mpi_type, (void*)hierarchy_full, 0);
+   for (int s=0; s<g_param_yt.num_species; s++){
+       big_MPI_Gatherv(RootRank, g_param_yt.num_grids_local_MPI, (void*)particle_count_list_local[s], &MPI_LONG, (void*)particle_count_list_full[s], 3);
+   }
 
 // Check that the hierarchy are correct, do the test on RootRank only
    if ( g_param_libyt.check_data == true && g_myrank == RootRank ){
@@ -157,9 +150,11 @@ int yt_commit_grids()
 // Not sure if we need this MPI_Barrier
    MPI_Barrier(MPI_COMM_WORLD);
 
-// We pass hierarchy to each rank as well. The maximum MPI_Bcast sendcount is INT_MAX.
-// If num_grids > INT_MAX chop it to chunks, then broadcast.
+// broadcast hierarchy_full, particle_count_list_full to each rank as well.
    big_MPI_Bcast(RootRank, g_param_yt.num_grids, (void*) hierarchy_full, &yt_hierarchy_mpi_type, 0);
+   for (int s=0; s<g_param_yt.num_species; s++){
+       big_MPI_Bcast(RootRank, g_param_yt.num_grids, (void*) particle_count_list_full, &MPI_LONG, 3);
+   }
 
 #ifdef SUPPORT_TIMER
    g_timer->record_time("append_grids", 0);
@@ -176,6 +171,7 @@ int yt_commit_grids()
    end_block = start_block + g_param_yt.num_grids_local;
 
    yt_grid grid_combine;
+   grid_combine.particle_count_list = new long [g_param_yt.num_species];
    for (long i = 0; i < g_param_yt.num_grids; i = i+1) {
 
       // Load from hierarchy_full
@@ -184,7 +180,9 @@ int yt_commit_grids()
          grid_combine.right_edge[d]      = hierarchy_full[i].right_edge[d];
          grid_combine.grid_dimensions[d] = hierarchy_full[i].dimensions[d];
       }
-      grid_combine.grid_particle_count = hierarchy_full[i].grid_particle_count;
+      for (int s=0; s<g_param_yt.num_species; s++){
+          grid_combine.particle_count_list[s] = particle_count_list_full[s][i];
+      }
       grid_combine.id                  = hierarchy_full[i].id;
       grid_combine.parent_id           = hierarchy_full[i].parent_id;
       grid_combine.level               = hierarchy_full[i].level;
@@ -214,10 +212,17 @@ int yt_commit_grids()
    MPI_Barrier( MPI_COMM_WORLD );
 
    // Freed resource 
-   if ( g_param_yt.num_grids_local > 0 ){
-      delete [] hierarchy_local;
-   }
-   delete [] hierarchy_full;
+   if ( g_param_yt.num_grids_local > 0 ) delete [] hierarchy_local;
+   if ( g_param_yt.num_grids > 0 ) delete [] hierarchy_full;
+    if ( g_param_yt.num_species > 0 ) {
+        for (int s=0; s<g_param_yt.num_species; s++){
+            if ( g_param_yt.num_grids > 0 ) delete [] particle_count_list_full[s];
+            if ( g_param_yt.num_grids_local > 0 ) delete [] particle_count_list_local[s];
+        }
+        delete [] particle_count_list_full;
+        delete [] particle_count_list_local;
+    }
+    delete [] grid_combine.particle_count_list;
 
    // Above all works like charm
    g_param_libyt.commit_grids = true;
