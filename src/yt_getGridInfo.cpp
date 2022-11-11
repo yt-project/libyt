@@ -75,6 +75,50 @@ GET_GRIDINFO_DIM1(Level, "grid_levels", int)
 // int yt_getGridInfo_ProcNum(const long, int *)
 GET_GRIDINFO_DIM1(ProcNum, "proc_num", int)
 
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  yt_getGridInfo_ParticleCount
+// Description :  Get particle count of particle type ptype in grid gid.
+//
+// Note        :  1. It searches libyt.hierarchy["particle_count_list"][gid][ptype], and does not check whether the grid
+//                   is on this rank or not.
+//
+// Parameter   :  const long   gid           : Target grid id.
+//                const char  *ptype         : Target particle type.
+//                long        *par_count     : Store particle count here.
+//
+// Example     :  long count;
+//                yt_getGridInfo_ParticleCount( gid, "par_type", &count );
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_count) {
+
+    if (!g_param_libyt.commit_grids) {
+        YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit_grids() before calling %s()!\n",
+                 __FUNCTION__);
+    }
+
+    // find index of g_param_yt.num_species
+    int label = -1;
+    for (int s=0; s<g_param_yt.num_species; s++) {
+        if (strcmp(g_param_yt.particle_list[s].species_name, ptype) == 0) {
+            label = s;
+            break;
+        }
+    }
+    if ( label == -1 ) YT_ABORT("Cannot find species name [%s] in particle_list.\n", ptype);
+
+    // get particle count NumPy array in libyt.hierarchy["particle_count_list"]
+    PyArrayObject *py_array_obj = (PyArrayObject*)PyDict_GetItemString(g_py_hierarchy, "particle_count_list");
+    if ( py_array_obj == NULL ) YT_ABORT("Cannot find key \"particle_count_list\" in libyt.hierarchy dict.\n");
+
+    // read libyt.hierarchy["particle_count_list"][gid][ptype]
+    *par_count = *(long*)PyArray_GETPTR2(py_array_obj, gid, label);
+
+    return YT_SUCCESS;
+}
+
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_getGridInfo_FieldData
 // Description :  Get field_data of field_name in the grid with grid id = gid .

@@ -48,6 +48,7 @@ int yt_getGridInfo_RightEdge(const long, double (*)[3]);
 int yt_getGridInfo_ParentId(const long, long *);
 int yt_getGridInfo_Level(const long, int *);
 int yt_getGridInfo_ProcNum(const long, int *);
+int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_count);
 int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *field_data);
 
 #ifdef __cplusplus
