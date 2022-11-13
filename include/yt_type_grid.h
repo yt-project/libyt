@@ -65,9 +65,6 @@ struct yt_data
 //                right_edge      : Grid right edge in code units
 //                particle_count_list : Array that records number of particles in each species, the input order
 //                                      should be the same as the input particle_list.
-//                grid_particle_count : Number of particles in this grid, which is sum of the particle_count array.
-//                                      This will be filled in by libyt, user don't need to touch this. They should
-//                                      only fill in particle_count_list.
 //                level           : AMR level (0 for the root level)
 //                id              : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
 //                parent_id       : Parent grid ID (0-indexed, -1 for grids on the root level)
@@ -88,7 +85,6 @@ struct yt_grid
     double    right_edge[3];
 
     long     *particle_count_list;
-    long      grid_particle_count;
     long      id;
     long      parent_id;
 
@@ -117,7 +113,6 @@ struct yt_grid
         for (int d=0; d<3; d++) {
             grid_dimensions[d]  = INT_UNDEFINED; }
 
-        grid_particle_count = 0;
         particle_count_list = NULL;
         id             = LNG_UNDEFINED;
         parent_id      = LNG_UNDEFINED;
