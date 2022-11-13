@@ -12,10 +12,12 @@
 //                3. Check the local grids, field list, and particle list. 
 //                4. Append field_list info and particle_list info to libyt.param_yt['field_list'] and 
 //                   libyt.param_yt['particle_list'].
-//                5. Sum up particle_count_list in each individual grid and store in grid_particle_count.
-//                6. Gather hierarchy in different rank, and check hierarchy in check_hierarchy().
+//                5. Gather hierarchy in different rank, and check hierarchy in check_hierarchy(), excluding
+//                   particles.
+//                6. If there is particle, we gather different particle type separately.
 //                7. Pass the grids and hierarchy to YT in function append_grid().
 //                8. We assume that one grid contains all the fields belong to that grid.
+//                9. Free g_param_yt.grids_local, after we have passed all grid info and data in.
 //
 // Parameter   :
 //
@@ -224,8 +226,18 @@ int yt_commit_grids()
     }
     delete [] grid_combine.particle_count_list;
 
+    // Free grids_local
+    if ( g_param_libyt.get_gridsPtr && g_param_yt.num_grids_local > 0 ){
+        for (int i = 0; i < g_param_yt.num_grids_local; i = i+1){
+            if ( g_param_yt.num_fields > 0 ) delete [] g_param_yt.grids_local[i].field_data;
+            if ( g_param_yt.num_species > 0 ) delete [] g_param_yt.grids_local[i].particle_count_list;
+        }
+        delete [] g_param_yt.grids_local;
+    }
+
    // Above all works like charm
    g_param_libyt.commit_grids = true;
+   g_param_libyt.get_gridsPtr = false;
    log_info("Loading grids to yt ... done.\n");
 
 #ifdef SUPPORT_TIMER
