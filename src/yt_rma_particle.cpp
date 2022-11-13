@@ -1,5 +1,6 @@
 #include "yt_rma_particle.h"
 #include "yt_combo.h"
+#include "libyt.h"
 #include <string.h>
 
 //-------------------------------------------------------------------------------------------------------
@@ -110,24 +111,18 @@ int yt_rma_particle::prepare_data(long& gid)
     }
 
     // Get particle info
-    bool get_local_gid = false;
     yt_rma_particle_info par_info;
     par_info.id = gid;
-
-    for(int lid = 0; lid < g_param_yt.num_grids_local; lid++){
-        if( g_param_yt.grids_local[lid].id == gid ){
-            par_info.rank = g_param_yt.grids_local[lid].proc_num;
-            par_info.data_len = g_param_yt.grids_local[lid].particle_count_list[m_ParticleIndex];
-            if ( par_info.data_len < 0 ){
-                log_error("yt_rma_particle: In GID [ %ld ] species name [ %s ], particle count smaller than zero.\n",
-                          gid, m_ParticleType);
-            }
-            get_local_gid = true;
-            break;
-        }
+    yt_getGridInfo_ProcNum(gid, &(par_info.rank));
+    if ( par_info.rank != g_myrank ) {
+        YT_ABORT("yt_rma_particle: Trying to prepare nonlocal particle data in grid [%ld] that is on MPI rank [%d].\n",
+                 gid, par_info.rank);
     }
-    if( get_local_gid != true ){
-        YT_ABORT("yt_rma_particle: Cannot find grid id [ %ld ] on MPI rank [ %d ].\n", gid, g_myrank);
+    if ( yt_getGridInfo_ParticleCount(gid, m_ParticleType, &(par_info.data_len)) != YT_SUCCESS ) {
+        YT_ABORT("yt_rma_particle: Failed to get number of particle %s in grid [%ld].\n", m_ParticleType, gid);
+    }
+    if ( par_info.data_len < 0 ) {
+        YT_ABORT("yt_rma_particle: Particle %s count = %ld < 0 in grid [%ld].\n", m_ParticleType, par_info.data_len, gid);
     }
 
     // Generate particle data
