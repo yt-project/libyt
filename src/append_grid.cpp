@@ -5,11 +5,8 @@
 // Function    :  append_grid
 // Description :  Add a single full grid to the libyt Python module
 //
-// Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data to python
+// Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data.
 //                2. Called and use by yt_commit_grids().
-//                3. If field_data == NULL, we append Py_None to the dictionary.
-//                4. We assign data_dimensions and data_dtype in yt_data if user only sets its macros in grid_dimensions
-//                   and field_dtype.
 //
 // Parameter   :  yt_grid *grid
 //
@@ -84,15 +81,11 @@ int append_grid( yt_grid *grid ){
         // Only "cell-centered" will be set to grid_dimensions + ghost cell, else should be set in data_dimensions.
         if ( strcmp(g_param_yt.field_list[v].field_define_type, "cell-centered") == 0 ){
             // Get grid_dimensions and consider swap_axes or not, since grid_dimensions is defined as [x][y][z].
-            if ( g_param_yt.field_list[v].swap_axes == true ){
-                (grid->field_data)[v].data_dimensions[0] = (grid->grid_dimensions)[2];
-                (grid->field_data)[v].data_dimensions[1] = (grid->grid_dimensions)[1];
-                (grid->field_data)[v].data_dimensions[2] = (grid->grid_dimensions)[0];
+            if ( g_param_yt.field_list[v].swap_axes ){
+                for ( int d=0; d<3; d++ ) { (grid->field_data)[v].data_dimensions[d] = (grid->grid_dimensions)[2-d]; }
             }
             else{
-                (grid->field_data)[v].data_dimensions[0] = (grid->grid_dimensions)[0];
-                (grid->field_data)[v].data_dimensions[1] = (grid->grid_dimensions)[1];
-                (grid->field_data)[v].data_dimensions[2] = (grid->grid_dimensions)[2];
+                for ( int d=0; d<3; d++ ) { (grid->field_data)[v].data_dimensions[d] = (grid->grid_dimensions)[d]; }
             }
             // Plus the ghost cell to get the actual array dimensions.
             for(int d = 0; d < 6; d++) {
