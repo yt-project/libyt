@@ -53,7 +53,7 @@
         }                                                                                                             \
         TYPE temp[1];                                                                                                 \
         GET_ARRAY(KEY, temp, 1, TYPE, gid)                                                                            \
-        *NAME = temp[1];                                                                                              \
+        *NAME = temp[0];                                                                                              \
         return YT_SUCCESS;                                                                                            \
     }                                                                                                                 \
 
