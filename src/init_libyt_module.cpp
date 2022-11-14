@@ -606,10 +606,10 @@ static PyObject* libyt_particle_get_attr_remote(PyObject *self, PyObject *args){
 
                 // Step3: Wrap the data to NumPy array if ptr is not NULL and append to dictionary.
                 //        Or else append None to dictionary.
-                if( get_data_ptr == NULL ){
+                if( get_data_len == 0 ){
                     PyDict_SetItemString(py_attribute_dict, get_attr, Py_None);
                 }
-                else{
+                else if ( get_data_len > 0 && get_data_ptr != NULL ) {
                     int nd = 1;
                     int npy_type;
                     npy_intp dims[1] = { get_data_len };
@@ -618,6 +618,10 @@ static PyObject* libyt_particle_get_attr_remote(PyObject *self, PyObject *args){
                     PyArray_ENABLEFLAGS( (PyArrayObject*) py_par_data, NPY_ARRAY_OWNDATA );
                     PyDict_SetItemString(py_attribute_dict, get_attr, py_par_data);
                     Py_DECREF(py_par_data);
+                }
+                else {
+                    PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_particle when fetching remote data.\n");
+                    return NULL;
                 }
             }
 
