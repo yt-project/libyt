@@ -101,12 +101,12 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
         return NULL;
     }
     if ( proc_num != g_myrank ){
-        PyErr_Format(PyExc_ValueError, "Grid [%ld] is on MPI rank [%d].\n", gid, proc_num);
+        PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal grid. Grid [%ld] is on MPI rank [%d].\n", gid, proc_num);
         return NULL;
     }
     for (int d=0; d<3; d++){
         if (grid_dimensions[d] < 0){
-            PyErr_Format(PyExc_ValueError, "Grid [%ld] has grid_dimensions[%d] = %d < 0.\n", gid, d, grid_dimensions[d]);
+            PyErr_Format(PyExc_ValueError, "Trying to prepare grid [%ld] that has grid_dimensions[%d] = %d < 0.\n", gid, d, grid_dimensions[d]);
             return NULL;
         }
     }
@@ -270,7 +270,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
         return NULL;
     }
     if ( proc_num != g_myrank ){
-        PyErr_Format(PyExc_ValueError, "Grid [%ld] is on MPI rank [%d].\n", gid, proc_num);
+        PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal particles. Grid [%ld] is on MPI rank [%d].\n", gid, proc_num);
         return NULL;
     }
     if ( array_length == 0 ){
