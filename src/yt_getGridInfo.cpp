@@ -2,107 +2,133 @@
 #include "libyt.h"
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  check_procedure
-// Description :  Check if libyt is properly set.
-//
-// Note        :  1. This function will only be use in yt_getGridInfo_*().
-//
-// Parameter   :  const char *callFunc : function that calls check_procedure.
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
-int check_procedure( const char *callFunc ){
-
-	// check if libyt has been initialized
-   	if ( !g_param_libyt.libyt_initialized ){
-    	YT_ABORT( "Please follow the libyt procedure, forgot to invoke yt_init() before calling %s()!\n", callFunc );
-   	}
-
-	// check if YT parameters have been set
-   	if ( !g_param_libyt.param_yt_set ){
-    	YT_ABORT( "Please follow the libyt procedure, forgot to invoke yt_set_parameter() before calling %s()!\n", callFunc );
-   	}
-
-	// check if user sets field_list
-   	if ( !g_param_libyt.get_fieldsPtr ){
-      	YT_ABORT( "num_fields == %d, please invoke yt_get_fieldsPtr() before calling %s()!\n",
-                   g_param_yt.num_fields, callFunc );
-   	}
-
-	// check if user sets particle_list
-   	if ( !g_param_libyt.get_particlesPtr ){
-      	YT_ABORT( "num_species == %d, please invoke yt_get_particlesPtr() before calling %s()!\n",
-                   g_param_yt.num_species, callFunc );
-   	}
-
-	// check if user has call yt_get_gridsPtr(), so that libyt knows the local grids array ptr.
-   	if ( !g_param_libyt.get_gridsPtr ){
-      	YT_ABORT( "Please follow the libyt procedure, forgot to invoke yt_get_gridsPtr() before calling %s()!\n", callFunc );
-   	}
-
-	// check if user has call yt_commit_grids(), so that grids are checked and appended to YT.
-   	if ( !g_param_libyt.commit_grids ){
-      	YT_ABORT( "Please follow the libyt procedure, forgot to invoke yt_commit_grids() before calling %s()!\n", callFunc );
-   	}
-
-	return YT_SUCCESS;
-}
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_getGridInfo_Dimensions
+// Function    :  yt_getGridInfo_*
 // Description :  Get dimension of the grid with grid id = gid.
 //
-// Note        :  1. This function will be called inside user's field derived_func or derived_func_with_name.
-//                2. Return YT_FAIL if cannot find grid id = gid or grid dimension < 0.
-//                3. grid_dimensions is defined in [x][y][z] <-> [0][1][2] coordinate.
+// Note        :  1. It searches libyt.hierarchy for grid's dimensions, and does not check whether the grid
+//                   is on this rank or not.
+//                2. grid_dimensions is defined in [x][y][z] <-> [0][1][2] coordinate.
+//                3.    Function                                              Search NumPy Array
+//                   --------------------------------------------------------------------------------
+//                    yt_getGridInfo_Dimensions(const long, int (*)[3])       libyt.hierarchy["grid_dimensions"]
+//                    yt_getGridInfo_LefgEdge(const long, double (*)[3])      libyt.hierarchy["grid_left_edge"]
+//                    yt_getGridInfo_RightEdge(const long, double (*)[3])     libyt.hierarchy["grid_right_edge"]
+//                    yt_getGridInfo_ParentId(const long, long *)             libyt.hierarchy["grid_parent_id"]
+//                    yt_getGridInfo_Level(const long, int *)                 libyt.hierarchy["grid_levels"]
+//                    yt_getGridInfo_ProcNum(const long, int *)               libyt.hierarchy["proc_num"]
 //
-// Parameter   :  const long  gid               : Target grid id
-//                int         (*dimensions)[3]  : Write result to this pointer.
-//                
-// Example     :  int dim[3];
+// Example     :  long gid = 0;
+//                int dim[3];
 //                yt_getGridInfo_Dimensions( gid, &dim );
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] ){
+#define GET_ARRAY(KEY, ARRAY, DIM, TYPE, GID)                                                            \
+    {                                                                                                    \
+        PyArrayObject *py_array_obj = (PyArrayObject*) PyDict_GetItemString( g_py_hierarchy, KEY );      \
+        for (int t=0; t<DIM; t++) {                                                                      \
+            (ARRAY)[t] = *(TYPE*)PyArray_GETPTR2( py_array_obj, GID, t );                                \
+        }                                                                                                \
+    }
 
-	if ( check_procedure( __FUNCTION__ ) != YT_SUCCESS ){
-		YT_ABORT( "Please follow the libyt procedure.\n" );
-	}
+// function factory
+#define GET_GRIDINFO_DIM3(NAME, KEY, TYPE)                                                                            \
+    int yt_getGridInfo_##NAME(const long gid, TYPE (*NAME)[3])                                                        \
+    {                                                                                                                 \
+        if (!g_param_libyt.commit_grids) {                                                                            \
+            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit_grids() before calling %s()!\n",  \
+                     __FUNCTION__);                                                                                   \
+        }                                                                                                             \
+        GET_ARRAY(KEY, *NAME, 3, TYPE, gid)                                                                           \
+        return YT_SUCCESS;                                                                                            \
+    }                                                                                                                 \
 
-	bool have_Grid = false;
+// function factory
+#define GET_GRIDINFO_DIM1(NAME, KEY, TYPE)                                                                            \
+    int yt_getGridInfo_##NAME(const long gid, TYPE *NAME)                                                             \
+    {                                                                                                                 \
+        if (!g_param_libyt.commit_grids) {                                                                            \
+            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit_grids() before calling %s()!\n",  \
+                     __FUNCTION__);                                                                                   \
+        }                                                                                                             \
+        TYPE temp[1];                                                                                                 \
+        GET_ARRAY(KEY, temp, 1, TYPE, gid)                                                                            \
+        *NAME = temp[0];                                                                                              \
+        return YT_SUCCESS;                                                                                            \
+    }                                                                                                                 \
 
-	for ( int lid = 0; lid < g_param_yt.num_grids_local; lid++ ){
-		if ( g_param_yt.grids_local[lid].id == gid ){
-			have_Grid = true;
-			for ( int d = 0; d < 3; d++ ){
-                if (g_param_yt.grids_local[lid].grid_dimensions[d] < 0){
-                    log_warning("In %s, GID [ %ld ] grid_dimensions[%d] = %d < 0.\n",
-                                __FUNCTION__, gid, d, g_param_yt.grids_local[lid].grid_dimensions[d]);
-                    return YT_FAIL;
-                }
-				(*dimensions)[d] = g_param_yt.grids_local[lid].grid_dimensions[d];
-			}
-			break;
-		}
-	}
+// int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] )
+GET_GRIDINFO_DIM3(Dimensions, "grid_dimensions", int)
 
-	if ( !have_Grid ){
-		log_warning("In %s, cannot find grid with GID [ %ld ] on MPI rank [%d].\n", 
-			         __FUNCTION__, gid, g_myrank);
-		return YT_FAIL;
-	}
+// int yt_getGridInfo_LeftEdge(const long, double (*)[3])
+GET_GRIDINFO_DIM3(LeftEdge, "grid_left_edge", double)
 
-	return YT_SUCCESS;
+// int yt_getGridInfo_RightEdge(const long, double (*)[3])
+GET_GRIDINFO_DIM3(RightEdge, "grid_right_edge", double)
+
+//int yt_getGridInfo_ParentId(const long, long *)
+GET_GRIDINFO_DIM1(ParentId, "grid_parent_id", long)
+
+// int yt_getGridInfo_Level(const long, int *)
+GET_GRIDINFO_DIM1(Level, "grid_levels", int)
+
+// int yt_getGridInfo_ProcNum(const long, int *)
+GET_GRIDINFO_DIM1(ProcNum, "proc_num", int)
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  yt_getGridInfo_ParticleCount
+// Description :  Get particle count of particle type ptype in grid gid.
+//
+// Note        :  1. It searches libyt.hierarchy["particle_count_list"][gid][ptype], and does not check whether the grid
+//                   is on this rank or not.
+//
+// Parameter   :  const long   gid           : Target grid id.
+//                const char  *ptype         : Target particle type.
+//                long        *par_count     : Store particle count here.
+//
+// Example     :  long count;
+//                yt_getGridInfo_ParticleCount( gid, "par_type", &count );
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_count) {
+
+    if (!g_param_libyt.commit_grids) {
+        YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit_grids() before calling %s()!\n",
+                 __FUNCTION__);
+    }
+
+    // find index of g_param_yt.num_species
+    int label = -1;
+    for (int s=0; s<g_param_yt.num_species; s++) {
+        if (strcmp(g_param_yt.particle_list[s].species_name, ptype) == 0) {
+            label = s;
+            break;
+        }
+    }
+    if ( label == -1 ) YT_ABORT("Cannot find species name [%s] in particle_list.\n", ptype);
+
+    // get particle count NumPy array in libyt.hierarchy["particle_count_list"]
+    PyArrayObject *py_array_obj = (PyArrayObject*)PyDict_GetItemString(g_py_hierarchy, "particle_count_list");
+    if ( py_array_obj == NULL ) YT_ABORT("Cannot find key \"particle_count_list\" in libyt.hierarchy dict.\n");
+
+    // read libyt.hierarchy["particle_count_list"][gid][ptype]
+    *par_count = *(long*)PyArray_GETPTR2(py_array_obj, gid, label);
+
+    return YT_SUCCESS;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_getGridInfo_FieldData
 // Description :  Get field_data of field_name in the grid with grid id = gid .
 //
-// Note        :  1. This function will be called inside user's field derived_func or derived_func_with_name.
-//                2. Return YT_FAIL if cannot find grid id = gid or if field_name is not in field_list.
-//                3. User should cast to their own datatype after receiving the pointer.
+// Note        :  1. It searches libyt.grid_data[gid][fname], and return YT_FAIL if it cannot find
+//                   corresponding data.
+//                2. User should cast to their own datatype after receiving the pointer.
+//                3. Returns an existing data pointer and data dimensions user passed in,
+//                   and does not make a copy of it!!
+//                4. Works only for 3-dim data.
 //
 // Parameter   :  const long   gid              : Target grid id.
 //                const char  *field_name       : Target field name.
@@ -114,50 +140,47 @@ int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] ){
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *field_data){
+int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *field_data) {
 
-	if ( check_procedure( __FUNCTION__ ) != YT_SUCCESS ){
-		YT_ABORT( "Please follow the libyt procedure.\n" );
-	}
+    if (!g_param_libyt.commit_grids) {
+        YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit_grids() before calling %s()!\n",
+                 __FUNCTION__);
+    }
 
-	bool have_Grid  = false;
-	bool have_Field = false;
+    // get dictionary libyt.grid_data[gid]
+    PyObject *py_grid_id = PyLong_FromLong(gid);
+    PyObject *py_field_data_list = PyDict_GetItem(g_py_grid_data, py_grid_id);
+    if ( py_field_data_list == NULL ) {
+        YT_ABORT("Cannot find grid data [%ld] on MPI rank [%d].\n", gid, g_myrank);
+    }
 
-	for ( int lid = 0; lid < g_param_yt.num_grids_local; lid++ ){
-		if ( g_param_yt.grids_local[lid].id == gid ){
-			have_Grid = true;
-			for ( int v = 0; v < g_param_yt.num_fields; v++ ){
-				if ( strcmp(g_param_yt.field_list[v].field_name, field_name) == 0 ){
-					have_Field = true;
-                    if ( g_param_yt.grids_local[lid].field_data[v].data_ptr == NULL ){
-                        log_warning("In %s, GID [ %ld ] field [ %s ] data_ptr not set.\n",
-                                    __FUNCTION__, gid, field_name);
-                        return YT_FAIL;
-                    }
+    // read NumPy array libyt.grid_data[gid][field_name]
+    PyArrayObject *py_array_obj = (PyArrayObject*) PyDict_GetItemString(py_field_data_list, field_name);
+    if ( py_array_obj == NULL ) {
+        YT_ABORT("Cannot find grid [%ld] data [%s] on MPI rank [%d].\n", gid, field_name, g_myrank);
+    }
 
-					(*field_data).data_ptr = g_param_yt.grids_local[lid].field_data[v].data_ptr;
-					for ( int d = 0; d < 3; d++ ){
-						(*field_data).data_dimensions[d] = g_param_yt.grids_local[lid].field_data[v].data_dimensions[d];
-					}
-					(*field_data).data_dtype = g_param_yt.grids_local[lid].field_data[v].data_dtype;
-					
-					break;
-				}
-			}
-			break;
-		}
-	}
+    // get NumPy array dimensions.
+    npy_intp *py_array_dims = PyArray_DIMS(py_array_obj);
+    for ( int d=0; d<3; d++ ){
+        (*field_data).data_dimensions[d] = (int) py_array_dims[d];
+    }
 
-	if ( !have_Field ){
-		log_warning("In %s, cannot find field_name [ %s ] in field_list.\n", __FUNCTION__, field_name);
-		return YT_FAIL;
-	}
+    // get NumPy data pointer.
+    (*field_data).data_ptr = PyArray_DATA(py_array_obj);
 
-	if ( !have_Grid ){
-		log_warning("In %s, cannot find grid with GID [ %ld ] on MPI rank [%d].\n", 
-			         __FUNCTION__, gid, g_myrank);
-		return YT_FAIL;
-	}
+    // get NumPy data dtype, and convert to YT_DTYPE.
+    PyArray_Descr *py_array_info = PyArray_DESCR(py_array_obj);
+    if ((py_array_info->type_num) == NPY_FLOAT)        (*field_data).data_dtype = YT_FLOAT;
+    else if ((py_array_info->type_num) == NPY_DOUBLE)  (*field_data).data_dtype = YT_DOUBLE;
+    else if ((py_array_info->type_num) == NPY_INT)     (*field_data).data_dtype = YT_INT;
+    else if ((py_array_info->type_num) == NPY_LONG)    (*field_data).data_dtype = YT_LONG;
+    else {
+        YT_ABORT("No matching yt_dtype for NumPy data type num [%d].\n", py_array_info->type_num);
+    }
 
-	return YT_SUCCESS;
+    // dereference
+    Py_DECREF(py_grid_id);
+
+    return YT_SUCCESS;
 }

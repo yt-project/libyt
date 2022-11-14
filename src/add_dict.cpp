@@ -341,9 +341,11 @@ int add_dict_field_list(){
 //                   { <species_name>: { "attribute" : { <attr_name1> : [ <attr_unit>, [<attr_name_alias>], <attr_display_name>],
 //                                                       <attr_name2> : [ <attr_unit>, [<attr_name_alias>], <attr_display_name>]},
 //                                       "particle_coor_label" : [ <coor_x>, <coor_y>, <coor_z>]},
-//                   }                                           |
+//                                                               |
 //                                                               |
 //                                                            coor_list
+//                                       "label": <index in particle_list>}
+//                    }
 // Parameter   :  None
 //
 // Return      :  YT_SUCCESS or YT_FAIL
@@ -481,6 +483,14 @@ int add_dict_particle_list(){
                    g_param_yt.particle_list[s].species_name);
       }
       Py_DECREF( coor_list );
+
+      // Insert label s to species_dict, with key = "label"
+      key = PyLong_FromLong( (long) s );
+      if ( PyDict_SetItemString(species_dict, "label", key) != 0 ){
+          YT_ABORT("In species_name == %s, failed to insert key-value pair label:%d to species_dict.\n",
+                   g_param_yt.particle_list[s].species_name, s);
+      }
+      Py_DECREF( key );
 
 
       // Insert species_dict to particle_list_dict with key = <species_name>

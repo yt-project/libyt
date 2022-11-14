@@ -49,9 +49,6 @@ int get_npy_dtype( yt_dtype data_type, int *npy_dtype ){
 		if ( valid == true ){
 			log_error("You should also match your new yt_dtype to NumPy enumerate type in get_npy_dtype function.\n");
 		}
-		else{
-			log_error("If you want to implement your new yt_dtype, you should modify both yt_dtype Enum and get_npy_dtype function.\n");
-		}
 		
 		*npy_dtype = -1;
 		return YT_FAIL;
@@ -108,9 +105,6 @@ int get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype ){
         if ( valid == true ){
             log_error("You should also match your new yt_dtype to MPI_Datatype in get_mpi_dtype function.\n");
         }
-        else{
-            log_error("If you want to implement your new yt_dtype, you should modify both yt_dtype Enum and get_mpi_dtype function.\n");
-        }
 
         *mpi_dtype = 0;
         return YT_FAIL;
@@ -165,9 +159,6 @@ int get_dtype_size( yt_dtype data_type, int *dtype_size ){
         }
         if ( valid == true ){
             log_error("You should also match your new yt_dtype to C type in get_dtype_size function.\n");
-        }
-        else{
-            log_error("If you want to implement your new yt_dtype, you should modify both yt_dtype Enum and get_dtype_size function.\n");
         }
 
         *dtype_size = -1;
