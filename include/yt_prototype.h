@@ -9,11 +9,11 @@
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_hierarchy
 // Description :  Data structure for pass hierarchy of the grid in MPI process, it is meant to be temporary.
+//       Notes :  1. We don't deal with particle count in each ptype here.
 //
 // Data Member :  dimensions     : Number of cells along each direction
 //                left_edge      : Grid left  edge in code units
 //                right_edge     : Grid right edge in code units
-//                grid_particle_count : Nunber of total particles in this grid
 //                level          : AMR level (0 for the root level)
 //                proc_num       : An array of MPI rank that the grid belongs
 //                id             : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
@@ -24,7 +24,6 @@ struct yt_hierarchy{
       double left_edge[3];
       double right_edge[3];
 
-      long   grid_particle_count;
       long   id;
       long   parent_id;
 

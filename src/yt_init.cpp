@@ -4,6 +4,7 @@
 #undef DEFINE_GLOBAL
 #include "libyt.h"
 
+static void init_yt_long_mpi_type();
 static void init_yt_hierarchy_mpi_type();
 static void init_yt_rma_grid_info_mpi_type();
 static void init_yt_rma_particle_info_mpi_type();
@@ -77,6 +78,7 @@ int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt )
    init_general_info();
 
    // Initialize user-defined MPI data type
+   init_yt_long_mpi_type();
    init_yt_hierarchy_mpi_type();
    init_yt_rma_grid_info_mpi_type();
    init_yt_rma_particle_info_mpi_type();
@@ -97,15 +99,25 @@ static void init_general_info(){
     MPI_Comm_rank(MPI_COMM_WORLD, &g_myrank);
 }
 
+static void init_yt_long_mpi_type(){
+    int length[1] = {1};
+    const MPI_Aint displacements[1] = {0};
+    MPI_Datatype types[1] = {MPI_LONG};
+    MPI_Type_create_struct(1, length, displacements, types, &yt_long_mpi_type);
+    MPI_Type_commit(&yt_long_mpi_type);
+}
+
 static void init_yt_hierarchy_mpi_type(){
-    int lengths[8] = { 3, 3, 1, 1, 1, 3, 1, 1 };
-    const MPI_Aint displacements[8] = { 0, 3 * sizeof(double), 6 * sizeof(double),
-                                        6 * sizeof(double) + sizeof(long), 6 * sizeof(double) + 2 * sizeof(long),
-                                        6 * sizeof(double) + 3 * sizeof(long),
-                                        6 * sizeof(double) + 3 * sizeof(long) + 3 * sizeof(int),
-                                        6 * sizeof(double) + 3 * sizeof(long) + 4 * sizeof(int)};
-    MPI_Datatype types[8] = { MPI_DOUBLE, MPI_DOUBLE, MPI_LONG, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT };
-    MPI_Type_create_struct(8, lengths, displacements, types, &yt_hierarchy_mpi_type);
+    int lengths[7] = { 3, 3, 1, 1, 3, 1, 1 };
+    const MPI_Aint displacements[7] = { 0,
+                                        3 * sizeof(double),
+                                        6 * sizeof(double),
+                                        6 * sizeof(double) + sizeof(long),
+                                        6 * sizeof(double) + 2 * sizeof(long),
+                                        6 * sizeof(double) + 2 * sizeof(long) + 3 * sizeof(int),
+                                        6 * sizeof(double) + 2 * sizeof(long) + 4 * sizeof(int)};
+    MPI_Datatype types[7] = { MPI_DOUBLE, MPI_DOUBLE, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT };
+    MPI_Type_create_struct(7, lengths, displacements, types, &yt_hierarchy_mpi_type);
     MPI_Type_commit(&yt_hierarchy_mpi_type);
 }
 
