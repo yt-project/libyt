@@ -37,12 +37,10 @@ def yt_inline_ParticlePlot():
 
 def yt_derived_field_demo():
     ds = yt.frontends.libyt.libytDataset()
-    slc1 = yt.SlicePlot(ds, "z", ("gamer", "level_derived_func"))
-    slc2 = yt.SlicePlot(ds, "z", ("gamer", "level_derived_func_with_name"))
+    slc = yt.SlicePlot(ds, "z", ("gamer", "InvDens"))
 
     if yt.is_root():
-        slc1.save()
-        slc2.save()
+        slc.save()
 
 def test_function():
     pass
