@@ -57,9 +57,6 @@ real set_density(const double x, const double y, const double z, const double t,
 void get_randArray(int *array, int length);
 void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array);
 void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array);
-void getPositionByGID(long gid, real (*Pos)[3]);
-void getLevelByGID(long gid, int *Level);
-yt_grid *sim_grids;
 long num_total_grids;
 
 //-------------------------------------------------------------------------------------------------------
@@ -104,7 +101,7 @@ int main(int argc, char *argv[]) {
     const int num_species = 1;                                // number of particle types
 
     // simulation data stored in memory, there can be GHOST_CELL at the grid's boundary.
-    sim_grids = new yt_grid [num_grids];
+    yt_grid *sim_grids = new yt_grid [num_grids];
     real (*field_data)[num_fields][CUBE(GRID_DIM+GHOST_CELL*2)] = new real [num_grids][num_fields][CUBE(GRID_DIM+GHOST_CELL*2)];
 
     int grids_MPI[num_grids];                                 // records what MPI process each grid belongs to
@@ -418,7 +415,7 @@ int main(int argc, char *argv[]) {
 
 
         // ==================================================
-        // simulation: increase one simulation time step
+        // simulation: end of this time step
         // ==================================================
         time += dt;
     }
@@ -543,22 +540,25 @@ void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array) {
 void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array) {
     // loop over gid_list, and fill in particle attribute data inside data_array.
     for (int lid = 0; lid < list_len; lid++) {
-        // the particle position and level can be generated via getPositionByGID and getLevelByGID in this example.
+        // =============================================================
+        // libyt: [Optional] Use libyt look up grid info API
+        // =============================================================
         int Level;
-        real Pos[3];
-        getPositionByGID(gid_list[lid], &Pos);
-        getLevelByGID(gid_list[lid], &Level);
+        double RightEdge[3], LeftEdge[3];
+        yt_getGridInfo_Level(gid_list[lid], &Level);
+        yt_getGridInfo_RightEdge(gid_list[lid], &RightEdge);
+        yt_getGridInfo_LeftEdge(gid_list[lid], &LeftEdge);
 
         // fill in particle data.
         // we can get the length of the array to fill in like this, though this example only has one particle in each grids.
         for (int i = 0; i < data_array[lid].data_length; i++) {
             // fill in particle data according to the attribute.
             if (strcmp(attribute, "ParPosX") == 0) {
-                ((real *) data_array[lid].data_ptr)[0] = Pos[0];
+                ((real *) data_array[lid].data_ptr)[0] = 0.5 * (RightEdge[0] + LeftEdge[0]);
             } else if (strcmp(attribute, "ParPosY") == 0) {
-                ((real *) data_array[lid].data_ptr)[0] = Pos[1];
+                ((real *) data_array[lid].data_ptr)[0] = 0.5 * (RightEdge[1] + LeftEdge[1]);
             } else if (strcmp(attribute, "ParPosZ") == 0) {
-                ((real *) data_array[lid].data_ptr)[0] = Pos[2];
+                ((real *) data_array[lid].data_ptr)[0] = 0.5 * (RightEdge[2] + LeftEdge[2]);
             } else if (strcmp(attribute, "Level") == 0) {
                 ((int *) data_array[lid].data_ptr)[0] = Level;
             }
@@ -567,30 +567,3 @@ void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *da
 
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  getPositionByGID
-// Description :  Get the center position of the grid id = gid.
-//-------------------------------------------------------------------------------------------------------
-void getPositionByGID(long gid, real (*Pos)[3]) {
-    for (long i = 0; i < num_total_grids; i++) {
-        if (sim_grids[i].id == gid) {
-            for (int d = 0; d < 3; d++) {
-                (*Pos)[d] = (real) 0.5 * (sim_grids[i].left_edge[d] + sim_grids[i].right_edge[d]);
-            }
-            break;
-        }
-    }
-}
-
-//-------------------------------------------------------------------------------------------------------
-// Function    :  getLevelByGID
-// Description :  Get the level of the grid id = gid.
-//-------------------------------------------------------------------------------------------------------
-void getLevelByGID(long gid, int *Level) {
-    for (long i = 0; i < num_total_grids; i++) {
-        if (sim_grids[i].id == gid) {
-            *Level = sim_grids[i].level;
-            break;
-        }
-    }
-}
