@@ -55,8 +55,7 @@ typedef double real;
 
 real set_density(const double x, const double y, const double z, const double t, const double v);
 void get_randArray(int *array, int length);
-void level_derived_func(int list_len, long *gid_list, yt_array *data_array);
-void level_derived_func_with_name(int list_len, long *gid_list, char *field, yt_array *data_array);
+void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array);
 void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array);
 void getPositionByGID(long gid, real (*Pos)[3]);
 void getLevelByGID(long gid, int *Level);
@@ -226,12 +225,11 @@ int main(int argc, char *argv[]) {
         }
 
         // Reciprocal of density field "InvDens"
-        field_list[1].field_name = "level_derived_func"; // TODO
+        field_list[1].field_name = "InvDens";
         field_list[1].field_define_type = "derived_func";
         field_list[1].swap_axes = true;
         field_list[1].field_dtype = (typeid(real) == typeid(float)) ? YT_FLOAT : YT_DOUBLE;
-        field_list[1].derived_func = level_derived_func; // TODO
-        field_list[1].derived_func_with_name = level_derived_func_with_name; // TODO
+        field_list[1].derived_func = derived_func_InvDens;
 
 
         // ==========================================
@@ -448,35 +446,30 @@ int main(int argc, char *argv[]) {
 } // FUNCTION : main
 
 
-
 //-------------------------------------------------------------------------------------------------------
 // Function    :  set_density
 // Description :  Return density at given coordinates and time
 //-------------------------------------------------------------------------------------------------------
 real set_density(const double x, const double y, const double z, const double t, const double v) {
-
-    const double center[3] = {0.5 + v * t, 0.5 + v * t, 0.5};   // drift with v along (1,1,0)
+    // drift with v along (1,1,0)
+    const double center[3] = {0.5 + v * t, 0.5 + v * t, 0.5};
     const double sigma = 0.05;
     const double amplitude = 1.0e6;
     const double background = 1.0;
 
     return amplitude * exp(-0.5 * (SQR(x - center[0]) + SQR(y - center[1]) + SQR(z - center[2])) / SQR(sigma)) +
            background;
-
 } // FUNCTION : set_density
+
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get an array of random number in range 0 ~ NRank-1
-// Description :  To random distribute grids to MPI rank, so that we can mimic what happen in real world
-//                simulation code.
+// Description :  Assign grids to MPI ranks, value of array[gid] holds MPI process it belongs to
 //-------------------------------------------------------------------------------------------------------
 void get_randArray(int *array, int length) {
-
     int NRank;
     MPI_Comm_size(MPI_COMM_WORLD, &NRank);
-
     srand((unsigned) time(0));
-
     for (int i = 0; i < length; i = i + 1) {
         array[i] = rand() % NRank;
     }
@@ -484,88 +477,49 @@ void get_randArray(int *array, int length) {
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  level_derived_func
-// Description :  Generate data in field name "level_derived_func" by gid.
+// Function    :  derived_func_InvDens
+// Description :  derived inverse density field
 //
-// Notes       :  1. Prototype must be void func(int, long*, yt_array*) or void func(int, long*, char*, yt_array*).
-//                   See Parameter for its usage.
-//                2. This function will be concatenated into python C extension, so that yt can get
-//                   derived field data when needed.
-//                3. In this example, we will write the grid's level to data.
-//                4. Write results to double *data in [z][y][x] order, since we set swap_axes = true for
-//                   this field.
+// Notes       :  1. Derived function prototype must be void func(int, long*, yt_array*) or
+//                   void func(int, long*, char*, yt_array*).
+//                2. yt use this derived field function to generate data when needed.
+//                4. Since we set swap_axes = true in this field, we should write data in [z][y][x] order.
 //
 // Parameter   : int       list_len  : number of gid in gid_list.
 //               long     *gid_list  : a list of gid field data to prepare.
 //               yt_array *data_array: write field data inside this yt_array correspondingly.
 //-------------------------------------------------------------------------------------------------------
-void level_derived_func(int list_len, long *gid_list, yt_array *data_array) {
+void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array) {
     // loop over gid_list, and fill in grid data inside data_array.
     for (int lid = 0; lid < list_len; lid++) {
-        // Get grid level by gid.
-        int level;
-        getLevelByGID(gid_list[lid], &level);
-
-        // Get grid dimension by libyt API.
-        int dim[3];
+        // =================================================
+        // libyt: [Optional] Use libyt look up grid info API
+        // =================================================
+        int level, dim[3];
+        yt_getGridInfo_Level(gid_list[lid], &level);
         yt_getGridInfo_Dimensions(gid_list[lid], &dim);
 
-        // Fill in data
-        int index;
+        // =============================================================
+        // libyt: [Optional] Use libyt API to get data pointer passed in
+        // =============================================================
+        yt_data dens_data;
+        yt_getGridInfo_FieldData(gid_list[lid], "Dens", &dens_data);
+
+        // Generate and fill in data in [z][y][x] order, since we set this field swap_axes = true
+        int index, index_with_ghost_cell;
         for (int k = 0; k < dim[2]; k++) {
             for (int j = 0; j < dim[1]; j++) {
                 for (int i = 0; i < dim[0]; i++) {
                     index = k * dim[1] * dim[0] + j * dim[0] + i;
+                    index_with_ghost_cell =  (k + GHOST_CELL) * dim[1] * dim[0] + (j + GHOST_CELL) * dim[0] + (i + GHOST_CELL);
                     // Get the point and store data.
-                    ((real *) data_array[lid].data_ptr)[index] = (real) level;
+                    ((real *) data_array[lid].data_ptr)[index] = ((real *) dens_data.data_ptr)[index_with_ghost_cell];
                 }
             }
         }
     }
 }
 
-
-//-------------------------------------------------------------------------------------------------------
-// Function    :  level_derived_func_with_name
-// Description :  Generate data in field name "level_derived_func_with_name" by gid and a given field name.
-//
-// Notes       :  1. Prototype must be void func(int, long*, yt_array*) or void func(int, long*, char*, yt_array*).
-//                   See Parameter for its usage.
-//                2. This function will be concatenated into python C extension, so that yt can get
-//                   derived field data when needed.
-//                3. In this example, we will write the grid's level to data.
-//                4. Write results to double *data in [z][y][x] order, since we set swap_axes = true for
-//                   this field.
-//
-// Parameter   : int       list_len  : number of gid in gid_list.
-//               long     *gid_list  : a list of gid field data to prepare.
-//               char     *field     : target field name
-//               yt_array *data_array: write field data inside this yt_array correspondingly.
-//-------------------------------------------------------------------------------------------------------
-void level_derived_func_with_name(int list_len, long *gid_list, char *field, yt_array *data_array) {
-    // loop over gid_list, and fill in grid data inside data_array.
-    for (int lid = 0; lid < list_len; lid++) {
-        // Get grid level by gid.
-        int level;
-        getLevelByGID(gid_list[lid], &level);
-
-        // Get grid dimension by libyt API.
-        int dim[3];
-        yt_getGridInfo_Dimensions(gid_list[lid], &dim);
-
-        // Fill in data
-        int index;
-        for (int k = 0; k < dim[2]; k++) {
-            for (int j = 0; j < dim[1]; j++) {
-                for (int i = 0; i < dim[0]; i++) {
-                    index = k * dim[1] * dim[0] + j * dim[0] + i;
-                    // Get the point and store data.
-                    ((real *) data_array[lid].data_ptr)[index] = (real) level;
-                }
-            }
-        }
-    }
-}
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  par_io_get_attr
