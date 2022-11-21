@@ -60,7 +60,7 @@ void level_derived_func_with_name(int list_len, long *gid_list, char *field, yt_
 void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array);
 void getPositionByGID(long gid, real (*Pos)[3]);
 void getLevelByGID(long gid, int *Level);
-yt_grid *gridsPtr;
+yt_grid *sim_grids;
 long num_total_grids;
 
 //-------------------------------------------------------------------------------------------------------
@@ -105,6 +105,7 @@ int main(int argc, char *argv[]) {
     const int num_species = 1;                                // number of particle types
 
     // simulation data stored in memory, there can be GHOST_CELL at the grid's boundary.
+    sim_grids = new yt_grid [num_grids];
     real (*field_data)[num_fields][CUBE(GRID_DIM+GHOST_CELL*2)] = new real [num_grids][num_fields][CUBE(GRID_DIM+GHOST_CELL*2)];
 
     int grids_MPI[num_grids];                                 // records what MPI process each grid belongs to
@@ -265,9 +266,6 @@ int main(int argc, char *argv[]) {
         // ==================================================
         // simulation: generate simulation grid info and data
         // ==================================================
-        yt_grid *sim_grids = new yt_grid[param_yt.num_grids];
-        gridsPtr = sim_grids; // TODO
-
         // set level-0 grids
         int grid_order[3];
         for (grid_order[2] = 0; grid_order[2] < NGRID_1D; grid_order[2]++) {
@@ -373,6 +371,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
+
         // ==========================================
         // libyt: 7. done loading information
         // ==========================================
@@ -381,37 +380,10 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
 
-        for (long gid = 0; gid < num_grids; gid++) {
-            printf("[GID = %ld]\n", gid);
 
-            double edge[3];
-            yt_getGridInfo_LeftEdge(gid, &edge);
-            printf("Left Edge: %lf, %lf, %lf\n", edge[0], edge[1], edge[2]);
-
-            yt_getGridInfo_RightEdge(gid, &edge);
-            printf("Right Edge: %lf, %lf, %lf\n", edge[0], edge[1], edge[2]);
-
-            long parent_id;
-            int l, proc_num;
-            yt_getGridInfo_ParentId(gid, &parent_id);
-            yt_getGridInfo_Level(gid, &l);
-            yt_getGridInfo_ProcNum(gid, &proc_num);
-
-            printf("Parent ID: %ld\n", parent_id);
-            printf("Level: %d\n", l);
-            printf("yt_getGridInfo_ ProcNum: %d\n", proc_num);
-            printf("grids_MPI: %d\n", grids_MPI[gid]);
-
-            long count;
-            yt_getGridInfo_ParticleCount(gid, "io", &count);
-            printf("Particle Count = %ld\n", count);
-        }
-
-
-//    =============================================================
-//    7. perform inline analysis, execute function in python script
-//    =============================================================
-//    *** libyt API ***
+        // ==========================================
+        // libyt: 8. call inline python function
+        // ==========================================
         if (yt_inline_argument("yt_inline_ProjectionPlot", 1, "\'density\'") != YT_SUCCESS) {
             fprintf(stderr, "ERROR: yt_inline_argument() failed!\n");
             exit(EXIT_FAILURE);
@@ -437,38 +409,38 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
 
-//    =============================================================================
-//    8. end of the inline-analysis at this step, free grid info loaded into python
-//    =============================================================================
-//    *** libyt API ***
+
+        // =================================================
+        // libyt: 9. finish in-situ analysis, clean up libyt
+        // =================================================
         if (yt_free_gridsPtr() != YT_SUCCESS) {
             fprintf(stderr, "ERROR: yt_free_gridsPtr() failed!\n");
             exit(EXIT_FAILURE);
         }
 
 
-//    free resources
-        delete[] sim_grids;
-
+        // ==================================================
+        // simulation: increase one simulation time step
+        // ==================================================
         time += dt;
-    } // for (int step=0; step<total_steps; step++)
+    }
 
-// ==========================================
-// 9. exit libyt
-// ==========================================
-// *** libyt API ***
+
+    // =================================================
+    // libyt: 9. finalize libyt
+    // =================================================
     if (yt_finalize() != YT_SUCCESS) {
         fprintf(stderr, "ERROR: yt_finalize() failed!\n");
         exit(EXIT_FAILURE);
     }
 
 
+    // ==================================================
+    // simulation: finalize simulation
+    // ==================================================
+    delete[] sim_grids;
     delete[] field_data;
-    delete[] grids_MPI;
 
-    /*
-    MPI Finalize
-     */
     MPI_Finalize();
 
     return EXIT_SUCCESS;
@@ -644,9 +616,9 @@ void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *da
 //-------------------------------------------------------------------------------------------------------
 void getPositionByGID(long gid, real (*Pos)[3]) {
     for (long i = 0; i < num_total_grids; i++) {
-        if (gridsPtr[i].id == gid) {
+        if (sim_grids[i].id == gid) {
             for (int d = 0; d < 3; d++) {
-                (*Pos)[d] = (real) 0.5 * (gridsPtr[i].left_edge[d] + gridsPtr[i].right_edge[d]);
+                (*Pos)[d] = (real) 0.5 * (sim_grids[i].left_edge[d] + sim_grids[i].right_edge[d]);
             }
             break;
         }
@@ -659,8 +631,8 @@ void getPositionByGID(long gid, real (*Pos)[3]) {
 //-------------------------------------------------------------------------------------------------------
 void getLevelByGID(long gid, int *Level) {
     for (long i = 0; i < num_total_grids; i++) {
-        if (gridsPtr[i].id == gid) {
-            *Level = gridsPtr[i].level;
+        if (sim_grids[i].id == gid) {
+            *Level = sim_grids[i].level;
             break;
         }
     }
