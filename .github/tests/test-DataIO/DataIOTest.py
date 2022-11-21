@@ -30,6 +30,7 @@ def yt_inline_ProjectionPlot( fields ):
 def yt_inline_ProfilePlot():
     ds = yt.frontends.libyt.libytDataset()
     profile = yt.ProfilePlot(ds, "x", ["density"])
+
     if yt.is_root():
         profile.save()
 
@@ -43,17 +44,16 @@ def yt_inline_ParticlePlot():
     ## ParticlePlot
     #==========================
     par = yt.ParticlePlot(ds, "particle_position_x", "particle_position_y", "Level", center = 'c')
+
     if yt.is_root():
         par.save()
 
 def yt_derived_field_demo():
     ds = yt.frontends.libyt.libytDataset()
-    slc1 = yt.SlicePlot(ds, "z", ("gamer", "level_derived_func"))
-    slc2 = yt.SlicePlot(ds, "z", ("gamer", "level_derived_func_with_name"))
+    slc = yt.SlicePlot(ds, "z", ("gamer", "InvDens"))
 
     if yt.is_root():
-        slc1.save()
-        slc2.save()
+        slc.save()
 
 def test_function():
     global step
