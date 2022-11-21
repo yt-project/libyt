@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
     const double box_size = 1.0;                              // simulation box size
     const double dh0 = box_size / (NGRID_1D * GRID_DIM);      // cell size at level 0
     const double dh1 = dh0 / REFINE_BY;                       // cell size at level 1
-    const int num_fields = 1;                                 // number of fields
+    const int num_fields = 1;                                 // number of fields in simulation
     const int num_grids = CUBE(NGRID_1D) + CUBE(REFINE_BY);   // number of grids
     const int num_species = 1;                                // number of particle types
 
@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
         param_yt.refine_by = REFINE_BY;                       // refinement factor between a grid and its subgrid
         param_yt.num_grids = num_grids;                       // number of grids
         param_yt.num_grids_local = num_grids_local;           // number of local grids
-        param_yt.num_fields = num_fields + 1;                 // number of fields
+        param_yt.num_fields = num_fields + 1;                 // number of fields, addition one for derived field demo
         param_yt.num_species = num_species;                   // number of particle types (or species)
 
         yt_species species_list[num_species];
@@ -505,15 +505,18 @@ void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array) {
         yt_data dens_data;
         yt_getGridInfo_FieldData(gid_list[lid], "Dens", &dens_data);
 
-        // Generate and fill in data in [z][y][x] order, since we set this field swap_axes = true
+        // generate and fill in data in [z][y][x] order, since we set this field swap_axes = true
         int index, index_with_ghost_cell;
         for (int k = 0; k < dim[2]; k++) {
             for (int j = 0; j < dim[1]; j++) {
                 for (int i = 0; i < dim[0]; i++) {
                     index = k * dim[1] * dim[0] + j * dim[0] + i;
-                    index_with_ghost_cell =  (k + GHOST_CELL) * dim[1] * dim[0] + (j + GHOST_CELL) * dim[0] + (i + GHOST_CELL);
-                    // Get the point and store data.
-                    ((real *) data_array[lid].data_ptr)[index] = ((real *) dens_data.data_ptr)[index_with_ghost_cell];
+                    index_with_ghost_cell =  (k + GHOST_CELL) * (dim[1] + GHOST_CELL * 2) * (dim[0] + GHOST_CELL * 2)
+                                           + (j + GHOST_CELL) * (dim[0] + GHOST_CELL * 2)
+                                           + (i + GHOST_CELL);
+
+                    // write generated data in data_array allocated by libyt.
+                    ((real *) data_array[lid].data_ptr)[index] = 1.0 / ((real *) dens_data.data_ptr)[index_with_ghost_cell];
                 }
             }
         }
