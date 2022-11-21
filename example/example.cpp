@@ -239,7 +239,7 @@ int main(int argc, char *argv[]) {
         yt_particle *particle_list;
         yt_get_particlesPtr(&particle_list);
 
-        // Particle type "io"
+        // Particle type "io", each particle has position in the center of the grid it belongs to with value grid level.
         particle_list[0].species_name = "io";
         particle_list[0].num_attr = 4;
         char *attr_name[] = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
