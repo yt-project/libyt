@@ -12,23 +12,23 @@
 - **Supported `yt` functionalities**:
 
   |       `yt` Function      | Supported | Notes                                    |
-  |:------------------------:|:---------:|------------------------------------------|
-  | `find_max`               | V         |                                          |
-  | `ProjectionPlot`         | V         |                                          |
-  | `OffAxisProjectionPlot`  | V         |                                          |
-  | `SlicePlot`              | V         |                                          |
-  | `OffAxisSlicePlot`       | V         |                                          |
-  | `covering_grid`          | V         |                                          |
-  | 1D `create_profile`      | V         |                                          |
-  | 2D `create_profile`      | V         |                                          |
-  | `ProfilePlot`            | V         |                                          |
-  | `PhasePlot`              | V         |                                          |
-  | `LinePlot`               | V         |                                          |
+  |:---------:|:---------:|------------------------------------------|
+  | `find_max`               |     V     |                                          |
+  | `ProjectionPlot`         |     V     |                                          |
+  | `OffAxisProjectionPlot`  |     V     |                                          |
+  | `SlicePlot`              |     V     |                                          |
+  | `OffAxisSlicePlot`       |     V     |                                          |
+  | `covering_grid`          |     V     |                                          |
+  | 1D `create_profile`      |     V     |                                          |
+  | 2D `create_profile`      |     V     |                                          |
+  | `ProfilePlot`            |     V     |                                          |
+  | `PhasePlot`              |     V     |                                          |
+  | `LinePlot`               |     V     |                                          |
   | Halo Analysis            |           | Not test yet.                            |
-  | Isocontours              |           | Not test yet.                            |
-  | `volume_render`          | V         | Only when MPI size is even will it work. |
-  | `ParticlePlot`           | V         |                                          |
-  | `ParticleProjectionPlot` | V         |                                          |
+  | Isocontours              |     V     |  |
+  | `volume_render`          |     V     | Only when MPI size is even will it work. |
+  | `ParticlePlot`           |     V     |                                          |
+  | `ParticleProjectionPlot` |     V     |                                          |
 
 ## Installation
 ### libyt
@@ -81,6 +81,4 @@ This guide will walk you through how to implement `libyt` into your code. And ho
 
 ## Example
 - A simple demo in [`libyt/example.cpp`](./example/example.cpp)
-- Applied to simulation code:
-  - [`gamer`](https://github.com/gamer-project/gamer)
-    - *I'll update the links when it is merged...*
+- [`gamer`](https://github.com/gamer-project/gamer/tree/master/src/YT)
