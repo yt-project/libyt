@@ -46,17 +46,13 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 
    	// If user call for the first time.
    	if ( !g_param_libyt.get_gridsPtr ){
-	   	// Get the MPI rank
-	   	int MyRank;
-	   	MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
-
 		// Initialize the grids_local array.
 		// Set the value if overlapped with g_param_yt,
 		// and each fields data are set to NULL, so that we can check if user input the data
 		*grids_local = new yt_grid [g_param_yt.num_grids_local];
 		for ( int id = 0; id < g_param_yt.num_grids_local; id = id+1 ){
 			
-			(*grids_local)[id].proc_num     = MyRank;
+			(*grids_local)[id].proc_num     = g_myrank;
 			
 			// Dealing with individual field in one grid
 			if ( g_param_yt.num_fields > 0 ){

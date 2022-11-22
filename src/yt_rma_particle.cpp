@@ -1,5 +1,6 @@
 #include "yt_rma_particle.h"
-#include "yt_type_array.h"
+#include "yt_combo.h"
+#include "libyt.h"
 #include <string.h>
 
 //-------------------------------------------------------------------------------------------------------
@@ -102,38 +103,26 @@ int yt_rma_particle::prepare_data(long& gid)
 {
     // Make sure particle type and its attribute name exist.
     if( m_ParticleIndex == -1 ){
-        int myrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-        YT_ABORT("yt_rma_particle: Cannot find species name [ %s ] in particle_list on MPI rank [ %d ].\n", m_ParticleType, myrank);
+        YT_ABORT("yt_rma_particle: Cannot find species name [ %s ] in particle_list on MPI rank [ %d ].\n", m_ParticleType, g_myrank);
     }
     if( m_AttributeIndex == -1 ){
-        int myrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
         YT_ABORT("yt_rma_particle: Cannot find attribute name [ %s ] in species name [ %s ] on MPI rank [ %d ].\n",
-                 m_AttributeName, m_ParticleType, myrank);
+                 m_AttributeName, m_ParticleType, g_myrank);
     }
 
     // Get particle info
-    bool get_local_gid = false;
     yt_rma_particle_info par_info;
     par_info.id = gid;
-
-    for(int lid = 0; lid < g_param_yt.num_grids_local; lid++){
-        if( g_param_yt.grids_local[lid].id == gid ){
-            par_info.rank = g_param_yt.grids_local[lid].proc_num;
-            par_info.data_len = g_param_yt.grids_local[lid].particle_count_list[m_ParticleIndex];
-            if ( par_info.data_len < 0 ){
-                log_error("yt_rma_particle: In GID [ %ld ] species name [ %s ], particle count smaller than zero.\n",
-                          gid, m_ParticleType);
-            }
-            get_local_gid = true;
-            break;
-        }
+    yt_getGridInfo_ProcNum(gid, &(par_info.rank));
+    if ( par_info.rank != g_myrank ) {
+        YT_ABORT("yt_rma_particle: Trying to prepare nonlocal particle data in grid [%ld] that is on MPI rank [%d].\n",
+                 gid, par_info.rank);
     }
-    if( get_local_gid != true ){
-        int myrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-        YT_ABORT("yt_rma_particle: Cannot find grid id [ %ld ] on MPI rank [ %d ].\n", gid, myrank);
+    if ( yt_getGridInfo_ParticleCount(gid, m_ParticleType, &(par_info.data_len)) != YT_SUCCESS ) {
+        YT_ABORT("yt_rma_particle: Failed to get number of particle %s in grid [%ld].\n", m_ParticleType, gid);
+    }
+    if ( par_info.data_len < 0 ) {
+        YT_ABORT("yt_rma_particle: Particle %s count = %ld < 0 in grid [%ld].\n", m_ParticleType, par_info.data_len, gid);
     }
 
     // Generate particle data
@@ -222,20 +211,7 @@ int yt_rma_particle::gather_all_prepare_data(int root)
     }
     m_LenAllPrepare = m_SearchRange[ NRank ];
 
-    // Gather PreparedInfoList, which is m_Prepare in each rank
-    // (1) Create MPI_Datatype for yt_rma_particle_info
-    // TODO: I should create this MPI_Datatype once and for all...
-    MPI_Datatype yt_rma_particle_info_mpi_type;
-    int lengths[4] = {1, 1, 1, 1};
-    const MPI_Aint displacements[4] = {0,
-                                       1 * sizeof(long),
-                                       1 * sizeof(long) + 1 * sizeof(MPI_Aint),
-                                       2 * sizeof(long) + 1 * sizeof(MPI_Aint)};
-    MPI_Datatype types[4] = {MPI_LONG, MPI_AINT, MPI_LONG, MPI_INT};
-    MPI_Type_create_struct(4, lengths, displacements, types, &yt_rma_particle_info_mpi_type);
-    MPI_Type_commit(&yt_rma_particle_info_mpi_type);
-
-    // (2) Perform big_MPI_Gatherv and big_MPI_Bcast
+    // Gather PreparedInfoList, which is m_Prepare in each rank, perform big_MPI_Gatherv and big_MPI_Bcast
     m_AllPrepare = new yt_rma_particle_info [m_LenAllPrepare];
     big_MPI_Gatherv(root, SendCount, (void*)PreparedInfoList, &yt_rma_particle_info_mpi_type, (void*)m_AllPrepare, 2);
     big_MPI_Bcast(root, m_LenAllPrepare, (void*)m_AllPrepare, &yt_rma_particle_info_mpi_type, 2);
@@ -278,10 +254,8 @@ int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
         }
     }
     if( get_remote_gid != true ){
-        int myrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
         YT_ABORT("yt_rma_particle: Cannot get remote grid id [ %ld ] located in rank [ %d ] on MPI rank [ %d ].\n",
-                 gid, rank, myrank);
+                 gid, rank, g_myrank);
     }
     void *fetchedData;
 

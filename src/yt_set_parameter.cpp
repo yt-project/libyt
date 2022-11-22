@@ -15,7 +15,7 @@
 //                   To make loading field_list and particle_list more systematic, we will allocate both
 //                   field_list (if num_fields>0 ) and particle_list (if num_species>0) here.
 //                2. Should be called after yt_init().
-//                3. Check the validaty of the data in param_yt.
+//                3. Check the validation of the data in param_yt.
 //                4. Initialize python hierarchy allocate_hierarchy() and particle_list.
 //                5. Gather each ranks number of local grids, we need this info in yt_commit_grid().
 //
@@ -157,18 +157,13 @@ int yt_set_parameter( yt_param_yt *param_yt )
       g_param_libyt.get_gridsPtr = true;
    }
 
-
-// Organize other information, for later runtime usage
-   int MyRank;
-   MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
-
    // Make sure g_param_yt.num_grids_local is set, 
    // and if g_param_yt.num_grids_local < 0, set it = 0
    if ( g_param_yt.num_grids_local < 0 ) {
       
       // Prevent input long type and exceed int storage
       log_warning("Number of local grids = %d at MPI rank %d, probably because of exceeding int storage or wrong input!\n",
-                   g_param_yt.num_grids_local, MyRank);
+                   g_param_yt.num_grids_local, g_myrank);
 
       // if < 0, set it to 0, to avoid adding negative num_grids_local when checking num_grids. 
       g_param_yt.num_grids_local = 0;
