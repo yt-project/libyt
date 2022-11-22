@@ -81,6 +81,4 @@ This guide will walk you through how to implement `libyt` into your code. And ho
 
 ## Example
 - A simple demo in [`libyt/example.cpp`](./example/example.cpp)
-- Applied to simulation code:
-  - [`gamer`](https://github.com/gamer-project/gamer)
-    - *I'll update the links when it is merged...*
+- [`gamer`](https://github.com/gamer-project/gamer/tree/master/src/YT)

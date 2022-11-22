@@ -15,7 +15,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
 - [Inline Python Script](./InlinePythonScript.md#inline-python-script)
 
 ## Example
-- [`libyt/example`](https://github.com/calab-ntu/libyt/blob/master/example/example.cpp)
+- [`libyt/example`](../example/example.cpp)
 
 ## Overview
 <table>
