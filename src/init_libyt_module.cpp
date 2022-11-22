@@ -3,6 +3,7 @@
 #include "yt_rma_field.h"
 #include "yt_rma_particle.h"
 #include "yt_type_array.h"
+#include "libyt.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Description :  List of libyt C extension python methods
@@ -25,8 +26,7 @@
 //                to Python.
 //
 // Note        :  1. Support only grid dimension = 3 for now.
-//                2. This function only needs to deal with the local grids. So we can always find one
-//                   grid with id = gid inside grids_local.
+//                2. This function only needs to deal with the local grids.
 //                3. The returned numpy array data type is according to field's field_dtype defined at
 //                   yt_field.
 //                4. grid_dimensions[3] is in [x][y][z] coordinate.
@@ -93,30 +93,22 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    // Get the grid's dimension[3] according to the gid.
-    // We can always find grid with id = gid inside grids_local, since we had filtered them.
-    int  grid_dimensions[3];
-    bool have_Grid = false;
-
-    for (int lid = 0; lid < g_param_yt.num_grids_local; lid++){
-        if ( g_param_yt.grids_local[lid].id == gid ){
-            have_Grid = true;
-            for (int d=0; d<3; d++){
-                if ( g_param_yt.grids_local[lid].grid_dimensions[d] < 0 ) {
-                    PyErr_Format(PyExc_ValueError, "GID [ %ld ], grid_dimensions[%d] smaller than zero.\n", gid, d);
-                    return NULL;
-                }
-                grid_dimensions[d] = g_param_yt.grids_local[lid].grid_dimensions[d];
-            }
-            break;
-        }
-    }
-
-    if ( !have_Grid ){
-        int MyRank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
-        PyErr_Format(PyExc_ValueError, "Cannot find grid with GID [ %ld ] on MPI rank [%d].\n", gid, MyRank);
+    // Get the grid's dimension[3], proc_num according to the gid.
+    int  grid_dimensions[3], proc_num;
+    if ( yt_getGridInfo_ProcNum(gid, &proc_num) != YT_SUCCESS ||
+         yt_getGridInfo_Dimensions(gid, &grid_dimensions) != YT_SUCCESS ){
+        PyErr_Format(PyExc_ValueError, "Cannot get grid [%ld] dimensions or MPI rank.\n", gid);
         return NULL;
+    }
+    if ( proc_num != g_myrank ){
+        PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal grid. Grid [%ld] is on MPI rank [%d].\n", gid, proc_num);
+        return NULL;
+    }
+    for (int d=0; d<3; d++){
+        if (grid_dimensions[d] < 0){
+            PyErr_Format(PyExc_ValueError, "Trying to prepare grid [%ld] that has grid_dimensions[%d] = %d < 0.\n", gid, d, grid_dimensions[d]);
+            return NULL;
+        }
     }
 
     // Generate data using derived_func or derived_func_with_name
@@ -200,9 +192,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
 //
 // Note        :  1. Support only grid dimension = 3 for now, which is "coor_x", "coor_y", "coor_z" in
 //                   yt_particle must be set.
-//                2. We assume that parallelism in yt will make each rank only has to deal with the local
-//                   grids. So we can always find one grid with id = gid inside grids_local. We will only
-//                   get particle that belongs to this id.
+//                2. Deal with local particles only.
 //                3. The returned numpy array data type well be set by attr_dtype.
 //                4. We will always return 1D numpy array, with length equal particle count of the species 
 //                   in that grid.
@@ -232,14 +222,11 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     // If cannot find ptype or attr_name, raise an error.
     // If find them successfully, but get_attr not set, which is == NULL, raise an error.
     void    (*get_attr) (int, long*, char*, yt_array*);
-    yt_dtype attr_dtype;
-    int      species_index;
-    bool     have_ptype = false;
-    bool     have_attr_name = false;
+    yt_dtype attr_dtype = YT_DTYPE_UNKNOWN;
+    int      species_index = -1;
 
     for ( int s = 0; s < g_param_yt.num_species; s++ ){
         if ( strcmp(g_param_yt.particle_list[s].species_name, ptype) == 0 ){
-            have_ptype = true;
             species_index = s;
 
             // Get get_attr
@@ -255,7 +242,6 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
             // Get attr_dtype
             for ( int p = 0; p < g_param_yt.particle_list[s].num_attr; p++ ){
                 if ( strcmp(g_param_yt.particle_list[s].attr_list[p].attr_name, attr_name) == 0 ){
-                    have_attr_name = true;
                     attr_dtype = g_param_yt.particle_list[s].attr_list[p].attr_dtype;
                     break;
                 }
@@ -265,47 +251,37 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
         }
     }
 
-    if ( !have_ptype ){
+    if ( species_index == -1 ){
         PyErr_Format(PyExc_ValueError, "Cannot find species_name [ %s ] in particle_list.\n", ptype);
         return NULL;
     }
-    if ( !have_attr_name ){
+    if ( attr_dtype == YT_DTYPE_UNKNOWN ){
         PyErr_Format(PyExc_ValueError, "species_name [ %s ], attr_name [ %s ] not in particle_list.\n",
                      ptype, attr_name);
         return NULL;
     }
 
-
     // Get length of the returned 1D numpy array, which is equal to particle_count_list in the grid.
     long  array_length;
-    bool  have_Grid = false;
-
-    for (int lid = 0; lid < g_param_yt.num_grids_local; lid++){
-        if ( g_param_yt.grids_local[lid].id == gid ){
-            have_Grid = true;
-            array_length = g_param_yt.grids_local[lid].particle_count_list[species_index];
-            
-            if ( array_length == 0 ){
-                Py_INCREF(Py_None);
-                return Py_None;
-            }
-            else if ( array_length < 0 ){
-                log_error("In GID [ %ld ] species [ %s ], particle count smaller than 0, return None to Python.\n", gid, ptype);
-                Py_INCREF(Py_None);
-                return Py_None;
-            }
-            
-            break;
-        }
-    }
-
-    if ( !have_Grid ){
-        int MyRank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
-        PyErr_Format(PyExc_ValueError, "Cannot find grid with GID [ %ld ] on MPI rank [%d].\n", gid, MyRank);
+    int proc_num;
+    if ( yt_getGridInfo_ProcNum(gid, &proc_num) != YT_SUCCESS ||
+         yt_getGridInfo_ParticleCount(gid, ptype, &array_length) != YT_SUCCESS ){
+        PyErr_Format(PyExc_ValueError, "Cannot get particle number in grid [%ld] or MPI rank.\n", gid);
         return NULL;
     }
-
+    if ( proc_num != g_myrank ){
+        PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal particles. Grid [%ld] is on MPI rank [%d].\n", gid, proc_num);
+        return NULL;
+    }
+    if ( array_length == 0 ){
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+    if ( array_length < 0 ) {
+        PyErr_Format(PyExc_ValueError, "Grid [%ld] particle species [%s] has particle number = %ld < 0.\n",
+                     gid, ptype, array_length);
+        return NULL;
+    }
 
     // Allocate the output array with size = array_length, type = attr_dtype, and initialize as 0
     // Then pass in to get_attr(long, char*, void*) function
@@ -630,10 +606,10 @@ static PyObject* libyt_particle_get_attr_remote(PyObject *self, PyObject *args){
 
                 // Step3: Wrap the data to NumPy array if ptr is not NULL and append to dictionary.
                 //        Or else append None to dictionary.
-                if( get_data_ptr == NULL ){
+                if( get_data_len == 0 ){
                     PyDict_SetItemString(py_attribute_dict, get_attr, Py_None);
                 }
-                else{
+                else if ( get_data_len > 0 && get_data_ptr != NULL ) {
                     int nd = 1;
                     int npy_type;
                     npy_intp dims[1] = { get_data_len };
@@ -642,6 +618,10 @@ static PyObject* libyt_particle_get_attr_remote(PyObject *self, PyObject *args){
                     PyArray_ENABLEFLAGS( (PyArrayObject*) py_par_data, NPY_ARRAY_OWNDATA );
                     PyDict_SetItemString(py_attribute_dict, get_attr, py_par_data);
                     Py_DECREF(py_par_data);
+                }
+                else {
+                    PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_particle when fetching remote data.\n");
+                    return NULL;
                 }
             }
 

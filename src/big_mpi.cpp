@@ -13,6 +13,8 @@
 //                       0          yt_hierarchy
 //                       1          yt_rma_grid_info
 //                       2          yt_rma_particle_info
+//                       3          long
+//                TODO: Using function templates
 //
 // Parameter   :  int            RootRank     : Root rank.
 //                int           *sendcounts   : Send counts in each rank.
@@ -25,21 +27,15 @@
 //-------------------------------------------------------------------------------------------------------
 int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatype *mpi_datatype, void *recvbuffer, int cast_type)
 {
-    // Get NRank, MyRank
-    int MyRank;
-    int NRank;
-    MPI_Comm_size(MPI_COMM_WORLD, &NRank);
-    MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
-
     // Count recv_counts, offsets, and split the buffer, if too large.
-    int *recv_counts = new int [NRank];
-    int *offsets = new int [NRank];
+    int *recv_counts = new int [g_mysize];
+    int *offsets = new int [g_mysize];
     int mpi_start = 0;
     long index_start = 0;
     long accumulate = 0;
 
     // Workaround method for passing big sendcount.
-    for (int i = 0; i < NRank; i++){
+    for (int i = 0; i < g_mysize; i++){
         offsets[i] = 0;
         accumulate = 0;
         for (int j = mpi_start; j < i; j++){
@@ -49,7 +45,7 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
         // exceeding INT_MAX, start MPI_Gatherv
         if ( accumulate > INT_MAX ){
             // Set recv_counts and offsets.
-            for (int k = 0; k < NRank; k++){
+            for (int k = 0; k < g_mysize; k++){
                 if ( mpi_start <= k && k < i ){
                     recv_counts[k] = sendcounts[k];
                 }
@@ -60,8 +56,8 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
             }
             // MPI_Gatherv
             if(cast_type == 0){
-                if ( mpi_start <= MyRank && MyRank < i ){
-                    MPI_Gatherv(sendbuffer, sendcounts[MyRank], *mpi_datatype,
+                if ( mpi_start <= g_myrank && g_myrank < i ){
+                    MPI_Gatherv(sendbuffer, sendcounts[g_myrank], *mpi_datatype,
                                 &(((yt_hierarchy*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
                 }
                 else{
@@ -70,8 +66,8 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
                 }
             }
             else if(cast_type == 1){
-                if ( mpi_start <= MyRank && MyRank < i ){
-                    MPI_Gatherv(sendbuffer, sendcounts[MyRank], *mpi_datatype,
+                if ( mpi_start <= g_myrank && g_myrank < i ){
+                    MPI_Gatherv(sendbuffer, sendcounts[g_myrank], *mpi_datatype,
                                 &(((yt_rma_grid_info*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
                 }
                 else{
@@ -80,13 +76,23 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
                 }
             }
             else if(cast_type == 2){
-                if ( mpi_start <= MyRank && MyRank < i ){
-                    MPI_Gatherv(sendbuffer, sendcounts[MyRank], *mpi_datatype,
+                if ( mpi_start <= g_myrank && g_myrank < i ){
+                    MPI_Gatherv(sendbuffer, sendcounts[g_myrank], *mpi_datatype,
                                 &(((yt_rma_particle_info*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
                 }
                 else{
                     MPI_Gatherv(sendbuffer,                  0, *mpi_datatype,
                                 &(((yt_rma_particle_info*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+                }
+            }
+            else if(cast_type == 3){
+                if ( mpi_start <= g_myrank && g_myrank < i ){
+                    MPI_Gatherv(sendbuffer, sendcounts[g_myrank], *mpi_datatype,
+                                &(((long*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+                }
+                else{
+                    MPI_Gatherv(sendbuffer,                  0, *mpi_datatype,
+                                &(((long*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
                 }
             }
 
@@ -101,9 +107,9 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
             // Reach last mpi rank, MPI_Gatherv
             // We can ignore the case when there is only one rank left and its offsets exceeds INT_MAX simultaneously.
             // Because one is type int, the other is type long.
-        else if ( i == NRank - 1 ){
+        else if ( i == g_mysize - 1 ){
             // Set recv_counts and offsets.
-            for (int k = 0; k < NRank; k++){
+            for (int k = 0; k < g_mysize; k++){
                 if ( mpi_start <= k && k <= i ){
                     recv_counts[k] = sendcounts[k];
                 }
@@ -114,8 +120,8 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
             }
             // MPI_Gatherv
             if(cast_type == 0){
-                if ( mpi_start <= MyRank && MyRank <= i ){
-                    MPI_Gatherv(sendbuffer, sendcounts[MyRank], *mpi_datatype,
+                if ( mpi_start <= g_myrank && g_myrank <= i ){
+                    MPI_Gatherv(sendbuffer, sendcounts[g_myrank], *mpi_datatype,
                                 &(((yt_hierarchy*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
                 }
                 else{
@@ -124,8 +130,8 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
                 }
             }
             else if(cast_type == 1){
-                if ( mpi_start <= MyRank && MyRank <= i ){
-                    MPI_Gatherv(sendbuffer, sendcounts[MyRank], *mpi_datatype,
+                if ( mpi_start <= g_myrank && g_myrank <= i ){
+                    MPI_Gatherv(sendbuffer, sendcounts[g_myrank], *mpi_datatype,
                                 &(((yt_rma_grid_info*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
                 }
                 else{
@@ -134,8 +140,8 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
                 }
             }
             else if(cast_type == 2){
-                if ( mpi_start <= MyRank && MyRank <= i ){
-                    MPI_Gatherv(sendbuffer, sendcounts[MyRank], *mpi_datatype,
+                if ( mpi_start <= g_myrank && g_myrank <= i ){
+                    MPI_Gatherv(sendbuffer, sendcounts[g_myrank], *mpi_datatype,
                                 &(((yt_rma_particle_info*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
                 }
                 else{
@@ -143,7 +149,16 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
                                 &(((yt_rma_particle_info*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
                 }
             }
-
+            else if(cast_type == 3){
+                if ( mpi_start <= g_myrank && g_myrank <= i ){
+                    MPI_Gatherv(sendbuffer, sendcounts[g_myrank], *mpi_datatype,
+                                &(((long*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+                }
+                else{
+                    MPI_Gatherv(sendbuffer,                  0, *mpi_datatype,
+                                &(((long*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+                }
+            }
         }
     }
 
@@ -166,6 +181,7 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
 //                       0          yt_hierarchy
 //                       1          yt_rma_grid_info
 //                       2          yt_rma_particle_info
+//                       3          long
 //
 // Parameter   :  int            RootRank     : Root rank.
 //                long           sendcount    : Send count.
@@ -213,6 +229,17 @@ int big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_
             }
             else {
                 MPI_Bcast(&(((yt_rma_particle_info*)buffer)[index]), (int)stride, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+            }
+        }
+    }
+    else if( cast_type == 3 ){
+        for (int i=0; i < part; i++){
+            index = i * stride;
+            if ( i == part - 1 ){
+                MPI_Bcast(&(((long*)buffer)[index]), remain, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+            }
+            else {
+                MPI_Bcast(&(((long*)buffer)[index]), (int)stride, *mpi_datatype, RootRank, MPI_COMM_WORLD);
             }
         }
     }
