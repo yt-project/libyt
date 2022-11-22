@@ -8,7 +8,6 @@ int yt_commit_grids();
 
 ## Example
 ```cpp
-/* libyt API */
 if ( yt_commit_grids() != YT_SUCCESS ) {
     fprintf( stderr, "ERROR: yt_commit_grids() failed!\n" );  
     exit( EXIT_FAILURE );  

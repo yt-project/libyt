@@ -46,19 +46,19 @@ You should distinuguish them when referring to fields in inline Python script.
 ## Supported `yt` Functionalities 
 |       `yt` Function      | Supported | Notes                                    |
 |:------------------------:|:---------:|------------------------------------------|
-| `find_max`               | V         |                                          |
-| `ProjectionPlot`         | V         |                                          |
-| `OffAxisProjectionPlot`  | V         |                                          |
-| `SlicePlot`              | V         |                                          |
-| `OffAxisSlicePlot`       | V         |                                          |
-| `covering_grid`          | V         |                                          |
-| 1D `create_profile`      | V         |                                          |
-| 2D `create_profile`      | V         |                                          |
-| `ProfilePlot`            | V         |                                          |
-| `PhasePlot`              | V         |                                          |
-| `LinePlot`               | V         |                                          |
+| `find_max`               |     V     |                                          |
+| `ProjectionPlot`         |     V     |                                          |
+| `OffAxisProjectionPlot`  |     V     |                                          |
+| `SlicePlot`              |     V     |                                          |
+| `OffAxisSlicePlot`       |     V     |                                          |
+| `covering_grid`          |     V     |                                          |
+| 1D `create_profile`      |     V     |                                          |
+| 2D `create_profile`      |     V     |                                          |
+| `ProfilePlot`            |     V     |                                          |
+| `PhasePlot`              |     V     |                                          |
+| `LinePlot`               |     V     |                                          |
 | Halo Analysis            |           | Not test yet.                            |
-| Isocontours              |           | Not test yet.                            |
-| `volume_render`          | V         | Only when MPI size is even will it work. |
-| `ParticlePlot`           | V         |                                          |
-| `ParticleProjectionPlot` | V         |                                          |
+| Isocontours              |     V     |                                          |
+| `volume_render`          |     V     | Only when MPI size is even will it work. |
+| `ParticlePlot`           |     V     |                                          |
+| `ParticleProjectionPlot` |     V     |                                          |

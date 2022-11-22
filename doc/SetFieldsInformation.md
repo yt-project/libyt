@@ -60,8 +60,7 @@ int yt_get_fieldsPtr( yt_field **field_list )
 yt_field *field_list;  
 yt_get_fieldsPtr( &field_list );
 
-/* We have three field in this example. */ 
-// (1) cell-centered type field "Dens" 
+// cell-centered type field "Dens" 
 field_list[0].field_name = "Dens";  
 field_list[0].field_define_type = "cell-centered";  
 field_list[0].field_dtype = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;  

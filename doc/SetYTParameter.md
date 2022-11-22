@@ -63,36 +63,40 @@ int yt_set_parameter( yt_param_yt *param_yt )
 
 ## Example
 ```cpp
-yt_param_yt param_yt;  
+yt_param_yt param_yt;
+param_yt.frontend = "gamer";                          // simulation frontend that libyt borrows field info from
+param_yt.fig_basename = "FigName";                    // figure base name (default=Fig)
+param_yt.length_unit = 3.0857e21;                     // length unit (cm)
+param_yt.mass_unit = 1.9885e33;                       // mass unit (g)
+param_yt.time_unit = 3.1557e13;                       // time unit (sec)
+param_yt.current_time = time;                         // simulation time in code units
+param_yt.dimensionality = 3;                          // dimensionality, support 3 only
+param_yt.refine_by = REFINE_BY;                       // refinement factor between a grid and its subgrid
+param_yt.num_grids = num_grids;                       // number of grids
+param_yt.num_grids_local = num_grids_local;           // number of local grids
+param_yt.num_fields = num_fields + 1;                 // number of fields, addition one for derived field demo
+param_yt.num_species = num_species;                   // number of particle types (or species)
 
-/* Set YT parameter. */
-param_yt.length_unit             = 3.0857e21;
-...
-
-/* Set frontend name, 
-   so libyt can borrow the field information class of that frontend in YT. */
-param_yt.frontend                = "gamer";  
-
-/* Set figure base name. */
-param_yt.fig_basename            = "FigName";
-
-/* Set number of grids, local grids, and fields. */
-param_yt.num_grids_local         = num_grids_local;
-param_yt.num_grids               = num_grids;
-param_yt.num_fields              = num_fields;
-
-/* Set number of particle types and number of their attributes. */
-yt_species  *species_list    = new yt_species [num_species];
+yt_species species_list[num_species];
 species_list[0].species_name = "io";
-species_list[0].num_attr     = 4;
-species_list[1].species_name = "par2";
-species_list[1].num_attr     = 4;
-param_yt.num_species         = num_species;
-param_yt.species_list        = species_list;
+species_list[0].num_attr = 4;
+param_yt.species_list = species_list;                 // define name and number of attributes in each particle
 
-/* libyt API */
-if ( yt_set_parameter( &param_yt ) != YT_SUCCESS )  {  
-    fprintf( stderr, "ERROR: yt_set_parameter() failed!\n" );  
-    exit( EXIT_FAILURE );  
+for (int d = 0; d < 3; d++) {
+    param_yt.domain_dimensions[d] = NGRID_1D * GRID_DIM; // domain dimensions in [x][y][z]
+    param_yt.domain_left_edge[d] = 0.0;                  // domain left edge in [x][y][z]
+    param_yt.domain_right_edge[d] = box_size;            // domain right edge in [x][y][z]
+    param_yt.periodicity[d] = 0;                         // periodicity in [x][y][z]
+}
+
+param_yt.cosmological_simulation = 0;                 // if this is a cosmological simulation or not, 0 for false
+param_yt.current_redshift = 0.5;                      // current redshift
+param_yt.omega_lambda = 0.7;                          // omega lambda
+param_yt.omega_matter = 0.3;                          // omega matter
+param_yt.hubble_constant = 0.7;                       // hubble constant
+
+if (yt_set_parameter(&param_yt) != YT_SUCCESS) {
+    fprintf(stderr, "ERROR: yt_set_parameter() failed!\n");
+    exit(EXIT_FAILURE);
 }
 ```
