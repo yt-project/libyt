@@ -26,6 +26,8 @@ Derived functions have prototype like this respectively:
   - `char *field`: target field name.
   - `yt_array *data_array`: write generated data to the pointer in this array correspondingly. See below for how to fill in data.
 
+> :information_source: `libyt` first looks for function pointer under `derived_func` and then looks for function pointer under `derived_func_with_name`.
+
 Derived functions `derived_func` and `derived_function_with_name` should be able to generate required data and write data to `yt_array` array data member `data_ptr` without ghost cell. Make sure your function writes the data in x-address alters first orientation (which is [z][y][x]), if `swap_axes` is set to `true`. Write the data in z-address alters first orientation (which is [x][y][z]), if `swap_axes` is set to `false`.
 
 - `yt_array`
@@ -44,7 +46,49 @@ Derived functions `derived_func` and `derived_function_with_name` should be able
 ```cpp
 int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] );
 ```
-- Usage: Get dimension of the grid id `gid`, `dimensions[0]` corresponds to length of x, `dimensions[1]` corresponds to length of y, and `dimensions[2]` corresponds to length of z.
+- Usage: Get dimension of grid `gid`. `dimensions[0]` corresponds to dimension in x-axis, `dimensions[1]` corresponds to dimension in y-axis, and `dimensions[2]` corresponds to dimension in z-axis, excluding ghost cells.
+- Return: `YT_SUCCESS` or `YT_FAIL`
+
+#### yt\_getGridInfo\_LeftEdge
+```cpp
+int yt_getGridInfo_LeftEdge(const long gid, double (*left_edge)[3]);
+```
+- Usage: Get left edge of grid `gid`. `left_edge[0]` is left edge of the grid in x-axis in code length, `left_edge[1]` for y-axis, and `left_edge[2]` for z-axis.
+- Return: `YT_SUCCESS` or `YT_FAIL`
+
+#### yt\_getGridInfo\_RightEdge
+```cpp
+int yt_getGridInfo_RightEdge(const long gid, double (*right_edge)[3]);
+```
+- Usage: Get right edge of grid `gid`. `right_edge[0]` is right edge of the grid in x-axis in code length, `right_edge[1]` for y-axis, and `right_edge[2]` for z-axis.
+- Return: `YT_SUCCESS` or `YT_FAIL`
+
+#### yt\_getGridInfo\_ParentId
+```cpp
+int yt_getGridInfo_ParentId(const long gid, long *parent_id);
+```
+- Usage: Get parent grid id of grid `gid`. If there is no parent grid, `parent_id` will be `-1`.
+- Return: `YT_SUCCESS` or `YT_FAIL`
+
+#### yt\_getGridInfo\_Level
+```cpp
+int yt_getGridInfo_Level(const long gid, int *level);
+```
+- Usage: Get level of grid `gid`. It is 0-indexed. If grids are on root level, `level` will be `0`.
+- Return: `YT_SUCCESS` or `YT_FAIL`
+
+#### yt\_getGridInfo\_ProcNum
+```cpp
+int yt_getGridInfo_ProcNum(const long gid, int *proc_num);
+```
+- Usage: Get MPI process number (MPI rank) of grid `gid` located on.
+- Return: `YT_SUCCESS` or `YT_FAIL`
+
+#### yt\_getGridInfo\_ParticleCount
+```cpp
+int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_count);
+```
+- Usage: Get number of particle `ptype` located on grid `gid`.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 #### yt\_getGridInfo\_FieldData
@@ -58,66 +102,55 @@ int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *f
   - `data_dimensions[3]`: Dimension of the `data_ptr` array, in the point of view of itself.
   - `data_dtype`: Data type of the array.
 
-> :information_source: Do not mix grid dimensions get by `yt_getGridInfo_Dimensions` with data dimensions get by `yt_getGridInfo_FieldData`. Grid dimensions are grid length in [0][1][2] <-> [x][y][z]. Whereas data dimensions are just data length in data's point of view, which may consist of ghost cells.
+> :information_source: Do not mix grid dimensions get by `yt_getGridInfo_Dimensions` with data dimensions get by `yt_getGridInfo_FieldData`. Grid dimensions are grid length in [0][1][2] <-> [x][y][z], excluding ghost cells. Whereas data dimensions are just data length in data's point of view, which may consist of ghost cells.
 
 > :warning: You should not be modifying `data_ptr`, as they are those data pointers you passed in and will be used in your later on iterations.
 
 ## Example
-Field `level_derived_func` and `level_derived_func_with_name` have grid data equal to their grid level. Function `level_derived_func` and `level_derived_func_with_name` will generate the grid data and write to corresponding data pointer.
-```c++
-/* libyt API */  
-yt_field *field_list;  
-yt_get_fieldsPtr( &field_list );
+Field `InvDens` is a derived field and is reciprocal of density field `Dens`. `derived_func_InvDens` first gets level, grid dimensions and density data of the grid, and it generates data and stores them in `data_array`.
+```cpp
+// get pointer of the array where we should put data to
+yt_field *field_list;
+yt_get_fieldsPtr(&field_list);
 
-/* We have three field in this example. */ 
-// (2) derived field "level_derived_func"
-field_list[1].field_name = "level_derived_func";
+// Reciprocal of density field "InvDens"
+field_list[1].field_name = "InvDens";
 field_list[1].field_define_type = "derived_func";
 field_list[1].swap_axes = true;
-field_list[1].field_dtype = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
-field_list[1].derived_func = level_derived_func;
-// (3) derived field "level_derived_func_with_name"
-field_list[2].field_name = "level_derived_func_with_name";
-field_list[2].field_define_type = "derived_func";
-field_list[2].swap_axes = true;
-field_list[2].field_dtype = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;
-field_list[2].derived_func_with_name = level_derived_func_with_name;
+field_list[1].field_dtype = (typeid(real) == typeid(float)) ? YT_FLOAT : YT_DOUBLE;
+field_list[1].derived_func = derived_func_InvDens;
 
-void level_derived_func(int list_len, long *gid_list, yt_array *data_array){
+void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array) {
     // loop over gid_list, and fill in grid data inside data_array.
-    for(int lid=0; lid<list_len; lid++){
-        // Get grid level by gid.
-        int level;
-        getLevelByGID(gid_list[lid], &level);
-
-        // Get grid dimension by libyt API.
-        int dim[3];
-        yt_getGridInfo_Dimensions(gid_list[lid], &dim );
-
-        // Fill in data
-        int index;
-        for(int k=0; k<dim[2]; k++){
-            for(int j=0; j<dim[1]; j++){
-                for(int i=0; i<dim[0]; i++){
-                    index = k * dim[1] * dim[0] + j * dim[0] + i;
-                    // Get the point and store data.
-                    ((real*)data_array[lid].data_ptr)[index] = (real) level;
+    for (int lid = 0; lid < list_len; lid++) {
+        // =================================================
+        // libyt: [Optional] Use libyt look up grid info API
+        // =================================================
+        int level, dim[3];
+        yt_getGridInfo_Level(gid_list[lid], &level);
+        yt_getGridInfo_Dimensions(gid_list[lid], &dim);
+    
+        // =============================================================
+        // libyt: [Optional] Use libyt API to get data pointer passed in
+        // =============================================================
+        yt_data dens_data;
+        yt_getGridInfo_FieldData(gid_list[lid], "Dens", &dens_data);
+        
+        // generate and fill in data in [z][y][x] order, since we set this field swap_axes = true
+        int index, index_with_ghost_cell;
+        for (int k = 0; k < dim[2]; k++) {
+            for (int j = 0; j < dim[1]; j++) {
+                for (int i = 0; i < dim[0]; i++) {
+                index = k * dim[1] * dim[0] + j * dim[0] + i;
+                index_with_ghost_cell =  (k + GHOST_CELL) * (dim[1] + GHOST_CELL * 2) * (dim[0] + GHOST_CELL * 2)
+                                       + (j + GHOST_CELL) * (dim[0] + GHOST_CELL * 2)
+                                       + (i + GHOST_CELL);
+                
+                // write generated data in data_array allocated by libyt.
+                ((real *) data_array[lid].data_ptr)[index] = 1.0 / ((real *) dens_data.data_ptr)[index_with_ghost_cell];
                 }
             }
         }
     }
 }
-
-void level_derived_func_with_name(int list_len, long *gid_list, char *field, yt_array *data_array){
-    /* Same as above.*/
-}
-
-void getPositionByGID( long gid, real (*Pos)[3] ){
-    /* Get the center position of the grid id = gid. */
-}
-
-void getLevelByGID( long gid, int *Level ){
-    /* Get the level of the grid id = gid. */
-}
-
 ```
