@@ -66,20 +66,17 @@ Fill in particle attribute inside `yt_array` array according to grid id.
 > :warning: You should always write your particle data in the same order, since we get attributes separately.
 
 ## Example
+`par_io_get_attr` function gets particle `io` attributes. This particle type has position at the center of the grid it belongs to with int value grid level.
 ```cpp
 int main(){
     ...
     /* libyt API. */
     yt_particle *particle_list;  
     yt_get_particlesPtr( &particle_list );
-
-    /* Fill in particle informaiton. */
-    particle_list[0].species_name = "io"; // This two line is redundant, since libyt has already filled in.  
-    particle_list[0].num_attr     = 4;    // I type it here just to make things clear.
     
-    /* This particle has position and level attributes. */
+    /* This particle "io" has 4 attributes (position X/Y/Z and level). */
     char *attr_name[]  = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
-    char *attr_name_alias[] = {"grid_level"}; // Alias name for attribute level  
+    char *attr_name_alias[] = {"grid_level"};
     for ( int v=0; v < 4; v++ ){
         particle_list[0].attr_list[v].attr_name  = attr_name[v];
         if ( v == 3 ){  
@@ -103,41 +100,33 @@ int main(){
     particle_list[0].get_attr = par_io_get_attr;
 }
 
-/* Get attribute function. */
-void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array){
+void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array) {
     // loop over gid_list, and fill in particle attribute data inside data_array.
-    for(int lid=0; lid<list_len; lid++){
-        // the particle position and level can be generated via getPositionByGID and getLevelByGID in this example.
+    for (int lid = 0; lid < list_len; lid++) {
+        // =============================================================
+        // libyt: [Optional] Use libyt look up grid info API
+        // =============================================================
         int Level;
-        real Pos[3];
-        getPositionByGID( gid_list[lid], &Pos );
-        getLevelByGID( gid_list[lid], &Level );
+        double RightEdge[3], LeftEdge[3];
+        yt_getGridInfo_Level(gid_list[lid], &Level);
+        yt_getGridInfo_RightEdge(gid_list[lid], &RightEdge);
+        yt_getGridInfo_LeftEdge(gid_list[lid], &LeftEdge);
 
         // fill in particle data.
-        // we can get the length of the array to fill in like this, though this example only has one particle in each grids.
-        for(int i=0; i<data_array[lid].data_length; i++){
+        // we can get the length of the array to fill in like this, though this example only has one particle in each grid.
+        for (int i = 0; i < data_array[lid].data_length; i++) {
             // fill in particle data according to the attribute.
-            if ( strcmp(attribute, "ParPosX") == 0 ){
-                ((real *)data_array[lid].data_ptr)[0] = Pos[0];
-            }
-            else if ( strcmp(attribute, "ParPosY") == 0 ){
-                ((real *)data_array[lid].data_ptr)[0] = Pos[1];
-            }
-            else if ( strcmp(attribute, "ParPosZ") == 0 ){
-                ((real *)data_array[lid].data_ptr)[0] = Pos[2];
-            }
-            else if ( strcmp(attribute, "Level") == 0 ){
-                ((int  *)data_array[lid].data_ptr)[0] = Level;
+            if (strcmp(attribute, "ParPosX") == 0) {
+                ((real *) data_array[lid].data_ptr)[0] = 0.5 * (RightEdge[0] + LeftEdge[0]);
+            } else if (strcmp(attribute, "ParPosY") == 0) {
+                ((real *) data_array[lid].data_ptr)[0] = 0.5 * (RightEdge[1] + LeftEdge[1]);
+            } else if (strcmp(attribute, "ParPosZ") == 0) {
+                ((real *) data_array[lid].data_ptr)[0] = 0.5 * (RightEdge[2] + LeftEdge[2]);
+            } else if (strcmp(attribute, "Level") == 0) {
+                ((int *) data_array[lid].data_ptr)[0] = Level;
             }
         }
     }
-}
 
-void getPositionByGID( long gid, real (*Pos)[3] ){
-    /* Get the center position of the grid id = gid. */
-}
-
-void getLevelByGID( long gid, int *Level ){
-    /* Get the level of the grid id = gid. */
 }
 ```
