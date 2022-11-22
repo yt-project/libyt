@@ -14,6 +14,10 @@ This guide will walk you through how to implement `libyt` into your code. And ho
   - [Finalize - `yt_finalize`](./Finalize.md#finalize)
 - [Inline Python Script](./InlinePythonScript.md#inline-python-script)
 
+## Example
+- [`libyt/example`](../example/example.cpp)
+- [`gamer`](https://github.com/gamer-project/gamer/tree/master/src/YT)
+
 ## Overview
 <table>
   <thead>
