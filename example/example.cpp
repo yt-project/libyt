@@ -1,29 +1,31 @@
 /*
- [Description]
- This example is to show how libyt loads all the data and information into yt,
- then use yt to do analysis on the go. And also, to illustrate the basic
- usage of libyt in steps 0 - 9.
+[Description]
+    This example demonstrate how to implement libyt. We have a set of pre-calculated data.
+    We assign grids to MPI processes randomly to simulate the actual code of having grid
+    data on different ranks.
 
- We have a set of pre-calculated data. We assign each grid to one MPI rank
- randomly to stimulate the actual code of having grid data on different ranks.
- Then we demonstrate how to pass in the grid data and their hierarchies located
- on current MPI rank to libyt. Finally, we use those passed in data to do a
- series of analysis with yt.
+    This is the procedure of libyt in-situ analysis process. If there is no fields,
+    particles, or grids information to set, we can skip those steps (step 4~6).
 
- Above description can be concentrated to following steps:
-     1. Assign pre-calculated grids to one MPI rank.
-     2. Each MPI rank will only pass local data and their hierarchies to libyt
-        ---> Here, we calculate all the grids (sim_grids) first,
-             then distribute them to grids_local, to simulate the working process.
-     3. Do analysis using yt.
+    Initialization        1. initialize libyt
+    ----------------------------------------------------------------------------------
+                          2. provide YT-specific parameters
+                          3. add code-specific parameters
+                          4. set field information
+    Iteration             5. set particle information
+    (In-Situ Analysis)    6. set grids information located on current MPI process
+                          7. done loading information
+                          8. call inline python function
+                          9. finish in-situ analysis, clean up libyt
+    ----------------------------------------------------------------------------------
+    Finalization         10. finalize libyt
 
- [Compile and Run]
-   1. Compile libyt and move libyt.so.* library to ../lib/.
-   2. Run this command to set LD_LIBRARY_PATH:
-      sh set_ld_path.sh
-   3. Update Makefile MPI_PATH.
-   4. make clean; make;
-   5. mpirun -np 4 --output-filename log ./example
+[Compile and Run]
+    1. Compile libyt and move libyt.so.* library to lib directory.
+    2. Run set_ld_path.sh to set LD_LIBRARY_PATH.
+    3. Update Makefile MPI_PATH. (Should use the same MPI library when compiling libyt)
+    4. make clean; make;
+    5. mpirun -np 4 --output-filename log ./example
  */
 
 #include <stdlib.h>
@@ -42,7 +44,7 @@
 //typedef float real;
 typedef double real;
 
-// grid information
+// grid information macros
 #define NGRID_1D  5   // number of root grids along each direction
 #define GRID_DIM  8   // grid dimension (this example assumes cubic grids)
 #define REFINE_BY 2   // refinement factor between two AMR levels
@@ -57,13 +59,16 @@ real set_density(const double x, const double y, const double z, const double t,
 void get_randArray(int *array, int length);
 void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array);
 void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array);
-long num_total_grids;
+
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  main
 // Description :  Main function
 //-------------------------------------------------------------------------------------------------------
 int main(int argc, char *argv[]) {
+    // ==========================================
+    // simulation: initialize MPI
+    // ==========================================
     int myrank;
     int nrank;
     int RootRank = 0;
@@ -120,8 +125,6 @@ int main(int argc, char *argv[]) {
             num_grids_local = num_grids_local + 1;
         }
     }
-
-    num_total_grids = (long) num_grids; // TODO
 
 
     // ==========================================
@@ -338,9 +341,9 @@ int main(int argc, char *argv[]) {
         }
 
 
-        // ==========================================
-        // libyt: 6. set grids information
-        // ==========================================
+        // ==============================================================
+        // libyt: 6. set grids information located on current MPI process
+        // ==============================================================
         // get pointer of the array where we should put data to
         yt_grid *grids_local;
         yt_get_gridsPtr(&grids_local);
@@ -422,7 +425,7 @@ int main(int argc, char *argv[]) {
 
 
     // =================================================
-    // libyt: 9. finalize libyt
+    // libyt: 10. finalize libyt
     // =================================================
     if (yt_finalize() != YT_SUCCESS) {
         fprintf(stderr, "ERROR: yt_finalize() failed!\n");
@@ -480,7 +483,7 @@ void get_randArray(int *array, int length) {
 // Notes       :  1. Derived function prototype must be void func(int, long*, yt_array*) or
 //                   void func(int, long*, char*, yt_array*).
 //                2. yt use this derived field function to generate data when needed.
-//                4. Since we set swap_axes = true in this field, we should write data in [z][y][x] order.
+//                3. Since we set swap_axes = true in this field, we should write data in [z][y][x] order.
 //
 // Parameter   : int       list_len  : number of gid in gid_list.
 //               long     *gid_list  : a list of gid field data to prepare.
@@ -530,7 +533,7 @@ void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array) {
 //                   particle attributes when it needs them.
 //                3. In this example, we will create particle with position at the center of the grid it
 //                   belongs to with Level equals to the level of the grid.
-//                4. Write results to yt_array *data_array in series.
+//                4. Write particle data to yt_array *data_array.
 // 
 // Parameter   : int   list_len      : number of gid in the list gid_list.
 //               long *gid_list      : a list of gid to prepare.
@@ -550,7 +553,7 @@ void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *da
         yt_getGridInfo_LeftEdge(gid_list[lid], &LeftEdge);
 
         // fill in particle data.
-        // we can get the length of the array to fill in like this, though this example only has one particle in each grids.
+        // we can get the length of the array to fill in like this, though this example only has one particle in each grid.
         for (int i = 0; i < data_array[lid].data_length; i++) {
             // fill in particle data according to the attribute.
             if (strcmp(attribute, "ParPosX") == 0) {
