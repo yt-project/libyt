@@ -7,6 +7,11 @@ MPI_PATH       := $(YOUR_MPI_PATH)
 
 # Options
 #######################################################################################################
+# interactive mode: reloading inline script and does not halt when having errors in script
+#OPTIONS := -DINTERACTIVE_MODE
+
+# Debug
+#######################################################################################################
 # turn on the timer in each libyt substep.
 #OPTIONS := -DSUPPORT_TIMER
 
