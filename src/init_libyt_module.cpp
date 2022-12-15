@@ -701,6 +701,11 @@ static PyObject* PyInit_libyt(void)
   PyModule_AddObject(libyt_module, "param_yt",   g_py_param_yt  );
   PyModule_AddObject(libyt_module, "param_user", g_py_param_user);
 
+#ifdef INTERACTIVE_MODE
+  g_py_interactive_mode = PyDict_New();
+  PyModule_AddObject(libyt_module, "interactive_mode", g_py_interactive_mode);
+#endif // #ifdef INTERACTIVE_MODE
+
   log_debug( "Attaching empty dictionaries to libyt module ... done\n" );
 
   return libyt_module;
@@ -738,6 +743,7 @@ int create_libyt_module()
 //
 // Note        :  1. Import newly created libyt module.
 //                2. Load user script to python.
+//                3. Add imported script's __dict__ under in libyt.interactive_mode["script_namespace"]
 //                
 // Parameter   :  None
 //
@@ -767,20 +773,38 @@ int init_libyt_module()
     g_timer->record_time("import-userscript", 0);
 #endif
 // import YT inline analysis script
-   const int CallYT_CommandWidth = 8 + strlen( g_param_libyt.script );   // 8 = "import " + '\0'
-   char *CallYT = (char*) malloc( CallYT_CommandWidth*sizeof(char) );
-   sprintf( CallYT, "import %s", g_param_libyt.script );
+   int command_width = 8 + strlen( g_param_libyt.script );   // 8 = "import " + '\0'
+   char *command = (char*) malloc( command_width * sizeof(char) );
+   sprintf( command, "import %s", g_param_libyt.script );
 
-   if ( PyRun_SimpleString( CallYT ) == 0 )
+   if ( PyRun_SimpleString( command ) == 0 )
       log_debug( "Importing YT inline analysis script \"%s\" ... done\n", g_param_libyt.script );
    else
       YT_ABORT(  "Importing YT inline analysis script \"%s\" ... failed (please do not include the \".py\" extension)!\n",
                 g_param_libyt.script );
 
-   free( CallYT );
+   free( command );
 #ifdef SUPPORT_TIMER
     g_timer->record_time("import-userscript", 1);
 #endif
+
+#ifdef INTERACTIVE_MODE
+    // add imported script's namespace under in libyt.interactive_mode["script_globals"]
+    // 67 -> libyt.interactive_mode["script_globals"] = sys.modules[""].__dict__
+    //  1 -> '\0'
+    command_width = 68 + strlen(g_param_libyt.script);
+    command = (char*) malloc( command_width * sizeof(char) );
+    sprintf( command, "libyt.interactive_mode[\"script_globals\"] = sys.modules[\"%s\"].__dict__", g_param_libyt.script);
+
+    if ( PyRun_SimpleString( command ) == 0 ){
+        log_debug("Loading imported script's global variables ... done\n");
+    }
+    else {
+        YT_ABORT("Loading imported script's global variables ... failed\n");
+    }
+
+    free(command);
+#endif // #ifdef INTERACTIVE_MODE
 
 #ifdef SUPPORT_TIMER
    g_timer->record_time("init_libyt_module", 1);
