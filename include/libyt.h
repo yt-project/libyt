@@ -40,6 +40,7 @@ int yt_commit_grids();
 int yt_free_gridsPtr();
 int yt_inline_argument( char *function_name, int argc, ... );
 int yt_inline( char *function_name );
+int yt_interactive_mode(char* flag_file_name);
 
 // For derived field function to get grid information by GID and by field_name.
 int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] );
