@@ -77,7 +77,7 @@ int yt_interactive_mode(char* flag_file_name){
                 // case 1: it works fine, ready to run
                 if (src != NULL) {
                     if (prompt == ps1 || code[code_len + input_len - 1] == '\n') {
-                        // broadcast to other ranks
+                        // broadcast to other ranks, code character num no longer than INT_MAX
                         int temp = (int) strlen(code);
                         MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
                         MPI_Bcast(code, strlen(code), MPI_CHAR, root, MPI_COMM_WORLD);
@@ -87,7 +87,7 @@ int yt_interactive_mode(char* flag_file_name){
                         if (PyErr_Occurred()) PyErr_Print();
 
                         // clean up
-                        Py_DECREF(dum);
+                        Py_XDECREF(dum);
                         free(code);
                         code = NULL;
                         prompt = ps1;
@@ -160,8 +160,8 @@ int yt_interactive_mode(char* flag_file_name){
 
             // clean up
             free(code);
-            Py_DECREF(dum);
-            Py_DECREF(src);
+            Py_XDECREF(dum);
+            Py_XDECREF(src);
         }
 
     }
