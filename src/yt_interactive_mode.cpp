@@ -42,6 +42,10 @@ int yt_interactive_mode(char* flag_file_name){
     PyObject *src, *dum;
     PyObject *exc, *val, *traceback, *obj;
 
+    // make sure every rank has reach here
+    fflush(stdout);
+    MPI_Barrier(MPI_COMM_WORLD);
+
     // enter interactive loop
     while (!done) {
 
