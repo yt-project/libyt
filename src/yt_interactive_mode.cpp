@@ -44,6 +44,7 @@ int yt_interactive_mode(char* flag_file_name){
 
     // make sure every rank has reach here
     fflush(stdout);
+    fflush(stderr);
     MPI_Barrier(MPI_COMM_WORLD);
 
     // enter interactive loop
@@ -99,6 +100,7 @@ int yt_interactive_mode(char* flag_file_name){
 
                         // wait till every rank is done
                         fflush(stdout);
+                        fflush(stderr);
                         MPI_Barrier(MPI_COMM_WORLD);
                     }
                 }
@@ -171,6 +173,7 @@ int yt_interactive_mode(char* flag_file_name){
 
             // wait
             fflush(stdout);
+            fflush(stderr);
             MPI_Barrier(MPI_COMM_WORLD);
         }
 
