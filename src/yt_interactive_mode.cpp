@@ -1,6 +1,7 @@
 #ifdef INTERACTIVE_MODE
 
 #include "yt_combo.h"
+#include "libyt.h"
 #include <readline.h>
 
 //-------------------------------------------------------------------------------------------------------
@@ -93,6 +94,7 @@ int yt_interactive_mode(char* flag_file_name){
                         prompt = ps1;
 
                         // wait till every rank is done
+                        fflush(stdout);
                         MPI_Barrier(MPI_COMM_WORLD);
                     }
                 }
@@ -162,6 +164,10 @@ int yt_interactive_mode(char* flag_file_name){
             free(code);
             Py_XDECREF(dum);
             Py_XDECREF(src);
+
+            // wait
+            fflush(stdout);
+            MPI_Barrier(MPI_COMM_WORLD);
         }
 
     }
