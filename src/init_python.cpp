@@ -61,11 +61,20 @@ int init_python( int argc, char *argv[] )
 
 
 // add the current location to the module search path (sys._parallel = True --> run yt in parallel )
-   if ( PyRun_SimpleString( "import sys; sys.path.insert(0,'.'); sys._parallel = True" ) == 0 )
+   if ( PyRun_SimpleString( "import sys; sys.path.insert(0,'.')" ) == 0 )
       log_debug( "Adding search path for modules ... done\n" );
    else
       YT_ABORT(  "Adding search path for modules ... failed!\n" );
 
+   // set up yt config
+#ifdef INTERACTIVE_MODE
+   if ( PyRun_SimpleString("sys._parallel = True; sys._interactive_mode = True") == 0 )
+#else
+   if ( PyRun_SimpleString("sys._parallel = True") == 0 )
+#endif
+       log_debug("Setting up config ... done\n");
+   else
+       YT_ABORT("Setting up config ... failed\n");
 
 // import the garbage collector interface
    if ( PyRun_SimpleString( "import gc" ) == 0 )
