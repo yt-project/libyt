@@ -60,13 +60,19 @@ int init_python( int argc, char *argv[] )
    }
 
 
-// add the current location to the module search path (sys._parallel = True --> run yt in parallel )
+// add the current location to the module search path
+#ifdef INTERACTIVE_MODE
+   if ( PyRun_SimpleString( "import sys, traceback; sys.path.insert(0,'.')" ) == 0 )
+#else
    if ( PyRun_SimpleString( "import sys; sys.path.insert(0,'.')" ) == 0 )
+#endif
       log_debug( "Adding search path for modules ... done\n" );
    else
       YT_ABORT(  "Adding search path for modules ... failed!\n" );
 
    // set up yt config
+   // (sys._parallel = True --> run yt in parallel )
+   // (sys._interactive_mode = True --> mpi does not abort when there is error)
 #ifdef INTERACTIVE_MODE
    if ( PyRun_SimpleString("sys._parallel = True; sys._interactive_mode = True") == 0 )
 #else
