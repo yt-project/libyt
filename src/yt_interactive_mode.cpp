@@ -3,6 +3,7 @@
 #include "yt_combo.h"
 #include "libyt.h"
 #include <readline.h>
+#include <history.h>
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_interactive_mode
@@ -53,13 +54,15 @@ int yt_interactive_mode(char* flag_file_name){
         // root: prompt and input
         if (g_myrank == root) {
             input_line = readline(prompt);
+            if (input_line == NULL) continue; // todo: this does not work, it prints lots of >>>
 
             // parse input
-            if (input_line == NULL){
+            if (strcmp(input_line, "exit") == 0) { // todo libyt command
                 done = true;
 
-                // make sure code is freed
+                // make sure code and input_line is freed
                 if (code != NULL) free(code);
+                if (input_line != NULL) free(input_line);
 
                 // inform other ranks that we're done
                 int temp = -1;
