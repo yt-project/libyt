@@ -32,6 +32,14 @@
 // include relevant headers
 #include "yt_type.h"
 
+#ifdef INTERACTIVE_MODE
+#include "func_status.h"
+#include <vector>
+#endif
+
+#ifdef SUPPORT_TIMER
+#include "Timer.h"
+#endif
 
 // add the prefix "g_" for all global C variables
 SET_GLOBAL( yt_param_libyt, g_param_libyt           );   // libyt runtime parameters
@@ -43,6 +51,11 @@ SET_GLOBAL( int,            g_myrank                );   // My current MPI rank
 
 SET_GLOBAL( int,            g_mysize                );   // My current MPI size
 
+#ifdef INTERACTIVE_MODE
+SET_GLOBAL( std::vector<func_status>, g_func_status_list );   // Inline function status, including function name, body
+                                                              // run or idle in next step, and failure or not.
+#endif // #ifdef INTERACTIVE_MODE
+
 // user-defined MPI data type
 SET_GLOBAL( MPI_Datatype,   yt_long_mpi_type              );
 
@@ -53,7 +66,6 @@ SET_GLOBAL( MPI_Datatype,   yt_rma_grid_info_mpi_type     );
 SET_GLOBAL( MPI_Datatype,   yt_rma_particle_info_mpi_type );
 
 #ifdef SUPPORT_TIMER
-#include "Timer.h"
 SET_GLOBAL( Timer,         *g_timer,          NULL  );   // Timer for recording performance.
 #endif // #ifdef SUPPORT_TIMER
 
