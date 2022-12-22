@@ -27,7 +27,7 @@ CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  al
 
 # for interactive mode
 ifeq "$(filter -DINTERACTIVE_MODE, $(OPTIONS))" "-DINTERACTIVE_MODE"
-CC_FILE += yt_interactive_mode.cpp func_status.cpp
+CC_FILE += yt_interactive_mode.cpp func_status.cpp func_status_list.cpp
 endif
 
 # for testing and performance measuring

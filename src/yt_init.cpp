@@ -74,7 +74,7 @@ int yt_init(int argc, char *argv[], const yt_param_libyt *param_libyt) {
     // import libyt and inline python script.
     if (init_libyt_module() == YT_FAIL) return YT_FAIL;
 
-    // Initialize general info: mpi size and rank, function status list capacity ...
+    // Initialize general info: mpi size and rank ...
     init_general_info();
 
     // Initialize user-defined MPI data type
@@ -112,10 +112,6 @@ int yt_init(int argc, char *argv[], const yt_param_libyt *param_libyt) {
 static void init_general_info() {
     MPI_Comm_size(MPI_COMM_WORLD, &g_mysize);
     MPI_Comm_rank(MPI_COMM_WORLD, &g_myrank);
-
-#ifdef INTERACTIVE_MODE
-    g_func_status_list.reserve(10);
-#endif
 }
 
 static void init_yt_long_mpi_type() {
