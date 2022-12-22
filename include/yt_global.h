@@ -33,8 +33,7 @@
 #include "yt_type.h"
 
 #ifdef INTERACTIVE_MODE
-#include "func_status.h"
-#include <vector>
+#include "func_status_list.h"
 #endif
 
 #ifdef SUPPORT_TIMER
@@ -52,9 +51,8 @@ SET_GLOBAL( int,            g_myrank                );   // My current MPI rank
 SET_GLOBAL( int,            g_mysize                );   // My current MPI size
 
 #ifdef INTERACTIVE_MODE
-SET_GLOBAL( std::vector<func_status>, g_func_status_list );   // Inline function status, including function name, body
-                                                              // run or idle in next step, and failure or not.
-#endif // #ifdef INTERACTIVE_MODE
+SET_GLOBAL( func_status_list, g_func_status_list, func_status_list(10) );   // Inline function status list (default 10)
+#endif
 
 // user-defined MPI data type
 SET_GLOBAL( MPI_Datatype,   yt_long_mpi_type              );
