@@ -1,3 +1,5 @@
+#ifdef INTERACTIVE_MODE
+
 #include "func_status.h"
 #include <string.h>
 
@@ -31,6 +33,4 @@ func_status::~func_status()
     delete [] m_FuncName;
 }
 
-
-
-
+#endif // #ifdef INTERACTIVE_MODE
