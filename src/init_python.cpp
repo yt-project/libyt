@@ -62,7 +62,7 @@ int init_python( int argc, char *argv[] )
 
 // add the current location to the module search path
 #ifdef INTERACTIVE_MODE
-   if ( PyRun_SimpleString( "import sys, traceback; sys.path.insert(0,'.')" ) == 0 )
+   if ( PyRun_SimpleString( "import sys, traceback, inspect; sys.path.insert(0,'.')" ) == 0 )
 #else
    if ( PyRun_SimpleString( "import sys; sys.path.insert(0,'.')" ) == 0 )
 #endif

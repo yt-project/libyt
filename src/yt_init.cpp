@@ -17,6 +17,7 @@ static void init_yt_rma_particle_info_mpi_type();
 
 static void init_general_info();
 
+static void init_func_status_list();
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_init
@@ -77,6 +78,10 @@ int yt_init(int argc, char *argv[], const yt_param_libyt *param_libyt) {
     // Initialize general info: mpi size and rank ...
     init_general_info();
 
+#ifdef INTERACTIVE_MODE
+    init_func_status_list();
+#endif
+
     // Initialize user-defined MPI data type
     init_yt_long_mpi_type();
     init_yt_hierarchy_mpi_type();
@@ -96,19 +101,50 @@ int yt_init(int argc, char *argv[], const yt_param_libyt *param_libyt) {
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  init_general_info
-// Description :  Initialize general info
+// Function    :  init_func_status_list
+// Description :  Initialize func_status_list
 //
 // Note        :  1. Use only inside yt_init
-//                2. Initialize:
-//                   (1) g_mysize: MPI size
-//                   (2) g_myrank: MPI process rank
-//                   (3) g_func_status_list: vector that stores inline function status. (default capacity=10)
+//                2. Find functions and their bodies in inline script, add them to libyt.interactive_mode["func_body"]
+//                3. Add function name to g_func_status_list.
 //
 // Parameter   :  None
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
+#ifdef INTERACTIVE_MODE
+static void init_func_status_list() {
+    // get function and its body in inline script, store in libyt.interactive_mode dict
+    // libyt.interactive_mode["func_body"] = {func_name: [func_body line 1, line 2, ...] }
+    int command_width = 400 + strlen(g_param_libyt.script);
+    char *command = (char*) malloc(command_width * sizeof(char));
+    sprintf(command, "libyt.interactive_mode[\"func_body\"] = {}\n"
+                     "libyt.interactive_mode[\"temp\"] = []\n"
+                     "for key in libyt.interactive_mode[\"script_globals\"].keys():\n"
+                     "    if inspect.isfunction(libyt.interactive_mode[\"script_globals\"][key]):\n"
+                     "        libyt.interactive_mode[\"temp\"].append(key.encode(\"utf-8\"))\n"
+                     "        libyt.interactive_mode[\"func_body\"][key] = "
+                     "        eval(\"inspect.getsource(%s.\" + str(key) +\").split('\\\\n')\")\n",
+                     g_param_libyt.script);
+
+    if ( PyRun_SimpleString( command ) == 0 ) log_debug("Load inline function body ... done\n");
+    else                                      log_debug("Load inline function body ... failed\n");
+
+    free(command);
+
+    // get all function name, and build up g_func_status_list
+    PyObject *py_func_name_list = PyDict_GetItemString(g_py_interactive_mode, "temp");
+
+    for (Py_ssize_t py_index=0; py_index<PyList_Size(py_func_name_list); py_index++) {
+        char *func_name = PyBytes_AsString(PyList_GetItem(py_func_name_list, py_index));
+        g_func_status_list.add_new_func(func_name);
+    }
+
+    // clean up
+    PyRun_SimpleString("del libyt.interactive_mode[\"temp\"]");
+}
+#endif
+
 static void init_general_info() {
     MPI_Comm_size(MPI_COMM_WORLD, &g_mysize);
     MPI_Comm_rank(MPI_COMM_WORLD, &g_myrank);
