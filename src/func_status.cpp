@@ -39,7 +39,6 @@ func_status::func_status(char *func_name)
 //
 // Arguments   :  const func_status& other
 //-------------------------------------------------------------------------------------------------------
-
 func_status::func_status(const func_status& other)
 : m_Run(true), m_Status(-1)
 {

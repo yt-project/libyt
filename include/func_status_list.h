@@ -12,6 +12,7 @@ public:
     func_status_list(int capacity) { m_FuncStatusList.reserve(capacity); };
     ~func_status_list() { m_FuncStatusList.clear(); };
 
+    int get_func_index(char *func_name);
     int add_new_func(char *func_name);
 };
 
