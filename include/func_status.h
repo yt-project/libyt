@@ -15,6 +15,7 @@ private:
 public:
     func_status(char *func_name);
     ~func_status();
+    func_status(const func_status& other);
 
     int update_func_body();
     int clear_func_body();

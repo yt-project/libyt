@@ -23,8 +23,30 @@ func_status::func_status(char *func_name)
 {
     // copy func_name to m_FuncName
     int len = strlen(func_name);
-    m_FuncName = new char [len+1];
+    m_FuncName = new char [len + 1];
     strcpy(m_FuncName, func_name);
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  func_status
+// Method      :  Copy Constructor
+//
+// Notes       :  1. It is unefficient to do it this way, but we are adding func_status class to
+//                   g_func_status_list vector, which makes a copy.
+//                   Although we can replace it to store class's pointer, I don't want to access through
+//                   arrow.
+//
+// Arguments   :  const func_status& other
+//-------------------------------------------------------------------------------------------------------
+
+func_status::func_status(const func_status& other)
+: m_Run(true), m_Status(-1)
+{
+    // copy m_FuncName;
+    int len = strlen(other.m_FuncName);
+    m_FuncName = new char [len + 1];
+    strcpy(m_FuncName, other.m_FuncName);
 }
 
 
