@@ -109,9 +109,8 @@ int yt_inline_argument(char *function_name, int argc, ...) {
 #ifdef INTERACTIVE_MODE
     // update status in g_func_status_list
     g_func_status_list[func_index].get_status();
-#else
-    log_info("Performing YT inline analysis <%s> ... done.\n", CallYT);
 #endif
+    log_info("Performing YT inline analysis <%s> ... done.\n", CallYT);
 
     free(CallYT);
 #ifdef INTERACTIVE_MODE
@@ -206,9 +205,8 @@ int yt_inline(char *function_name) {
 #ifdef INTERACTIVE_MODE
     // update status in g_func_status_list
     g_func_status_list[func_index].get_status();
-#else
-    log_info("Performing YT inline analysis <%s> ... done.\n", CallYT);
 #endif
+    log_info("Performing YT inline analysis <%s> ... done.\n", CallYT);
 
     free(CallYT);
 #ifdef INTERACTIVE_MODE
