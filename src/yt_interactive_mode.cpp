@@ -21,7 +21,12 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_interactive_mode(char* flag_file_name){
+int yt_interactive_mode(char* flag_file_name) {
+
+    // output func_status summary
+    if (g_func_status_list.print_summary() != YT_SUCCESS) {
+        YT_ABORT("Something went wrong when summarizing inline function status\n");
+    }
 
     // create prompt interface
     char *ps1 = ">>> ";
