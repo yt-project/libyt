@@ -4,16 +4,41 @@
 #include <string.h>
 #include "func_status_list.h"
 
+//-------------------------------------------------------------------------------------------------------
+// Class       :  func_status_list
+// Method      :  reset
+//
+// Notes       :  1. Reset every func_status data member m_Status in list to -1 (not run yet).
+//
+// Arguments   :  None
+//
+// Return      : YT_SUCCESS
+//-------------------------------------------------------------------------------------------------------
+int func_status_list::reset() {
+    for (int i=0; i<m_FuncStatusList.size(); i++) {
+        m_FuncStatusList[i].set_status(-1);
+    }
+    return YT_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  func_status_list
+// Method      :  add_new_func
+//
+// Notes       :  1. Check if func_name is defined inside the vector, if not create one.
+//
+// Arguments   :  char   *func_name: inline function name
+//
+// Return      : YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
 int func_status_list::get_func_index(char *func_name) {
     int index = -1;
-
     for (int i=0; i<m_FuncStatusList.size(); i++) {
         if (strcmp(m_FuncStatusList[i].get_func_name(), func_name) == 0) {
             index = i;
             break;
         }
     }
-
     return index;
 }
 
