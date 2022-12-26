@@ -34,9 +34,9 @@ func_status::func_status(char *func_name)
     int command_width = 200 + len * 3 + strlen(g_param_libyt.script);
     char *command = (char*) malloc(command_width * sizeof(char));
     sprintf(command, "try:\n"
-                     "    libyt.interactive_mode[\"func_body\"][%s] = inspect.getsource(%s.%s)\n"
+                     "    libyt.interactive_mode[\"func_body\"][\"%s\"] = inspect.getsource(%s.%s)\n"
                      "except:\n"
-                     "    libyt.interactive_mode[\"func_body\"][%s] = \"\"\n",
+                     "    libyt.interactive_mode[\"func_body\"][\"%s\"] = \"\"\n",
                      func_name, g_param_libyt.script, func_name, func_name);
     if (PyRun_SimpleString(command) == 0) log_debug("Loading inline function body %s ... done\n", func_name);
     else                                  log_debug("Loading inline function body %s ... failed\n", func_name);
