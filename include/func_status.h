@@ -1,7 +1,7 @@
 #ifndef __FUNC_STATUS_H__
 #define __FUNC_STATUS_H__
 
-#include "yt_combo.h"
+#include "yt_macro.h"
 
 class func_status
 {
@@ -15,6 +15,8 @@ public:
     func_status(char *func_name, char *code);
     ~func_status();
     func_status(const func_status& other);
+
+    char* get_func_name() {return m_FuncName;};
 
     bool  get_run() const { return m_Run; };
     int   set_run(bool run) { m_Run = run; return YT_SUCCESS; };
