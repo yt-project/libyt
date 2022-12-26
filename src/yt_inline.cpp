@@ -30,9 +30,26 @@ int yt_inline_argument(char *function_name, int argc, ...) {
         YT_ABORT("Please invoke yt_init() before calling %s()!\n", __FUNCTION__);
     }
 
-    // every rank run at the same time.
-    MPI_Barrier(MPI_COMM_WORLD);
+#ifdef INTERACTIVE_MODE
+    // get index in g_func_status_list,
+    // if it does not exist, add new one, and always run new function.
+    // if it exists and get_run() return false, return directly.
+    int func_index = g_func_status_list.get_func_index(function_name);
+    if (func_index == -1) {
+        g_func_status_list.add_new_func(function_name);
+        func_index = g_func_status_list.get_func_index(function_name);
+    }
+    else {
+        if (g_func_status_list[func_index].get_run() == false) {
+            log_info("YT inline function \"%s\" was set to idle ... idle\n", function_name);
+            return YT_SUCCESS;
+        }
+    }
+    g_func_status_list[func_index].set_status(-2);
+#endif
 
+    // start running inline function when every rank come to this stage.
+    MPI_Barrier(MPI_COMM_WORLD);
     log_info("Performing YT inline analysis ...\n");
 
     va_list Args, Args_len;
@@ -82,9 +99,19 @@ int yt_inline_argument(char *function_name, int argc, ...) {
 #else
     if (PyRun_SimpleString(CallYT) == 0)           log_debug("Invoking \"%s\" ... done\n", CallYT);
 #endif // #ifdef INTERACTIVE_MODE
-    else YT_ABORT("Invoking \"%s\" ... failed\n", CallYT);
+    else{
+#ifdef INTERACTIVE_MODE
+        g_func_status_list[func_index].set_status(0);
+#endif
+        YT_ABORT("Invoking \"%s\" ... failed\n", CallYT);
+    }
 
+#ifdef INTERACTIVE_MODE
+    // update status in g_func_status_list
+    g_func_status_list[func_index].get_status();
+#else
     log_info("Performing YT inline analysis <%s> ... done.\n", CallYT);
+#endif
 
     free(CallYT);
 #ifdef INTERACTIVE_MODE
@@ -122,9 +149,26 @@ int yt_inline(char *function_name) {
         YT_ABORT("Please invoke yt_init() before calling %s()!\n", __FUNCTION__);
     }
 
-    // every rank run at the same time
-    MPI_Barrier(MPI_COMM_WORLD);
+#ifdef INTERACTIVE_MODE
+    // get index in g_func_status_list,
+    // if it does not exist, add new one, and always run new function.
+    // if it exists and get_run() return false, return directly.
+    int func_index = g_func_status_list.get_func_index(function_name);
+    if (func_index == -1) {
+        g_func_status_list.add_new_func(function_name);
+        func_index = g_func_status_list.get_func_index(function_name);
+    }
+    else {
+        if (g_func_status_list[func_index].get_run() == false) {
+            log_info("YT inline function \"%s\" was set to idle ... idle\n", function_name);
+            return YT_SUCCESS;
+        }
+    }
+    g_func_status_list[func_index].set_status(-2);
+#endif
 
+    // start running inline function when every rank come to this stage.
+    MPI_Barrier(MPI_COMM_WORLD);
     log_info("Performing YT inline analysis ...\n");
 
     int InlineFunctionWidth = strlen(function_name) + 4; // width = .<function_name>() + '\0'
@@ -152,9 +196,19 @@ int yt_inline(char *function_name) {
 #else
     if (PyRun_SimpleString(CallYT) == 0)           log_debug("Invoking \"%s\" ... done\n", CallYT);
 #endif // #ifdef INTERACTIVE_MODE
-    else YT_ABORT("Invoking \"%s\" ... failed\n", CallYT);
+    else{
+#ifdef INTERACTIVE_MODE
+        g_func_status_list[func_index].set_status(0);
+#endif
+        YT_ABORT("Invoking \"%s\" ... failed\n", CallYT);
+    }
 
+#ifdef INTERACTIVE_MODE
+    // update status in g_func_status_list
+    g_func_status_list[func_index].get_status();
+#else
     log_info("Performing YT inline analysis <%s> ... done.\n", CallYT);
+#endif
 
     free(CallYT);
 #ifdef INTERACTIVE_MODE
