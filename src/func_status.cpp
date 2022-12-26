@@ -1,6 +1,7 @@
 #ifdef INTERACTIVE_MODE
 
 #include "func_status.h"
+#include "yt_combo.h"
 #include <string.h>
 
 

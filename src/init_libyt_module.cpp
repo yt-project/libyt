@@ -794,15 +794,15 @@ int init_libyt_module()
     // add imported script's namespace under in libyt.interactive_mode["script_globals"]
     command_width = 200 + strlen(g_param_libyt.script);
     command = (char*) malloc( command_width * sizeof(char) );
-    sprintf( command, "libyt.interactive_mode[\"script_globals\"] = sys.modules[\"%s\"].__dict__;"
-                      "libyt.interactive_mode[\"func_err_msg\"] = dict()"
-                      "libyt.interactive_mode[\"func_body\"] = dict()", g_param_libyt.script);
+    sprintf( command, "libyt.interactive_mode[\"script_globals\"] = sys.modules[\"%s\"].__dict__\n"
+                      "libyt.interactive_mode[\"func_err_msg\"] = dict()\n"
+                      "libyt.interactive_mode[\"func_body\"] = dict()\n", g_param_libyt.script);
 
     if ( PyRun_SimpleString( command ) == 0 ){
         log_debug("Preparing interactive mode environment ... done\n");
     }
     else {
-        YT_ABORT("Preparing interactive mode environment ... done\n");
+        YT_ABORT("Preparing interactive mode environment ... failed\n");
     }
 
     free(command);
