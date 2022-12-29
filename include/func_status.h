@@ -8,7 +8,7 @@ class func_status
 private:
     char       *m_FuncName;
     bool        m_Run;
-    short       m_Status;
+    int         m_Status;
 
 public:
     func_status(char *func_name);
@@ -21,8 +21,8 @@ public:
     bool  get_run() const { return m_Run; };
     int   set_run(bool run) { m_Run = run; return YT_SUCCESS; };
 
-    short get_status();
-    int set_status(short status) { m_Status = status; return YT_SUCCESS; };
+    int get_status();
+    int set_status(int status) { m_Status = status; return YT_SUCCESS; };
 
     int print_error();
     int update_func_body();

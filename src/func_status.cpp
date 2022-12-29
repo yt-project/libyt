@@ -55,6 +55,7 @@ func_status::func_status(char *func_name, char *code)
     // todo: convert code to python string and store under dict.
 }
 
+
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status
 // Method      :  Copy Constructor
@@ -93,7 +94,7 @@ func_status::~func_status()
 // Arguments   :  None
 // Return      :  m_Status
 //-------------------------------------------------------------------------------------------------------
-short func_status::get_status() {
+int func_status::get_status() {
     // if it is not running (-2), we don't need to check if there is error msg.
     if (m_Status != -2) return m_Status;
 
