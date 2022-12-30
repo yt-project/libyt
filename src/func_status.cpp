@@ -87,9 +87,17 @@ func_status::~func_status()
 // Class       :  func_status
 // Method      :  get_status
 //
-// Notes       :  1. Check if key exist in libyt.interactive_mode["func_err_msg"] dict, it means failed if
+// Notes       :  1. If m_Status = -2, which is running, then this is a collective call. After checking
+//                   status at local, it will get other ranks status.
+//                   Else, it will just return current m_Status.
+//                2. Check if key exist in libyt.interactive_mode["func_err_msg"] dict, it means failed if
 //                   func name in keys.
-//                2. Return directly if this function is not running, which is m_Status != -2.
+//                3. Return directly if this function is not running, which is m_Status != -2.
+//                4. Definition of m_Status:
+//                   1  -> success
+//                   0  -> failed
+//                   -1 -> not execute by yt_inline/yt_inline_argument yet (default)
+//                   -2 -> running
 //
 // Arguments   :  None
 // Return      :  m_Status
@@ -98,11 +106,17 @@ int func_status::get_status() {
     // if it is not running (-2), we don't need to check if there is error msg.
     if (m_Status != -2) return m_Status;
 
-    // check if key exist in libyt.interactive_mode["func_err_msg"] dict
+    // check if key exist in libyt.interactive_mode["func_err_msg"] dict, which is to get local status
     PyObject *py_func_name = PyUnicode_FromString(m_FuncName);
     if (PyDict_Contains(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name)) m_Status = 0;
     else m_Status = 1;
     Py_DECREF(py_func_name);
+
+    // mpi reduce, if sum(m_Status) != g_mysize, then some rank must have failed. Now m_Status is global status
+    int tot_status = 0;
+    MPI_Allreduce(&m_Status, &tot_status, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    if (tot_status != g_mysize) m_Status = 0;
+    else m_Status = 1;
 
     return m_Status;
 }
