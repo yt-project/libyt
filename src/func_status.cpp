@@ -135,13 +135,24 @@ int func_status::get_status() {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int func_status::serial_print_error(int indent_size, int indent_level) {
-    for (int rank=0; rank<g_mysize; rank++) {
+    for (int rank=0; rank<1; rank++) {
         if (g_myrank == 0) {
             printf("\033[1;36m");                               // set to bold cyan
             printf("%*s", indent_size * indent_level, "");      // indent
             printf("[ MPI %d ]\n", rank);
             printf("\033[0;37m");                               // set to white
         }
+
+        // todo: test parsing python string to char.
+        PyObject *py_func_name = PyUnicode_FromString(m_FuncName);
+        PyObject *py_err_msg = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name);
+        if (py_err_msg != NULL) {
+            const char *err_msg = PyUnicode_AsUTF8(py_err_msg);
+            printf("%s\n", err_msg);
+        }
+
+        // clean up
+        Py_DECREF(py_func_name);
     }
 
 
