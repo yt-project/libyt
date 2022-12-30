@@ -49,6 +49,7 @@ int func_status_list::print_summary() {
 
     // todo: string formating and indentation
     if (g_myrank == 0) {
+        printf("\033[1;37m");
         printf("=====================================================================\n");
         printf("* Inline function execute status:\n");
         for (int i=0; i<m_FuncStatusList.size(); i++) {
