@@ -27,12 +27,15 @@ int func_status_list::reset() {
 // Method      :  print_summary
 //
 // Notes       :  1. Print function status and error msg in func_status_list.
-//                2. Every rank will call this function. Other ranks only need to output their error msg.
+//                2. Every rank will call this function, it is a collective call. Other ranks only need
+//                   to output their error msg.
 //                3. Will use element class's method print_error().
-//                4. normal -> bold white
-//                   idle   -> bold blue
-//                   success-> bold green
-//                   failed -> bold red
+//                4. normal      -> bold white
+//                   idle        -> bold blue
+//                   not run yet -> bold purple
+//                   success     -> bold green
+//                   failed      -> bold red
+//                   MPI process -> bold cyan
 //
 // Arguments   :  None
 //
@@ -40,50 +43,60 @@ int func_status_list::reset() {
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::print_summary() {
     // make sure every rank has reach here, so that printing in other ranks are done
-//    fflush(stdout);
-//    fflush(stderr);
-//    MPI_Barrier(MPI_COMM_WORLD);
+    fflush(stdout);
+    fflush(stderr);
+    MPI_Barrier(MPI_COMM_WORLD);
 
-    if (g_myrank != 0) return YT_SUCCESS; // todo
-
-    printf("\033[1;37m"); // change to bold white
-    printf("=====================================================================\n");
-    printf("* Inline function execute status:\n");
-    for (int i=0; i<m_FuncStatusList.size(); i++) {
-        printf("  * %-40s ... ", m_FuncStatusList[i].get_func_name());
-        bool run = m_FuncStatusList[i].get_run();
-        short status = m_FuncStatusList[i].get_status();
-        if (!run) {
-            printf("\033[1;34m"); // bold blue;
-            printf("idle");
-            printf("\033[1;37m");
-        }
-        else {
-            if (status == 0) {
-                printf("\033[1;31m"); // bold red
-                printf("failed");
-                printf("\033[1;37m");
-            }
-            else if (status == 1) {
-                printf("\033[1;32m"); // bold green
-                printf("success");
-                printf("\033[1;37m");
-            }
-            else if (status == -1) {
-                printf("\033[1;33m"); // bold yellow
-                printf("not run yet");
+    // todo: string formating and indentation
+    if (g_myrank == 0) {
+        printf("=====================================================================\n");
+        printf("* Inline function execute status:\n");
+        for (int i=0; i<m_FuncStatusList.size(); i++) {
+            printf("\033[1;37m"); // change to bold white
+            printf("  * %-40s ... ", m_FuncStatusList[i].get_func_name());
+            bool run = m_FuncStatusList[i].get_run();
+            int status = m_FuncStatusList[i].get_status();
+            if (!run) {
+                printf("\033[1;34m"); // bold blue: idle
+                printf("idle\n");
                 printf("\033[1;37m");
             }
             else {
-                printf("\033[0;37m"); // change to white
-                YT_ABORT("Unkown status\n");
+                if (status == 0) {
+                    printf("\033[1;31m"); // bold red: failed
+                    printf("failed\n");
+                    printf("\033[1;37m");
+                    m_FuncStatusList[i].serial_print_error(2, 2);
+                }
+                else if (status == 1) {
+                    printf("\033[1;32m"); // bold green: success
+                    printf("success\n");
+                    printf("\033[1;37m");
+                }
+                else if (status == -1) {
+                    printf("\033[1;33m"); // bold yellow: not run yet
+                    printf("not run yet\n");
+                    printf("\033[1;37m");
+                }
+                else {
+                    printf("\033[0;37m"); // change to white
+                    YT_ABORT("Unkown status %d\n", status);
+                }
             }
+            fflush(stdout);
         }
-        printf("\n");
-        fflush(stdout);
+        printf("=====================================================================\n");
+        printf("\033[0;37m"); // change to white
     }
-    printf("=====================================================================\n");
-    printf("\033[0;37m"); // change to white
+    else {
+        for (int i=0; i<m_FuncStatusList.size(); i++) {
+            bool run = m_FuncStatusList[i].get_run();
+            int status = m_FuncStatusList[i].get_status();
+            if (!run) continue;
+            if (status == 0) m_FuncStatusList[i].serial_print_error(2, 2);
+        }
+    }
+
     return YT_SUCCESS;
 }
 

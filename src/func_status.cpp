@@ -108,7 +108,7 @@ int func_status::get_status() {
 
     // check if key exist in libyt.interactive_mode["func_err_msg"] dict, which is to get local status
     PyObject *py_func_name = PyUnicode_FromString(m_FuncName);
-    if (PyDict_Contains(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name)) m_Status = 0;
+    if (PyDict_Contains(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name) == 1) m_Status = 0;
     else m_Status = 1;
     Py_DECREF(py_func_name);
 
@@ -119,6 +119,33 @@ int func_status::get_status() {
     else m_Status = 1;
 
     return m_Status;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  func_status
+// Method      :  serial_print_error
+//
+// Notes       :  1. This is a collective call. Must call by every rank.
+//                2. When it is this MPI rank's turn to print, invoke Python call to print error buffer
+//                   in libyt.interactive_mode["func_err_msg"]. If this buffer is empty, print nothing.
+//
+// Arguments   :  int indent_size : indent size
+//                int indent_level: how many times to indent
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int func_status::serial_print_error(int indent_size, int indent_level) {
+    for (int rank=0; rank<g_mysize; rank++) {
+        if (g_myrank == 0) {
+            printf("\033[1;36m");                               // set to bold cyan
+            printf("%*s", indent_size * indent_level, "");      // indent
+            printf("[ MPI %d ]\n", rank);
+            printf("\033[0;37m");                               // set to white
+        }
+    }
+
+
+    return YT_SUCCESS;
 }
 
 #endif // #ifdef INTERACTIVE_MODE
