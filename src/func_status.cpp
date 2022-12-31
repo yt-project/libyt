@@ -180,7 +180,8 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
                 found = (*str_ptr).find("\n", start_pos);
                 if (found != std::string::npos) {
                     printf("%*s", indent_size * indent_level, "");
-                    printf("print range : [%ld, %ld), %s\n", start_pos, found, (*str_ptr).substr(start_pos, found).c_str());
+                    for (std::size_t c=start_pos; c<found; c++) { printf("%c", (*str_ptr)[c]); }
+                    printf("\n");
                 }
                 else {
                     break;
