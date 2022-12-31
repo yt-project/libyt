@@ -9,10 +9,10 @@
 // Function    :  yt_interactive_mode
 // Description :  Enter libyt interactive mode.
 //
-// Note        :  1. TODO: Only enter this mode when inline functions have errors or "flag_file_name" is detacted.
-//                2. TODO: Display inline script execute result finished/failed, and show errors if have.
-//                3. TODO: Enter interactive mode, user will be operating in inline script's name space.
-//                   (1) TODO: Python scripting
+// Note        :  1. Only enter this mode when inline functions have errors or flag_file_name is detacted.
+//                2. Display inline script execute result finished/failed, and show errors if have.
+//                3. Enter interactive mode, user will be operating in inline script's name space.
+//                   (1) Python scripting
 //                   (2) TODO: libyt command
 //                   (3) Execute charactars should be less than INT_MAX.
 //                4. TODO: Let user add and decide what inline function to run in the follow process.
@@ -28,6 +28,22 @@ int yt_interactive_mode(char* flag_file_name) {
     // output func_status summary
     if (g_func_status_list.print_summary() != YT_SUCCESS) {
         YT_ABORT("Something went wrong when summarizing inline function status\n");
+    }
+
+    // check if we need to enter interactive prompt
+    FILE *file;
+    if ( file = fopen(flag_file_name, "r") ) {
+        fclose(file);
+    }
+    else {
+        int tot_status = 0;
+        for (int i=0; i<g_func_status_list.size(); i++) {
+            tot_status = tot_status + g_func_status_list[i].get_status();
+        }
+        if (tot_status == g_func_status_list.size()) {
+            log_info("No failed inline function and no stop file %s detected ... leaving interactive mode\n", flag_file_name);
+            return YT_SUCCESS;
+        }
     }
 
     // create prompt interface
