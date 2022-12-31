@@ -2,6 +2,7 @@
 
 #include "yt_combo.h"
 #include "libyt.h"
+#include <ctype.h>
 #include <readline.h>
 #include <history.h>
 
@@ -79,7 +80,27 @@ int yt_interactive_mode(char* flag_file_name) {
             input_line = readline(prompt);
             if (input_line == NULL) continue; // todo: this does not work, it prints lots of >>>
 
-            // parse input
+            if (prompt == ps1) {
+                // check if it contains spaces only or null line if prompt >>>
+                if (strlen(input_line) == 0) {
+                    free(input_line);
+                    continue;
+                }
+                bool contain_space_only = false;
+                for (long i=0; i<strlen(input_line); i++) {
+                    if (isspace(input_line[i]) == 0) break;
+                    if (i == (strlen(input_line) - 1)) contain_space_only = true;
+                }
+                if (contain_space_only) {
+                    free(input_line);
+                    continue;
+                }
+
+                // check if it is a libyt command
+                
+            }
+
+            // parse input (1) libyt command (2) Python
             if (strcmp(input_line, "exit") == 0) { // todo libyt command
                 done = true;
 
