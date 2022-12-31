@@ -2,6 +2,8 @@
 
 #include "func_status.h"
 #include "yt_combo.h"
+#include <iostream>
+#include <string>
 #include <string.h>
 
 
@@ -129,6 +131,7 @@ int func_status::get_status() {
 // Notes       :  1. This is a collective call. Must call by every rank.
 //                2. When it is this MPI rank's turn to print, invoke Python call to print error buffer
 //                   in libyt.interactive_mode["func_err_msg"]. If this buffer is empty, print nothing.
+//                3. Assert that every err msg line ends with newline \n.
 //
 // Arguments   :  int indent_size : indent size
 //                int indent_level: how many times to indent
@@ -152,9 +155,10 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
             printf("[ MPI %d ]\n", rank);
             printf("\033[0;37m");                               // set to white
 
-            // get and print error msg
+            // get and print error msg, convert to string
+            std::string *str_ptr;
             if (rank == g_myrank) {
-                printf("%s\n", err_msg);
+                str_ptr = new std::string(err_msg);
             }
             else {
                 int tag = rank;
@@ -165,10 +169,28 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
                 MPI_Recv(err_msg_remote, err_msg_len, MPI_CHAR, rank, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 err_msg_remote[err_msg_len] = '\0';
 
-                printf("%s\n", err_msg_remote);
+                str_ptr = new std::string(err_msg_remote);
                 free(err_msg_remote);
             }
 
+            // indent
+            std::size_t start_pos = 0;
+            std::size_t found;
+            while (true) {
+                found = (*str_ptr).find("\n", start_pos);
+                if (found != std::string::npos) {
+                    printf("%*s", indent_size * indent_level, "");
+                    printf("print range : [%ld, %ld), %s\n", start_pos, found, (*str_ptr).substr(start_pos, found).c_str());
+                }
+                else {
+                    break;
+                }
+                start_pos = found + 1;
+            }
+
+            // clean up
+            fflush(stdout);
+            delete str_ptr;
         }
     }
     else {
