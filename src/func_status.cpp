@@ -173,13 +173,17 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
                 free(err_msg_remote);
             }
 
-            // indent
+            // print out error msg with indent
             std::size_t start_pos = 0;
             std::size_t found;
-            while (true) {
+            if ((*str_ptr).length() == 0) {
+                printf("%*s", indent_size * (indent_level + 1), "");
+                printf("(none)\n");
+            }
+            while ((*str_ptr).length() > 0) {
                 found = (*str_ptr).find("\n", start_pos);
                 if (found != std::string::npos) {
-                    printf("%*s", indent_size * indent_level, "");
+                    printf("%*s", indent_size * (indent_level + 1), "");
                     for (std::size_t c=start_pos; c<found; c++) { printf("%c", (*str_ptr)[c]); }
                     printf("\n");
                 }
