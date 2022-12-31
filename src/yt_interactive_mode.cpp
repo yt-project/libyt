@@ -22,6 +22,8 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_interactive_mode(char* flag_file_name) {
+    fflush(stdout);
+    fflush(stderr);
 
     // output func_status summary
     if (g_func_status_list.print_summary() != YT_SUCCESS) {
