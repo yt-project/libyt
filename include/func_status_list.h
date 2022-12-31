@@ -14,6 +14,7 @@ public:
     func_status& operator[](int index) {return m_FuncStatusList[index]; };
 
     int reset();
+    int size() { return (int) m_FuncStatusList.size(); };
     int print_summary();
     int get_func_index(char *func_name);
     int add_new_func(char *func_name);

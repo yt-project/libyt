@@ -47,7 +47,6 @@ int func_status_list::print_summary() {
     fflush(stderr);
     MPI_Barrier(MPI_COMM_WORLD);
 
-    // todo: string formating and indentation
     if (g_myrank == 0) {
         printf("\033[1;37m");
         printf("=====================================================================\n");
