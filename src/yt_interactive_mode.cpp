@@ -82,22 +82,25 @@ int yt_interactive_mode(char* flag_file_name) {
 
             if (prompt == ps1) {
                 // check if it contains spaces only or null line if prompt >>>
-                if (strlen(input_line) == 0) {
-                    free(input_line);
-                    continue;
-                }
-                bool contain_space_only = false;
+                long first_char = -1;
                 for (long i=0; i<strlen(input_line); i++) {
-                    if (isspace(input_line[i]) == 0) break;
-                    if (i == (strlen(input_line) - 1)) contain_space_only = true;
+                    if (isspace(input_line[i]) == 0) {
+                        first_char = i;
+                        break;
+                    }
                 }
-                if (contain_space_only) {
+                if (first_char == -1) {
                     free(input_line);
                     continue;
                 }
 
-                // check if it is a libyt command
-                
+                // check if it is a libyt command, will always starts with %libyt
+                char parse[7];
+                strncpy(parse, &(input_line[first_char]), 6);
+                parse[6] = '\0';
+                if (strcmp(parse, "%libyt") == 0) {
+                    
+                }
             }
 
             // parse input (1) libyt command (2) Python
