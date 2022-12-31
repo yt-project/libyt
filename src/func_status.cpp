@@ -135,26 +135,50 @@ int func_status::get_status() {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int func_status::serial_print_error(int indent_size, int indent_level) {
-    for (int rank=0; rank<1; rank++) {
-        if (g_myrank == 0) {
+    // get my err msg at current rank
+    PyObject *py_func_name = PyUnicode_FromString(m_FuncName);
+    PyObject *py_err_msg = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name);
+    const char *err_msg;
+    if (py_err_msg != NULL) err_msg = PyUnicode_AsUTF8(py_err_msg);
+    else                    err_msg = "";
+    Py_DECREF(py_func_name);
+
+    // serial print
+    int root = 0;
+    if (g_myrank == root) {
+        for (int rank=0; rank<g_mysize; rank++) {
             printf("\033[1;36m");                               // set to bold cyan
             printf("%*s", indent_size * indent_level, "");      // indent
             printf("[ MPI %d ]\n", rank);
             printf("\033[0;37m");                               // set to white
-        }
 
-        // todo: test parsing python string to char.
-        PyObject *py_func_name = PyUnicode_FromString(m_FuncName);
-        PyObject *py_err_msg = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name);
-        if (py_err_msg != NULL) {
-            const char *err_msg = PyUnicode_AsUTF8(py_err_msg);
-            printf("%s\n", err_msg);
-        }
+            // get and print error msg
+            if (rank == g_myrank) {
+                printf("%s\n", err_msg);
+            }
+            else {
+                int tag = rank;
+                int err_msg_len;
+                MPI_Recv(&err_msg_len, 1, MPI_INT, rank, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-        // clean up
-        Py_DECREF(py_func_name);
+                char *err_msg_remote = (char*) malloc((err_msg_len + 1) * sizeof(char));
+                MPI_Recv(err_msg_remote, err_msg_len, MPI_CHAR, rank, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                err_msg_remote[err_msg_len] = '\0';
+
+                printf("%s\n", err_msg_remote);
+                free(err_msg_remote);
+            }
+
+        }
+    }
+    else {
+        int tag = g_myrank;
+        int err_msg_len = strlen(err_msg);
+        MPI_Ssend(&err_msg_len, 1, MPI_INT, root, tag, MPI_COMM_WORLD);
+        MPI_Ssend(err_msg, err_msg_len, MPI_CHAR, root, tag, MPI_COMM_WORLD);
     }
 
+    MPI_Barrier(MPI_COMM_WORLD);
 
     return YT_SUCCESS;
 }
