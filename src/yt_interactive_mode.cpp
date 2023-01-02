@@ -1,10 +1,14 @@
 #ifdef INTERACTIVE_MODE
 
 #include "yt_combo.h"
+#include "define_command.h"
 #include "libyt.h"
 #include <ctype.h>
 #include <readline.h>
 #include <history.h>
+
+static int run_new_added_function(); // todo: maybe move to func_status_list
+
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_interactive_mode
@@ -81,7 +85,8 @@ int yt_interactive_mode(char* flag_file_name) {
             if (input_line == NULL) continue; // todo: this does not work, it prints lots of >>>
 
             if (prompt == ps1) {
-                // check if it contains spaces only or null line if prompt >>>
+                // check if it contains spaces only or null line if prompt >>>, otherwise python will counted as
+                // not finished yet.
                 long first_char = -1;
                 for (long i=0; i<strlen(input_line); i++) {
                     if (isspace(input_line[i]) == 0) {
@@ -99,91 +104,74 @@ int yt_interactive_mode(char* flag_file_name) {
                 strncpy(parse, &(input_line[first_char]), 6);
                 parse[6] = '\0';
                 if (strcmp(parse, "%libyt") == 0) {
-                    
-                }
-            }
-
-            // parse input (1) libyt command (2) Python
-            if (strcmp(input_line, "exit") == 0) { // todo libyt command
-                done = true;
-
-                // make sure code and input_line is freed
-                if (code != NULL) free(code);
-                if (input_line != NULL) free(input_line);
-
-                // inform other ranks that we're done
-                int temp = -1;
-                MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
-            }
-            else {
-                // get input line length and previous stored code length
-                input_len = strlen(input_line);
-                if (code == NULL) code_len = 0;
-                else              code_len = strlen(code);
-
-                // append input to code, additional 2 for '\n' and '\0'
-                code = (char*) realloc(code, input_len + code_len + 2);
-                if (code_len == 0) code[0] = '\0';
-                strncat(code, input_line, input_len);
-                code[code_len + input_len] = '\n';
-                code[code_len + input_len + 1] = '\0';
-
-                // compile and check if this code is complete yet
-                src = Py_CompileString(code, "<libyt-stdin>", Py_single_input); // todo: add rank num
-                // case 1: it works fine, ready to run
-                if (src != NULL) {
-                    if (prompt == ps1 || code[code_len + input_len - 1] == '\n') {
-                        // broadcast to other ranks, code character num no longer than INT_MAX
-                        int temp = (int) strlen(code);
+                    define_command command(&(input_line[first_char]));
+                    if (command.is_exit()) {
+                        done = true;
+                        // inform other ranks that we're done
+                        int temp = -1;
                         MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
-                        MPI_Bcast(code, strlen(code), MPI_CHAR, root, MPI_COMM_WORLD);
-
-                        // run code
-                        dum = PyEval_EvalCode(src, global_var, local_var);
-                        if (PyErr_Occurred()) PyErr_Print();
-
-                        // clean up
-                        Py_XDECREF(dum);
-                        free(code);
-                        code = NULL;
-                        prompt = ps1;
-
-                        // wait till every rank is done
-                        fflush(stdout);
-                        fflush(stderr);
-                        MPI_Barrier(MPI_COMM_WORLD);
                     }
-                }
-                // case 2: not finish yet
-                else if (PyErr_ExceptionMatches(PyExc_SyntaxError)) {
-                    // save current exception if there is any, and parse error msg
-                    PyErr_Fetch(&exc, &val, &traceback);
-                    PyArg_ParseTuple(val, "sO", &err_msg, &obj);
-
-                    // code not complete yet
-                    // TODO: more msg to handle code not complete, ex: triple-quote
-                    if (strcmp(err_msg, "unexpected EOF while parsing") == 0) {
-                        prompt = ps2;
-                    }
-                    // it's a real error
                     else {
-                        PyErr_Restore(exc, val, traceback);
-                        PyErr_Print();
-
-                        // clean up
-                        free(code);
-                        code = NULL;
-                        prompt = ps1;
+                        command.run();
                     }
+                    free(input_line);
+                    continue;
+                }
+            }
+
+            // dealing with Python input
+            input_len = strlen(input_line);
+            if (code == NULL) code_len = 0;
+            else              code_len = strlen(code);
+
+            // append input to code, additional 2 for '\n' and '\0'
+            code = (char*) realloc(code, input_len + code_len + 2);
+            if (code_len == 0) code[0] = '\0';
+            strncat(code, input_line, input_len);
+            code[code_len + input_len] = '\n';
+            code[code_len + input_len + 1] = '\0';
+
+            // compile and check if this code is complete yet
+            src = Py_CompileString(code, "<libyt-stdin>", Py_single_input);
+            // case 1: it works fine, ready to run
+            if (src != NULL) {
+                if (prompt == ps1 || code[code_len + input_len - 1] == '\n') {
+                    // broadcast to other ranks, code character num no longer than INT_MAX
+                    int temp = (int) strlen(code);
+                    MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
+                    MPI_Bcast(code, strlen(code), MPI_CHAR, root, MPI_COMM_WORLD);
+
+                    // run code
+                    dum = PyEval_EvalCode(src, global_var, local_var);
+                    if (PyErr_Occurred()) PyErr_Print();
 
                     // clean up
-                    Py_XDECREF(exc);
-                    Py_XDECREF(val);
-                    Py_XDECREF(traceback);
-                    Py_XDECREF(obj);
+                    Py_XDECREF(dum);
+                    free(code);
+                    code = NULL;
+                    prompt = ps1;
+
+                    // wait till every rank is done
+                    fflush(stdout);
+                    fflush(stderr);
+                    MPI_Barrier(MPI_COMM_WORLD);
                 }
-                // case 3: real errors in code
-                else{
+            }
+            // case 2: not finish yet
+            else if (PyErr_ExceptionMatches(PyExc_SyntaxError)) {
+                // save current exception if there is any, and parse error msg
+                PyErr_Fetch(&exc, &val, &traceback);
+                PyArg_ParseTuple(val, "sO", &err_msg, &obj);
+
+                // code not complete yet
+                // TODO: more msg to handle code not complete, ex: triple-quote
+                if (strcmp(err_msg, "unexpected EOF while parsing") == 0 ||
+                    strcmp(err_msg, "EOF while scanning triple-quoted string literal") == 0) {
+                    prompt = ps2;
+                }
+                // it's a real error
+                else {
+                    PyErr_Restore(exc, val, traceback);
                     PyErr_Print();
 
                     // clean up
@@ -193,9 +181,24 @@ int yt_interactive_mode(char* flag_file_name) {
                 }
 
                 // clean up
-                Py_XDECREF(src);
-                free(input_line);
+                Py_XDECREF(exc);
+                Py_XDECREF(val);
+                Py_XDECREF(traceback);
+                Py_XDECREF(obj);
             }
+            // case 3: real errors in code
+            else{
+                PyErr_Print();
+
+                // clean up
+                free(code);
+                code = NULL;
+                prompt = ps1;
+            }
+
+            // clean up
+            Py_XDECREF(src);
+            free(input_line);
         }
         // other ranks: get and execute python line from root
         else {
@@ -211,8 +214,10 @@ int yt_interactive_mode(char* flag_file_name) {
             MPI_Bcast(code, code_len, MPI_CHAR, root, MPI_COMM_WORLD);
             code[code_len] = '\0';
 
+            // todo: libyt command
+
             // compile and execute code
-            src = Py_CompileString(code, "<libyt-stdin>", Py_single_input);  // todo: add rank num
+            src = Py_CompileString(code, "<libyt-stdin>", Py_single_input);
             dum = PyEval_EvalCode(src, global_var, local_var);
             if (PyErr_Occurred()) PyErr_Print();
 
@@ -231,5 +236,11 @@ int yt_interactive_mode(char* flag_file_name) {
 
     return YT_SUCCESS;
 }
+
+
+static int run_new_added_function() {
+    return YT_SUCCESS;
+}
+
 
 #endif // #ifdef INTERACTIVE_MODE
