@@ -11,7 +11,7 @@ private:
 public:
     func_status_list(int capacity) { m_FuncStatusList.reserve(capacity); };
     ~func_status_list() { m_FuncStatusList.clear(); };
-    func_status& operator[](int index) {return m_FuncStatusList[index]; };
+    func_status& operator[](int index) { return m_FuncStatusList[index]; };
 
     int reset();
     int size() { return (int) m_FuncStatusList.size(); };
