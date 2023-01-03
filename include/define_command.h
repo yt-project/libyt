@@ -12,7 +12,8 @@ public:
     int run();
     bool is_exit();
 
-
+    static int load_script(const char *filename);
+    static int export_script(const char *filename);
 };
 
 
