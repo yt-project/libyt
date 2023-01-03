@@ -105,16 +105,8 @@ int yt_interactive_mode(char* flag_file_name) {
                 parse[6] = '\0';
                 if (strcmp(parse, "%libyt") == 0) {
                     define_command command(&(input_line[first_char]));
-                    if (command.is_exit()) {
-                        done = true;
-                        // inform other ranks that we're done
-                        int temp = -1;
-                        MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
-                    }
-                    else {
-                        // command may or may not need collective operation
-                        command.run();
-                    }
+                    if (command.is_exit()) done = true;
+                    else command.run();
                     free(input_line);
                     continue;
                 }

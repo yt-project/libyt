@@ -35,7 +35,7 @@ int define_command::run() {
         else if (arg_list[0].compare("export") == 0)  export_script(arg_list[1].c_str());
     }
     else {
-        YT_ABORT("Unkown libyt command : %s", m_Command.c_str());
+        log_error("Unkown libyt command : %s", m_Command.c_str());
     }
 
     return YT_SUCCESS;
@@ -49,6 +49,7 @@ int define_command::run() {
 // Notes       :  1. Parse m_Command to see if it is exit.
 //                2. Since we need to set variable in interactive mode while loop, we single this method
 //                   out of run method.
+//                3. Tell other ranks that we are done.
 //
 // Arguments   :  None
 //
@@ -57,7 +58,13 @@ int define_command::run() {
 bool define_command::is_exit() {
     std::size_t start_pos = 0;
     std::size_t found = m_Command.find("exit", start_pos);
-    if (found != std::string::npos) return true;
+    int root = 0;
+    if (found != std::string::npos) {
+        // inform other ranks that we're done
+        int temp = -1;
+        MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
+        return true;
+    }
     else return false;
 }
 
