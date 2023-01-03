@@ -112,6 +112,7 @@ int yt_interactive_mode(char* flag_file_name) {
                         MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
                     }
                     else {
+                        // command may or may not need collective operation
                         command.run();
                     }
                     free(input_line);

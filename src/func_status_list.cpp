@@ -109,7 +109,7 @@ int func_status_list::print_summary() {
 //
 // Arguments   :  char   *func_name: inline function name
 //
-// Return      :  index
+// Return      :  index : index of func_name in list, return -1 if doesn't exist.
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::get_func_index(char *func_name) {
     int index = -1;
