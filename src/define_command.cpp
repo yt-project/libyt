@@ -2,7 +2,9 @@
 
 #include "define_command.h"
 #include "yt_combo.h"
+#include <iostream>
 #include <sstream>
+#include <fstream>
 #include <vector>
 
 int define_command::s_Root = 0;
@@ -74,31 +76,79 @@ bool define_command::is_exit() {
 
 
 //-------------------------------------------------------------------------------------------------------
-// Class         :  define_command
-// Static Method :  load_script
+// Class      :  define_command
+// Method     :  load_script
 //
-// Notes         :  1. Reload all the variables and functions defined inside the script. It will erase
-//                     the previous Python workspace originally defined in the ongoing inline analysis.
-//                  2. Parse functions in script and add to g_func_status_list. If function name already
-//                     exists in the list, the source code in libyt.interactive_mode["func_body"] will
-//                     be rewritten.
-//                  3. All
+// Notes      :  1. This is a collective call. And only works inside yt_interactive_mode loop.
+//               2. Reload all the variables and functions defined inside the script. It will erase
+//                  the previous Python workspace originally defined in the ongoing inline analysis.
+//               3. Parse functions in script and add to g_func_status_list. If function name already
+//                  exists in the list, the source code in libyt.interactive_mode["func_body"] will
+//                  be rewritten.
+//               4. Charactar in the file loaded cannot exceed INT_MAX.
 //
-// Arguments     :  char *filename : file name to reload
+// Arguments  :  char *filename : file name to reload
 //
-// Return        : YT_SUCCESS or YT_FAIL
+// Return     : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int define_command::load_script(const char *filename) {
-    // call other ranks
+    // call other ranks, wait till others are here // todo: make %liybt symmetric.
     if (g_myrank == s_Root) {
         int code_len = (int) m_Command.length();
         MPI_Bcast(&code_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
         MPI_Bcast(const_cast<char*>(m_Command.c_str()), code_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
     }
-
-    printf("Reloading script %s ...\n", filename);
-
     MPI_Barrier(MPI_COMM_WORLD);
+
+    // root rank reads script and broadcast to other ranks if compile successfully
+    char *script = NULL;
+    PyObject *src;
+    if (g_myrank == s_Root) {
+        // read file
+        std::ifstream stream(filename);
+        std::string line;
+        std::stringstream ss;
+        while (getline(stream, line)) { ss << line << "\n"; }
+        stream.close();
+
+        // check compilation, if failed return directly, so no need to allocate script.
+        src = Py_CompileString(ss.str().c_str(), filename, Py_single_input);
+        if (src == NULL) {
+            PyErr_Print();
+            int temp = -1;
+            MPI_Bcast(&temp, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+            return YT_FAIL;
+        }
+
+        // broadcast when compile successfully
+        int script_len = (int) ss.str().length();
+        script = (char*) malloc((script_len + 1) * sizeof(char));
+        strncpy(script, ss.str().c_str(), script_len);
+        script[script_len] = '\0';
+
+        MPI_Bcast(&script_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+        MPI_Bcast(script, script_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
+    }
+    else {
+        // get script from file read by root rank, return YT_FAIL if script_len < 0
+        int script_len;
+        MPI_Bcast(&script_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+        if (script_len < 0) return YT_FAIL;
+
+        script = (char*) malloc((script_len + 1) * sizeof(char));
+        MPI_Bcast(script, script_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
+        script[script_len] = '\0';
+
+        // compile code
+        src = Py_CompileString(script, filename, Py_single_input);
+    }
+
+    // execute src in script's namespace
+
+
+    // clean up
+    free(script);
+    Py_XDECREF(src);
 
     return YT_SUCCESS;
 }
