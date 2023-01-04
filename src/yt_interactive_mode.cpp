@@ -207,19 +207,27 @@ int yt_interactive_mode(char* flag_file_name) {
             MPI_Bcast(code, code_len, MPI_CHAR, root, MPI_COMM_WORLD);
             code[code_len] = '\0';
 
-            // todo: libyt command
+            // check if it is libyt command, the first 6 char will be %libyt
+            char parse[7];
+            strncpy(parse, code, 6);
+            parse[6] = '\0';
+            if (strcmp(parse, "%libyt") == 0) {
+                define_command command(code);
+                command.run();
+            }
+            else {
+                // compile and execute code
+                src = Py_CompileString(code, "<libyt-stdin>", Py_single_input);
+                dum = PyEval_EvalCode(src, global_var, local_var);
+                if (PyErr_Occurred()) PyErr_Print();
 
-            // compile and execute code
-            src = Py_CompileString(code, "<libyt-stdin>", Py_single_input);
-            dum = PyEval_EvalCode(src, global_var, local_var);
-            if (PyErr_Occurred()) PyErr_Print();
+                // clean up
+                Py_XDECREF(dum);
+                Py_XDECREF(src);
+            }
 
-            // clean up
+            // clean up and wait
             free(code);
-            Py_XDECREF(dum);
-            Py_XDECREF(src);
-
-            // wait
             fflush(stdout);
             fflush(stderr);
             MPI_Barrier(MPI_COMM_WORLD);
