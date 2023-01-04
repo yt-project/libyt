@@ -112,7 +112,7 @@ int define_command::load_script(const char *filename) {
         stream.close();
 
         // check compilation, if failed return directly, so no need to allocate script.
-        src = Py_CompileString(ss.str().c_str(), filename, Py_single_input);
+        src = Py_CompileString(ss.str().c_str(), filename, Py_file_input);
         if (src == NULL) {
             PyErr_Print();
             int temp = -1;
