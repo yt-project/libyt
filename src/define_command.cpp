@@ -5,13 +5,15 @@
 #include <sstream>
 #include <vector>
 
+int define_command::s_Root = 0;
+
 //-------------------------------------------------------------------------------------------------------
 // Class       :  define_command
 // Method      :  run
 //
-// Notes       :  1. Parst m_Command, and call according method. m_Command does not contain spaces at
-//                   the beginning.
-//                2. stringstream is slow and string copying is slow, but ..., too lazy to do that.
+// Notes       :  1. Parst m_Command, and call according method.
+//                2  m_Command does not contain spaces at the beginning.
+//                3. stringstream is slow and string copying is slow, but ..., too lazy to do that.
 //
 // Arguments   :  None
 //
@@ -35,8 +37,11 @@ int define_command::run() {
         else if (arg_list[0].compare("export") == 0)  export_script(arg_list[1].c_str());
     }
     else {
-        log_error("Unkown libyt command : %s", m_Command.c_str());
+        log_error("Unkown libyt command : %s\n", m_Command.c_str());
     }
+
+    fflush(stdout);
+    fflush(stderr);
 
     return YT_SUCCESS;
 }
@@ -58,11 +63,10 @@ int define_command::run() {
 bool define_command::is_exit() {
     std::size_t start_pos = 0;
     std::size_t found = m_Command.find("exit", start_pos);
-    int root = 0;
     if (found != std::string::npos) {
         // inform other ranks that we're done
         int temp = -1;
-        MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
+        MPI_Bcast(&temp, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
         return true;
     }
     else return false;
@@ -85,7 +89,17 @@ bool define_command::is_exit() {
 // Return        : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int define_command::load_script(const char *filename) {
+    // call other ranks
+    if (g_myrank == s_Root) {
+        int code_len = (int) m_Command.length();
+        MPI_Bcast(&code_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+        MPI_Bcast(const_cast<char*>(m_Command.c_str()), code_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
+    }
+
     printf("Reloading script %s ...\n", filename);
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
     return YT_SUCCESS;
 }
 
