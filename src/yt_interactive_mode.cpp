@@ -118,6 +118,7 @@ int yt_interactive_mode(char* flag_file_name) {
                         MPI_Bcast(&(input_line[first_char]), input_len, MPI_CHAR, root, MPI_COMM_WORLD);
                         // run
                         command.run();
+                        MPI_Barrier(MPI_COMM_WORLD);
                     }
                     free(input_line);
                     continue;
