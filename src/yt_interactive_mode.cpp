@@ -105,8 +105,20 @@ int yt_interactive_mode(char* flag_file_name) {
                 parse[6] = '\0';
                 if (strcmp(parse, "%libyt") == 0) {
                     define_command command(&(input_line[first_char]));
-                    if (command.is_exit()) done = true;
-                    else command.run();
+                    if (command.is_exit()) {
+                        done = true;
+                        // tell other ranks
+                        int temp = -1;
+                        MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
+                    }
+                    else {
+                        // tell other ranks no matter if it is valid, even though not all libyt command are collective
+                        input_len = (int) strlen(input_line) - first_char;
+                        MPI_Bcast(&input_len, 1, MPI_INT, root, MPI_COMM_WORLD);
+                        MPI_Bcast(&(input_line[first_char]), input_len, MPI_CHAR, root, MPI_COMM_WORLD);
+                        // run
+                        command.run();
+                    }
                     free(input_line);
                     continue;
                 }
@@ -157,7 +169,6 @@ int yt_interactive_mode(char* flag_file_name) {
                 PyArg_ParseTuple(val, "sO", &err_msg, &obj);
 
                 // code not complete yet
-                // TODO: more msg to handle code not complete, ex: triple-quote
                 if (strcmp(err_msg, "unexpected EOF while parsing") == 0 ||
                     strcmp(err_msg, "EOF while scanning triple-quoted string literal") == 0) {
                     prompt = ps2;

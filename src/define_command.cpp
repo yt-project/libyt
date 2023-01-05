@@ -14,8 +14,7 @@ int define_command::s_Root = 0;
 // Method      :  run
 //
 // Notes       :  1. Parst m_Command, and call according method.
-//                2  m_Command does not contain spaces at the beginning.
-//                3. stringstream is slow and string copying is slow, but ..., too lazy to do that.
+//                2. stringstream is slow and string copying is slow, but ..., too lazy to do that.
 //
 // Arguments   :  None
 //
@@ -39,7 +38,7 @@ int define_command::run() {
         else if (arg_list[0].compare("export") == 0)  export_script(arg_list[1].c_str());
     }
     else {
-        log_error("Unkown libyt command : %s\n", m_Command.c_str());
+        if (g_myrank == s_Root) log_error("Unkown libyt command : %s\n", m_Command.c_str());
     }
 
     fflush(stdout);
@@ -56,7 +55,6 @@ int define_command::run() {
 // Notes       :  1. Parse m_Command to see if it is exit.
 //                2. Since we need to set variable in interactive mode while loop, we single this method
 //                   out of run method.
-//                3. Tell other ranks that we are done.
 //
 // Arguments   :  None
 //
@@ -65,12 +63,7 @@ int define_command::run() {
 bool define_command::is_exit() {
     std::size_t start_pos = 0;
     std::size_t found = m_Command.find("exit", start_pos);
-    if (found != std::string::npos) {
-        // inform other ranks that we're done
-        int temp = -1;
-        MPI_Bcast(&temp, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
-        return true;
-    }
+    if (found != std::string::npos) return true;
     else return false;
 }
 
@@ -79,7 +72,7 @@ bool define_command::is_exit() {
 // Class      :  define_command
 // Method     :  load_script
 //
-// Notes      :  1. This is a collective call. And only works inside yt_interactive_mode loop.
+// Notes      :  1. This is a collective call.
 //               2. Reload all the variables and functions defined inside the script. It will erase
 //                  the previous Python workspace originally defined in the ongoing inline analysis.
 //               3. Parse functions in script and add to g_func_status_list. If function name already
@@ -92,13 +85,7 @@ bool define_command::is_exit() {
 // Return     : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int define_command::load_script(const char *filename) {
-    // call other ranks, wait till others are here // todo: make %liybt symmetric.
-    if (g_myrank == s_Root) {
-        int code_len = (int) m_Command.length();
-        MPI_Bcast(&code_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
-        MPI_Bcast(const_cast<char*>(m_Command.c_str()), code_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
+    printf("Reloading script %s ...\n", filename);
 
     // root rank reads script and broadcast to other ranks if compile successfully
     char *script = NULL;
@@ -113,6 +100,7 @@ int define_command::load_script(const char *filename) {
 
         // check compilation, if failed return directly, so no need to allocate script.
         src = Py_CompileString(ss.str().c_str(), filename, Py_file_input);
+        printf("[MPI %d] compile code\n", g_myrank);
         if (src == NULL) {
             PyErr_Print();
             int temp = -1;
@@ -133,22 +121,33 @@ int define_command::load_script(const char *filename) {
         // get script from file read by root rank, return YT_FAIL if script_len < 0
         int script_len;
         MPI_Bcast(&script_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
-        if (script_len < 0) return YT_FAIL;
+        if (script_len < 0) {
+            printf("[MPI %d] script_len < 0 return YT_FAIL\n", g_myrank);
+            return YT_FAIL;
+        }
+
 
         script = (char*) malloc((script_len + 1) * sizeof(char));
         MPI_Bcast(script, script_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
         script[script_len] = '\0';
 
         // compile code
-        src = Py_CompileString(script, filename, Py_single_input);
+        src = Py_CompileString(script, filename, Py_file_input);
+        printf("[MPI %d] compile code\n", g_myrank);
     }
 
     // execute src in script's namespace
+    PyObject *global_var = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
+    PyObject *local_var = global_var;
+    PyObject *dum = PyEval_EvalCode(src, global_var, local_var);
+    if (PyErr_Occurred()) PyErr_Print();
+    printf("[MPI %d] run code\n", g_myrank);
 
 
     // clean up
     free(script);
     Py_XDECREF(src);
+    Py_XDECREF(dum);
 
     return YT_SUCCESS;
 }
