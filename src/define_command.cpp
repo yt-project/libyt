@@ -85,7 +85,6 @@ bool define_command::is_exit() {
 // Return     : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int define_command::load_script(const char *filename) {
-    printf("Reloading script %s ...\n", filename);
 
     // root rank reads script and broadcast to other ranks if compile successfully
     char *script = NULL;
@@ -121,11 +120,7 @@ int define_command::load_script(const char *filename) {
         // get script from file read by root rank, return YT_FAIL if script_len < 0
         int script_len;
         MPI_Bcast(&script_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
-        if (script_len < 0) {
-            printf("[MPI %d] script_len < 0 return YT_FAIL\n", g_myrank);
-            return YT_FAIL;
-        }
-
+        if (script_len < 0) return YT_FAIL;
 
         script = (char*) malloc((script_len + 1) * sizeof(char));
         MPI_Bcast(script, script_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
@@ -133,7 +128,6 @@ int define_command::load_script(const char *filename) {
 
         // compile code
         src = Py_CompileString(script, filename, Py_file_input);
-        printf("[MPI %d] compile code\n", g_myrank);
     }
 
     // execute src in script's namespace
@@ -141,8 +135,6 @@ int define_command::load_script(const char *filename) {
     PyObject *local_var = global_var;
     PyObject *dum = PyEval_EvalCode(src, global_var, local_var);
     if (PyErr_Occurred()) PyErr_Print();
-    printf("[MPI %d] run code\n", g_myrank);
-
 
     // clean up
     free(script);
