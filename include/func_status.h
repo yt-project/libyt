@@ -11,8 +11,7 @@ private:
     int         m_Status;
 
 public:
-    func_status(char *func_name);
-    func_status(char *func_name, char *code);
+    func_status(char *func_name, bool run);
     ~func_status();
     func_status(const func_status& other);
 
@@ -26,6 +25,5 @@ public:
 
     int serial_print_error(int indent_size, int indent_level);
     int update_func_body();
-    int clear_func_body();
 };
 #endif // #ifndef __FUNC_STATUS_H__
