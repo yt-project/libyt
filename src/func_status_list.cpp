@@ -152,21 +152,27 @@ int func_status_list::add_new_func(char *func_name, bool run) {
 // Notes         :  1. This is a static method.
 //                  2. It updates functions' body defined in filename and put it under
 //                     libyt.interactive_mode["func_body"].
+//                  3. Get only keyword def defined functions. If the functors are defined using __call__
+//                     this method cannot grab the corresponding definition.
+//                  4. TODO: do I even need to do this, as long as it is maintained by user I don't need this??
 //
 // Arguments     :  char *filename: update function body for function defined inside filename
 //
 // Return        : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::load_func_body(const char *filename) {
-    int command_len = 450 + strlen(filename);
+    int command_len = 500 + strlen(filename);
     char *command = (char*) malloc(command_len * sizeof(char));
     sprintf(command, "for key in libyt.interactive_mode[\"script_globals\"].keys():\n"
                      "    if key.startswith(\"__\") and key.endswith(\"__\"):\n"
                      "        continue\n"
                      "    else:\n"
                      "        var = libyt.interactive_mode[\"script_globals\"][key]\n"
-                     "        if callable(var) and inspect.getsourcefile(var).split(\"/\")[-1] == \"%s\":\n"
-                     "            libyt.interactive_mode[\"func_body\"][key] = inspect.getsource(var)", filename);
+                     "        try:\n"
+                     "            if callable(var) and inspect.getsourcefile(var).split(\"/\")[-1] == \"%s\":\n"
+                     "                libyt.interactive_mode[\"func_body\"][key] = inspect.getsource(var)\n"
+                     "        except:\n"
+                     "            pass\n", filename);
 
     if (PyRun_SimpleString(command) == 0) log_debug("Loading function body in script %s ... done\n", filename);
     else                                  log_debug("Loading function body in script %s ... failed\n", filename);
