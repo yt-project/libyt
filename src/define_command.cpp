@@ -1,6 +1,7 @@
 #ifdef INTERACTIVE_MODE
 
 #include "define_command.h"
+#include "func_status_list.h"
 #include "yt_combo.h"
 #include <iostream>
 #include <sstream>
@@ -87,7 +88,7 @@ bool define_command::is_exit() {
 int define_command::load_script(const char *filename) {
 
     // root rank reads script and broadcast to other ranks if compile successfully
-    char *script = NULL;
+    char *script = NULL; // todo: we don't need this probably
     PyObject *src;
     if (g_myrank == s_Root) {
         // read file
@@ -99,7 +100,6 @@ int define_command::load_script(const char *filename) {
 
         // check compilation, if failed return directly, so no need to allocate script.
         src = Py_CompileString(ss.str().c_str(), filename, Py_file_input);
-        printf("[MPI %d] compile code\n", g_myrank);
         if (src == NULL) {
             PyErr_Print();
             int temp = -1;
@@ -132,9 +132,11 @@ int define_command::load_script(const char *filename) {
 
     // execute src in script's namespace
     PyObject *global_var = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
-    PyObject *local_var = global_var;
-    PyObject *dum = PyEval_EvalCode(src, global_var, local_var);
+    PyObject *dum = PyEval_EvalCode(src, global_var, global_var);
     if (PyErr_Occurred()) PyErr_Print();
+
+    func_status_list::load_func_body(filename);
+    //     (3) for added keys to libyt.interactive_mode["func_body"], they should be added to g_func_status_list.
 
     // clean up
     free(script);
