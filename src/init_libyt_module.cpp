@@ -1,5 +1,6 @@
 #include "yt_combo.h"
 #include <string.h>
+#include <string>
 #include "yt_rma_field.h"
 #include "yt_rma_particle.h"
 #include "yt_type_array.h"
@@ -802,10 +803,13 @@ int init_libyt_module()
         log_debug("Preparing interactive mode environment ... done\n");
     }
     else {
+        free(command);
         YT_ABORT("Preparing interactive mode environment ... failed\n");
     }
-
     free(command);
+
+    std::string filename = std::string(g_param_libyt.script) + ".py";
+    func_status_list::load_func_body(filename.c_str());
 #endif // #ifdef INTERACTIVE_MODE
 
 #ifdef SUPPORT_TIMER

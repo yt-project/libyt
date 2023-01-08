@@ -15,7 +15,7 @@
 // Return      : YT_SUCCESS
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::reset() {
-    for (int i=0; i<m_FuncStatusList.size(); i++) {
+    for (int i=0; i<size(); i++) {
         m_FuncStatusList[i].set_status(-1);
     }
     return YT_SUCCESS;
@@ -51,7 +51,7 @@ int func_status_list::print_summary() {
         printf("\033[1;37m");
         printf("=====================================================================\n");
         printf("* Inline function execute status:\n");
-        for (int i=0; i<m_FuncStatusList.size(); i++) {
+        for (int i=0; i<size(); i++) {
             printf("\033[1;37m"); // change to bold white
             printf("  * %-40s ... ", m_FuncStatusList[i].get_func_name());
             bool run = m_FuncStatusList[i].get_run();
@@ -89,7 +89,7 @@ int func_status_list::print_summary() {
         printf("\033[0;37m"); // change to white
     }
     else {
-        for (int i=0; i<m_FuncStatusList.size(); i++) {
+        for (int i=0; i<size(); i++) {
             bool run = m_FuncStatusList[i].get_run();
             int status = m_FuncStatusList[i].get_status();
             if (!run) continue;
@@ -113,7 +113,7 @@ int func_status_list::print_summary() {
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::get_func_index(char *func_name) {
     int index = -1;
-    for (int i=0; i<m_FuncStatusList.size(); i++) {
+    for (int i=0; i<size(); i++) {
         if (strcmp(m_FuncStatusList[i].get_func_name(), func_name) == 0) {
             index = i;
             break;
@@ -121,6 +121,7 @@ int func_status_list::get_func_index(char *func_name) {
     }
     return index;
 }
+
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status_list
@@ -132,14 +133,44 @@ int func_status_list::get_func_index(char *func_name) {
 //
 // Return      : YT_SUCCESS
 //-------------------------------------------------------------------------------------------------------
-int func_status_list::add_new_func(char *func_name) {
+int func_status_list::add_new_func(char *func_name, bool run) {
     // Check if func_name exist, return YT_SUCCESS if exist
     if (get_func_index(func_name) >= 0) return YT_SUCCESS;
 
     // add func_name
-    func_status new_func(func_name);
+    func_status new_func(func_name, run);
     m_FuncStatusList.push_back(new_func);
 
+    return YT_SUCCESS;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  func_status_list
+// Static Method :  load_func_body
+//
+// Notes         :  1. This is a static method.
+//                  2. It updates functions' body defined in filename and put it under
+//                     libyt.interactive_mode["func_body"].
+//
+// Arguments     :  char *filename: update function body for function defined inside filename
+//
+// Return        : YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int func_status_list::load_func_body(const char *filename) {
+    int command_len = 450 + strlen(filename);
+    char *command = (char*) malloc(command_len * sizeof(char));
+    sprintf(command, "for key in libyt.interactive_mode[\"script_globals\"].keys():\n"
+                     "    if key.startswith(\"__\") and key.endswith(\"__\"):\n"
+                     "        continue\n"
+                     "    else:\n"
+                     "        var = libyt.interactive_mode[\"script_globals\"][key]\n"
+                     "        if callable(var) and inspect.getsourcefile(var).split(\"/\")[-1] == \"%s\":\n"
+                     "            libyt.interactive_mode[\"func_body\"][key] = inspect.getsource(var)", filename);
+
+    if (PyRun_SimpleString(command) == 0) log_debug("Loading function body in script %s ... done\n", filename);
+    else                                  log_debug("Loading function body in script %s ... failed\n", filename);
+    free(command);
     return YT_SUCCESS;
 }
 

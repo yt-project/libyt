@@ -19,42 +19,17 @@
 //                                       0 -> failed
 //                                      -1 -> not execute by yt_inline/yt_inline_argument yet (default)
 //                                      -2 -> running
-//                2. Get function body using inspect.getsource store in libyt.interactive_mode["func_body"][<func_name>].
-//                   If inspect.getsource gets error, store null string "" instead.
+//                2. Separate storing actual python source code in libyt.interactive_mode["func_body"].
 //
 // Arguments   :  char    *func_name: inline function name
 //-------------------------------------------------------------------------------------------------------
-func_status::func_status(char *func_name)
-: m_Run(true), m_Status(-1)
+func_status::func_status(char *func_name, bool run)
+: m_Run(run), m_Status(-1)
 {
     // copy func_name to m_FuncName
     int len = strlen(func_name);
     m_FuncName = new char [len + 1];
     strcpy(m_FuncName, func_name);
-
-    // get function body using inspect.getsource
-    int command_width = 200 + len * 3 + strlen(g_param_libyt.script);
-    char *command = (char*) malloc(command_width * sizeof(char));
-    sprintf(command, "try:\n"
-                     "    libyt.interactive_mode[\"func_body\"][\"%s\"] = inspect.getsource(%s.%s)\n"
-                     "except:\n"
-                     "    libyt.interactive_mode[\"func_body\"][\"%s\"] = \"\"\n",
-                     func_name, g_param_libyt.script, func_name, func_name);
-    if (PyRun_SimpleString(command) == 0) log_debug("Loading inline function body %s ... done\n", func_name);
-    else                                  log_debug("Loading inline function body %s ... failed\n", func_name);
-    free(command);
-}
-
-
-func_status::func_status(char *func_name, char *code)
-: m_Run(true), m_Status(-1)
-{
-    // copy func_name to m_FuncName
-    int len = strlen(func_name);
-    m_FuncName = new char [len + 1];
-    strcpy(m_FuncName, func_name);
-
-    // todo: convert code to python string and store under dict.
 }
 
 
@@ -66,11 +41,12 @@ func_status::func_status(char *func_name, char *code)
 //                   g_func_status_list vector, which makes a copy.
 //                   Although we can replace it to store class's pointer, I don't want to access through
 //                   arrow.
+//                2. todo: use emplace_back instead of push_back.
 //
 // Arguments   :  const func_status& other
 //-------------------------------------------------------------------------------------------------------
 func_status::func_status(const func_status& other)
-: m_Run(true), m_Status(-1)
+: m_Run(other.m_Run), m_Status(-1)
 {
     // copy m_FuncName;
     int len = strlen(other.m_FuncName);
