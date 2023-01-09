@@ -2,6 +2,7 @@
 #define __LIBYT_FUNC_STATUS_LIST_H__
 
 #include <vector>
+#include <string>
 #include "func_status.h"
 
 class func_status_list {
@@ -20,6 +21,7 @@ public:
     int add_new_func(char *func_name, bool run);
 
     static int load_func_body(const char *filename);
+    static std::vector<std::string> get_func(const char *filename);
 };
 
 
