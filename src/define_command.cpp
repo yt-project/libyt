@@ -117,7 +117,15 @@ int define_command::load_script(const char *filename) {
     PyObject *src;
     if (g_myrank == s_Root) {
         // read file
-        std::ifstream stream(filename);
+        std::ifstream stream;
+        stream.open(filename);
+        if (!stream) {
+            int temp = -1;
+            MPI_Bcast(&temp, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+            printf("File %s doesn't exist.\n", filename);
+            printf("Loading script %s ... failed\n", filename);
+            return YT_FAIL;
+        }
         std::string line;
         std::stringstream ss;
         while (getline(stream, line)) { ss << line << "\n"; }
