@@ -88,7 +88,6 @@ bool define_command::is_exit() {
 int define_command::load_script(const char *filename) {
 
     // root rank reads script and broadcast to other ranks if compile successfully
-    char *script = NULL; // todo: we don't need this probably
     PyObject *src;
     if (g_myrank == s_Root) {
         // read file
@@ -109,12 +108,8 @@ int define_command::load_script(const char *filename) {
 
         // broadcast when compile successfully
         int script_len = (int) ss.str().length();
-        script = (char*) malloc((script_len + 1) * sizeof(char));
-        strncpy(script, ss.str().c_str(), script_len);
-        script[script_len] = '\0';
-
         MPI_Bcast(&script_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
-        MPI_Bcast(script, script_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
+        MPI_Bcast(const_cast<char*>(ss.str().c_str()), script_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
     }
     else {
         // get script from file read by root rank, return YT_FAIL if script_len < 0
@@ -122,12 +117,15 @@ int define_command::load_script(const char *filename) {
         MPI_Bcast(&script_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
         if (script_len < 0) return YT_FAIL;
 
+        char *script;
         script = (char*) malloc((script_len + 1) * sizeof(char));
         MPI_Bcast(script, script_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
         script[script_len] = '\0';
 
         // compile code
         src = Py_CompileString(script, filename, Py_file_input);
+
+        free(script);
     }
 
     // execute src in script's namespace
@@ -135,11 +133,13 @@ int define_command::load_script(const char *filename) {
     PyObject *dum = PyEval_EvalCode(src, global_var, global_var);
     if (PyErr_Occurred()) PyErr_Print();
 
+    // update libyt.interactive_mode["func_body"]
     func_status_list::load_func_body(filename);
-    //     (3) for added keys to libyt.interactive_mode["func_body"], they should be added to g_func_status_list.
+
+    // update g_func_status_list
+
 
     // clean up
-    free(script);
     Py_XDECREF(src);
     Py_XDECREF(dum);
 
