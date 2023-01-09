@@ -111,7 +111,7 @@ int func_status_list::print_summary() {
 //
 // Return      :  index : index of func_name in list, return -1 if doesn't exist.
 //-------------------------------------------------------------------------------------------------------
-int func_status_list::get_func_index(char *func_name) {
+int func_status_list::get_func_index(const char *func_name) {
     int index = -1;
     for (int i=0; i<size(); i++) {
         if (strcmp(m_FuncStatusList[i].get_func_name(), func_name) == 0) {
@@ -189,7 +189,7 @@ int func_status_list::load_func_body(const char *filename) {
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  func_status_list
-// Static Method :  get_func
+// Static Method :  get_funcname_defined
 //
 // Notes         :  1. This is a static method.
 //                  2. It grabs functions or any callable object's name defined in filename.
@@ -198,7 +198,7 @@ int func_status_list::load_func_body(const char *filename) {
 //
 // Return        : A std::vector that has function name stored as std::string
 //-------------------------------------------------------------------------------------------------------
-std::vector<std::string> func_status_list::get_func(const char *filename) {
+std::vector<std::string> func_status_list::get_funcname_defined(const char *filename) {
     int command_len = 400 + strlen(filename);
     char *command = (char*) malloc(command_len * sizeof(char));
     sprintf(command, "libyt.interactive_mode[\"temp\"] = []\n"

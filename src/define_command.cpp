@@ -42,9 +42,13 @@ bool define_command::run() {
     else if (arg_list.size() == 2) {
         if      (arg_list[0].compare("load") == 0)      load_script(arg_list[1].c_str());
         else if (arg_list[0].compare("export") == 0)    export_script(arg_list[1].c_str());
+        else if (arg_list[1].compare("run") == 0)       set_func_run(arg_list[0].c_str(), true);
+        else if (arg_list[1].compare("idle") == 0)      set_func_run(arg_list[0].c_str(), false);
+        else if (arg_list[1].compare("status") == 0)    get_func_status(arg_list[0].c_str());
     }
 
-    if (m_Undefine && g_myrank == s_Root) log_error("Unkown libyt command : %s\n", m_Command.c_str());
+    if (m_Undefine && g_myrank == s_Root) log_error("Unkown libyt command : %s\n"
+                                                    "(Type %%libyt help for help ...)\n", m_Command.c_str());
 
     fflush(stdout);
     fflush(stderr);
@@ -53,14 +57,38 @@ bool define_command::run() {
 }
 
 
+//-------------------------------------------------------------------------------------------------------
+// Class      :  define_command
+// Method     :  print_status
+//
+// Notes      :  1. Print all the function status, without error msg.
+//
+//
+// Arguments  :  None
+//
+// Return     :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
 int define_command::print_status() {
     m_Undefine = false;
     return YT_SUCCESS;
 }
 
 
+//-------------------------------------------------------------------------------------------------------
+// Class      :  define_command
+// Method     :  print_help_msg
+//
+// Notes      :  1.
+//
+// Arguments  :  None
+//
+// Return     :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
 int define_command::print_help_msg() {
     m_Undefine = false;
+    if (g_myrank == s_Root) {
+        printf("Usage: %libyt [options]\n");
+    }
     return YT_SUCCESS;
 }
 
@@ -77,7 +105,7 @@ int define_command::print_help_msg() {
 //                  be rewritten.
 //               4. Charactar in the file loaded cannot exceed INT_MAX.
 //
-// Arguments  :  char *filename : file name to reload
+// Arguments  :  const char *filename : file name to reload
 //
 // Return     : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
@@ -143,7 +171,7 @@ int define_command::load_script(const char *filename) {
     func_status_list::load_func_body(filename);
 
     // get function list defined inside the script
-    std::vector<std::string> func_list = func_status_list::get_func(filename);
+    std::vector<std::string> func_list = func_status_list::get_funcname_defined(filename);
     for (int i=0; i<func_list.size(); i++) {
         g_func_status_list.add_new_func(const_cast<char*>(func_list[i].c_str()), false);
     }
@@ -159,18 +187,51 @@ int define_command::load_script(const char *filename) {
 
 
 //-------------------------------------------------------------------------------------------------------
-// Class         :  define_command
-// Static Method :  export_script
+// Class      :  define_command
+// Method     :  export_script
 //
-// Notes         :  1.
+// Notes      :  1.
 //
-// Arguments     :  const char *filename : output file name
+// Arguments  :  const char *filename : output file name
 //
-// Return        :  YT_SUCCESS or YT_FAIL
+// Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int define_command::export_script(const char *filename) {
     m_Undefine = false;
     printf("Exporting script %s ...\n", filename);
     return YT_SUCCESS;
 }
+
+
+//-------------------------------------------------------------------------------------------------------
+// Class      :  define_command
+// Method     :  set_func_run
+//
+// Notes      :  1.
+//
+// Arguments  :  const char *funcname : function name
+//               bool        run      : run in next inline process or not
+//
+// Return     :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int define_command::set_func_run(const char *funcname, bool run) {
+    m_Undefine = false;
+
+    int index = g_func_status_list.get_func_index(funcname);
+    if (index == -1) {
+        if (g_myrank == s_Root) printf("Function %s not found\n", funcname);
+        return YT_FAIL;
+    }
+    else {
+        g_func_status_list[index].set_run(run);
+        if (g_myrank == s_Root) printf("Function %s set to %s ... done\n", funcname, run ? "run" : "idle");
+        return YT_SUCCESS;
+    }
+}
+
+
+int define_command::get_func_status(const char *funcname) {
+    return YT_SUCCESS;
+}
+
 #endif // #ifdef INTERACTIVE_MODE

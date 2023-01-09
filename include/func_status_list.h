@@ -17,11 +17,11 @@ public:
     int reset();
     int size() { return (int) m_FuncStatusList.size(); };
     int print_summary();
-    int get_func_index(char *func_name);
+    int get_func_index(const char *func_name);
     int add_new_func(char *func_name, bool run);
 
     static int load_func_body(const char *filename);
-    static std::vector<std::string> get_func(const char *filename);
+    static std::vector<std::string> get_funcname_defined(const char *filename);
 };
 
 
