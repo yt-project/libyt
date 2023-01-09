@@ -19,9 +19,9 @@ int define_command::s_Root = 0;
 //
 // Arguments   :  None
 //
-// Return      : YT_SUCCESS or YT_FAIL
+// Return      : true / false   : whether or not to exit interactive loop.
 //-------------------------------------------------------------------------------------------------------
-int define_command::run() {
+bool define_command::run() {
 
     std::stringstream ss(m_Command);
     std::string arg;
@@ -30,12 +30,13 @@ int define_command::run() {
     // get rid of %libyt, and start parsing from the second word.
     ss >> arg;
     while (ss >> arg) {
-        arg_list.push_back(arg);
+        arg_list.emplace_back(arg);
     }
 
     // call corresponding static method
     if (arg_list.size() == 1) {
-        if      (arg_list[0].compare("status") == 0)    print_status();
+        if      (arg_list[0].compare("exit") == 0)      return true;
+        else if (arg_list[0].compare("status") == 0)    print_status();
         else if (arg_list[0].compare("help") == 0)      print_help_msg();
     }
     else if (arg_list.size() == 2) {
@@ -48,27 +49,7 @@ int define_command::run() {
     fflush(stdout);
     fflush(stderr);
 
-    return YT_SUCCESS;
-}
-
-
-//-------------------------------------------------------------------------------------------------------
-// Class       :  define_command
-// Method      :  is_exit
-//
-// Notes       :  1. Parse m_Command to see if it is exit.
-//                2. Since we need to set variable in interactive mode while loop, we single this method
-//                   out of run method.
-//
-// Arguments   :  None
-//
-// Return      : true or false
-//-------------------------------------------------------------------------------------------------------
-bool define_command::is_exit() {
-    std::size_t start_pos = 0;
-    std::size_t found = m_Command.find("exit", start_pos);
-    if (found != std::string::npos) return true;
-    else return false;
+    return false;
 }
 
 
