@@ -156,7 +156,7 @@ int func_status_list::add_new_func(char *func_name, bool run) {
 //                     this method cannot grab the corresponding definition.
 //                  4. TODO: do I even need to do this, as long as it is maintained by user I don't need this??
 //
-// Arguments     :  char *filename: update function body for function defined inside filename
+// Arguments     :  const char *filename: update function body for function defined inside filename
 //
 // Return        : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
@@ -174,10 +174,57 @@ int func_status_list::load_func_body(const char *filename) {
                      "        except:\n"
                      "            pass\n", filename);
 
-    if (PyRun_SimpleString(command) == 0) log_debug("Loading function body in script %s ... done\n", filename);
-    else                                  log_debug("Loading function body in script %s ... failed\n", filename);
+    if (PyRun_SimpleString(command) == 0) {
+        log_debug("Loading function body in script %s ... done\n", filename);
+        free(command);
+        return YT_SUCCESS;
+    }
+    else {
+        log_debug("Loading function body in script %s ... failed\n", filename);
+        free(command);
+        return YT_FAIL;
+    }
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  func_status_list
+// Static Method :  get_func
+//
+// Notes         :  1. This is a static method.
+//                  2. It grabs functions or any callable object's name defined in filename.
+//
+// Arguments     :  const char *filename: update function body for function defined inside filename
+//
+// Return        : A std::vector that has function name stored as std::string
+//-------------------------------------------------------------------------------------------------------
+std::vector<std::string> func_status_list::get_func(const char *filename) {
+    int command_len = 400 + strlen(filename);
+    char *command = (char*) malloc(command_len * sizeof(char));
+    sprintf(command, "libyt.interactive_mode[\"temp\"] = []\n"
+                     "for key in libyt.interactive_mode[\"script_globals\"].keys():\n"
+                     "    if key.startswith(\"__\") and key.endswith(\"__\"):\n"
+                     "        continue\n"
+                     "    else:\n"
+                     "        var = libyt.interactive_mode[\"script_globals\"][key]\n"
+                     "        if callable(var) and inspect.getsourcefile(var).split(\"/\")[-1] == \"%s\":\n"
+                     "            libyt.interactive_mode[\"temp\"].append(key)\n", filename);
+    if (PyRun_SimpleString(command) != 0) log_error("Unable to grab functions in python script %s.\n", filename);
+
+    PyObject *py_func_list = PyDict_GetItemString(g_py_interactive_mode, "temp");
+    Py_ssize_t py_list_len = PyList_Size(py_func_list);
+    std::vector<std::string> func_list;
+    func_list.reserve((long)py_list_len);
+    for (Py_ssize_t i=0; i<py_list_len; i++) {
+        const char *func_name = PyUnicode_AsUTF8(PyList_GET_ITEM(py_func_list, i));
+        func_list.emplace_back(std::string(func_name));
+    }
+
+    // clean up
     free(command);
-    return YT_SUCCESS;
+    PyRun_SimpleString("del libyt.interactive_mode[\"temp\"]");
+
+    return func_list;
 }
 
 #endif // #ifdef INTERACTIVE_MODE

@@ -136,8 +136,11 @@ int define_command::load_script(const char *filename) {
     // update libyt.interactive_mode["func_body"]
     func_status_list::load_func_body(filename);
 
-    // update g_func_status_list
-
+    // get function list defined inside the script
+    std::vector<std::string> func_list = func_status_list::get_func(filename);
+    for (int i=0; i<func_list.size(); i++) {
+        g_func_status_list.add_new_func(const_cast<char*>(func_list[i].c_str()), false);
+    }
 
     // clean up
     Py_XDECREF(src);
