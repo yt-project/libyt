@@ -104,22 +104,17 @@ int yt_interactive_mode(char* flag_file_name) {
                 strncpy(parse, &(input_line[first_char]), 6);
                 parse[6] = '\0';
                 if (strcmp(parse, "%libyt") == 0) {
+                    // tell other ranks no matter if it is valid, even though not all libyt command are collective
+                    input_len = (int) strlen(input_line) - first_char;
+                    MPI_Bcast(&input_len, 1, MPI_INT, root, MPI_COMM_WORLD);
+                    MPI_Bcast(&(input_line[first_char]), input_len, MPI_CHAR, root, MPI_COMM_WORLD);
+
+                    // run libyt command
                     define_command command(&(input_line[first_char]));
-                    if (command.is_exit()) {
-                        done = true;
-                        // tell other ranks
-                        int temp = -1;
-                        MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
-                    }
-                    else {
-                        // tell other ranks no matter if it is valid, even though not all libyt command are collective
-                        input_len = (int) strlen(input_line) - first_char;
-                        MPI_Bcast(&input_len, 1, MPI_INT, root, MPI_COMM_WORLD);
-                        MPI_Bcast(&(input_line[first_char]), input_len, MPI_CHAR, root, MPI_COMM_WORLD);
-                        // run
-                        command.run();
-                        MPI_Barrier(MPI_COMM_WORLD);
-                    }
+                    done = command.run();
+                    MPI_Barrier(MPI_COMM_WORLD);
+
+                    // clean up
                     free(input_line);
                     continue;
                 }
@@ -207,14 +202,8 @@ int yt_interactive_mode(char* flag_file_name) {
         }
         // other ranks: get and execute python line from root
         else {
-            // get code length; if code_len < 0, break the loop
-            MPI_Bcast(&code_len, 1, MPI_INT, root, MPI_COMM_WORLD);
-            if (code_len < 0) {
-                done = true;
-                break;
-            }
-
             // get code; additional 1 for '\0'
+            MPI_Bcast(&code_len, 1, MPI_INT, root, MPI_COMM_WORLD);
             code = (char*) malloc((code_len + 1) * sizeof(char));
             MPI_Bcast(code, code_len, MPI_CHAR, root, MPI_COMM_WORLD);
             code[code_len] = '\0';
@@ -225,7 +214,7 @@ int yt_interactive_mode(char* flag_file_name) {
             parse[6] = '\0';
             if (strcmp(parse, "%libyt") == 0) {
                 define_command command(code);
-                command.run();
+                done = command.run();
             }
             else {
                 // compile and execute code
