@@ -13,8 +13,10 @@ public:
     int run();
     bool is_exit();
 
-    int load_script(const char *filename);
-    int export_script(const char *filename);
+    static int print_status();
+    static int print_help_msg();
+    static int load_script(const char *filename);
+    static int export_script(const char *filename);
 };
 
 

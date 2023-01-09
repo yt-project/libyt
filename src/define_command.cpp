@@ -34,13 +34,29 @@ int define_command::run() {
     }
 
     // call corresponding static method
-    if (arg_list.size() == 2) {
-        if      (arg_list[0].compare("load") == 0)    load_script(arg_list[1].c_str());
-        else if (arg_list[0].compare("export") == 0)  export_script(arg_list[1].c_str());
+    bool undefine = true;
+    if (arg_list.size() == 1) {
+        if (arg_list[0].compare("status") == 0) {
+            print_status();
+            undefine = false;
+        }
+        else if (arg_list[0].compare("help") == 0) {
+            print_help_msg();
+            undefine = false;
+        }
     }
-    else {
-        if (g_myrank == s_Root) log_error("Unkown libyt command : %s\n", m_Command.c_str());
+    else if (arg_list.size() == 2) {
+        if(arg_list[0].compare("load") == 0) {
+            load_script(arg_list[1].c_str());
+            undefine = false;
+        }
+        else if (arg_list[0].compare("export") == 0) {
+            export_script(arg_list[1].c_str());
+            undefine = false;
+        }
     }
+
+    if (undefine == true && g_myrank == s_Root) log_error("Unkown libyt command : %s\n", m_Command.c_str());
 
     fflush(stdout);
     fflush(stderr);
@@ -66,6 +82,16 @@ bool define_command::is_exit() {
     std::size_t found = m_Command.find("exit", start_pos);
     if (found != std::string::npos) return true;
     else return false;
+}
+
+
+int define_command::print_status() {
+    return YT_SUCCESS;
+}
+
+
+int define_command::print_help_msg() {
+    return YT_SUCCESS;
 }
 
 
@@ -103,6 +129,7 @@ int define_command::load_script(const char *filename) {
             PyErr_Print();
             int temp = -1;
             MPI_Bcast(&temp, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+            printf("Loading script %s ... failed\n", filename);
             return YT_FAIL;
         }
 
@@ -146,6 +173,8 @@ int define_command::load_script(const char *filename) {
     Py_XDECREF(src);
     Py_XDECREF(dum);
 
+    if (g_myrank == s_Root) printf("Loading script %s ... done\n", filename);
+
     return YT_SUCCESS;
 }
 
@@ -156,7 +185,7 @@ int define_command::load_script(const char *filename) {
 //
 // Notes         :  1.
 //
-// Arguments     :  char *filename : output file name
+// Arguments     :  const char *filename : output file name
 //
 // Return        :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
