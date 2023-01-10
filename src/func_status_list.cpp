@@ -27,12 +27,9 @@ int func_status_list::reset() {
 // Method      :  print_summary
 //
 // Notes       :  1. Print function status and error msg in func_status_list.
-//                2. Every rank will call this function, it is a collective call. Other ranks only need
-//                   to output their error msg.
-//                3. Will use element class's method print_error().
-//                4. normal      -> bold white
+//                2. normal      -> bold white
 //                   idle        -> bold blue
-//                   not run yet -> bold purple
+//                   not run yet -> bold yellow
 //                   success     -> bold green
 //                   failed      -> bold red
 //                   MPI process -> bold cyan
