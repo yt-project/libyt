@@ -130,10 +130,11 @@ int func_status_list::get_func_index(const char *func_name) {
 // Notes       :  1. Check if func_name is defined inside the vector, if not create one.
 //
 // Arguments   :  char   *func_name: inline function name
+//                int     run      : run in next inline analysis or not.
 //
 // Return      : YT_SUCCESS
 //-------------------------------------------------------------------------------------------------------
-int func_status_list::add_new_func(char *func_name, bool run) {
+int func_status_list::add_new_func(char *func_name, int run) {
     // Check if func_name exist, return YT_SUCCESS if exist
     if (get_func_index(func_name) >= 0) return YT_SUCCESS;
 

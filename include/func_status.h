@@ -7,18 +7,18 @@ class func_status
 {
 private:
     char       *m_FuncName;
-    bool        m_Run;
+    int         m_Run;
     int         m_Status;
 
 public:
-    func_status(char *func_name, bool run);
+    func_status(char *func_name, int run);
     ~func_status();
     func_status(const func_status& other);
 
     char* get_func_name() {return m_FuncName;};
 
-    bool  get_run() const { return m_Run; };
-    int   set_run(bool run) { m_Run = run; return YT_SUCCESS; };
+    int  get_run() const { return m_Run; };
+    int   set_run(int run) { m_Run = run; return YT_SUCCESS; };
 
     int get_status();
     int set_status(int status) { m_Status = status; return YT_SUCCESS; };
