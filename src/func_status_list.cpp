@@ -46,40 +46,42 @@ int func_status_list::print_summary() {
     if (g_myrank == 0) {
         printf("\033[1;37m");
         printf("=====================================================================\n");
-        printf("* Inline function execute status:\n");
+        printf("  %-40s     %-12s   %s\n", "Inline Function", "Status", "Run");
+        printf("---------------------------------------------------------------------\n");
         for (int i=0; i<size(); i++) {
             printf("\033[1;37m"); // change to bold white
-            printf("  * %-40s ... ", m_FuncStatusList[i].get_func_name());
+            printf("  * %-43s", m_FuncStatusList[i].get_func_name());
             int run = m_FuncStatusList[i].get_run();
             int status = m_FuncStatusList[i].get_status();
             if (run != 1) {
                 printf("\033[1;34m"); // bold blue: idle
-                printf("idle\n");
-                printf("\033[1;37m");
+                printf("%-12s", "idle");
+                printf("\033[1;33m");
+                printf("    %s\n", "X");
             }
             else {
                 if (status == 0) {
                     printf("\033[1;31m"); // bold red: failed
-                    printf("failed\n");
-                    printf("\033[1;37m");
+                    printf("%-12s", "failed");
                 }
                 else if (status == 1) {
                     printf("\033[1;32m"); // bold green: success
-                    printf("success\n");
-                    printf("\033[1;37m");
+                    printf("%-12s", "success");
                 }
                 else if (status == -1) {
                     printf("\033[1;33m"); // bold yellow: not run yet
-                    printf("not run yet\n");
-                    printf("\033[1;37m");
+                    printf("%-12s", "not run yet");
                 }
                 else {
                     printf("\033[0;37m"); // change to white
-                    YT_ABORT("Unkown status %d\n", status);
+                    printf("%-12s (%d)", "unkown status", status);
                 }
+                printf("\033[1;33m");
+                printf("    %s\n", "V");
             }
             fflush(stdout);
         }
+        printf("\033[1;37m");
         printf("=====================================================================\n");
         printf("\033[0;37m"); // change to white
     }
@@ -141,6 +143,7 @@ int func_status_list::add_new_func(char *func_name, int run) {
 //                   yt_inline/yt_inline_argument yet.
 //                2. Only supports function that don't have input arguments. It runs function func() in
 //                   Python.
+//                3. todo: make function able to take in arguments by %libyt run func arg1 arg2 ...
 //
 // Arguments   :  None
 //

@@ -42,9 +42,9 @@ bool define_command::run() {
     else if (arg_list.size() == 2) {
         if      (arg_list[0].compare("load") == 0)      load_script(arg_list[1].c_str());
         else if (arg_list[0].compare("export") == 0)    export_script(arg_list[1].c_str());
-        else if (arg_list[1].compare("run") == 0)       set_func_run(arg_list[0].c_str(), true);
-        else if (arg_list[1].compare("idle") == 0)      set_func_run(arg_list[0].c_str(), false);
-        else if (arg_list[1].compare("status") == 0)    get_func_status(arg_list[0].c_str());
+        else if (arg_list[0].compare("run") == 0)       set_func_run(arg_list[1].c_str(), true);
+        else if (arg_list[0].compare("idle") == 0)      set_func_run(arg_list[1].c_str(), false);
+        else if (arg_list[0].compare("status") == 0)    get_func_status(arg_list[1].c_str());
     }
 
     if (m_Undefine && g_myrank == s_Root) log_error("Unkown libyt command : %s\n"
