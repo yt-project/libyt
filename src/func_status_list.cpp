@@ -45,7 +45,6 @@ int func_status_list::print_summary() {
     // make sure every rank has reach here, so that printing in other ranks are done
     fflush(stdout);
     fflush(stderr);
-    MPI_Barrier(MPI_COMM_WORLD);
 
     if (g_myrank == 0) {
         printf("\033[1;37m");
@@ -54,9 +53,9 @@ int func_status_list::print_summary() {
         for (int i=0; i<size(); i++) {
             printf("\033[1;37m"); // change to bold white
             printf("  * %-40s ... ", m_FuncStatusList[i].get_func_name());
-            bool run = m_FuncStatusList[i].get_run();
+            int run = m_FuncStatusList[i].get_run();
             int status = m_FuncStatusList[i].get_status();
-            if (!run) {
+            if (run != 1) {
                 printf("\033[1;34m"); // bold blue: idle
                 printf("idle\n");
                 printf("\033[1;37m");
@@ -66,7 +65,6 @@ int func_status_list::print_summary() {
                     printf("\033[1;31m"); // bold red: failed
                     printf("failed\n");
                     printf("\033[1;37m");
-                    m_FuncStatusList[i].serial_print_error(2, 2);
                 }
                 else if (status == 1) {
                     printf("\033[1;32m"); // bold green: success
@@ -87,14 +85,6 @@ int func_status_list::print_summary() {
         }
         printf("=====================================================================\n");
         printf("\033[0;37m"); // change to white
-    }
-    else {
-        for (int i=0; i<size(); i++) {
-            bool run = m_FuncStatusList[i].get_run();
-            int status = m_FuncStatusList[i].get_status();
-            if (!run) continue;
-            if (status == 0) m_FuncStatusList[i].serial_print_error(2, 2);
-        }
     }
 
     return YT_SUCCESS;
