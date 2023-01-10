@@ -62,7 +62,7 @@ bool define_command::run() {
 // Method     :  print_status
 //
 // Notes      :  1. Print all the function status, without error msg.
-//
+//               2. Call g_func_status_list.print_summary().
 //
 // Arguments  :  None
 //
@@ -70,6 +70,7 @@ bool define_command::run() {
 //-------------------------------------------------------------------------------------------------------
 int define_command::print_status() {
     m_Undefine = false;
+    g_func_status_list.print_summary();
     return YT_SUCCESS;
 }
 
@@ -78,7 +79,7 @@ int define_command::print_status() {
 // Class      :  define_command
 // Method     :  print_help_msg
 //
-// Notes      :  1.
+// Notes      :  1. todo
 //
 // Arguments  :  None
 //
@@ -192,6 +193,7 @@ int define_command::load_script(const char *filename) {
 //
 // Notes      :  1. Export input during this step's interactive loop.
 //               2. Let user maintain their script imported.
+//               3. todo
 //
 // Arguments  :  const char *filename : output file name
 //
@@ -231,7 +233,45 @@ int define_command::set_func_run(const char *funcname, bool run) {
 }
 
 
+//-------------------------------------------------------------------------------------------------------
+// Class      :  define_command
+// Method     :  get_func_status
+//
+// Notes      :  1. Get function status and print error msg if has.
+//               2. libyt.interactive_mode["func_err_msg"] only stores function's error msg when using
+//                  yt_inline/yt_inline_argument.
+//               3. A collective call, since it uses func_status::serial_print_error
+//
+// Arguments  :  const char *funcname : function name
+//
+// Return     :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
 int define_command::get_func_status(const char *funcname) {
+    m_Undefine = false;
+
+    // check if function exist
+    int index = g_func_status_list.get_func_index(funcname);
+    if (index == -1) {
+        if (g_myrank == s_Root) printf("Function %s not found\n", funcname);
+        return YT_FAIL;
+    }
+
+    // print function status
+    int status = g_func_status_list[index].get_status();
+    int run = g_func_status_list[index].get_run();
+    if (g_myrank == s_Root) {
+        printf("%s ... ", g_func_status_list[index].get_func_name());
+        if (run != 1) printf("idle\n");
+        else {
+            if      (status == 1)  printf("success\n");
+            else if (status == 0)  printf("failed\n");
+            else if (status == -1) printf("not run yet\n");
+        }
+    }
+
+    // print error msg if it failed when running in yt_inline/yt_inline_argument. (collective call)
+    if (status == 0) g_func_status_list[index].serial_print_error(2, 1);
+
     return YT_SUCCESS;
 }
 
