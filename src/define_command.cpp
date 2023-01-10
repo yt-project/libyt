@@ -173,7 +173,7 @@ int define_command::load_script(const char *filename) {
     // get function list defined inside the script
     std::vector<std::string> func_list = func_status_list::get_funcname_defined(filename);
     for (int i=0; i<func_list.size(); i++) {
-        g_func_status_list.add_new_func(const_cast<char*>(func_list[i].c_str()), false);
+        g_func_status_list.add_new_func(const_cast<char*>(func_list[i].c_str()), 0);
     }
 
     // clean up
@@ -190,7 +190,8 @@ int define_command::load_script(const char *filename) {
 // Class      :  define_command
 // Method     :  export_script
 //
-// Notes      :  1.
+// Notes      :  1. Export input during this step's interactive loop.
+//               2. Let user maintain their script imported.
 //
 // Arguments  :  const char *filename : output file name
 //
@@ -207,7 +208,7 @@ int define_command::export_script(const char *filename) {
 // Class      :  define_command
 // Method     :  set_func_run
 //
-// Notes      :  1.
+// Notes      :  1. Determine which function will run or idle in next step.
 //
 // Arguments  :  const char *funcname : function name
 //               bool        run      : run in next inline process or not

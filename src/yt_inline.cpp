@@ -36,7 +36,7 @@ int yt_inline_argument(char *function_name, int argc, ...) {
     // if it exists and get_run() return false, return directly.
     int func_index = g_func_status_list.get_func_index(function_name);
     if (func_index == -1) {
-        g_func_status_list.add_new_func(function_name, true);
+        g_func_status_list.add_new_func(function_name, 1);
         func_index = g_func_status_list.get_func_index(function_name);
     }
     else {
@@ -154,7 +154,7 @@ int yt_inline(char *function_name) {
     // if it exists and get_run() return false, return directly.
     int func_index = g_func_status_list.get_func_index(function_name);
     if (func_index == -1) {
-        g_func_status_list.add_new_func(function_name, true);
+        g_func_status_list.add_new_func(function_name, 1);
         func_index = g_func_status_list.get_func_index(function_name);
     }
     else {
