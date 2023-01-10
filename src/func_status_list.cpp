@@ -134,6 +134,47 @@ int func_status_list::add_new_func(char *func_name, int run) {
 
 
 //-------------------------------------------------------------------------------------------------------
+// Class       :  func_status_list
+// Method      :  run_func
+//
+// Notes       :  1. This is a collective call. It executes new added functions that haven't run by
+//                   yt_inline/yt_inline_argument yet.
+//                2. Only supports function that don't have input arguments. It runs function func() in
+//                   Python.
+//
+// Arguments   :  None
+//
+// Return      :  YT_SUCCESS
+//-------------------------------------------------------------------------------------------------------
+int func_status_list::run_func() {
+    for (int i=0; i<size(); i++) {
+        int run = m_FuncStatusList[i].get_run();
+        int status = m_FuncStatusList[i].get_status();
+        if (run == 1 && status == -1) {
+            // command
+            char *funcname = m_FuncStatusList[i].get_func_name();
+            int command_width = 150 + strlen(g_param_libyt.script) + strlen(funcname) * 2;
+            char *command = (char*) malloc(command_width * sizeof(char));
+            sprintf(command, "try:\n"
+                             "    %s.%s()\n"
+                             "except Exception as e:\n"
+                             "    libyt.interactive_mode[\"func_err_msg\"][\"%s\"] = traceback.format_exc()\n",
+                             g_param_libyt.script, funcname, funcname);
+
+            // run and update status
+            m_FuncStatusList[i].set_status(-2);
+            PyRun_SimpleString(command);
+            m_FuncStatusList[i].get_status();
+
+            // clean up
+            free(command);
+        }
+    }
+    return YT_SUCCESS;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
 // Class         :  func_status_list
 // Static Method :  load_func_body
 //
@@ -184,7 +225,7 @@ int func_status_list::load_func_body(const char *filename) {
 //
 // Arguments     :  const char *filename: update function body for function defined inside filename
 //
-// Return        : A std::vector that has function name stored as std::string
+// Return        : std::vector<std::string> contains a list of function name defined in filename.
 //-------------------------------------------------------------------------------------------------------
 std::vector<std::string> func_status_list::get_funcname_defined(const char *filename) {
     int command_len = 400 + strlen(filename);

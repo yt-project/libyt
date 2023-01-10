@@ -7,8 +7,6 @@
 #include <readline.h>
 #include <history.h>
 
-static int run_new_added_function(); // todo: maybe move to func_status_list
-
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_interactive_mode
@@ -30,10 +28,9 @@ int yt_interactive_mode(char* flag_file_name) {
     fflush(stdout);
     fflush(stderr);
 
-    // output func_status summary
-    if (g_func_status_list.print_summary() != YT_SUCCESS) {
-        YT_ABORT("Something went wrong when summarizing inline function status\n");
-    }
+    // run new added function and output func_status summary
+    if (g_func_status_list.run_func() != YT_SUCCESS) YT_ABORT("Something went wrong when running new added functions\n");
+    if (g_func_status_list.print_summary() != YT_SUCCESS) YT_ABORT("Something went wrong when summarizing inline function status\n");
 
     // check if we need to enter interactive prompt
     FILE *file;
@@ -238,11 +235,5 @@ int yt_interactive_mode(char* flag_file_name) {
 
     return YT_SUCCESS;
 }
-
-
-static int run_new_added_function() {
-    return YT_SUCCESS;
-}
-
 
 #endif // #ifdef INTERACTIVE_MODE
