@@ -31,19 +31,19 @@ int yt_inline_argument(char *function_name, int argc, ...) {
     }
 
 #ifdef INTERACTIVE_MODE
-    // get index in g_func_status_list,
-    // if it does not exist, add new one, and always run new function.
-    // if it exists and get_run() return false, return directly.
+    // always run m_Run = -1 function, and set 1.
+    // always run unknown function and let Python generates error.
     int func_index = g_func_status_list.get_func_index(function_name);
-    if (func_index == -1) {
-        g_func_status_list.add_new_func(function_name, 1);
-        func_index = g_func_status_list.get_func_index(function_name);
-    }
-    else {
-        if (g_func_status_list[func_index].get_run() == false) {
+    if (func_index != -1) {
+        if (g_func_status_list[func_index].get_run() == 0) {
             log_info("YT inline function \"%s\" was set to idle ... idle\n", function_name);
             return YT_SUCCESS;
         }
+        else if (g_func_status_list[func_index].get_run() == -1) g_func_status_list[func_index].set_run(1);
+    }
+    else {
+        g_func_status_list.add_new_func(function_name, 1);
+        func_index = g_func_status_list.get_func_index(function_name);
     }
     g_func_status_list[func_index].set_status(-2);
 #endif
