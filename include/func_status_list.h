@@ -19,6 +19,7 @@ public:
     int print_summary();
     int get_func_index(const char *func_name);
     int add_new_func(char *func_name, int run);
+    int run_func();
 
     static int load_func_body(const char *filename);
     static std::vector<std::string> get_funcname_defined(const char *filename);
