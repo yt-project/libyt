@@ -53,32 +53,34 @@ int func_status_list::print_summary() {
             printf("  * %-43s", m_FuncStatusList[i].get_func_name());
             int run = m_FuncStatusList[i].get_run();
             int status = m_FuncStatusList[i].get_status();
-            if (run != 1) {
-                printf("\033[1;34m"); // bold blue: idle
-                printf("%-12s", "idle");
-                printf("\033[1;33m");
-                printf("    %s\n", "X");
+
+            if (status == 0) {
+                printf("\033[1;31m"); // bold red: failed
+                printf("%-12s", "failed");
             }
-            else {
-                if (status == 0) {
-                    printf("\033[1;31m"); // bold red: failed
-                    printf("%-12s", "failed");
+            else if (status == 1) {
+                printf("\033[1;32m"); // bold green: success
+                printf("%-12s", "success");
+            }
+            else if (status == -1 ) {
+                if (run != 1) {
+                    printf("\033[1;34m"); // bold blue: idle
+                    printf("%-12s", "idle");
                 }
-                else if (status == 1) {
-                    printf("\033[1;32m"); // bold green: success
-                    printf("%-12s", "success");
-                }
-                else if (status == -1) {
+                else {
                     printf("\033[1;33m"); // bold yellow: not run yet
                     printf("%-12s", "not run yet");
                 }
-                else {
-                    printf("\033[0;37m"); // change to white
-                    printf("%-12s (%d)", "unkown status", status);
-                }
-                printf("\033[1;33m");
-                printf("    %s\n", "V");
             }
+            else {
+                printf("\033[0;37m"); // change to white
+                printf("%-12s (%d)", "unkown status", status);
+            }
+
+            printf("\033[1;33m"); // bold yellow
+            if (run == 1) printf("%5s\n", "V");
+            else          printf("%5s\n", "X");
+
             fflush(stdout);
         }
         printf("\033[1;37m");
