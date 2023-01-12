@@ -24,5 +24,6 @@ public:
     int set_status(int status) { m_Status = status; return YT_SUCCESS; };
 
     int serial_print_error(int indent_size, int indent_level);
+    int print_func_body(int indent_size, int indent_level);
 };
 #endif // #ifndef __FUNC_STATUS_H__

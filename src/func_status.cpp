@@ -112,6 +112,7 @@ int func_status::get_status() {
 //
 // Arguments   :  int indent_size : indent size
 //                int indent_level: how many times to indent
+//
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int func_status::serial_print_error(int indent_size, int indent_level) {
@@ -132,7 +133,7 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
             printf("[ MPI %d ]\n", rank);
             printf("\033[0;37m");                               // set to white
 
-            // get and print error msg, convert to string
+            // get and print error msg, convert to string, todo: don't use string pointer.
             std::string *str_ptr;
             if (rank == g_myrank) {
                 str_ptr = new std::string(err_msg);
@@ -183,6 +184,57 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
+
+    return YT_SUCCESS;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  func_status
+// Method      :  print_func_body
+//
+// Notes       :  1. Only root will print funtion body.
+//
+// Arguments   :  int indent_size : indent size
+//                int indent_level: how many times to indent
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int func_status::print_func_body(int indent_size, int indent_level) {
+    int root = 0;
+    if (g_myrank == 0) {
+        // get function body
+        PyObject *py_func_name = PyUnicode_FromString(m_FuncName);
+        PyObject *py_func_body = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_body"), py_func_name);
+        const char *func_body;
+        if (py_func_body != NULL) func_body = PyUnicode_AsUTF8(py_func_body);
+        else                      func_body = "";
+        Py_DECREF(py_func_name);
+
+        // print function body with indent
+        printf("\033[0;37m");
+        if (strcmp(func_body, "") == 0) {
+            printf("%*s", indent_size * (indent_level + 1), "");
+            printf("(not defined)\n");
+        }
+        else {
+            std::string str_func_body(func_body);
+            std::size_t start_pos = 0;
+            std::size_t found;
+            while (str_func_body.length() > 0) {
+                found = str_func_body.find("\n", start_pos);
+                if (found != std::string::npos) {
+                    printf("%*s", indent_size * (indent_level + 1), "");
+                    for (std::size_t c=start_pos; c<found; c++) { printf("%c", str_func_body[c]); }
+                    printf("\n");
+                }
+                else break;
+                start_pos = found + 1;
+            }
+        }
+
+        fflush(stdout);
+    }
 
     return YT_SUCCESS;
 }
