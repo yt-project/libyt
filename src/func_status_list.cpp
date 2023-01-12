@@ -63,14 +63,8 @@ int func_status_list::print_summary() {
                 printf("%-12s", "success");
             }
             else if (status == -1 ) {
-                if (run != 1) {
-                    printf("\033[1;34m"); // bold blue: idle
-                    printf("%-12s", "idle");
-                }
-                else {
-                    printf("\033[1;33m"); // bold yellow: not run yet
-                    printf("%-12s", "not run yet");
-                }
+                printf("\033[1;34m"); // bold blue: idle
+                printf("%-12s", "idle");
             }
             else {
                 printf("\033[0;37m"); // change to white
