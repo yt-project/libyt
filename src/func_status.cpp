@@ -13,10 +13,11 @@
 //
 // Notes       :  1. Initialize m_FuncName, m_Run, m_Status:
 //                   (1) m_FuncName: function name, does not include argument
-//                   (2)      m_Run:     1 -> will run in next iteration
+//                   (2)     m_Args: input arguments
+//                   (3)      m_Run:     1 -> will run in next iteration
 //                                       0 -> will idle in next iteration
 //                                      -1 -> not set yet
-//                   (3)   m_Status:     1 -> success
+//                   (4)   m_Status:     1 -> success
 //                                       0 -> failed
 //                                      -1 -> not execute by yt_inline/yt_inline_argument yet (default)
 //                                      -2 -> running
@@ -25,7 +26,7 @@
 // Arguments   :  char    *func_name: inline function name
 //-------------------------------------------------------------------------------------------------------
 func_status::func_status(char *func_name, int run)
-: m_Run(run), m_Status(-1)
+: m_Args(""), m_Run(run), m_Status(-1)
 {
     // copy func_name to m_FuncName
     int len = strlen(func_name);
@@ -47,7 +48,7 @@ func_status::func_status(char *func_name, int run)
 // Arguments   :  const func_status& other
 //-------------------------------------------------------------------------------------------------------
 func_status::func_status(const func_status& other)
-: m_Run(other.m_Run), m_Status(-1)
+: m_Args(other.m_Args), m_Run(other.m_Run), m_Status(-1)
 {
     // copy m_FuncName;
     int len = strlen(other.m_FuncName);

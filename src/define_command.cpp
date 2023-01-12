@@ -271,11 +271,14 @@ int define_command::get_func_status(const char *funcname) {
     }
 
     // print error msg if it failed when running in yt_inline/yt_inline_argument. (collective call)
-    if (g_myrank == s_Root) {
-        printf("\033[1;35m"); // bold purple
-        printf("[Error Msg]\n");
+    if (status == 0) {
+        if (g_myrank == s_Root) {
+            printf("\033[1;35m"); // bold purple
+            printf("[Error Msg]\n");
+        }
+        g_func_status_list[index].serial_print_error(2, 1);
+        printf("\033[0;37m");
     }
-    if (status == 0) g_func_status_list[index].serial_print_error(2, 1);
 
     return YT_SUCCESS;
 }
