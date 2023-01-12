@@ -133,10 +133,10 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
             printf("[ MPI %d ]\n", rank);
             printf("\033[0;37m");                               // set to white
 
-            // get and print error msg, convert to string, todo: don't use string pointer.
-            std::string *str_ptr;
+            // get and print error msg, convert to string
+            std::string str_err_msg;
             if (rank == g_myrank) {
-                str_ptr = new std::string(err_msg);
+                str_err_msg = std::string(err_msg);
             }
             else {
                 int tag = rank;
@@ -147,22 +147,22 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
                 MPI_Recv(err_msg_remote, err_msg_len, MPI_CHAR, rank, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 err_msg_remote[err_msg_len] = '\0';
 
-                str_ptr = new std::string(err_msg_remote);
+                str_err_msg = std::string(err_msg_remote);
                 free(err_msg_remote);
             }
 
             // print out error msg with indent
             std::size_t start_pos = 0;
             std::size_t found;
-            if ((*str_ptr).length() == 0) {
+            if (str_err_msg.length() == 0) {
                 printf("%*s", indent_size * (indent_level + 1), "");
                 printf("(none)\n");
             }
-            while ((*str_ptr).length() > 0) {
-                found = (*str_ptr).find("\n", start_pos);
+            while (str_err_msg.length() > 0) {
+                found = str_err_msg.find("\n", start_pos);
                 if (found != std::string::npos) {
                     printf("%*s", indent_size * (indent_level + 1), "");
-                    for (std::size_t c=start_pos; c<found; c++) { printf("%c", (*str_ptr)[c]); }
+                    for (std::size_t c=start_pos; c<found; c++) { printf("%c", str_err_msg[c]); }
                     printf("\n");
                 }
                 else {
@@ -173,7 +173,6 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
 
             // clean up
             fflush(stdout);
-            delete str_ptr;
         }
     }
     else {
