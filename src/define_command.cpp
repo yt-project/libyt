@@ -171,7 +171,8 @@ int define_command::load_script(const char *filename) {
     // update libyt.interactive_mode["func_body"]
     func_status_list::load_func_body(filename);
 
-    // get function list defined inside the script
+    // get function list defined inside the script, add the function name to list if it doesn't exist
+    // and set to idle
     std::vector<std::string> func_list = func_status_list::get_funcname_defined(filename);
     for (int i=0; i<func_list.size(); i++) {
         g_func_status_list.add_new_func(const_cast<char*>(func_list[i].c_str()), 0);
@@ -256,20 +257,24 @@ int define_command::get_func_status(const char *funcname) {
         return YT_FAIL;
     }
 
-    // print function status
+    // print function status and function body
     int status = g_func_status_list[index].get_status();
-    int run = g_func_status_list[index].get_run();
     if (g_myrank == s_Root) {
         printf("%s ... ", g_func_status_list[index].get_func_name());
-        if (run != 1) printf("idle\n");
-        else {
-            if      (status == 1)  printf("success\n");
-            else if (status == 0)  printf("failed\n");
-            else if (status == -1) printf("not run yet\n");
-        }
+        if      (status == 1)  printf("success\n");
+        else if (status == 0)  printf("failed\n");
+        else if (status == -1) printf("idle\n");
+
+        printf("\033[1;35m"); // bold purple
+        printf("[Function Def]\n");
+        g_func_status_list[index].print_func_body(2, 0);
     }
 
     // print error msg if it failed when running in yt_inline/yt_inline_argument. (collective call)
+    if (g_myrank == s_Root) {
+        printf("\033[1;35m"); // bold purple
+        printf("[Error Msg]\n");
+    }
     if (status == 0) g_func_status_list[index].serial_print_error(2, 1);
 
     return YT_SUCCESS;
