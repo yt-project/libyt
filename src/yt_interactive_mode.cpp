@@ -4,8 +4,8 @@
 #include "define_command.h"
 #include "libyt.h"
 #include <ctype.h>
-#include <readline.h>
-#include <history.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 
 //-------------------------------------------------------------------------------------------------------
