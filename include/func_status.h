@@ -2,11 +2,13 @@
 #define __FUNC_STATUS_H__
 
 #include "yt_macro.h"
+#include <string>
 
 class func_status
 {
 private:
     char       *m_FuncName;
+    std::string m_Args;
     int         m_Run;
     int         m_Status;
 
@@ -17,8 +19,11 @@ public:
 
     char* get_func_name() {return m_FuncName;};
 
-    int  get_run() const { return m_Run; };
-    int   set_run(int run) { m_Run = run; return YT_SUCCESS; };
+    std::string get_args() const { return m_Args; };
+    int set_args(std::string& args) { m_Args = args; return YT_SUCCESS; };
+
+    int get_run() const { return m_Run; };
+    int set_run(int run) { m_Run = run; return YT_SUCCESS; };
 
     int get_status();
     int set_status(int status) { m_Status = status; return YT_SUCCESS; };
