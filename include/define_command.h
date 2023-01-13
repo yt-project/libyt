@@ -2,6 +2,7 @@
 #define __DEFINE_COMMAND_H__
 
 #include <string>
+#include <vector>
 
 class define_command {
 private:
@@ -18,6 +19,7 @@ public:
     int load_script(const char *filename);
     int export_script(const char *filename);
     int set_func_run(const char *funcname, bool run);
+    int set_func_run(const char *funcname, bool run, std::vector<std::string>& arg_list);
     int get_func_status(const char *funcname);
 };
 

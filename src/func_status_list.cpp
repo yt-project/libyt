@@ -155,10 +155,10 @@ int func_status_list::run_func() {
             int command_width = 150 + strlen(g_param_libyt.script) + strlen(funcname) * 2;
             char *command = (char*) malloc(command_width * sizeof(char));
             sprintf(command, "try:\n"
-                             "    %s.%s()\n"
+                             "    %s.%s(%s)\n"
                              "except Exception as e:\n"
                              "    libyt.interactive_mode[\"func_err_msg\"][\"%s\"] = traceback.format_exc()\n",
-                             g_param_libyt.script, funcname, funcname);
+                             g_param_libyt.script, funcname, m_FuncStatusList[i].get_args().c_str(), funcname);
 
             // run and update status
             m_FuncStatusList[i].set_status(-2);

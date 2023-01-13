@@ -13,7 +13,8 @@
 //
 // Notes       :  1. Initialize m_FuncName, m_Run, m_Status:
 //                   (1) m_FuncName: function name, does not include argument
-//                   (2)     m_Args: input arguments
+//                   (2)     m_Args: input arguments for new added functions. libyt uses m_Args when using
+//                                   func_status_list::run_func to run the functions.
 //                   (3)      m_Run:     1 -> will run in next iteration
 //                                       0 -> will idle in next iteration
 //                                      -1 -> not set yet

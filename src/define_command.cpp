@@ -33,7 +33,7 @@ bool define_command::run() {
         arg_list.emplace_back(arg);
     }
 
-    // call corresponding static method
+    // call corresponding method
     if (arg_list.size() == 1) {
         if      (arg_list[0].compare("exit") == 0)      return true;
         else if (arg_list[0].compare("status") == 0)    print_status();
@@ -45,6 +45,9 @@ bool define_command::run() {
         else if (arg_list[0].compare("run") == 0)       set_func_run(arg_list[1].c_str(), true);
         else if (arg_list[0].compare("idle") == 0)      set_func_run(arg_list[1].c_str(), false);
         else if (arg_list[0].compare("status") == 0)    get_func_status(arg_list[1].c_str());
+    }
+    else if (arg_list.size() > 2) {
+        if      (arg_list[0].compare("run") == 0)       set_func_run(arg_list[1].c_str(), true, arg_list);
     }
 
     if (m_Undefine && g_myrank == s_Root) log_error("Unkown libyt command : %s\n"
@@ -212,9 +215,11 @@ int define_command::export_script(const char *filename) {
 // Method     :  set_func_run
 //
 // Notes      :  1. Determine which function will run or idle in next step.
+//               2. arg_list is optional.
 //
-// Arguments  :  const char *funcname : function name
-//               bool        run      : run in next inline process or not
+// Arguments  :  const char               *funcname : function name
+//               bool                      run      : run in next inline process or not
+//               std::vector<std::string>  arg_list : contains input args starting from index arg_list[2]
 //
 // Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
@@ -229,6 +234,35 @@ int define_command::set_func_run(const char *funcname, bool run) {
     else {
         g_func_status_list[index].set_run(run);
         if (g_myrank == s_Root) printf("Function %s set to %s ... done\n", funcname, run ? "run" : "idle");
+
+        // update input args to empty string
+        std::string args("");
+        g_func_status_list[index].set_args(args);
+
+        return YT_SUCCESS;
+    }
+}
+
+int define_command::set_func_run(const char *funcname, bool run, std::vector<std::string>& arg_list) {
+    m_Undefine = false;
+
+    int index = g_func_status_list.get_func_index(funcname);
+    if (index == -1) {
+        if (g_myrank == s_Root) printf("Function %s not found\n", funcname);
+        return YT_FAIL;
+    }
+    else {
+        g_func_status_list[index].set_run(run);
+        if (g_myrank == s_Root) printf("Function %s set to %s ... done\n", funcname, run ? "run" : "idle");
+
+        // update input args in func_status
+        std::string args("");
+        for (int i=2; i<arg_list.size(); i++) {
+            args = args + arg_list[i] + " ,";
+        }
+        args.pop_back();
+        g_func_status_list[index].set_args(args);
+
         return YT_SUCCESS;
     }
 }
