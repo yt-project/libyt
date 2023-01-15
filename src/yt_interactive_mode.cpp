@@ -16,9 +16,9 @@
 //                2. Display inline script execute result finished/failed, and show errors if have.
 //                3. Enter interactive mode, user will be operating in inline script's name space.
 //                   (1) Python scripting
-//                   (2) TODO: libyt command
+//                   (2) libyt command
 //                   (3) Execute charactars should be less than INT_MAX.
-//                4. TODO: Let user add and decide what inline function to run in the follow process.
+//                4. Let user add and decide what inline function to run in the follow process.
 //
 // Parameter   :  char *flag_file_name : once this file is detacted, it enters yt_interactive_mode
 //
@@ -96,11 +96,8 @@ int yt_interactive_mode(char* flag_file_name) {
                     continue;
                 }
 
-                // check if it is a libyt command, will always starts with %libyt
-                char parse[7];
-                strncpy(parse, &(input_line[first_char]), 6);
-                parse[6] = '\0';
-                if (strcmp(parse, "%libyt") == 0) {
+                // assume it was libyt defined command if the first char is '%'
+                if (input_line[first_char] == '%') {
                     // tell other ranks no matter if it is valid, even though not all libyt command are collective
                     input_len = (int) strlen(input_line) - first_char;
                     MPI_Bcast(&input_len, 1, MPI_INT, root, MPI_COMM_WORLD);
@@ -141,7 +138,12 @@ int yt_interactive_mode(char* flag_file_name) {
 
                     // run code
                     dum = PyEval_EvalCode(src, global_var, local_var);
-                    if (PyErr_Occurred()) PyErr_Print();
+                    if (PyErr_Occurred()) {
+                        PyErr_Print();
+                    }
+                    else {
+                        // todo: detect callables, also do the same thing in non-root rank.
+                    }
 
                     // clean up
                     Py_XDECREF(dum);
@@ -205,11 +207,8 @@ int yt_interactive_mode(char* flag_file_name) {
             MPI_Bcast(code, code_len, MPI_CHAR, root, MPI_COMM_WORLD);
             code[code_len] = '\0';
 
-            // check if it is libyt command, the first 6 char will be %libyt
-            char parse[7];
-            strncpy(parse, code, 6);
-            parse[6] = '\0';
-            if (strcmp(parse, "%libyt") == 0) {
+            // call libyt command, if the first char is '%'
+            if (code[0] == '%') {
                 define_command command(code);
                 done = command.run();
             }

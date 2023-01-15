@@ -27,27 +27,30 @@ bool define_command::run() {
     std::string arg;
     std::vector<std::string> arg_list;
 
-    // get rid of %libyt, and start parsing from the second word.
+    // Mapping %libyt defined commands to methods
     ss >> arg;
-    while (ss >> arg) {
-        arg_list.emplace_back(arg);
-    }
+    if (arg.compare("%libyt") == 0) {
+        // parsing
+        while (ss >> arg) {
+            arg_list.emplace_back(arg);
+        }
 
-    // call corresponding method
-    if (arg_list.size() == 1) {
-        if      (arg_list[0].compare("exit") == 0)      return true;
-        else if (arg_list[0].compare("status") == 0)    print_status();
-        else if (arg_list[0].compare("help") == 0)      print_help_msg();
-    }
-    else if (arg_list.size() == 2) {
-        if      (arg_list[0].compare("load") == 0)      load_script(arg_list[1].c_str());
-        else if (arg_list[0].compare("export") == 0)    export_script(arg_list[1].c_str());
-        else if (arg_list[0].compare("run") == 0)       set_func_run(arg_list[1].c_str(), true);
-        else if (arg_list[0].compare("idle") == 0)      set_func_run(arg_list[1].c_str(), false);
-        else if (arg_list[0].compare("status") == 0)    get_func_status(arg_list[1].c_str());
-    }
-    else if (arg_list.size() > 2) {
-        if      (arg_list[0].compare("run") == 0)       set_func_run(arg_list[1].c_str(), true, arg_list);
+        // call corresponding method
+        if (arg_list.size() == 1) {
+            if      (arg_list[0].compare("exit") == 0)      return true;
+            else if (arg_list[0].compare("status") == 0)    print_status();
+            else if (arg_list[0].compare("help") == 0)      print_help_msg();
+        }
+        else if (arg_list.size() == 2) {
+            if      (arg_list[0].compare("load") == 0)      load_script(arg_list[1].c_str());
+            else if (arg_list[0].compare("export") == 0)    export_script(arg_list[1].c_str());
+            else if (arg_list[0].compare("run") == 0)       set_func_run(arg_list[1].c_str(), true);
+            else if (arg_list[0].compare("idle") == 0)      set_func_run(arg_list[1].c_str(), false);
+            else if (arg_list[0].compare("status") == 0)    get_func_status(arg_list[1].c_str());
+        }
+        else if (arg_list.size() > 2) {
+            if      (arg_list[0].compare("run") == 0)       set_func_run(arg_list[1].c_str(), true, arg_list);
+        }
     }
 
     if (m_Undefine && g_myrank == s_Root) log_error("Unkown libyt command : %s\n"
