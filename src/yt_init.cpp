@@ -74,6 +74,10 @@ int yt_init(int argc, char *argv[], const yt_param_libyt *param_libyt) {
     // import libyt and inline python script.
     if (init_libyt_module() == YT_FAIL) return YT_FAIL;
 
+#ifdef INTERACTIVE_MODE
+    if (func_status_list::set_exception_hook() == YT_FAIL) return YT_FAIL;
+#endif
+
     // Initialize general info: mpi size and rank ...
     init_general_info();
 

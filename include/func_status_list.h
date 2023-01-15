@@ -23,6 +23,7 @@ public:
 
     static int load_func_body(const char *filename);
     static std::vector<std::string> get_funcname_defined(const char *filename);
+    static int set_exception_hook();
 };
 
 
