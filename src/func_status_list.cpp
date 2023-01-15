@@ -139,7 +139,6 @@ int func_status_list::add_new_func(char *func_name, int run) {
 //                   yt_inline/yt_inline_argument yet.
 //                2. Only supports function that don't have input arguments. It runs function func() in
 //                   Python.
-//                3. todo: make function able to take in arguments by %libyt run func arg1 arg2 ...
 //
 // Arguments   :  None
 //
@@ -253,6 +252,32 @@ std::vector<std::string> func_status_list::get_funcname_defined(const char *file
     PyRun_SimpleString("del libyt.interactive_mode[\"temp\"]");
 
     return func_list;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  func_status_list
+// Static Method :  set_exception_hook()
+//
+// Notes         :  1. This is a static method.
+//                  2. Makes MPI not invoke MPI_Abort when getting errors in Python in interactive mode.
+//                  3. Can only be called after libyt is initialized.
+//
+// Arguments     :  None
+//
+// Return        :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int func_status_list::set_exception_hook() {
+    const char *command = "import sys\n"
+                          "def mpi_libyt_interactive_mode_excepthook(exception_type, exception_value, tb):\n"
+                          "    from mpi4py import MPI\n"
+                          "    myrank = MPI.COMM_WORLD.Get_rank()\n"
+                          "    traceback.print_tb(tb)\n"
+                          "    print(\"[YT_ERROR  ] {}: {}\".format(exception_type.__name__, exception_value))\n"
+                          "    print(\"[YT_ERROR  ] Error occurred on rank {}.\".format(myrank))\n"
+                          "sys.excepthook = mpi_libyt_interactive_mode_excepthook\n";
+    if (PyRun_SimpleString(command) == 0) return YT_SUCCESS;
+    else return YT_FAIL;
 }
 
 #endif // #ifdef INTERACTIVE_MODE
