@@ -82,7 +82,7 @@ int define_command::print_status() {
 // Class      :  define_command
 // Method     :  print_help_msg
 //
-// Notes      :  1. todo
+// Notes      :  1. Print help message.
 //
 // Arguments  :  None
 //
@@ -91,7 +91,12 @@ int define_command::print_status() {
 int define_command::print_help_msg() {
     m_Undefine = false;
     if (g_myrank == s_Root) {
-        printf("Usage: %libyt [options]\n");
+        printf("Usage: %%libyt [options]\n");
+        printf("  %-8s  %-11s  %s\n", "help",     "",            "print help message");
+        printf("  %-8s  %-11s  %s\n", "exit",     "",            "exit and continue simulation");
+        printf("  %-8s  %-11s  %s\n", "status",   "",            "get overall function status");
+        printf("  %-8s  %-11s  %s\n", "status",   "<func name>", "get function status");
+        printf("  %-8s  %-11s  %s\n", "run/idle", "<func name>", "function will run/idle in next iteration");
     }
     return YT_SUCCESS;
 }
