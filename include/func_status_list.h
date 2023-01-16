@@ -1,6 +1,7 @@
 #ifndef __LIBYT_FUNC_STATUS_LIST_H__
 #define __LIBYT_FUNC_STATUS_LIST_H__
 
+#include <Python.h>
 #include <vector>
 #include <string>
 #include "func_status.h"
@@ -21,9 +22,10 @@ public:
     int add_new_func(char *func_name, int run);
     int run_func();
 
-    static int load_func_body(const char *filename);
+    static int load_file_func_body(const char *filename);
     static std::vector<std::string> get_funcname_defined(const char *filename);
     static int set_exception_hook();
+    static int load_input_func_body(PyObject **py_src);
 };
 
 
