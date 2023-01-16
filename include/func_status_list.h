@@ -25,7 +25,7 @@ public:
     static int load_file_func_body(const char *filename);
     static std::vector<std::string> get_funcname_defined(const char *filename);
     static int set_exception_hook();
-    static int load_input_func_body(PyObject **py_src);
+    static int load_input_func_body(PyObject **src_ptr);
 };
 
 
