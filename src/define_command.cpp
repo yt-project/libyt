@@ -99,8 +99,8 @@ int define_command::print_help_msg() {
         printf("  %-6s  %-11s  %-8s  %s\n", "exit",   "",            "",         "exit and continue simulation");
         printf("  %-6s  %-11s  %-8s  %s\n", "status", "",            "",         "get overall function status");
         printf("  %-6s  %-11s  %-8s  %s\n", "status", "<func_name>", "",         "get function status");
-        printf("  %-6s  %-11s  %-8s  %s\n", "run",    "<func_name>", "[arg1, ]", "function will run in next iteration");
-        printf("  %-6s  %-11s  %-8s  %s\n", "",       "",            "",         "using args");
+        printf("  %-6s  %-11s  %-8s  %s\n", "run",    "<func_name>", "[arg1 ]", "function will run in next iteration");
+        printf("  %-6s  %-11s  %-8s  %s\n", "",       "",            "",         "using args, ex: func(arg1, arg2)");
         printf("  %-6s  %-11s  %-8s  %s\n", "idle",   "<func_name>", "",         "function will idle in next iteration");
     }
     return YT_SUCCESS;
