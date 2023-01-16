@@ -95,11 +95,13 @@ int define_command::print_help_msg() {
     m_Undefine = false;
     if (g_myrank == s_Root) {
         printf("Usage: %%libyt [options]\n");
-        printf("  %-8s  %-11s  %s\n", "help",     "",            "print help message");
-        printf("  %-8s  %-11s  %s\n", "exit",     "",            "exit and continue simulation");
-        printf("  %-8s  %-11s  %s\n", "status",   "",            "get overall function status");
-        printf("  %-8s  %-11s  %s\n", "status",   "<func name>", "get function status");
-        printf("  %-8s  %-11s  %s\n", "run/idle", "<func name>", "function will run/idle in next iteration");
+        printf("  %-6s  %-11s  %-8s  %s\n", "help",   "",            "",         "print help message");
+        printf("  %-6s  %-11s  %-8s  %s\n", "exit",   "",            "",         "exit and continue simulation");
+        printf("  %-6s  %-11s  %-8s  %s\n", "status", "",            "",         "get overall function status");
+        printf("  %-6s  %-11s  %-8s  %s\n", "status", "<func_name>", "",         "get function status");
+        printf("  %-6s  %-11s  %-8s  %s\n", "run",    "<func_name>", "[arg1, ]", "function will run in next iteration");
+        printf("  %-6s  %-11s  %-8s  %s\n", "",       "",            "",         "using args");
+        printf("  %-6s  %-11s  %-8s  %s\n", "idle",   "<func_name>", "",         "function will idle in next iteration");
     }
     return YT_SUCCESS;
 }
