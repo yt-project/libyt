@@ -174,20 +174,19 @@ int func_status_list::run_func() {
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  func_status_list
-// Static Method :  load_func_body
+// Static Method :  load_file_func_body
 //
 // Notes         :  1. This is a static method.
 //                  2. It updates functions' body defined in filename and put it under
 //                     libyt.interactive_mode["func_body"].
 //                  3. Get only keyword def defined functions. If the functors are defined using __call__
 //                     this method cannot grab the corresponding definition.
-//                  4. TODO: do I even need to do this, as long as it is maintained by user I don't need this??
 //
 // Arguments     :  const char *filename: update function body for function defined inside filename
 //
 // Return        : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int func_status_list::load_func_body(const char *filename) {
+int func_status_list::load_file_func_body(const char *filename) {
     int command_len = 500 + strlen(filename);
     char *command = (char*) malloc(command_len * sizeof(char));
     sprintf(command, "for key in libyt.interactive_mode[\"script_globals\"].keys():\n"
@@ -211,6 +210,24 @@ int func_status_list::load_func_body(const char *filename) {
         free(command);
         return YT_FAIL;
     }
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  func_status_list
+// Static Method :  load_input_func_body
+//
+// Notes         :  1. This is a static method.
+//                  2. Detect if there are functors defined in code object py_src, if yes, put it under
+//                     libyt.interactive_mode["func_body"].
+//                  3. It's not this method's responsibility to dereference py_src.
+//
+// Arguments     :  PyObject **py_src : python code object to load and detect.
+//
+// Return        : YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int func_status_list::load_input_func_body(PyObject **py_src) {
+
 }
 
 

@@ -182,7 +182,7 @@ int define_command::load_script(const char *filename) {
     if (PyErr_Occurred()) PyErr_Print();
 
     // update libyt.interactive_mode["func_body"]
-    func_status_list::load_func_body(filename);
+    func_status_list::load_file_func_body(filename);
 
     // get function list defined inside the script, add the function name to list if it doesn't exist
     // and set to idle
