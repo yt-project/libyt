@@ -257,28 +257,31 @@ int func_status_list::load_input_func_body(char *code) {
     }
 
     // detecting callables
+    // detecting callables: loop over keys in new dict, and check if it is callable
     PyObject *py_src = Py_CompileString(command_str.c_str(), "<libyt-stdin>", Py_file_input);
-    PyObject *py_dum_detect = PyEval_EvalCode(py_src, py_new_dict, py_new_dict);
-
-    // loop over keys in new dict, and check if it is callable
-    PyObject *py_new_dict_keys = PyDict_Keys(py_new_dict);
-    Py_ssize_t py_size = PyList_GET_SIZE(py_new_dict_keys);
-    for (Py_ssize_t i=0; i<py_size; i++) {
-        if (PyCallable_Check(PyDict_GetItem(py_new_dict, PyList_GET_ITEM(py_new_dict_keys, i)))) {
-            // add new function to g_func_status_list and set to idle
-            // if function exists already, get its index
-            const char *func_name = PyUnicode_AsUTF8(PyList_GET_ITEM(py_new_dict_keys, i));
-            int func_index = g_func_status_list.add_new_func(func_name, 0);
-            printf("get functor: %s, %d\n", func_name, func_index);
-            // update function body. todo
+    if (py_src != NULL) {
+        PyObject *py_dum_detect = PyEval_EvalCode(py_src, py_new_dict, py_new_dict);
+        PyObject *py_new_dict_keys = PyDict_Keys(py_new_dict);
+        Py_ssize_t py_size = PyList_GET_SIZE(py_new_dict_keys);
+        for (Py_ssize_t i=0; i<py_size; i++) {
+            if (PyCallable_Check(PyDict_GetItem(py_new_dict, PyList_GET_ITEM(py_new_dict_keys, i)))) {
+                // add new function to g_func_status_list and set to idle
+                // if function exists already, get its index
+                const char *func_name = PyUnicode_AsUTF8(PyList_GET_ITEM(py_new_dict_keys, i));
+                int func_index = g_func_status_list.add_new_func(func_name, 0);
+                printf("get functor: %s, %d\n", func_name, func_index);
+                // update function body. todo
+            }
         }
+
+        // clean up
+        Py_XDECREF(py_dum_detect);
+        Py_DECREF(py_new_dict_keys);
     }
 
     // clean up, there might cause some error if it is not a functor, so clear err indicator
-    Py_XDECREF(py_dum_detect);
     Py_XDECREF(py_src);
     Py_DECREF(py_new_dict);
-    Py_DECREF(py_new_dict_keys);
     PyErr_Clear();
 
     return YT_SUCCESS;
