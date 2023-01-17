@@ -42,7 +42,7 @@ int yt_inline_argument(char *function_name, int argc, ...) {
         else if (g_func_status_list[func_index].get_run() == -1) g_func_status_list[func_index].set_run(1);
     }
     else {
-        g_func_status_list.add_new_func(function_name, 1);
+        g_func_status_list.add_new_func((const char *)function_name, 1);
         func_index = g_func_status_list.get_func_index(function_name);
     }
     g_func_status_list[func_index].set_status(-2);
@@ -160,7 +160,7 @@ int yt_inline(char *function_name) {
         else if (g_func_status_list[func_index].get_run() == -1) g_func_status_list[func_index].set_run(1);
     }
     else {
-        g_func_status_list.add_new_func(function_name, 1);
+        g_func_status_list.add_new_func((const char *)function_name, 1);
         func_index = g_func_status_list.get_func_index(function_name);
     }
     g_func_status_list[func_index].set_status(-2);

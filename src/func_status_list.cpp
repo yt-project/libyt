@@ -113,21 +113,24 @@ int func_status_list::get_func_index(const char *func_name) {
 // Method      :  add_new_func
 //
 // Notes       :  1. Check if func_name is defined inside the vector, if not create one.
+//                2. Return function index.
 //
 // Arguments   :  char   *func_name: inline function name
 //                int     run      : run in next inline analysis or not.
 //
-// Return      : YT_SUCCESS
+// Return      : Function index in list.
 //-------------------------------------------------------------------------------------------------------
-int func_status_list::add_new_func(char *func_name, int run) {
+int func_status_list::add_new_func(const char *func_name, int run) {
     // Check if func_name exist, return YT_SUCCESS if exist
-    if (get_func_index(func_name) >= 0) return YT_SUCCESS;
+    int index = get_func_index(func_name);
+    if (index >= 0) return index;
 
-    // add func_name
+    // add func_name, since it adds to the end, its index is equal to original size
+    index = size();
     func_status new_func(func_name, run);
     m_FuncStatusList.push_back(new_func);
 
-    return YT_SUCCESS;
+    return index;
 }
 
 

@@ -18,7 +18,7 @@ public:
     int size() { return (int) m_FuncStatusList.size(); };
     int print_summary();
     int get_func_index(const char *func_name);
-    int add_new_func(char *func_name, int run);
+    int add_new_func(const char *func_name, int run);
     int run_func();
 
     static int load_file_func_body(const char *filename);

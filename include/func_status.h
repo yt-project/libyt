@@ -13,7 +13,7 @@ private:
     int         m_Status;
 
 public:
-    func_status(char *func_name, int run);
+    func_status(const char *func_name, int run);
     ~func_status();
     func_status(const func_status& other);
 
