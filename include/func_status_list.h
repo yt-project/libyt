@@ -2,10 +2,16 @@
 #define __LIBYT_FUNC_STATUS_LIST_H__
 
 #include <vector>
+#include <array>
 #include <string>
 #include "func_status.h"
+#include <Python.h>
 
 class func_status_list {
+public:
+    static std::array<std::string, 2> s_NotDone_ErrMsg;
+    static std::array<PyObject*, 2>   s_NotDone_PyErr;
+
 private:
     std::vector<func_status> m_FuncStatusList;
 
@@ -22,9 +28,10 @@ public:
     int run_func();
 
     static int load_file_func_body(const char *filename);
+    static int load_input_func_body(char *code);
     static std::vector<std::string> get_funcname_defined(const char *filename);
     static int set_exception_hook();
-    static int load_input_func_body(char *code);
+    static int init_not_done_err_msg();
 };
 
 

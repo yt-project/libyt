@@ -4,6 +4,10 @@
 #include <string.h>
 #include "func_status_list.h"
 
+
+std::array<std::string, 2> func_status_list::s_NotDone_ErrMsg = {"", ""};
+std::array<PyObject*, 2>   func_status_list::s_NotDone_PyErr = {NULL, NULL};
+
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status_list
 // Method      :  reset
@@ -352,6 +356,50 @@ int func_status_list::set_exception_hook() {
                           "sys.excepthook = mpi_libyt_interactive_mode_excepthook\n";
     if (PyRun_SimpleString(command) == 0) return YT_SUCCESS;
     else return YT_FAIL;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  func_status_list
+// Static Method :  init_not_done_err_msg()
+//
+// Notes         :  1. This is a static method.
+//                  2. Identify error messages that will show up when inputing statements like class, def
+//                     if, and triple quotes etc.
+//                  3. Error messages are version dependent.
+//
+// Arguments     :  None
+//
+// Return        :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int func_status_list::init_not_done_err_msg() {
+    // error msg from not done yet statement to grab
+    std::array<std::string, 2> not_done_statement = { std::string("if 1==1:\n"),
+                                                      std::string("tri = \"\"\"\n") };
+
+    // get python error type and its statement.
+    PyObject *py_src, *py_exc, *py_val, *py_traceback, *py_obj;
+    const char *err_msg;
+    for (int i=0; i<2; i++) {
+        py_src = Py_CompileString(not_done_statement[i].c_str(), "<get err msg>", Py_single_input);
+        PyErr_Fetch(&py_exc, &py_val, &py_traceback);
+        PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
+
+        s_NotDone_ErrMsg[i] = std::string(err_msg);
+        s_NotDone_PyErr[i]  = py_exc;
+
+        PyErr_Clear();
+    }
+
+    // clean up
+    PyErr_Clear();
+    Py_XDECREF(py_src);
+    Py_XDECREF(py_exc);
+    Py_XDECREF(py_val);
+    Py_XDECREF(py_traceback);
+    Py_XDECREF(py_obj);
+
+    return YT_SUCCESS;
 }
 
 #endif // #ifdef INTERACTIVE_MODE
