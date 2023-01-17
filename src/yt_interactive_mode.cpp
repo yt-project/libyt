@@ -136,15 +136,10 @@ int yt_interactive_mode(char* flag_file_name) {
                     MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
                     MPI_Bcast(code, strlen(code), MPI_CHAR, root, MPI_COMM_WORLD);
 
-                    // run code, and if no erro occurred, detect if there is callables
+                    // run code, and detect if there is callables
                     dum = PyEval_EvalCode(src, global_var, local_var);
-                    if (PyErr_Occurred()) {
-                        PyErr_Print();
-                    }
-                    else {
-                        // todo: detect callables, also do the same thing in non-root rank. (create a static function)
-                        func_status_list::load_input_func_body(&src);
-                    }
+                    func_status_list::load_input_func_body(code);
+                    if (PyErr_Occurred()) PyErr_Print();
 
                     // clean up
                     Py_XDECREF(dum);
@@ -214,9 +209,10 @@ int yt_interactive_mode(char* flag_file_name) {
                 done = command.run();
             }
             else {
-                // compile and execute code
+                // compile and execute code, and detect functors.
                 src = Py_CompileString(code, "<libyt-stdin>", Py_single_input);
                 dum = PyEval_EvalCode(src, global_var, local_var);
+                func_status_list::load_input_func_body(code);
                 if (PyErr_Occurred()) PyErr_Print();
 
                 // clean up

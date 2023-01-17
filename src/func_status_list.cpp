@@ -220,15 +220,42 @@ int func_status_list::load_file_func_body(const char *filename) {
 // Notes         :  1. This is a static method.
 //                  2. Detect if there are functors defined in code object src_ptr, if yes, put it under
 //                     libyt.interactive_mode["func_body"].
-//                  3. It's not this method's responsibility to dereference src_ptr.
+//                  3. It's not this method's responsibility to free code.
+//                  4. To silent the printing when PyEval_EvalCode evaluates the code, that sys.stdout
+//                     point to somewhere else when evaluating.
+//                  5. It accepts indent size different from 4.
+//                  5. todo: create a namespace specific for os and contextlib
 //
-// Arguments     :  PyObject **py_src : python code object to load and detect.
+// Arguments     :  char *code : code to detect.
 //
 // Return        : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int func_status_list::load_input_func_body(PyObject **src_ptr) {
+int func_status_list::load_input_func_body(char *code) {
+    // prepare subspace to silent printing from python
     PyObject *py_new_dict = PyDict_New();
-    PyObject *py_dum_detect = PyEval_EvalCode(*src_ptr, py_new_dict, py_new_dict);
+    PyDict_SetItemString(py_new_dict, "__builtins__", PyEval_GetBuiltins());
+    std::string command_str("import os, contextlib\n"
+                            "with open(os.devnull, 'w') as f, contextlib.redirect_stdout(f):\n");
+    std::string code_str(code);
+    std::size_t start_pos = 0;
+    while (true) {
+        std::size_t found = code_str.find('\n', start_pos);
+        if (found != std::string::npos) {
+            command_str = command_str + "    ";
+            for (std::size_t c=start_pos; c<found; c++) {
+                command_str = command_str + code_str[c];
+            }
+            command_str = command_str + "\n";
+        }
+        else {
+            break;
+        }
+        start_pos = found + 1;
+    }
+
+    // detecting callables
+    PyObject *py_src = Py_CompileString(command_str.c_str(), "<libyt-stdin>", Py_file_input);
+    PyObject *py_dum_detect = PyEval_EvalCode(py_src, py_new_dict, py_new_dict);
 
     // loop over keys in new dict, and check if it is callable
     PyObject *py_new_dict_keys = PyDict_Keys(py_new_dict);
@@ -239,8 +266,9 @@ int func_status_list::load_input_func_body(PyObject **src_ptr) {
         }
     }
 
-    // clean up, there might cause some error if it is not a functor, so clear err indicator
+    // clean up, there might cause some error if it is not a functor, so clear err indicator: todo
     Py_XDECREF(py_dum_detect);
+    Py_XDECREF(py_src);
     Py_DECREF(py_new_dict);
     Py_DECREF(py_new_dict_keys);
     PyErr_Clear();
