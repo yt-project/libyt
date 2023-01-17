@@ -138,8 +138,8 @@ int yt_interactive_mode(char* flag_file_name) {
 
                     // run code, and detect if there is callables
                     dum = PyEval_EvalCode(src, global_var, local_var);
-                    int detect = func_status_list::load_input_func_body(code);
                     if (PyErr_Occurred()) PyErr_Print();
+                    func_status_list::load_input_func_body(code);
 
                     // clean up
                     Py_XDECREF(dum);
@@ -212,8 +212,8 @@ int yt_interactive_mode(char* flag_file_name) {
                 // compile and execute code, and detect functors.
                 src = Py_CompileString(code, "<libyt-stdin>", Py_single_input);
                 dum = PyEval_EvalCode(src, global_var, local_var);
-                int detect = func_status_list::load_input_func_body(code);
                 if (PyErr_Occurred()) PyErr_Print();
+                func_status_list::load_input_func_body(code);
 
                 // clean up
                 Py_XDECREF(dum);
