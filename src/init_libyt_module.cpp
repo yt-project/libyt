@@ -812,7 +812,7 @@ int init_libyt_module()
     func_status_list::load_file_func_body(filename.c_str());
     std::vector<std::string> func_list = func_status_list::get_funcname_defined(filename.c_str());
     for (long i=0; i<func_list.size(); i++) {
-        g_func_status_list.add_new_func(const_cast<char*>(func_list[i].c_str()), -1);
+        g_func_status_list.add_new_func(func_list[i].c_str(), -1);
     }
 #endif // #ifdef INTERACTIVE_MODE
 

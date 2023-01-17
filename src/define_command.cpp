@@ -188,7 +188,7 @@ int define_command::load_script(const char *filename) {
     // and set to idle
     std::vector<std::string> func_list = func_status_list::get_funcname_defined(filename);
     for (int i=0; i<func_list.size(); i++) {
-        g_func_status_list.add_new_func(const_cast<char*>(func_list[i].c_str()), 0);
+        g_func_status_list.add_new_func(func_list[i].c_str(), 0);
     }
 
     // clean up

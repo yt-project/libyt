@@ -26,7 +26,7 @@
 //
 // Arguments   :  char    *func_name: inline function name
 //-------------------------------------------------------------------------------------------------------
-func_status::func_status(char *func_name, int run)
+func_status::func_status(const char *func_name, int run)
 : m_Args(""), m_Run(run), m_Status(-1)
 {
     // copy func_name to m_FuncName
