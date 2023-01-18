@@ -5,7 +5,6 @@
 #include "libyt.h"
 #include <ctype.h>
 #include <readline/readline.h>
-#include <readline/history.h>
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -32,7 +31,7 @@ int yt_interactive_mode(char* flag_file_name) {
     if (g_func_status_list.run_func() != YT_SUCCESS) YT_ABORT("Something went wrong when running new added functions\n");
     if (g_func_status_list.print_summary() != YT_SUCCESS) YT_ABORT("Something went wrong when summarizing inline function status\n");
 
-    // check if we need to enter interactive prompt
+    // check if we need to enter interactive prompt, todo: using stat to check file existence
     FILE *file;
     if ( file = fopen(flag_file_name, "r") ) {
         fclose(file);
@@ -134,9 +133,17 @@ int yt_interactive_mode(char* flag_file_name) {
                     MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
                     MPI_Bcast(code, strlen(code), MPI_CHAR, root, MPI_COMM_WORLD);
 
-                    // run code, and detect if there is callables
+                    // run code
                     dum = PyEval_EvalCode(src, global_var, global_var);
-                    if (PyErr_Occurred()) PyErr_Print();
+                    if (PyErr_Occurred()) {
+                        PyErr_Print();
+                    }
+                    else {
+                        // if it worked successfully, write to prompt history (only on root)
+                        g_ss_prompt_history << std::string(code) << "\n\n";
+                    }
+
+                    // detect callables and their function definition
                     func_status_list::load_input_func_body(code);
 
                     // clean up
