@@ -61,9 +61,8 @@ int yt_interactive_mode(char* flag_file_name) {
     char *input_line, *code = NULL;
 
     // get inline script's namespace, globals and locals are the same.
-    PyObject *local_var, *global_var;
+    PyObject *global_var;
     global_var = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
-    local_var = global_var;
 
     // python object for interactive loop, parsing syntax error for code not yet done
     PyObject *src, *dum;
@@ -137,7 +136,7 @@ int yt_interactive_mode(char* flag_file_name) {
                     MPI_Bcast(code, strlen(code), MPI_CHAR, root, MPI_COMM_WORLD);
 
                     // run code, and detect if there is callables
-                    dum = PyEval_EvalCode(src, global_var, local_var);
+                    dum = PyEval_EvalCode(src, global_var, global_var);
                     if (PyErr_Occurred()) PyErr_Print();
                     func_status_list::load_input_func_body(code);
 
@@ -188,7 +187,7 @@ int yt_interactive_mode(char* flag_file_name) {
             else {
                 // compile and execute code, and detect functors.
                 src = Py_CompileString(code, "<libyt-stdin>", Py_single_input);
-                dum = PyEval_EvalCode(src, global_var, local_var);
+                dum = PyEval_EvalCode(src, global_var, global_var);
                 if (PyErr_Occurred()) PyErr_Print();
                 func_status_list::load_input_func_body(code);
 
