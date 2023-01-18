@@ -231,7 +231,8 @@ int func_status_list::load_file_func_body(const char *filename) {
 //                  4. To silent the printing when PyEval_EvalCode evaluates the code, that sys.stdout
 //                     point to somewhere else when evaluating.
 //                  5. It accepts indent size different from 4.
-//                  5. todo: create a namespace specific for os and contextlib
+//                  6. TODO: It needs script's scope, otherwise some functors aren't detectable.
+//                     (ex: b = np.random.rand)
 //
 // Arguments     :  char *code : code to detect.
 //
