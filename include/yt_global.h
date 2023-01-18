@@ -34,6 +34,7 @@
 
 #ifdef INTERACTIVE_MODE
 #include "func_status_list.h"
+#include <sstream>
 #endif
 
 #ifdef SUPPORT_TIMER
@@ -51,7 +52,12 @@ SET_GLOBAL( int,            g_myrank                );   // My current MPI rank
 SET_GLOBAL( int,            g_mysize                );   // My current MPI size
 
 #ifdef INTERACTIVE_MODE
-SET_GLOBAL( func_status_list, g_func_status_list, func_status_list(10) );   // Inline function status list (default 10)
+
+SET_GLOBAL( func_status_list,  g_func_status_list, func_status_list(10) );   // Inline function status list (default 10)
+
+SET_GLOBAL( std::stringstream, g_ss_prompt_history);                         // Interactive mode input prompt history,
+                                                                             // store only on root rank
+
 #endif
 
 // user-defined MPI data type

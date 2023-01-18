@@ -16,6 +16,8 @@ int define_command::s_Root = 0;
 //
 // Notes       :  1. Parst m_Command, and call according method.
 //                2. stringstream is slow and string copying is slow, but ..., too lazy to do that.
+//                3. Write known libyt command to g_ss_prompt_history.
+//                4. Will always ignore "%libyt exit", it will only clear g_ss_prompt_history.
 //
 // Arguments   :  None
 //
@@ -37,7 +39,10 @@ bool define_command::run() {
 
         // call corresponding method
         if (arg_list.size() == 1) {
-            if      (arg_list[0].compare("exit") == 0)      return true;
+            if      (arg_list[0].compare("exit") == 0) {
+                g_ss_prompt_history.str(std::string());
+                return true;
+            }
             else if (arg_list[0].compare("status") == 0)    print_status();
             else if (arg_list[0].compare("help") == 0)      print_help_msg();
         }
@@ -53,8 +58,15 @@ bool define_command::run() {
         }
     }
 
-    if (m_Undefine && g_myrank == s_Root) log_error("Unkown libyt command : %s\n"
-                                                    "(Type %%libyt help for help ...)\n", m_Command.c_str());
+    if (g_myrank == s_Root) {
+        if (m_Undefine) {
+            log_error("Unkown libyt command : %s\n"
+                      "(Type %%libyt help for help ...)\n", m_Command.c_str());
+        }
+        else {
+            g_ss_prompt_history << "# " << m_Command << "\n\n";
+        }
+    }
 
     fflush(stdout);
     fflush(stderr);
@@ -98,11 +110,14 @@ int define_command::print_help_msg() {
         printf("Commands:\n");
         printf("  %-6s  %-11s  %-8s  %s\n", "help",   "",            "",         "print help message");
         printf("  %-6s  %-11s  %-8s  %s\n", "exit",   "",            "",         "exit and continue simulation");
+        printf("  %-6s  %-11s  %-8s  %s\n", "load",   "<file name>", "",         "load file to original script's");
+        printf("  %-6s  %-11s  %-8s  %s\n", "",       "",            "",         "namespace");
+        printf("  %-6s  %-11s  %-8s  %s\n", "export", "<file name>", "",         "export input in prompt to file");
         printf("  %-6s  %-11s  %-8s  %s\n", "status", "",            "",         "get overall function status");
-        printf("  %-6s  %-11s  %-8s  %s\n", "status", "<func_name>", "",         "get function status");
-        printf("  %-6s  %-11s  %-8s  %s\n", "run",    "<func_name>", "[arg1 ]", "function will run in next iteration");
+        printf("  %-6s  %-11s  %-8s  %s\n", "status", "<func name>", "",         "get function status");
+        printf("  %-6s  %-11s  %-8s  %s\n", "run",    "<func name>", "[arg1 ]", "function will run in next iteration");
         printf("  %-6s  %-11s  %-8s  %s\n", "",       "",            "",         "using args, ex: func(arg1, arg2)");
-        printf("  %-6s  %-11s  %-8s  %s\n", "idle",   "<func_name>", "",         "function will idle in next iteration");
+        printf("  %-6s  %-11s  %-8s  %s\n", "idle",   "<func name>", "",         "function will idle in next iteration");
     }
     return YT_SUCCESS;
 }
@@ -208,7 +223,7 @@ int define_command::load_script(const char *filename) {
 //
 // Notes      :  1. Export input during this step's interactive loop.
 //               2. Let user maintain their script imported.
-//               3. todo
+//               3. Overwriting existing file.
 //
 // Arguments  :  const char *filename : output file name
 //
@@ -216,7 +231,15 @@ int define_command::load_script(const char *filename) {
 //-------------------------------------------------------------------------------------------------------
 int define_command::export_script(const char *filename) {
     m_Undefine = false;
-    printf("Exporting script %s ...\n", filename);
+
+    if (g_myrank == s_Root) {
+        std::ofstream dump_file;
+        dump_file.open(filename, std::ofstream::trunc);
+        dump_file << g_ss_prompt_history.str();
+        dump_file.close();
+        printf("Exporting script %s ... done\n", filename);
+    }
+
     return YT_SUCCESS;
 }
 
