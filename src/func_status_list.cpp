@@ -445,7 +445,6 @@ bool func_status_list::is_not_done_err_msg() {
             else {
                 // restore err msg, and I no longer own py_exc's, py_val's, and py_traceback's reference
                 PyErr_Restore(py_exc, py_val, py_traceback);
-                Py_XDECREF(py_obj);
             }
 
             break;
