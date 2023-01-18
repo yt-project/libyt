@@ -57,7 +57,6 @@ int yt_interactive_mode(char* flag_file_name) {
 
     // input line and error msg
     int input_len, code_len;
-    const char *err_msg = "";
     char *input_line, *code = NULL;
 
     // get inline script's namespace, globals and locals are the same.

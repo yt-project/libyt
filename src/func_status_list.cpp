@@ -272,7 +272,7 @@ int func_status_list::load_input_func_body(char *code) {
             if (PyCallable_Check(PyDict_GetItem(py_new_dict, PyList_GET_ITEM(py_new_dict_keys, i)))) {
                 // add new function to g_func_status_list and set to idle. if function exists already, get its index
                 const char *func_name = PyUnicode_AsUTF8(PyList_GET_ITEM(py_new_dict_keys, i));
-                int func_index = g_func_status_list.add_new_func(func_name, 0);
+                g_func_status_list.add_new_func(func_name, 0);
 
                 // update function body
                 PyObject *py_func_body_dict = PyDict_GetItemString(g_py_interactive_mode, "func_body");
