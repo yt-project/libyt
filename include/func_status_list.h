@@ -9,8 +9,9 @@
 
 class func_status_list {
 public:
-    static std::array<std::string, 2> s_NotDone_ErrMsg;
-    static std::array<PyObject*, 2>   s_NotDone_PyErr;
+    static const int s_NotDone_Num = 2;
+    static std::array<std::string, s_NotDone_Num> s_NotDone_ErrMsg;
+    static std::array<PyObject*, s_NotDone_Num>   s_NotDone_PyErr;
 
 private:
     std::vector<func_status> m_FuncStatusList;
@@ -32,6 +33,7 @@ public:
     static std::vector<std::string> get_funcname_defined(const char *filename);
     static int set_exception_hook();
     static int init_not_done_err_msg();
+    static bool is_not_done_err_msg();
 };
 
 

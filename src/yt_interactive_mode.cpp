@@ -57,7 +57,8 @@ int yt_interactive_mode(char* flag_file_name) {
 
     // input line and error msg
     int input_len, code_len;
-    char *err_msg, *input_line, *code = NULL;
+    const char *err_msg = "";
+    char *input_line, *code = NULL;
 
     // get inline script's namespace, globals and locals are the same.
     PyObject *local_var, *global_var;
@@ -66,7 +67,6 @@ int yt_interactive_mode(char* flag_file_name) {
 
     // python object for interactive loop, parsing syntax error for code not yet done
     PyObject *src, *dum;
-    PyObject *exc, *val, *traceback, *obj;
 
     // make sure every rank has reach here
     fflush(stdout);
@@ -154,32 +154,9 @@ int yt_interactive_mode(char* flag_file_name) {
                 }
             }
             // case 2: not finish yet
-            else if (PyErr_ExceptionMatches(PyExc_SyntaxError)) {
-                // save current exception if there is any, and parse error msg
-                PyErr_Fetch(&exc, &val, &traceback);
-                PyArg_ParseTuple(val, "sO", &err_msg, &obj);
-
-                // code not complete yet
-                if (strcmp(err_msg, "unexpected EOF while parsing") == 0 ||
-                    strcmp(err_msg, "EOF while scanning triple-quoted string literal") == 0) {
-                    prompt = ps2;
-                }
-                // it's a real error
-                else {
-                    PyErr_Restore(exc, val, traceback);
-                    PyErr_Print();
-
-                    // clean up
-                    free(code);
-                    code = NULL;
-                    prompt = ps1;
-                }
-
-                // clean up
-                Py_XDECREF(exc);
-                Py_XDECREF(val);
-                Py_XDECREF(traceback);
-                Py_XDECREF(obj);
+            else if (func_status_list::is_not_done_err_msg()) {
+                // code not complete yet, switch prompt to ps2
+                prompt = ps2;
             }
             // case 3: real errors in code
             else{

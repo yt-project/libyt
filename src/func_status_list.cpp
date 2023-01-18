@@ -362,12 +362,13 @@ int func_status_list::set_exception_hook() {
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  func_status_list
-// Static Method :  init_not_done_err_msg()
+// Static Method :  init_not_done_err_msg
 //
 // Notes         :  1. This is a static method.
 //                  2. Identify error messages that will show up when inputing statements like class, def
 //                     if, and triple quotes etc.
 //                  3. Error messages are version dependent.
+//                  4. s_NotDone_ErrMsg's and s_NotDone_PyErr's elements are one-to-one relationship.
 //
 // Arguments     :  None
 //
@@ -375,13 +376,13 @@ int func_status_list::set_exception_hook() {
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::init_not_done_err_msg() {
     // error msg from not done yet statement to grab
-    std::array<std::string, 2> not_done_statement = { std::string("if 1==1:\n"),
-                                                      std::string("tri = \"\"\"\n") };
+    std::array<std::string, s_NotDone_Num> not_done_statement = { std::string("if 1==1:\n"),
+                                                                  std::string("tri = \"\"\"\n") };
 
     // get python error type and its statement.
     PyObject *py_src, *py_exc, *py_val, *py_traceback, *py_obj;
     const char *err_msg;
-    for (int i=0; i<2; i++) {
+    for (int i=0; i<s_NotDone_Num; i++) {
         py_src = Py_CompileString(not_done_statement[i].c_str(), "<get err msg>", Py_single_input);
         PyErr_Fetch(&py_exc, &py_val, &py_traceback);
         PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
@@ -401,6 +402,57 @@ int func_status_list::init_not_done_err_msg() {
     Py_XDECREF(py_obj);
 
     return YT_SUCCESS;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  func_status_list
+// Static Method :  is_not_done_err_msg
+//
+// Notes         :  1. This is a static method.
+//                  2. Check current Python state to see if it is error msg that is caused by user input
+//                     not done yet.
+//                  3. If it is indeed caused by user not done its input, clear error buffer. If not,
+//                     restore the buffer and that yt_interactive_mode print the error msg.
+//                  4. s_NotDone_ErrMsg's and s_NotDone_PyErr's elements are one-to-one relationship.
+//
+// Arguments     :  None
+//
+// Return        :  true / false : true for user hasn't done inputting yet.
+//-------------------------------------------------------------------------------------------------------
+bool func_status_list::is_not_done_err_msg() {
+
+    bool user_not_done = false;
+
+    for (int i=0; i<s_NotDone_Num; i++) {
+        // check error type
+        if (PyErr_ExceptionMatches(s_NotDone_PyErr[i])) {
+            // fetch err msg
+            PyObject *py_exc, *py_val, *py_traceback, *py_obj;
+            const char *err_msg = "";
+            PyErr_Fetch(&py_exc, &py_val, &py_traceback);
+            PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
+
+            // check err msg:
+            //   if it is not done yet, no need to restore the error msg buffer in python
+            if (s_NotDone_ErrMsg[i].compare(err_msg) == 0) {
+                user_not_done = true;
+                Py_XDECREF(py_exc);
+                Py_XDECREF(py_val);
+                Py_XDECREF(py_traceback);
+                Py_XDECREF(py_obj);
+            }
+            else {
+                // restore err msg, and I no longer own py_exc's, py_val's, and py_traceback's reference
+                PyErr_Restore(py_exc, py_val, py_traceback);
+                Py_XDECREF(py_obj);
+            }
+
+            break;
+        }
+    }
+
+    return user_not_done;
 }
 
 #endif // #ifdef INTERACTIVE_MODE
