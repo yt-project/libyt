@@ -94,7 +94,8 @@ int define_command::print_status() {
 int define_command::print_help_msg() {
     m_Undefine = false;
     if (g_myrank == s_Root) {
-        printf("Usage: %%libyt [options]\n");
+        printf("Usage:  %%libyt COMMAND\n");
+        printf("Commands:\n");
         printf("  %-6s  %-11s  %-8s  %s\n", "help",   "",            "",         "print help message");
         printf("  %-6s  %-11s  %-8s  %s\n", "exit",   "",            "",         "exit and continue simulation");
         printf("  %-6s  %-11s  %-8s  %s\n", "status", "",            "",         "get overall function status");
