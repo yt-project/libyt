@@ -203,7 +203,7 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
 //-------------------------------------------------------------------------------------------------------
 int func_status::print_func_body(int indent_size, int indent_level) {
     int root = 0;
-    if (g_myrank == 0) {
+    if (g_myrank == root) {
         // get function body
         PyObject *py_func_name = PyUnicode_FromString(m_FuncName);
         PyObject *py_func_body = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_body"), py_func_name);
