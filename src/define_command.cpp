@@ -235,7 +235,7 @@ int define_command::export_script(const char *filename) {
     if (g_myrank == s_Root) {
         std::ofstream dump_file;
         dump_file.open(filename, std::ofstream::trunc);
-        dump_file << g_func_status_list.get_prompt_history().str();
+        dump_file << g_func_status_list.get_prompt_history();
         dump_file.close();
         printf("Exporting script %s ... done\n", filename);
     }

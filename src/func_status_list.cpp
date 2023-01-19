@@ -193,14 +193,14 @@ int func_status_list::run_func() {
 // Return      :  YT_SUCCESS
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::update_prompt_history(const std::string& cmd_prompt) {
-    m_PromptHistory << "#In[" << m_PromptHistoryCount << "]\n";
-    m_PromptHistory << cmd_prompt << "\n\n";
+    m_PromptHistory = m_PromptHistory + std::string("#In[") + std::to_string(m_PromptHistoryCount) + std::string("]\n");
+    m_PromptHistory = m_PromptHistory + cmd_prompt + std::string("\n\n");
     m_PromptHistoryCount += 1;
     return YT_SUCCESS;
 }
 
 int func_status_list::clear_prompt_history() {
-    m_PromptHistory.str(std::string());
+    m_PromptHistory = std::string("");
     m_PromptHistoryCount = 0;
     return YT_SUCCESS;
 }
