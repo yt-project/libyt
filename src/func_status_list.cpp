@@ -180,6 +180,33 @@ int func_status_list::run_func() {
 
 
 //-------------------------------------------------------------------------------------------------------
+// Class       :  func_status_list
+// Method      :  update_prompt_history / clear_prompt_history
+//
+// Notes       :  1. Only root rank will record all the successful inputs from interactive prompt.
+//                2. Input that failed will not be recorded.
+//                3. Inputs will not accumulate from iterations to iterations, which means input will be 
+//                   cleared after stepping out interactive mode (%libyt exit).
+//
+// Arguments   :  const std::string& cmd_prompt : input prompt from user.
+//
+// Return      :  YT_SUCCESS
+//-------------------------------------------------------------------------------------------------------
+int func_status_list::update_prompt_history(const std::string& cmd_prompt) {
+    m_PromptHistory << "#In[" << m_PromptHistoryCount << "]\n";
+    m_PromptHistory << cmd_prompt << "\n\n";
+    m_PromptHistoryCount += 1;
+    return YT_SUCCESS;
+}
+
+int func_status_list::clear_prompt_history() {
+    m_PromptHistory.str(std::string());
+    m_PromptHistoryCount = 0;
+    return YT_SUCCESS;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
 // Class         :  func_status_list
 // Static Method :  load_file_func_body
 //

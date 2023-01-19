@@ -140,7 +140,7 @@ int yt_interactive_mode(char* flag_file_name) {
                     }
                     else {
                         // if it worked successfully, write to prompt history (only on root)
-                        g_ss_prompt_history << std::string(code) << "\n\n";
+                        g_func_status_list.update_prompt_history(std::string(code));
                     }
 
                     // detect callables and their function definition
