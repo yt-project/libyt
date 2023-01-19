@@ -393,16 +393,17 @@ int func_status_list::init_not_done_err_msg() {
         s_NotDone_ErrMsg[i] = std::string(err_msg);
         s_NotDone_PyErr[i]  = py_exc;
 
+        // dereference
+        Py_XDECREF(py_src);
+        Py_XDECREF(py_exc);
+        Py_XDECREF(py_val);
+        Py_XDECREF(py_traceback);
+        Py_XDECREF(py_obj);
         PyErr_Clear();
     }
 
     // clean up
     PyErr_Clear();
-    Py_XDECREF(py_src);
-    Py_XDECREF(py_exc);
-    Py_XDECREF(py_val);
-    Py_XDECREF(py_traceback);
-    Py_XDECREF(py_obj);
 
     return YT_SUCCESS;
 }
