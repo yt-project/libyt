@@ -16,8 +16,8 @@ int define_command::s_Root = 0;
 //
 // Notes       :  1. Parst m_Command, and call according method.
 //                2. stringstream is slow and string copying is slow, but ..., too lazy to do that.
-//                3. Write known libyt command to g_ss_prompt_history.
-//                4. Will always ignore "%libyt exit", it will only clear g_ss_prompt_history.
+//                3. Update successfully executed libyt command to history on root rank.
+//                4. Will always ignore "%libyt exit", it will only clear prompt history.
 //
 // Arguments   :  None
 //
@@ -40,7 +40,7 @@ bool define_command::run() {
         // call corresponding method
         if (arg_list.size() == 1) {
             if      (arg_list[0].compare("exit") == 0) {
-                g_ss_prompt_history.str(std::string());
+                g_func_status_list.clear_prompt_history();
                 return true;
             }
             else if (arg_list[0].compare("status") == 0)    print_status();
@@ -64,7 +64,7 @@ bool define_command::run() {
                       "(Type %%libyt help for help ...)\n", m_Command.c_str());
         }
         else {
-            g_ss_prompt_history << "# " << m_Command << "\n\n";
+            g_func_status_list.update_prompt_history(std::string("# ") + m_Command + std::string("\n"));
         }
     }
 
@@ -235,7 +235,7 @@ int define_command::export_script(const char *filename) {
     if (g_myrank == s_Root) {
         std::ofstream dump_file;
         dump_file.open(filename, std::ofstream::trunc);
-        dump_file << g_ss_prompt_history.str();
+        dump_file << g_func_status_list.get_prompt_history().str();
         dump_file.close();
         printf("Exporting script %s ... done\n", filename);
     }
