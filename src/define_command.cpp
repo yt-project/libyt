@@ -29,6 +29,8 @@ bool define_command::run() {
     std::string arg;
     std::vector<std::string> arg_list;
 
+    bool run_success;
+
     // Mapping %libyt defined commands to methods
     ss >> arg;
     if (arg.compare("%libyt") == 0) {
@@ -43,18 +45,18 @@ bool define_command::run() {
                 g_func_status_list.clear_prompt_history();
                 return true;
             }
-            else if (arg_list[0].compare("status") == 0)    print_status();
-            else if (arg_list[0].compare("help") == 0)      print_help_msg();
+            else if (arg_list[0].compare("status") == 0)  run_success = print_status();
+            else if (arg_list[0].compare("help") == 0)    run_success = print_help_msg();
         }
         else if (arg_list.size() == 2) {
-            if      (arg_list[0].compare("load") == 0)      load_script(arg_list[1].c_str());
-            else if (arg_list[0].compare("export") == 0)    export_script(arg_list[1].c_str());
-            else if (arg_list[0].compare("run") == 0)       set_func_run(arg_list[1].c_str(), true);
-            else if (arg_list[0].compare("idle") == 0)      set_func_run(arg_list[1].c_str(), false);
-            else if (arg_list[0].compare("status") == 0)    get_func_status(arg_list[1].c_str());
+            if      (arg_list[0].compare("load") == 0)    run_success = load_script(arg_list[1].c_str());
+            else if (arg_list[0].compare("export") == 0)  run_success = export_script(arg_list[1].c_str());
+            else if (arg_list[0].compare("run") == 0)     run_success = set_func_run(arg_list[1].c_str(), true);
+            else if (arg_list[0].compare("idle") == 0)    run_success = set_func_run(arg_list[1].c_str(), false);
+            else if (arg_list[0].compare("status") == 0)  run_success = get_func_status(arg_list[1].c_str());
         }
         else if (arg_list.size() > 2) {
-            if      (arg_list[0].compare("run") == 0)       set_func_run(arg_list[1].c_str(), true, arg_list);
+            if      (arg_list[0].compare("run") == 0)     run_success = set_func_run(arg_list[1].c_str(), true, arg_list);
         }
     }
 
@@ -63,7 +65,7 @@ bool define_command::run() {
             log_error("Unkown libyt command : %s\n"
                       "(Type %%libyt help for help ...)\n", m_Command.c_str());
         }
-        else {
+        if (run_success) {
             g_func_status_list.update_prompt_history(std::string("# ") + m_Command + std::string("\n"));
         }
     }
