@@ -4,7 +4,6 @@
 #include <vector>
 #include <array>
 #include <string>
-#include <sstream>
 #include <Python.h>
 #include "func_status.h"
 
@@ -16,11 +15,11 @@ public:
 
 private:
     std::vector<func_status> m_FuncStatusList;
-    std::stringstream m_PromptHistory;
+    std::string m_PromptHistory;
     int m_PromptHistoryCount;
 
 public:
-    func_status_list(int capacity) : m_PromptHistoryCount(0) { m_FuncStatusList.reserve(capacity); };
+    func_status_list(int capacity) : m_PromptHistory(""), m_PromptHistoryCount(0) { m_FuncStatusList.reserve(capacity); };
     ~func_status_list() { m_FuncStatusList.clear(); };
     func_status& operator[](int index) { return m_FuncStatusList[index]; };
 
@@ -32,7 +31,7 @@ public:
     int run_func();
     int update_prompt_history(const std::string& cmd_prompt);
     int clear_prompt_history();
-    std::stringstream& get_prompt_history() { return m_PromptHistory; };
+    std::string& get_prompt_history() { return m_PromptHistory; };
 
     static int load_file_func_body(const char *filename);
     static int load_input_func_body(char *code);
