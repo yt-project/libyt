@@ -39,6 +39,7 @@
 // ==========================================
 #include "libyt.h"
 
+#include "libyt_interactive_mode.h"
 
 // single or double precision in the field data
 //typedef float real;
@@ -407,6 +408,10 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
 
+        if (yt_interactive_mode("LIBYT_STOP") != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_interactive_mode failed!\n");
+            exit(EXIT_FAILURE);
+        }
 
         // =================================================
         // libyt: 9. finish in-situ analysis, clean up libyt

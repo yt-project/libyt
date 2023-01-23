@@ -2,7 +2,7 @@
 
 #include "yt_combo.h"
 #include "define_command.h"
-#include "libyt.h"
+#include "libyt_interactive_mode.h"
 #include <ctype.h>
 #include <readline/readline.h>
 
