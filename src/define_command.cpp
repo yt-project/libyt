@@ -29,7 +29,7 @@ bool define_command::run() {
     std::string arg;
     std::vector<std::string> arg_list;
 
-    bool run_success;
+    bool run_success = false;
 
     // Mapping %libyt defined commands to methods
     ss >> arg;
@@ -62,8 +62,8 @@ bool define_command::run() {
 
     if (g_myrank == s_Root) {
         if (m_Undefine) {
-            log_error("Unkown libyt command : %s\n"
-                      "(Type %%libyt help for help ...)\n", m_Command.c_str());
+            printf("[YT_ERROR  ] Unkown libyt command : %s\n"
+                   "(Type %%libyt help for help ...)\n", m_Command.c_str());
         }
         if (run_success) {
             g_func_status_list.update_prompt_history(std::string("# ") + m_Command + std::string("\n"));
@@ -166,6 +166,7 @@ int define_command::load_script(const char *filename) {
         src = Py_CompileString(ss.str().c_str(), filename, Py_file_input);
         if (src == NULL) {
             PyErr_Print();
+            PyRun_SimpleString("sys.stderr.flush()");
             int temp = -1;
             MPI_Bcast(&temp, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
             printf("Loading script %s ... failed\n", filename);
@@ -197,7 +198,11 @@ int define_command::load_script(const char *filename) {
     // execute src in script's namespace
     PyObject *global_var = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
     PyObject *dum = PyEval_EvalCode(src, global_var, global_var);
-    if (PyErr_Occurred()) PyErr_Print();
+    PyRun_SimpleString("sys.stdout.flush()");
+    if (PyErr_Occurred()) {
+        PyErr_Print();
+        PyRun_SimpleString("sys.stderr.flush()");
+    }
 
     // update libyt.interactive_mode["func_body"]
     func_status_list::load_file_func_body(filename);

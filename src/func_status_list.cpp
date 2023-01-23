@@ -371,6 +371,7 @@ std::vector<std::string> func_status_list::get_funcname_defined(const char *file
 // Notes         :  1. This is a static method.
 //                  2. Makes MPI not invoke MPI_Abort when getting errors in Python in interactive mode.
 //                  3. Can only be called after libyt is initialized.
+//                  4. todo: use g_myrank instead of import mpi4py
 //
 // Arguments     :  None
 //

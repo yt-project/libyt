@@ -135,8 +135,10 @@ int yt_interactive_mode(char* flag_file_name) {
 
                     // run code
                     dum = PyEval_EvalCode(src, global_var, global_var);
+                    PyRun_SimpleString("sys.stdout.flush()");
                     if (PyErr_Occurred()) {
                         PyErr_Print();
+                        PyRun_SimpleString("sys.stderr.flush()");
                     }
                     else {
                         // if it worked successfully, write to prompt history (only on root)
@@ -166,6 +168,7 @@ int yt_interactive_mode(char* flag_file_name) {
             // case 3: real errors in code
             else{
                 PyErr_Print();
+                PyRun_SimpleString("sys.stderr.flush()");
 
                 // clean up
                 free(code);
@@ -194,7 +197,11 @@ int yt_interactive_mode(char* flag_file_name) {
                 // compile and execute code, and detect functors.
                 src = Py_CompileString(code, "<libyt-stdin>", Py_single_input);
                 dum = PyEval_EvalCode(src, global_var, global_var);
-                if (PyErr_Occurred()) PyErr_Print();
+                PyRun_SimpleString("sys.stdout.flush()");
+                if (PyErr_Occurred()) {
+                    PyErr_Print();
+                    PyRun_SimpleString("sys.stderr.flush()");
+                }
                 func_status_list::load_input_func_body(code);
 
                 // clean up
