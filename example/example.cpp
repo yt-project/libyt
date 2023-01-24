@@ -4,21 +4,30 @@
     We assign grids to MPI processes randomly to simulate the actual code of having grid
     data on different ranks.
 
-    This is the procedure of libyt in-situ analysis process. If there is no fields,
-    particles, or grids information to set, we can skip those steps (step 4~6).
+    libyt has two modes, normal and interactive mode. Normal mode will shutdown all the 
+    process if there are errors during in situ analysis, while in interactive mode will 
+    not. Interactive mode also supports python prompt, where you can type in python 
+    statement and get feedback instantly. To use interactive mode, you need to compile 
+    libyt with -DINTERACTIVE_MODE flag.
 
-    Initialization        1. initialize libyt
+    This is the procedure of libyt in situ analysis process for both normal and interactive
+    mode. If there is no fields, particles, or grids information to set, we can skip those 
+    steps (step 4~6). 
+
+    Initialization        1.  initialize libyt
     ----------------------------------------------------------------------------------
-                          2. provide YT-specific parameters
-                          3. add code-specific parameters
-                          4. set field information
-    Iteration             5. set particle information
-    (In-Situ Analysis)    6. set grids information located on current MPI process
-                          7. done loading information
-                          8. call inline python function
-                          9. finish in-situ analysis, clean up libyt
+                          2.  provide YT-specific parameters
+                          3.  add code-specific parameters
+                          4.  set field information
+    Iteration             5.  set particle information
+    (In-Situ Analysis)    6.  set grids information located on current MPI process
+                          7.  done loading information
+                          8.  call inline python function
+                          9.  [optional] activate python prompt in interactive mode
+                              (Need to compile libyt with -DINTERACTIVE_MODE)
+                          10. finish in-situ analysis, clean up libyt
     ----------------------------------------------------------------------------------
-    Finalization         10. finalize libyt
+    Finalization         11. finalize libyt
 
 [Compile and Run]
     1. Compile libyt and move libyt.so.* library to lib directory.
@@ -37,9 +46,12 @@
 // ==========================================
 // libyt: 0. include libyt header
 // ==========================================
+// must include this for in situ process, no matter we are using interactive mode or not
 #include "libyt.h"
 
-#include "libyt_interactive_mode.h"
+// include this in interactive mode if we want to activate python prompt
+// #include "libyt_interactive_mode.h"
+
 
 // single or double precision in the field data
 //typedef float real;
@@ -408,13 +420,19 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
 
-        if (yt_interactive_mode("LIBYT_STOP") != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_interactive_mode failed!\n");
-            exit(EXIT_FAILURE);
-        }
+
+        // =======================================================================================================
+        // libyt: 9. activate python prompt in interactive mode, should call it after yt_inline/yt_inline_argument
+        // =======================================================================================================
+        // only supports when compile libyt using -DINTERACTIVE_MODE 
+        // (needs "libyt_interactive_mode.h" header)
+        // if (yt_interactive_mode("LIBYT_STOP") != YT_SUCCESS) {
+        //     fprintf(stderr, "ERROR: yt_interactive_mode failed!\n");
+        //     exit(EXIT_FAILURE);
+        // }
 
         // =================================================
-        // libyt: 9. finish in-situ analysis, clean up libyt
+        // libyt: 10. finish in-situ analysis, clean up libyt
         // =================================================
         if (yt_free_gridsPtr() != YT_SUCCESS) {
             fprintf(stderr, "ERROR: yt_free_gridsPtr() failed!\n");
@@ -430,7 +448,7 @@ int main(int argc, char *argv[]) {
 
 
     // =================================================
-    // libyt: 10. finalize libyt
+    // libyt: 11. finalize libyt
     // =================================================
     if (yt_finalize() != YT_SUCCESS) {
         fprintf(stderr, "ERROR: yt_finalize() failed!\n");
