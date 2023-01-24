@@ -9,7 +9,7 @@ OPTIONS :=
 # Options
 #######################################################################################################
 # interactive mode: reloading inline script and does not halt when having errors in script
-OPTIONS += -DINTERACTIVE_MODE
+#OPTIONS += -DINTERACTIVE_MODE
 
 # turn on the timer in each libyt substep.
 #OPTIONS += -DSUPPORT_TIMER
