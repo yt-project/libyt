@@ -161,14 +161,20 @@ int func_status_list::run_func() {
             int command_width = 150 + strlen(g_param_libyt.script) + strlen(funcname) * 2;
             char *command = (char*) malloc(command_width * sizeof(char));
             sprintf(command, "try:\n"
-                             "    %s.%s(%s)\n"
+                             "    %s(%s)\n"
                              "except Exception as e:\n"
                              "    libyt.interactive_mode[\"func_err_msg\"][\"%s\"] = traceback.format_exc()\n",
-                             g_param_libyt.script, funcname, m_FuncStatusList[i].get_args().c_str(), funcname);
+                             funcname, m_FuncStatusList[i].get_args().c_str(), funcname);
 
             // run and update status
             m_FuncStatusList[i].set_status(-2);
-            PyRun_SimpleString(command);
+
+            PyObject *global_var = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
+            PyObject *py_src = Py_CompileString(command, "", Py_single_input);
+            PyObject *py_dum = PyEval_EvalCode(py_src, global_var, global_var);
+            Py_XDECREF(py_src);
+            Py_XDECREF(py_dum);
+            
             m_FuncStatusList[i].get_status();
 
             // clean up
