@@ -32,6 +32,7 @@
 
 ## Installation
 ### libyt
+#### Set Path
 In `/libyt/src/Makefile`, update `PYTHON_PATH`, `PYTHON_VERSION`, `NUMPY_PATH` and `MPI_PATH`:
 ```makefile
 # Your paths
@@ -41,15 +42,31 @@ PYTHON_VERSION := $(YOUR_PYTHON_VERSION)
 NUMPY_PATH     := $(YOUR_NUMPY_PATH)
 MPI_PATH       := $(YOUR_MPI_PATH)
 ```
+> :information_source: Make sure you are using the same `MPI_PATH` to compile `libyt` and your simulation code.
 
-Compile and move `libyt.so.*` to `/libyt/lib` folder::
+#### Options
+##### Normal Mode
+Normal mode will shutdown and terminate all the processes including simulation if there are errors during in situ analysis using Python.
+
+##### Interactive Mode
+Interactive mode will not terminate the processes if there are errors during in situ analysis using Python. Interactive mode is more like an add-ons for normal mode. To use interactive mode, we should add `-DINTERACTIVE_MODE` in `Makefile`.
+```makefile
+# Options
+#######################################################################################################
+# interactive mode: supports reloading inline script, active python prompt and does not halt when 
+# error occurs.
+OPTIONS += -DINTERACTIVE_MODE
+```
+
+#### Compile, Link, and Headers
+Compile and move `libyt.so.*` to `/libyt/lib` folder:
 ```bash
 make clean
 make
 cp libyt.so* ../lib/
 ```
 
-Include `libyt` header which is in `/libyt/include/libyt.h` and library in your simulation code. Make sure you are using the same `MPI_PATH` to compile `libyt` and your simulation code.
+Include `libyt.h` header which is in `/libyt/include` and library in your simulation code. We should also include `libyt_interactive_mode.h` in interactive mode.
 
 ### yt
 > :warning: We will submit a pull request to [`yt-project/yt`](https://github.com/yt-project/yt). This section is only for temporary. For now, you can only build from source code.
@@ -66,6 +83,9 @@ pip install .
 
 ## User Guide
 This guide will walk you through how to implement `libyt` into your code. And how you can convert your everyday used `yt` script to do inline-analysis. All the user guide are in [`doc`](./doc) folder.
+
+
+
 - Implement `libyt` to your code step by step
   - [Initialize - `yt_init`](./doc/Initialize.md#initialize)
   - [Set `yt` Parameter - `yt_set_parameter`](./doc/SetYTParameter.md#set-yt-parameter)
@@ -75,6 +95,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
   - [Set Local Grids Information - `yt_get_gridsPtr`](./doc/SetLocalGridsInformation.md#set-local-grids-information)
   - [Commit Your Settings - `yt_commit_grids`](./doc/CommitYourSettings.md#commit-your-settings)
   - [Perform Inline-Analysis - `yt_inline` and `yt_inline_argument`](./doc/PerformInlineAnalysis.md#perform-inline-analysis)
+  - [Activate Interactive Mode](./doc/ActivateInteractiveMode.md#activate-interactive-mode) (Only availabe in interactive mode)
   - [Free Resource - `yt_free_gridsPtr`](./doc/FreeResource.md#free-resource)
   - [Finalize - `yt_finalize`](./doc/Finalize.md#finalize)
 - [Inline Python Script](./doc/InlinePythonScript.md#inline-python-script)

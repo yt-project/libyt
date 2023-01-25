@@ -8,7 +8,8 @@ MPI_PATH       := $(YOUR_MPI_PATH)
 OPTIONS :=
 # Options
 #######################################################################################################
-# interactive mode: reloading inline script and does not halt when having errors in script
+# interactive mode: supports reloading inline script, active python prompt and does not halt when 
+# error occurs.
 #OPTIONS += -DINTERACTIVE_MODE
 
 # turn on the timer in each libyt substep.
