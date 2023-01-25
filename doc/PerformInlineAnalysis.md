@@ -32,7 +32,7 @@ def yt_inline_ProjectionPlot( fields ):
         prjz.save()
 ```
 
-Call the function inside the script:
+Call the function inside simulation code:
 ```cpp
 /* libyt API, call the Python function. */
 if ( yt_inline( "yt_inline_ProfilePlot" ) != YT_SUCCESS ){  
