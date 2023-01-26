@@ -26,8 +26,13 @@ yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
     MPI_Info windowInfo;
     MPI_Info_create( &windowInfo );
     MPI_Info_set( windowInfo, "no_locks", "true" );
-    MPI_Win_create_dynamic( windowInfo, MPI_COMM_WORLD, &m_Window );
+    int mpi_return_code = MPI_Win_create_dynamic( windowInfo, MPI_COMM_WORLD, &m_Window );
     MPI_Info_free( &windowInfo );
+
+    if (mpi_return_code != MPI_SUCCESS) {
+        log_error("yt_rma_field: create one-sided MPI (RMA) window failed!\n");
+        log_error("yt_rma_field: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
+    }
 
     // Copy input fname, and find its field_define_type
     int len = strlen(fname);
@@ -189,7 +194,10 @@ int yt_rma_field::prepare_data(long& gid)
         YT_ABORT("yt_rma_field: Unable to get GID [%ld] field [%s] data.\n", gid, m_FieldName);
     }
 
-    if( MPI_Win_attach(m_Window, data_ptr, grid_info.data_dim[0] * grid_info.data_dim[1] * grid_info.data_dim[2] * size) != MPI_SUCCESS ){
+    int mpi_return_code = MPI_Win_attach(m_Window, data_ptr, grid_info.data_dim[0] * grid_info.data_dim[1] * grid_info.data_dim[2] * size);
+    if( mpi_return_code != MPI_SUCCESS ){
+        log_error("yt_rma_field: attach data buffer to one-sided MPI (RMA) window failed!\n");
+        log_error("yt_rma_field: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
         YT_ABORT("yt_rma_field: Attach buffer to window failed.\n");
     }
 

@@ -28,8 +28,13 @@ yt_rma_particle::yt_rma_particle(char *ptype, char *attribute, int len_prepare, 
     MPI_Info windowInfo;
     MPI_Info_create( &windowInfo );
     MPI_Info_set( windowInfo, "no_locks", "true" );
-    MPI_Win_create_dynamic( windowInfo, MPI_COMM_WORLD, &m_Window );
+    int mpi_return_code = MPI_Win_create_dynamic( windowInfo, MPI_COMM_WORLD, &m_Window );
     MPI_Info_free( &windowInfo );
+
+    if (mpi_return_code != MPI_SUCCESS) {
+        log_error("yt_rma_particle: create one-sided MPI (RMA) window failed!\n");
+        log_error("yt_rma_particle: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
+    }
 
     // Copy input ptype and attribute.
     int len = strlen(ptype);
@@ -149,7 +154,10 @@ int yt_rma_particle::prepare_data(long& gid)
         (*get_attr) (list_len, list_gid, m_AttributeName, data_array);
 
         // Attach buffer to window.
-        if( MPI_Win_attach(m_Window, data_ptr, par_info.data_len * dtype_size ) != MPI_SUCCESS ){
+        int mpi_return_code = MPI_Win_attach(m_Window, data_ptr, par_info.data_len * dtype_size );
+        if (mpi_return_code != MPI_SUCCESS) {
+            log_error("yt_rma_particle: attach data buffer to one-sided MPI (RMA) window failed!\n");
+            log_error("yt_rma_particle: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\"\n");
             YT_ABORT("yt_rma_particle: Attach particle [%s] attribute [%s] to window failed!\n",
                      m_ParticleType, m_AttributeName);
         }
