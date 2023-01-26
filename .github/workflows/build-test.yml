@@ -117,4 +117,4 @@ jobs:
           cd $GITHUB_WORKSPACE/example
           make clean
           make
-          mpirun -np 3 ./example
+          OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./example
