@@ -5,7 +5,7 @@
 Interactive python prompt will list all the inline functions call by [`yt_inline`](./PerformInlineAnalysis.md#yt_inline) or [`yt_inline_argument`](./PerformInlineAnalysis.md#yt_inline_argument).
 
 #### Inline Function
-Whenever you load inline script at [initialization stage](./Initialize.md#yt_param_libyt), use [`%libyt load <file name>`](#load), or directly type in [Python prompt](#python-statements), `libyt` will detect callables and list them here.
+Whenever you load inline script at [initialization stage](./Initialize.md#yt_param_libyt), use [`%libyt load`](#load), or directly type in [Python prompt](#python-statements), `libyt` will detect callables and list them here.
 
 #### Status
 List functions' status:
@@ -19,7 +19,7 @@ Whether these functions will execute in next in situ analysis or not:
 - `V`: this function will run automatically in following in situ analysis.
 - `X`: this function will idle in next in situ analysis.
 
-> :information_source: When calling [`yt_interactive_mode`](./ActivateInteractiveMode.md#yt_interactive_mode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run), but had not been run by `yt_inline` or `yt_inline_argument` yet.
+> :information_source: When calling [`yt_interactive_mode`](./ActivateInteractiveMode.md#yt_interactive_mode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run), but had not been run by [`yt_inline`](./PerformInlineAnalysis.md#yt_inline) or [`yt_inline_argument`](./PerformInlineAnalysis.md#yt_inline_argument) yet.
 
 ```
 =====================================================================
@@ -89,7 +89,7 @@ Print function's definition and error messages if has.
 ```
 >>> %libyt idle <function name>
 ```
-Idle `<function name>` in next in situ analysis. You will see `X` at run column in status board. It will clear all the input arguments set through [`%libyt run [args ...]`](#run).
+Idle `<function name>` in next in situ analysis. You will see `X` at run column in status board. It will clear all the input arguments set through [`%libyt run`](#run).
 
 
 #### run
@@ -106,4 +106,4 @@ This is equivalent of `func(a, 2, "3")` in Python.
         print(args)
 >>> %libyt run func a 2 "3"
 ```
-> :information_source: When calling [`yt_interactive_mode`](./ActivateInteractiveMode.md#yt_interactive_mode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run), but had not been run by `yt_inline` or `yt_inline_argument` yet.
+> :information_source: When calling [`yt_interactive_mode`](./ActivateInteractiveMode.md#yt_interactive_mode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run), but had not been run by [`yt_inline`](./PerformInlineAnalysis.md#yt_inline) or [`yt_inline_argument`](./PerformInlineAnalysis.md#yt_inline_argument) yet.
