@@ -15,13 +15,13 @@
 //                4. Under INTERACTIVE_MODE, function will be wrapped inside try/except. If there is error
 //                   it will store under libyt.interactive_mode["func_err_msg"]["func_name"].
 //
-// Parameter   :  char *function_name : function name in python script 
-//                int  argc           : input arguments count
-//                ...                 : list of arguments, should be input as (char*)
+// Parameter   :  const char *function_name : function name in python script 
+//                int  argc                 : input arguments count
+//                ...                       : list of arguments, should be input as (char*)
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_inline_argument(char *function_name, int argc, ...) {
+int yt_inline_argument(const char *function_name, int argc, ...) {
 
 #ifdef SUPPORT_TIMER
     g_timer->record_time(function_name, 0);
@@ -115,11 +115,11 @@ int yt_inline_argument(char *function_name, int argc, ...) {
 //                4. Under INTERACTIVE_MODE, function will be wrapped inside try/except. If there is error
 //                   it will store under libyt.interactive_mode["func_err_msg"]["func_name"].
 //
-// Parameter   :  char *function_name : function name in python script
+// Parameter   :  const char *function_name : function name in python script
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_inline(char *function_name) {
+int yt_inline(const char *function_name) {
 
 #ifdef SUPPORT_TIMER
     g_timer->record_time(function_name, 0);
