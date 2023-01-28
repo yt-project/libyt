@@ -5,8 +5,8 @@
 #include "func_status_list.h"
 
 
-std::array<std::string, 2> func_status_list::s_NotDone_ErrMsg = {"", ""};
-std::array<PyObject*, 2>   func_status_list::s_NotDone_PyErr = {NULL, NULL};
+std::array<std::string, func_status_list::s_NotDone_Num> func_status_list::s_NotDone_ErrMsg;
+std::array<PyObject*, func_status_list::s_NotDone_Num>   func_status_list::s_NotDone_PyErr;
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status_list
@@ -414,7 +414,8 @@ int func_status_list::set_exception_hook() {
 int func_status_list::init_not_done_err_msg() {
     // error msg from not done yet statement to grab
     std::array<std::string, s_NotDone_Num> not_done_statement = { std::string("if 1==1:\n"),
-                                                                  std::string("tri = \"\"\"\n") };
+                                                                  std::string("tri = \"\"\"\n"),
+                                                                  std::string("print(\n") };
 
     // get python error type and its statement.
     PyObject *py_src, *py_exc, *py_val, *py_traceback, *py_obj;
@@ -436,9 +437,6 @@ int func_status_list::init_not_done_err_msg() {
         PyErr_Clear();
     }
 
-    // clean up
-    PyErr_Clear();
-
     return YT_SUCCESS;
 }
 
@@ -452,7 +450,9 @@ int func_status_list::init_not_done_err_msg() {
 //                     not done yet.
 //                  3. If it is indeed caused by user not done its input, clear error buffer. If not,
 //                     restore the buffer and that yt_interactive_mode print the error msg.
-//                  4. s_NotDone_ErrMsg's and s_NotDone_PyErr's elements are one-to-one relationship.
+//                  4. s_NotDone_ErrMsg's and s_NotDone_PyErr's elements are one-to-one relationship. Make
+//                     sure to go through every element, since some of them might have error of same type
+//                     but with different err msg.
 //
 // Arguments     :  None
 //
@@ -479,13 +479,12 @@ bool func_status_list::is_not_done_err_msg() {
                 Py_XDECREF(py_val);
                 Py_XDECREF(py_traceback);
                 Py_XDECREF(py_obj);
+                break;
             }
             else {
                 // restore err msg, and I no longer own py_exc's, py_val's, and py_traceback's reference
                 PyErr_Restore(py_exc, py_val, py_traceback);
             }
-
-            break;
         }
     }
 
