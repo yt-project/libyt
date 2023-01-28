@@ -109,9 +109,9 @@ int yt_inline_argument(char *function_name, int argc, ...) {
 // Function    :  yt_inline
 // Description :  Execute the YT inline analysis script
 //
-// Note        :  1. Python script name is stored in "g_param_libyt.script"
+// Note        :  1. Python script name, which is also its namespace's name is stored in "g_param_libyt.script"
 //                2. This python script must contain function of <function_name> you called.
-//                3. This python function must not contain input arguments.
+//                3. Must give argc (argument count), even if there are no arguments.
 //                4. Under INTERACTIVE_MODE, function will be wrapped inside try/except. If there is error
 //                   it will store under libyt.interactive_mode["func_err_msg"]["func_name"].
 //
@@ -120,6 +120,7 @@ int yt_inline_argument(char *function_name, int argc, ...) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_inline(char *function_name) {
+
 #ifdef SUPPORT_TIMER
     g_timer->record_time(function_name, 0);
 #endif
@@ -149,50 +150,41 @@ int yt_inline(char *function_name) {
 
     // start running inline function when every rank come to this stage.
     MPI_Barrier(MPI_COMM_WORLD);
-    log_info("Performing YT inline analysis ...\n");
 
-    int InlineFunctionWidth = strlen(function_name) + 4; // width = .<function_name>() + '\0'
-    const int CallYT_CommandWidth = strlen(g_param_libyt.script) + InlineFunctionWidth;
-    char *CallYT = (char *) malloc(CallYT_CommandWidth * sizeof(char));
-    sprintf(CallYT, "%s.%s()", g_param_libyt.script, function_name);
+    // join function into string wrapped by exec()
+    std::string str_function(std::string(function_name) + std::string("()"));
+    std::string str_CallYT(std::string("exec(\"") + str_function + std::string("\", sys.modules[\"") 
+                           + std::string(g_param_libyt.script) + std::string("\"].__dict__)"));
+
+    log_info("Performing YT inline analysis %s ...\n", str_function.c_str());
 
 #ifdef INTERACTIVE_MODE
-    // put command in try ... except
-    // 101 -> try: ... except: ...
-    //   4 -> newline
-    // scipt_name.func_name() -> strlen(script_name) + InlineFunctionWidth(contain '\0')
-    // func_name -> strlen(function_name)
-    char *CallYT_TryExcept = (char *) malloc((101 + 4 + strlen(g_param_libyt.script) + strlen(function_name) + InlineFunctionWidth)
-                                             * sizeof(char));
-    sprintf(CallYT_TryExcept, "try:\n"
-                              "    %s\n"
-                              "except Exception as e:\n"
-                              "    libyt.interactive_mode[\"func_err_msg\"][\"%s\"] = traceback.format_exc()\n",
-                              CallYT, function_name);
+    std::string str_CallYT_TryExcept;
+    str_CallYT_TryExcept = std::string("try:\n") +
+                           std::string("    ") + str_CallYT + std::string("\n") +
+                           std::string("except Exception as e:\n"
+                                       "    libyt.interactive_mode[\"func_err_msg\"][\"") + 
+                           std::string(function_name) + std::string("\"] = traceback.format_exc()\n");
 #endif // #ifdef INTERACTIVE_MODE
 
 #ifdef INTERACTIVE_MODE
-    if (PyRun_SimpleString(CallYT_TryExcept) == 0) log_debug("Invoking \"%s\" in interactive mode ... done\n", CallYT);
+    if (PyRun_SimpleString(str_CallYT_TryExcept.c_str()) != 0)
 #else
-    if (PyRun_SimpleString(CallYT) == 0)           log_debug("Invoking \"%s\" ... done\n", CallYT);
+    if (PyRun_SimpleString(str_CallYT.c_str()) != 0)
 #endif // #ifdef INTERACTIVE_MODE
-    else{
+    {
 #ifdef INTERACTIVE_MODE
         g_func_status_list[func_index].set_status(0);
 #endif
-        YT_ABORT("Invoking \"%s\" ... failed\n", CallYT);
+        YT_ABORT("Invoking \"%s\" ... failed\n", str_function.c_str());
     }
 
 #ifdef INTERACTIVE_MODE
     // update status in g_func_status_list
     g_func_status_list[func_index].get_status();
 #endif
-    log_info("Performing YT inline analysis <%s> ... done.\n", CallYT);
 
-    free(CallYT);
-#ifdef INTERACTIVE_MODE
-    free(CallYT_TryExcept);
-#endif
+    log_info("Performing YT inline analysis %s ... done.\n", str_function.c_str());
 
 #ifdef SUPPORT_TIMER
     g_timer->record_time(function_name, 1);
