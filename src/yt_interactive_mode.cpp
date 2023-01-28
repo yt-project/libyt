@@ -19,11 +19,11 @@
 //                   (3) Execute charactars should be less than INT_MAX.
 //                4. Let user add and decide what inline function to run in the follow process.
 //
-// Parameter   :  char *flag_file_name : once this file is detacted, it enters yt_interactive_mode
+// Parameter   :  const char *flag_file_name : once this file is detacted, it enters yt_interactive_mode
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_interactive_mode(char* flag_file_name) {
+int yt_interactive_mode(const char* flag_file_name) {
     fflush(stdout);
     fflush(stderr);
 
