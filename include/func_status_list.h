@@ -9,7 +9,7 @@
 
 class func_status_list {
 public:
-    static const int s_NotDone_Num = 2;
+    static const int s_NotDone_Num = 3;
     static std::array<std::string, s_NotDone_Num> s_NotDone_ErrMsg;
     static std::array<PyObject*, s_NotDone_Num>   s_NotDone_PyErr;
 
