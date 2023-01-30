@@ -30,7 +30,7 @@ void log_warning(const char *Format, ...);
 //                                                  (2) "face-centered"
 //                                                  (3) "derived_func"
 //                yt_dtype field_dtype          : Field type of the grid. Can be YT_FLOAT, YT_DOUBLE, YT_INT.
-//                bool     swap_axes            : true  ==> [z][y][x], x address alter-first, default value.
+//                bool     contiguous_in_x      : true  ==> [z][y][x], x address alter-first, default value.
 //                                                false ==> [x][y][z], z address alter-first
 //                short    field_ghost_cell[6]  : Number of cell to ignore at the beginning and the end of each dimensions.
 //                                                The dimensions is in the point of view of the field data, it has
@@ -61,7 +61,7 @@ struct yt_field
 	char     *field_name;
 	char     *field_define_type;
 	yt_dtype  field_dtype;
-	bool      swap_axes;
+	bool      contiguous_in_x;
     short     field_ghost_cell[6];
 	char     *field_unit;
 	int       num_field_name_alias;
@@ -87,7 +87,7 @@ struct yt_field
 		field_name = NULL;
 		field_define_type = "cell-centered";
 		field_dtype = YT_DTYPE_UNKNOWN;
-		swap_axes = true;
+        contiguous_in_x = true;
         for(int d=0; d<6; d++){ field_ghost_cell[d] = 0; }
 		field_unit = "";
 		num_field_name_alias = 0;

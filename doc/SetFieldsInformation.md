@@ -33,7 +33,7 @@ int yt_get_fieldsPtr( yt_field **field_list )
     - `YT_DOUBLE`: C type double.
     - `YT_INT`: C type int. We do not guaranty this will work.
     - `YT_LONG`: C type long. We do not guaranty this will work.
-- `swap_axes` (Default=`true`)
+- `contiguous_in_x` (Default=`true`)
   - Usage: Is the 3D data array define as [z][y][x], which is x address alters first.
   - Valid Value:
     - `true`: Data is in x-address alters first orientation, which is [z][y][x].

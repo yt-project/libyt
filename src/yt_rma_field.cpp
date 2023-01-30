@@ -10,8 +10,8 @@
 // Notes       :  1. Initialize m_Window, which used inside OpenMPI RMA operation. And set m_Window info
 //                   to "no_locks".
 //                2. Copy the input fname to m_FieldName, in case it is freed.
-//                3. Find the corresponding field_define_type and swap_axes in field_list, and assign to
-//                   m_FieldDefineType and m_FieldSwapAxes.
+//                3. Find the corresponding field_define_type and contiguous_in_x in field_list, and
+//                   assign to m_FieldDefineType and m_FieldSwapAxes.
 //                4. Find field index inside field_list and assign to m_FieldIndex.
 //                5. Set the std::vector capacity.
 //
@@ -43,7 +43,7 @@ yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
         if( strcmp(m_FieldName, g_param_yt.field_list[v].field_name) == 0){
             m_FieldDefineType = g_param_yt.field_list[v].field_define_type;
             m_FieldIndex      = v;
-            m_FieldSwapAxes   = g_param_yt.field_list[v].swap_axes;
+            m_FieldSwapAxes   = g_param_yt.field_list[v].contiguous_in_x;
             break;
         }
     }
@@ -87,7 +87,7 @@ yt_rma_field::~yt_rma_field()
 //                2. Insert data pointer into m_PrepareData.
 //                3. Insert data information into m_Prepare.
 //                4. In "cell-centered" and "face-centered", we pass full data_ptr, including ghost cell.
-//                5. "derived_func" data_dimensions must be the same as grid dim up to a swap_axes.
+//                5. "derived_func" data_dimensions must be the same as grid dim up to a contiguous_in_x.
 //                   Because derived_func generates only data without ghost cell.
 //                6. We assume that all input gid can be found on this rank.
 //                7. Check that we indeed get data pointer and its dimensions and data type.

@@ -190,7 +190,7 @@ template int add_dict_vector3 <ulong > ( PyObject *dict, const char *key, const 
 //                   |               |                      |               |
 //                   { <field_name>: {"attribute"         : [ <field_unit>, [<field_name_alias>, ], <field_display_name> ]
 //                                    "field_define_type" :  <field_define_type>,
-//                                    "swap_axes"         :  true / false
+//                                    "contiguous_in_x"   :  true / false
 //                                    "ghost_cell"        : [ beginning of 0-dim, ending of 0-dim,
 //                                                            beginning of 1-dim, ending of 1-dim,
 //                                                            beginning of 2-dim, ending of 2-dim  ]                      },
@@ -269,17 +269,17 @@ int add_dict_field_list(){
       }
       Py_DECREF( val );
 
-      // Load "swap_axes" to "field_info_dict".
-      if ( (g_param_yt.field_list)[i].swap_axes == true ){
-         if ( PyDict_SetItemString( field_info_dict, "swap_axes", Py_True) != 0 ){
+      // Load "contiguous_in_x" to "field_info_dict".
+      if ( (g_param_yt.field_list)[i].contiguous_in_x == true ){
+         if ( PyDict_SetItemString( field_info_dict, "contiguous_in_x", Py_True) != 0 ){
             YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ true ] failed!\n", 
-                      (g_param_yt.field_list)[i].field_name, "swap_axes");
+                      (g_param_yt.field_list)[i].field_name, "contiguous_in_x");
          }
       } 
       else {
-         if ( PyDict_SetItemString( field_info_dict, "swap_axes", Py_False) != 0 ){
+         if ( PyDict_SetItemString( field_info_dict, "contiguous_in_x", Py_False) != 0 ){
             YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ false ] failed!\n",
-                      (g_param_yt.field_list)[i].field_name, "swap_axes");
+                      (g_param_yt.field_list)[i].field_name, "contiguous_in_x");
          }
       }
 
