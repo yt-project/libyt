@@ -115,7 +115,7 @@ yt_get_fieldsPtr(&field_list);
 
 // Reciprocal of density field "InvDens"
 field_list[1].field_name = "InvDens";
-field_list[1].field_define_type = "derived_func";
+field_list[1].field_type = "derived_func";
 field_list[1].contiguous_in_x = true;
 field_list[1].field_dtype = (typeid(real) == typeid(float)) ? YT_FLOAT : YT_DOUBLE;
 field_list[1].derived_func = derived_func_InvDens;

@@ -79,7 +79,7 @@ int append_grid( yt_grid *grid ){
 
         // (2) Get the dimension of the input array
         // Only "cell-centered" will be set to grid_dimensions + ghost cell, else should be set in data_dimensions.
-        if ( strcmp(g_param_yt.field_list[v].field_define_type, "cell-centered") == 0 ){
+        if ( strcmp(g_param_yt.field_list[v].field_type, "cell-centered") == 0 ){
             // Get grid_dimensions and consider contiguous_in_x or not, since grid_dimensions is defined as [x][y][z].
             if ( g_param_yt.field_list[v].contiguous_in_x ){
                 for ( int d=0; d<3; d++ ) { (grid->field_data)[v].data_dimensions[d] = (grid->grid_dimensions)[2-d]; }

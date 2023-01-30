@@ -122,8 +122,8 @@ int check_particle_list(){
 //                  (6) grid right edge <= domain right edge.
 //                  (7) grid left edge <= grid right edge. 
 //                      (Not sure if this still holds for periodic condition.)
-//                  (8) Abort if field_define_type = "cell-centered", and data_ptr == NULL.
-//                  (9) Abort if field_define_type = "face-centered", and data_ptr == NULL.
+//                  (8) Abort if field_type = "cell-centered", and data_ptr == NULL.
+//                  (9) Abort if field_type = "face-centered", and data_ptr == NULL.
 //                  (10) If data_ptr != NULL, then data_dimensions > 0
 //
 // Parameter   :  None
@@ -178,43 +178,43 @@ int check_grid(){
         // check field_data in each individual grid
         for (int v = 0; v < g_param_yt.num_fields; v = v+1){
 
-            // If field_define_type == "cell-centered"
-            if ( strcmp(g_param_yt.field_list[v].field_define_type, "cell-centered") == 0 ) {
+            // If field_type == "cell-centered"
+            if ( strcmp(g_param_yt.field_list[v].field_type, "cell-centered") == 0 ) {
 
-                // (8) Raise warning if field_define_type = "cell-centered", and data_ptr is not set == NULL.
+                // (8) Raise warning if field_type = "cell-centered", and data_ptr is not set == NULL.
                 if ( grid.field_data[v].data_ptr == NULL ){
-                    YT_ABORT( "Grid [%ld], field_data [%s], field_define_type [%s], data_ptr is NULL, not set yet!",
-                                 grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_define_type);
+                    YT_ABORT( "Grid [%ld], field_data [%s], field_type [%s], data_ptr is NULL, not set yet!",
+                                 grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_type);
                 }
             }
 
-            // If field_define_type == "face-centered"
-            if ( strcmp(g_param_yt.field_list[v].field_define_type, "face-centered") == 0 ) {
+            // If field_type == "face-centered"
+            if ( strcmp(g_param_yt.field_list[v].field_type, "face-centered") == 0 ) {
 
-                // (9) Raise warning if field_define_type = "face-centered", and data_ptr is not set == NULL.
+                // (9) Raise warning if field_type = "face-centered", and data_ptr is not set == NULL.
                 if ( grid.field_data[v].data_ptr == NULL ){
-                    YT_ABORT( "Grid [%ld], field_data [%s], field_define_type [%s], data_ptr is NULL, not set yet!",
-                                 grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_define_type);
+                    YT_ABORT( "Grid [%ld], field_data [%s], field_type [%s], data_ptr is NULL, not set yet!",
+                                 grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_type);
                 }
                 else{
                     // (10) If data_ptr != NULL, then data_dimensions > 0
                     for ( int d = 0; d < 3; d++ ){
                         if ( grid.field_data[v].data_dimensions[d] <= 0 ){
-                            YT_ABORT("Grid [%ld], field_data [%s], field_define_type [%s], data_dimensions[%d] == %d <= 0, should be > 0!\n",
-                                      grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_define_type, d, grid.field_data[v].data_dimensions[d]);
+                            YT_ABORT("Grid [%ld], field_data [%s], field_type [%s], data_dimensions[%d] == %d <= 0, should be > 0!\n",
+                                      grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_type, d, grid.field_data[v].data_dimensions[d]);
                         }
                     }
                 }
             }
 
-            // If field_define_type == "derived_func"
-            if ( strcmp(g_param_yt.field_list[v].field_define_type, "derived_func") == 0 ) {
+            // If field_type == "derived_func"
+            if ( strcmp(g_param_yt.field_list[v].field_type, "derived_func") == 0 ) {
                 // (10) If data_ptr != NULL, then data_dimensions > 0
                 if ( grid.field_data[v].data_ptr != NULL ){
                     for ( int d = 0; d < 3; d++ ){
                         if ( grid.field_data[v].data_dimensions[d] <= 0 ){
-                            YT_ABORT("Grid [%ld], field_data [%s], field_define_type [%s], data_dimensions[%d] == %d <= 0, should be > 0!\n",
-                                      grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_define_type, d, grid.field_data[v].data_dimensions[d]);
+                            YT_ABORT("Grid [%ld], field_data [%s], field_type [%s], data_dimensions[%d] == %d <= 0, should be > 0!\n",
+                                      grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_type, d, grid.field_data[v].data_dimensions[d]);
                         }
                     }
                 }

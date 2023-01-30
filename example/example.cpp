@@ -227,7 +227,7 @@ int main(int argc, char *argv[]) {
 
         // Density field "Dens"
         field_list[0].field_name = "Dens";
-        field_list[0].field_define_type = "cell-centered";
+        field_list[0].field_type = "cell-centered";
         field_list[0].contiguous_in_x = true;
         field_list[0].field_dtype = (typeid(real) == typeid(float)) ? YT_FLOAT : YT_DOUBLE;
         char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
@@ -239,7 +239,7 @@ int main(int argc, char *argv[]) {
 
         // Reciprocal of density field "InvDens"
         field_list[1].field_name = "InvDens";
-        field_list[1].field_define_type = "derived_func";
+        field_list[1].field_type = "derived_func";
         field_list[1].contiguous_in_x = true;
         field_list[1].field_dtype = (typeid(real) == typeid(float)) ? YT_FLOAT : YT_DOUBLE;
         field_list[1].derived_func = derived_func_InvDens;

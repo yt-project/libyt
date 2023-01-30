@@ -49,7 +49,7 @@ void log_warning(const char *Format, ...);
 //                num_fields              : Number of fields
 //                num_species             : Number of particle species, initialized as 0.
 //                num_grids_local         : Number of local grids in each rank
-//                field_list              : field list, including {field_name, field_define_type, field_unit ,...}
+//                field_list              : field list, including {field_name, field_type, field_unit ,...}
 //                particle_list           : particle list, including {species_name, attr_list, ...}
 //                species_list            : species list of particles, includeing {species_name, num_attr}
 //                grids_local             : Ptr to full information of local grids

@@ -11,7 +11,7 @@ int yt_get_fieldsPtr( yt_field **field_list )
 ## yt_field
 - `field_name` (Default=`NULL`)
   - Usage: Field name. Please set the field name that matches your field information in [`frontend`](./SetYTParameter.md#yt_param_yt), because `libyt` borrows the frontend's `class XXXFieldInfo`.
-- `field_define_type` (Default=`"cell-centered"`)
+- `field_type` (Default=`"cell-centered"`)
   - Usage: Define type of the field.
   - Valid Value:
     - `"cell-centered"`: Cell-centered data.
@@ -39,9 +39,9 @@ int yt_get_fieldsPtr( yt_field **field_list )
     - `true`: Data is in x-address alters first orientation, which is [z][y][x].
     - `false`: Data is in z-address alters first orientation, which is [x][y][z].
 - `derived_func` (Default=`NULL`)
-  - Usage: Function pointer to generate derived field data when input grid id. This is only used in derived field, which is when `field_define_type` set to `derived_func`. See [Derived Field](./DerivedField.md) for more information.
+  - Usage: Function pointer to generate derived field data when input grid id. This is only used in derived field, which is when `field_type` set to `derived_func`. See [Derived Field](./DerivedField.md) for more information.
 - `derived_func_with_name` (Default=`NULL`)
-  - Usage: Function pointer to generate derived field data when input grid id and field name. This is only used in derived field, which is when `field_define_type` set to `derived_func`. See [Derived Field](./DerivedField.md) for more information.
+  - Usage: Function pointer to generate derived field data when input grid id and field name. This is only used in derived field, which is when `field_type` set to `derived_func`. See [Derived Field](./DerivedField.md) for more information.
 - `field_unit` (Default=`""`)
   - Usage: Unit of the field, using `yt` unit system.
 - `num_field_name_alias` (Default=`0`)
@@ -62,7 +62,7 @@ yt_get_fieldsPtr( &field_list );
 
 // cell-centered type field "Dens" 
 field_list[0].field_name = "Dens";  
-field_list[0].field_define_type = "cell-centered";  
+field_list[0].field_type = "cell-centered";  
 field_list[0].field_dtype = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;  
 char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};  
 field_list[0].field_name_alias = field_name_alias;  
