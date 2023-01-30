@@ -15,7 +15,7 @@ data_temp = data_temp[ghost_cell[0]:(data_shape[0] - ghost_cell[1]),
 
 # Convert to cell-centered
 grid_dim = self.hierarchy["grid_dimensions"][grid.id]
-if field_list[fname]["swap_axes"] is True:
+if field_list[fname]["contiguous_in_x"] is True:
     grid_dim = np.flip(grid_dim)
 axis = np.argwhere(grid_dim != data_temp.shape)
 if axis == 0:

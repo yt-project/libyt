@@ -28,7 +28,7 @@ Derived functions have prototype like this respectively:
 
 > :information_source: `libyt` first looks for function pointer under `derived_func` and then looks for function pointer under `derived_func_with_name`.
 
-Derived functions `derived_func` and `derived_function_with_name` should be able to generate required data and write data to `yt_array` array data member `data_ptr` without ghost cell. Make sure your function writes the data in x-address alters first orientation (which is [z][y][x]), if `swap_axes` is set to `true`. Write the data in z-address alters first orientation (which is [x][y][z]), if `swap_axes` is set to `false`.
+Derived functions `derived_func` and `derived_function_with_name` should be able to generate required data and write data to `yt_array` array data member `data_ptr` without ghost cell. Make sure your function writes the data in x-address alters first orientation (which is [z][y][x]), if `contiguous_in_x` is set to `true`. Write the data in z-address alters first orientation (which is [x][y][z]), if `contiguous_in_x` is set to `false`.
 
 - `yt_array`
   - Usage: a struct used in derived function and get particle attribute function.
@@ -116,7 +116,7 @@ yt_get_fieldsPtr(&field_list);
 // Reciprocal of density field "InvDens"
 field_list[1].field_name = "InvDens";
 field_list[1].field_define_type = "derived_func";
-field_list[1].swap_axes = true;
+field_list[1].contiguous_in_x = true;
 field_list[1].field_dtype = (typeid(real) == typeid(float)) ? YT_FLOAT : YT_DOUBLE;
 field_list[1].derived_func = derived_func_InvDens;
 
@@ -136,7 +136,7 @@ void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array) {
         yt_data dens_data;
         yt_getGridInfo_FieldData(gid_list[lid], "Dens", &dens_data);
         
-        // generate and fill in data in [z][y][x] order, since we set this field swap_axes = true
+        // generate and fill in data in [z][y][x] order, since we set this field contiguous_in_x = true
         int index, index_with_ghost_cell;
         for (int k = 0; k < dim[2]; k++) {
             for (int j = 0; j < dim[1]; j++) {

@@ -158,7 +158,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
 
     // Wrapping the C allocated 1D array into 3D numpy array.
     // grid_dimensions[3] is in [x][y][z] coordinate, 
-    // thus we have to check if the field has swap_axes == true or false.
+    // thus we have to check if the field has contiguous_in_x == true or false.
     // TODO: Hybrid OpenMP/MPI, we will need to further pack up a list of gid's field data into Python dictionary.
     int      nd = 3;
     int      typenum;
@@ -169,7 +169,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    if ( g_param_yt.field_list[field_id].swap_axes == true ){
+    if ( g_param_yt.field_list[field_id].contiguous_in_x == true ){
         dims[0] = grid_dimensions[2];
         dims[1] = grid_dimensions[1];
         dims[2] = grid_dimensions[0];

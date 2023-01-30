@@ -228,7 +228,7 @@ int main(int argc, char *argv[]) {
         // Density field "Dens"
         field_list[0].field_name = "Dens";
         field_list[0].field_define_type = "cell-centered";
-        field_list[0].swap_axes = true;
+        field_list[0].contiguous_in_x = true;
         field_list[0].field_dtype = (typeid(real) == typeid(float)) ? YT_FLOAT : YT_DOUBLE;
         char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
         field_list[0].field_name_alias = field_name_alias;
@@ -240,7 +240,7 @@ int main(int argc, char *argv[]) {
         // Reciprocal of density field "InvDens"
         field_list[1].field_name = "InvDens";
         field_list[1].field_define_type = "derived_func";
-        field_list[1].swap_axes = true;
+        field_list[1].contiguous_in_x = true;
         field_list[1].field_dtype = (typeid(real) == typeid(float)) ? YT_FLOAT : YT_DOUBLE;
         field_list[1].derived_func = derived_func_InvDens;
 
@@ -506,7 +506,8 @@ void get_randArray(int *array, int length) {
 // Notes       :  1. Derived function prototype must be void func(int, long*, yt_array*) or
 //                   void func(int, long*, char*, yt_array*).
 //                2. yt use this derived field function to generate data when needed.
-//                3. Since we set swap_axes = true in this field, we should write data in [z][y][x] order.
+//                3. Since we set contiguous_in_x = true in this field, we should write data in
+//                   [z][y][x] order.
 //
 // Parameter   : int       list_len  : number of gid in gid_list.
 //               long     *gid_list  : a list of gid field data to prepare.
@@ -528,7 +529,7 @@ void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array) {
         yt_data dens_data;
         yt_getGridInfo_FieldData(gid_list[lid], "Dens", &dens_data);
 
-        // generate and fill in data in [z][y][x] order, since we set this field swap_axes = true
+        // generate and fill in data in [z][y][x] order, since we set this field contiguous_in_x = true
         int index, index_with_ghost_cell;
         for (int k = 0; k < dim[2]; k++) {
             for (int j = 0; j < dim[1]; j++) {
