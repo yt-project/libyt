@@ -189,7 +189,7 @@ template int add_dict_vector3 <ulong > ( PyObject *dict, const char *key, const 
 //            field_list_dict    field_info_dict        info_list     name_alias_list
 //                   |               |                      |               |
 //                   { <field_name>: {"attribute"         : [ <field_unit>, [<field_name_alias>, ], <field_display_name> ]
-//                                    "field_define_type" :  <field_define_type>,
+//                                    "field_type"        :  <field_type>,
 //                                    "contiguous_in_x"   :  true / false
 //                                    "ghost_cell"        : [ beginning of 0-dim, ending of 0-dim,
 //                                                            beginning of 1-dim, ending of 1-dim,
@@ -261,11 +261,11 @@ int add_dict_field_list(){
       }
       Py_DECREF(info_list);
 
-      // Load "field_define_type" to "field_info_dict".
-      val = PyUnicode_FromString((g_param_yt.field_list)[i].field_define_type);
-      if ( PyDict_SetItemString(field_info_dict, "field_define_type", val) != 0 ){
+      // Load "field_type" to "field_info_dict".
+      val = PyUnicode_FromString((g_param_yt.field_list)[i].field_type);
+      if ( PyDict_SetItemString(field_info_dict, "field_type", val) != 0 ){
          YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n", 
-                   (g_param_yt.field_list)[i].field_name, "field_define_type", (g_param_yt.field_list)[i].field_define_type);
+                   (g_param_yt.field_list)[i].field_name, "field_type", (g_param_yt.field_list)[i].field_type);
       }
       Py_DECREF( val );
 

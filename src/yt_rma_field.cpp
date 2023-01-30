@@ -10,8 +10,8 @@
 // Notes       :  1. Initialize m_Window, which used inside OpenMPI RMA operation. And set m_Window info
 //                   to "no_locks".
 //                2. Copy the input fname to m_FieldName, in case it is freed.
-//                3. Find the corresponding field_define_type and contiguous_in_x in field_list, and
-//                   assign to m_FieldDefineType and m_FieldSwapAxes.
+//                3. Find the corresponding field_type and contiguous_in_x in field_list, and assign to
+//                   m_FieldDefineType and m_FieldSwapAxes.
 //                4. Find field index inside field_list and assign to m_FieldIndex.
 //                5. Set the std::vector capacity.
 //
@@ -34,14 +34,14 @@ yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
         log_error("yt_rma_field: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
     }
 
-    // Copy input fname, and find its field_define_type
+    // Copy input fname, and find its field_type
     int len = strlen(fname);
     m_FieldName = new char [len+1];
     strcpy(m_FieldName, fname);
 
     for(int v=0; v < g_param_yt.num_fields; v++){
         if( strcmp(m_FieldName, g_param_yt.field_list[v].field_name) == 0){
-            m_FieldDefineType = g_param_yt.field_list[v].field_define_type;
+            m_FieldDefineType = g_param_yt.field_list[v].field_type;
             m_FieldIndex      = v;
             m_FieldSwapAxes   = g_param_yt.field_list[v].contiguous_in_x;
             break;
@@ -167,7 +167,7 @@ int yt_rma_field::prepare_data(long& gid)
             (*derived_func_with_name) (list_length, list_gid, m_FieldName, data_array);
         }
         else{
-            YT_ABORT("yt_rma_field: In field [%s], field_define_type == %s, but derived_func or derived_func_with_name not set!\n",
+            YT_ABORT("yt_rma_field: In field [%s], field_type == %s, but derived_func or derived_func_with_name not set!\n",
                      m_FieldName, m_FieldDefineType);
         }
     }
@@ -344,7 +344,7 @@ int yt_rma_field::clean_up()
         MPI_Win_detach(m_Window, m_PrepareData[i]);
     }
 
-    // Free local prepared data m_Prepare, m_PrepareData if field_define_type == "derived_func".
+    // Free local prepared data m_Prepare, m_PrepareData if field_type == "derived_func".
     if( strcmp(m_FieldDefineType, "derived_func") == 0 ) {
         for(int i = 0; i < (int)m_PrepareData.size(); i++) {
             free( m_PrepareData[i] );

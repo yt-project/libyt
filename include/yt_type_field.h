@@ -24,7 +24,7 @@ void log_warning(const char *Format, ...);
 //                   ( "name", ("units", ["fields", "to", "alias"], "display_name"))
 //
 // Data Member :  char    *field_name           : Field name
-//                char    *field_define_type    : Define type, for now, we have these types, define in 
+//                char    *field_type           : Define type, for now, we have these types, define in
 //                                                validate():
 //                                                  (1) "cell-centered"
 //                                                  (2) "face-centered"
@@ -59,7 +59,7 @@ struct yt_field
 // data members
 // ======================================================================================================
 	char     *field_name;
-	char     *field_define_type;
+	char     *field_type;
 	yt_dtype  field_dtype;
 	bool      contiguous_in_x;
     short     field_ghost_cell[6];
@@ -76,7 +76,7 @@ struct yt_field
 // Method      : yt_field
 // Description : Constructor of the structure "yt_field"
 // 
-// Note        : 1. Initialize field_define_type as "cell-centered"
+// Note        : 1. Initialize field_type as "cell-centered"
 //               2. Initialize field_unit as "". If it is not set by user, then yt will use the particle 
 //                  unit set by the frontend in yt_set_parameter(). If there still isn't one, then it 
 //                  will use "". 
@@ -85,7 +85,7 @@ struct yt_field
 	yt_field()
 	{
 		field_name = NULL;
-		field_define_type = "cell-centered";
+        field_type = "cell-centered";
 		field_dtype = YT_DTYPE_UNKNOWN;
         contiguous_in_x = true;
         for(int d=0; d<6; d++){ field_ghost_cell[d] = 0; }
@@ -118,9 +118,9 @@ struct yt_field
 // 
 // Note        : 1. Validate data member value in one yt_field struct.
 //                  (1) field_name is set != NULL.
-//                  (2) field_define_type can only be : "cell-centered", "face-centered", "derived_func".
+//                  (2) field_type can only be : "cell-centered", "face-centered", "derived_func".
 //                  (3) Check if field_dtype is set.
-//                  (4) Raise warning if derived_func and derived_func_with_name both == NULL and field_define_type
+//                  (4) Raise warning if derived_func and derived_func_with_name both == NULL and field_type
 //                      is set to "derived_func".
 //                  (5) field_ghost_cell cannot be smaller than 0.
 //               2. Used in check_field_list()
@@ -133,18 +133,18 @@ struct yt_field
             YT_ABORT("field_name is not set!\n");
         }
 
-        // field_define_type can only be : "cell-centered", "face-centered", "derived_func".
+        // field_type can only be : "cell-centered", "face-centered", "derived_func".
         bool  check1 = false;
         int   num_type = 3;
         char *type[3]  = {"cell-centered", "face-centered", "derived_func"};
         for ( int i = 0; i < num_type; i++ ){
-            if ( strcmp(field_define_type, type[i]) == 0 ) {
+            if ( strcmp(field_type, type[i]) == 0 ) {
                 check1 = true;
                 break;
             }
         }
         if ( check1 == false ){
-            YT_ABORT("In field [%s], unknown field_define_type [%s]!\n", field_name, field_define_type);
+            YT_ABORT("In field [%s], unknown field_type [%s]!\n", field_name, field_type);
         }
 
         // if field_dtype is set.
@@ -160,10 +160,10 @@ struct yt_field
             YT_ABORT("In field [%s], field_dtype not set!\n", field_name);
         }
 
-        // Raise warning if derived_func and derived_func_with_name == NULL and field_define_type is set to "derived_func".
-        if ( strcmp(field_define_type, "derived_func") == 0 && derived_func == NULL && derived_func_with_name == NULL ){
-            YT_ABORT("In field [%s], field_define_type == %s, set derived_func or derived_func_with_name!\n",
-                     field_name, field_define_type);
+        // Raise warning if derived_func and derived_func_with_name == NULL and field_type is set to "derived_func".
+        if ( strcmp(field_type, "derived_func") == 0 && derived_func == NULL && derived_func_with_name == NULL ){
+            YT_ABORT("In field [%s], field_type == %s, set derived_func or derived_func_with_name!\n",
+                     field_name, field_type);
         }
 
         // field_ghost_cell cannot be smaller than 0.
