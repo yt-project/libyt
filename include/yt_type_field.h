@@ -44,10 +44,6 @@ void log_warning(const char *Format, ...);
 //
 //                (func pointer) derived_func          : pointer to function that has argument (int, long*, yt_array*)
 //                                                       and no return.
-//                (func pointer) derived_func_with_name: pointer to function that has argument (int, long*, char*, yt_array*)
-//                                                       and no return. libyt will first look for derived_func, before
-//                                                       coming to this. When libyt API call this function, it will pass
-//                                                       in field name.
 //
 // Method      :  yt_field  : Constructor
 //               ~yt_field  : Destructor
@@ -69,7 +65,6 @@ struct yt_field
 	char     *field_display_name;
 
 	void (*derived_func) (int list_length, long *list_gid, yt_array *data_array);
-    void (*derived_func_with_name) (int list_length, long *list_gid, char *field, yt_array *data_array);
 
 
 //=======================================================================================================
@@ -95,7 +90,6 @@ struct yt_field
 		field_display_name = NULL;
 
 		derived_func = NULL;
-        derived_func_with_name = NULL;
 	} // METHOD : yt_field
 
 //=======================================================================================================
@@ -120,8 +114,7 @@ struct yt_field
 //                  (1) field_name is set != NULL.
 //                  (2) field_type can only be : "cell-centered", "face-centered", "derived_func".
 //                  (3) Check if field_dtype is set.
-//                  (4) Raise warning if derived_func and derived_func_with_name both == NULL and field_type
-//                      is set to "derived_func".
+//                  (4) Raise warning if derived_func == NULL and field_type  is set to "derived_func".
 //                  (5) field_ghost_cell cannot be smaller than 0.
 //               2. Used in check_field_list()
 // 
@@ -160,9 +153,9 @@ struct yt_field
             YT_ABORT("In field [%s], field_dtype not set!\n", field_name);
         }
 
-        // Raise warning if derived_func and derived_func_with_name == NULL and field_type is set to "derived_func".
-        if ( strcmp(field_type, "derived_func") == 0 && derived_func == NULL && derived_func_with_name == NULL ){
-            YT_ABORT("In field [%s], field_type == %s, set derived_func or derived_func_with_name!\n",
+        // Raise warning if derived_func == NULL and field_type is set to "derived_func".
+        if ( strcmp(field_type, "derived_func") == 0 && derived_func == NULL ){
+            YT_ABORT("In field [%s], field_type == %s, derived_func not set!\n",
                      field_name, field_type);
         }
 

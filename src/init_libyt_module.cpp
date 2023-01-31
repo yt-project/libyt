@@ -55,33 +55,23 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     }
 
     // Get the derived_func define in field_list according to field_name.
-    //  (1) If cannot find field_name inside field_list, raise an error.
-    //  (2) If we successfully find the field_name, but the derived_func or derived_func_with_name
-    //      is not assigned (is NULL), raise an error.
+    //  (1) If we cannot find field_name inside field_list, raise an error.
+    //  (2) If we successfully find the field_name, but the derived_func is not assigned (is NULL), raise an error.
     void (*derived_func) (int, long*, yt_array*);
-    void (*derived_func_with_name) (int, long*, char*, yt_array*);
     bool have_FieldName = false;
-    short derived_func_option = 0;
 
     derived_func = NULL;
-    derived_func_with_name = NULL;
 
     for (int v = 0; v < g_param_yt.num_fields; v++){
         if ( strcmp(g_param_yt.field_list[v].field_name, field_name) == 0 ){
             have_FieldName = true;
             field_id = v;
             field_dtype = g_param_yt.field_list[v].field_dtype;
-            // The order of derived function being used: (1) derived_func (2) derived_func_with_name
             if ( g_param_yt.field_list[v].derived_func != NULL ){
                 derived_func = g_param_yt.field_list[v].derived_func;
-                derived_func_option = 1;
-            }
-            else if ( g_param_yt.field_list[v].derived_func_with_name != NULL ){
-                derived_func_with_name = g_param_yt.field_list[v].derived_func_with_name;
-                derived_func_option = 2;
             }
             else {
-                PyErr_Format(PyExc_NotImplementedError, "In field_list, field_name [ %s ], derived_func or derived_func_with_name does not set properly.\n",
+                PyErr_Format(PyExc_NotImplementedError, "In field_list, field_name [ %s ], derived_func did not set properly.\n",
                              g_param_yt.field_list[v].field_name);
                 return NULL;
             }
@@ -112,7 +102,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
         }
     }
 
-    // Generate data using derived_func or derived_func_with_name
+    // Generate data using derived_func
     //  (1) Allocate 1D array with size of grid dimension, initialized with 0.
     //  (2) Call derived function.
     //  (3) This array will be wrapped by Numpy API and will be return.
@@ -141,7 +131,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    // Call (1)derived_func or (2)derived_func_with_name, result will be made inside output 1D array.
+    // Call derived_func result will be made inside output 1D array.
     // TODO: Hybrid OpenMP/OpenMPI, dynamically ask a list of grid data from derived function.
     //       I assume we get one grid at a time here. Will change later...
     int  list_length = 1;
@@ -149,12 +139,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     yt_array data_array[1];
     data_array[0].gid = gid; data_array[0].data_length = gridTotalSize; data_array[0].data_ptr = output;
 
-    if ( derived_func_option == 1 ){
-        (*derived_func) (list_length, list_gid, data_array);
-    }
-    else if ( derived_func_option == 2 ){
-        (*derived_func_with_name) (list_length, list_gid, field_name, data_array);
-    }
+    (*derived_func) (list_length, list_gid, data_array);
 
     // Wrapping the C allocated 1D array into 3D numpy array.
     // grid_dimensions[3] is in [x][y][z] coordinate, 
