@@ -32,8 +32,8 @@ void log_warning(const char *Format, ...);
 //                yt_dtype field_dtype          : Field type of the grid. Can be YT_FLOAT, YT_DOUBLE, YT_INT.
 //                bool     contiguous_in_x      : true  ==> [z][y][x], x address alter-first, default value.
 //                                                false ==> [x][y][z], z address alter-first
-//                short    field_ghost_cell[6]  : Number of cell to ignore at the beginning and the end of each dimensions.
-//                                                The dimensions is in the point of view of the field data, it has
+//                short    field_ghost_cell[6]  : Number of cell to ignore at the beginning and the end of each dimension.
+//                                                The dimensions are in the point of view of the field data, it has
 //                                                nothing to do with coordinates.
 //
 //                char    *field_unit           : Set field_unit if needed.
@@ -42,8 +42,8 @@ void log_warning(const char *Format, ...);
 //                char    *field_display_name   : Set display name on the plottings, if not set, yt will 
 //                                                use field_name as display name.
 //
-//                (func pointer) derived_func          : pointer to function that has argument (int, long*, yt_array*)
-//                                                       and no return.
+//                (func pointer) derived_func   : pointer to function that has argument
+//                                                (const int, const long*, const char*, yt_array*) with no return.
 //
 // Method      :  yt_field  : Constructor
 //               ~yt_field  : Destructor
@@ -64,7 +64,7 @@ struct yt_field
 	char    **field_name_alias;
 	char     *field_display_name;
 
-	void (*derived_func) (int list_length, long *list_gid, yt_array *data_array);
+	void (*derived_func) (const int, const long *, const char*, yt_array*);
 
 
 //=======================================================================================================
@@ -114,7 +114,7 @@ struct yt_field
 //                  (1) field_name is set != NULL.
 //                  (2) field_type can only be : "cell-centered", "face-centered", "derived_func".
 //                  (3) Check if field_dtype is set.
-//                  (4) Raise warning if derived_func == NULL and field_type  is set to "derived_func".
+//                  (4) Raise warning if derived_func == NULL and field_type is set to "derived_func".
 //                  (5) field_ghost_cell cannot be smaller than 0.
 //               2. Used in check_field_list()
 // 

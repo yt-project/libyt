@@ -57,7 +57,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     // Get the derived_func define in field_list according to field_name.
     //  (1) If we cannot find field_name inside field_list, raise an error.
     //  (2) If we successfully find the field_name, but the derived_func is not assigned (is NULL), raise an error.
-    void (*derived_func) (int, long*, yt_array*);
+    void (*derived_func) (const int, const long*, const char*, yt_array*);
     bool have_FieldName = false;
 
     derived_func = NULL;
@@ -139,7 +139,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     yt_array data_array[1];
     data_array[0].gid = gid; data_array[0].data_length = gridTotalSize; data_array[0].data_ptr = output;
 
-    (*derived_func) (list_length, list_gid, data_array);
+    (*derived_func) (list_length, list_gid, field_name, data_array);
 
     // Wrapping the C allocated 1D array into 3D numpy array.
     // grid_dimensions[3] is in [x][y][z] coordinate, 
