@@ -87,8 +87,8 @@ yt_rma_field::~yt_rma_field()
 //                2. Insert data pointer into m_PrepareData.
 //                3. Insert data information into m_Prepare.
 //                4. In "cell-centered" and "face-centered", we pass full data_ptr, including ghost cell.
-//                5. "derived_func" data_dimensions must be the same as grid dim up to a contiguous_in_x.
-//                   Because derived_func generates only data without ghost cell.
+//                5. "derived_func" data_dimensions must be the same as grid dim after considering
+//                   contiguous_in_x, since derived_func generates only data without ghost cell.
 //                6. We assume that all input gid can be found on this rank.
 //                7. Check that we indeed get data pointer and its dimensions and data type.
 //
@@ -157,9 +157,9 @@ int yt_rma_field::prepare_data(long& gid)
         data_array[0].gid = gid; data_array[0].data_length = gridLength; data_array[0].data_ptr = data_ptr;
 
         if ( g_param_yt.field_list[m_FieldIndex].derived_func != NULL ){
-            void (*derived_func) (int, long*, yt_array*);
+            void (*derived_func) (const int, const long*, const char*, yt_array*);
             derived_func = g_param_yt.field_list[m_FieldIndex].derived_func;
-            (*derived_func) (list_length, list_gid, data_array);
+            (*derived_func) (list_length, list_gid, m_FieldName, data_array);
         }
         else{
             YT_ABORT("yt_rma_field: In field [%s], field_type == %s, but derived_func not set!\n",

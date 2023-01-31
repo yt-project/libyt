@@ -70,7 +70,7 @@ typedef double real;
 
 real set_density(const double x, const double y, const double z, const double t, const double v);
 void get_randArray(int *array, int length);
-void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array);
+void derived_func_InvDens(const int list_len, const long *gid_list, const char *field_name, yt_array *data_array);
 void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array);
 
 
@@ -503,17 +503,20 @@ void get_randArray(int *array, int length) {
 // Function    :  derived_func_InvDens
 // Description :  derived inverse density field
 //
-// Notes       :  1. Derived function prototype must be void func(int, long*, yt_array*) or
-//                   void func(int, long*, char*, yt_array*).
+// Notes       :  1. Derived function prototype must be:
+//                     void func(const int, const long*, const char*, yt_array*)
 //                2. yt use this derived field function to generate data when needed.
 //                3. Since we set contiguous_in_x = true in this field, we should write data in
 //                   [z][y][x] order.
+//                4. This function should generate and store data in data_array with the same gid order as
+//                   in gid_list.
 //
-// Parameter   : int       list_len  : number of gid in gid_list.
-//               long     *gid_list  : a list of gid field data to prepare.
-//               yt_array *data_array: write field data inside this yt_array correspondingly.
+// Parameter   : const int    list_len  : number of gid in gid_list.
+//               const long  *gid_list  : a list of gid to prepare.
+//               const char  *field_name: target field name.
+//               yt_array    *data_array: write field data inside this yt_array correspondingly.
 //-------------------------------------------------------------------------------------------------------
-void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array) {
+void derived_func_InvDens(const int list_len, const long *gid_list, const char *field_name, yt_array *data_array) {
     // loop over gid_list, and fill in grid data inside data_array.
     for (int lid = 0; lid < list_len; lid++) {
         // =================================================
