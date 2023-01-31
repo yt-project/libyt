@@ -161,13 +161,8 @@ int yt_rma_field::prepare_data(long& gid)
             derived_func = g_param_yt.field_list[m_FieldIndex].derived_func;
             (*derived_func) (list_length, list_gid, data_array);
         }
-        else if ( g_param_yt.field_list[m_FieldIndex].derived_func_with_name != NULL ){
-            void (*derived_func_with_name) (int, long*, char*, yt_array*);
-            derived_func_with_name = g_param_yt.field_list[m_FieldIndex].derived_func_with_name;
-            (*derived_func_with_name) (list_length, list_gid, m_FieldName, data_array);
-        }
         else{
-            YT_ABORT("yt_rma_field: In field [%s], field_type == %s, but derived_func or derived_func_with_name not set!\n",
+            YT_ABORT("yt_rma_field: In field [%s], field_type == %s, but derived_func not set!\n",
                      m_FieldName, m_FieldDefineType);
         }
     }

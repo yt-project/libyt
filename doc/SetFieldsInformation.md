@@ -40,8 +40,6 @@ int yt_get_fieldsPtr( yt_field **field_list )
     - `false`: Data is in z-address alters first orientation, which is [x][y][z].
 - `derived_func` (Default=`NULL`)
   - Usage: Function pointer to generate derived field data when input grid id. This is only used in derived field, which is when `field_type` set to `derived_func`. See [Derived Field](./DerivedField.md) for more information.
-- `derived_func_with_name` (Default=`NULL`)
-  - Usage: Function pointer to generate derived field data when input grid id and field name. This is only used in derived field, which is when `field_type` set to `derived_func`. See [Derived Field](./DerivedField.md) for more information.
 - `field_unit` (Default=`""`)
   - Usage: Unit of the field, using `yt` unit system.
 - `num_field_name_alias` (Default=`0`)
