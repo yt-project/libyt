@@ -89,17 +89,17 @@ int check_particle_list(){
         if ( !(particle.validate()) ){
             YT_ABORT("Validating input particle list element [%d] ... failed\n", p);
         }
-        if ( strcmp(particle.species_name, g_param_yt.frontend) == 0 ){
-            YT_ABORT("particle_list[%d], species_name == %s, frontend == %s, expect species_name different from the frontend!\n",
-                     p, particle.species_name, g_param_yt.frontend);
+        if ( strcmp(particle.par_type, g_param_yt.frontend) == 0 ){
+            YT_ABORT("particle_list[%d], par_type == %s, frontend == %s, expect particle type name different from the frontend!\n",
+                     p, particle.par_type, g_param_yt.frontend);
         }
     }
 
     // (3) Particle type name (or ptype in YT-term) are all unique.
     for ( int p1 = 0; p1 < g_param_yt.num_par_types; p1++ ){
         for ( int p2 = p1+1; p2 < g_param_yt.num_par_types; p2++ ){
-            if ( strcmp(g_param_yt.particle_list[p1].species_name, g_param_yt.particle_list[p2].species_name) == 0 ){
-                YT_ABORT("species_name in particle_list[%d] and particle_list[%d] are not unique!\n", p1, p2);
+            if ( strcmp(g_param_yt.particle_list[p1].par_type, g_param_yt.particle_list[p2].par_type) == 0 ){
+                YT_ABORT("par_type in particle_list[%d] and particle_list[%d] are the same, par_type should be unique!\n", p1, p2);
             }
         }
     }

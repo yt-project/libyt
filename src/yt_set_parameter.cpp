@@ -139,7 +139,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
       // to avoid user freeing yt_par_type *par_type_list.
       yt_particle *particle_list = new yt_particle [ g_param_yt.num_par_types ];
       for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
-         particle_list[s].species_name = g_param_yt.par_type_list[s].species_name;
+         particle_list[s].par_type     = g_param_yt.par_type_list[s].par_type;
          particle_list[s].num_attr     = g_param_yt.par_type_list[s].num_attr;
          particle_list[s].attr_list    = new yt_attribute [ particle_list[s].num_attr ];
       }

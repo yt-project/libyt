@@ -9,8 +9,8 @@ int yt_get_particlesPtr( yt_particle **particle_list );
 > :warning: Every MPI rank must call this API and fill in the particle information in the same order. We do not broadcast and sync information here.
 
 ## yt\_particle
-- `species_name`
-  - Usage: Name of the particle type. `libyt` links your input [`par_type_list`](./SetYTParameter.md#yt_param_yt)'s data member `species_name` to this variable. You don't need to assign it again. 
+- `par_type`
+  - Usage: Name of the particle type. `libyt` copies the pointer from [`par_type_list`](./SetYTParameter.md#yt_param_yt)'s data member `par_type` to this variable. You don't need to assign it again. 
 - `num_attr`
   - Usage: Number of attributes does this particle type has. `libyt` will assign your input [`par_type_list`](./SetYTParameter.md#yt_param_yt)'s data member `num_attr` to this variable. You may skip this.
 - `attr_list`

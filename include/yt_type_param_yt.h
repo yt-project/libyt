@@ -50,8 +50,10 @@ void log_warning(const char *Format, ...);
 //                num_par_types           : Number of particle types, initialized as 0.
 //                num_grids_local         : Number of local grids in each rank
 //                field_list              : field list, including {field_name, field_type, field_unit ,...}
-//                particle_list           : particle list, including {species_name, attr_list, ...}
-//                par_type_list           : particle type list, including only {species_name, num_attr}
+//                particle_list           : particle list, including {par_type, attr_list, ...}
+//                par_type_list           : particle type list, including only {par_type, num_attr},
+//                                          elements here will be copied into particle_list. This is because
+//                                          we want libyt to handle initialization of particle_list.
 //                grids_local             : Ptr to full information of local grids
 //
 // Method      :  yt_param_yt : Constructor
@@ -229,7 +231,7 @@ struct yt_param_yt
       if ( num_par_types > 0 && par_type_list == NULL  )   YT_ABORT( "Particle species info par_type_list has not been set!\n");
       if ( num_par_types < 0 && par_type_list != NULL  )   YT_ABORT( "Particle species info num_par_types has not been set!\n");
       for (int s=0; s<num_par_types; s++) {
-      if ( par_type_list[s].species_name == NULL || par_type_list[s].num_attr < 0 ) YT_ABORT( "par_type_list element [ %d ] is not set properly!\n", s);
+      if ( par_type_list[s].par_type == NULL || par_type_list[s].num_attr < 0 ) YT_ABORT( "par_type_list element [ %d ] is not set properly!\n", s);
       }
 
       return YT_SUCCESS;
@@ -290,7 +292,7 @@ struct yt_param_yt
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_fields",              num_fields              );
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_par_types",           num_par_types           );
       for (int s=0; s<num_par_types; s++){
-      log_debug( "   %-*s[%d] = (type=\"%s\", num_attr=%d)\n", width_vector, "par_type_list", s, par_type_list[s].species_name, par_type_list[s].num_attr);
+      log_debug( "   %-*s[%d] = (type=\"%s\", num_attr=%d)\n", width_vector, "par_type_list", s, par_type_list[s].par_type, par_type_list[s].num_attr);
       }
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids_local",         num_grids_local         );
 

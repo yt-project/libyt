@@ -40,13 +40,15 @@ yt_rma_particle::yt_rma_particle(char *ptype, char *attribute, int len_prepare, 
     int len = strlen(ptype);
     m_ParticleType = new char [len+1];
     strcpy(m_ParticleType, ptype);
+    m_ParticleType[len] = '\0';
 
     len = strlen(attribute);
     m_AttributeName = new char [len+1];
     strcpy(m_AttributeName, attribute);
+    m_AttributeName[len] = '\0';
 
     for(int v = 0; v < g_param_yt.num_par_types; v++){
-        if( strcmp(m_ParticleType, g_param_yt.particle_list[v].species_name) == 0 ){
+        if( strcmp(m_ParticleType, g_param_yt.particle_list[v].par_type) == 0 ){
             m_ParticleIndex = v;
             for(int a = 0; a < g_param_yt.particle_list[v].num_attr; a++) {
                 if( strcmp(m_AttributeName, g_param_yt.particle_list[v].attr_list[a].attr_name) == 0 ){
@@ -91,7 +93,7 @@ yt_rma_particle::~yt_rma_particle()
 //-------------------------------------------------------------------------------------------------------
 // Class       :  yt_rma_particle
 // Method      :  prepare_data
-// Description :  Prepare particle data in grid = gid and species_name = m_ParticleType, then attach
+// Description :  Prepare particle data in grid = gid and par_type = m_ParticleType, then attach
 //                particle data to m_Window and get the address.
 //
 // Notes       :  1. Prepare the particle data in grid = gid, and attach particle data to m_Window.
@@ -108,10 +110,10 @@ int yt_rma_particle::prepare_data(long& gid)
 {
     // Make sure particle type and its attribute name exist.
     if( m_ParticleIndex == -1 ){
-        YT_ABORT("yt_rma_particle: Cannot find species name [ %s ] in particle_list on MPI rank [ %d ].\n", m_ParticleType, g_myrank);
+        YT_ABORT("yt_rma_particle: Cannot find particle type [ %s ] in particle_list on MPI rank [ %d ].\n", m_ParticleType, g_myrank);
     }
     if( m_AttributeIndex == -1 ){
-        YT_ABORT("yt_rma_particle: Cannot find attribute name [ %s ] in species name [ %s ] on MPI rank [ %d ].\n",
+        YT_ABORT("yt_rma_particle: Cannot find attribute name [ %s ] in particle type [ %s ] on MPI rank [ %d ].\n",
                  m_AttributeName, m_ParticleType, g_myrank);
     }
 
@@ -134,12 +136,12 @@ int yt_rma_particle::prepare_data(long& gid)
     void (*get_attr) (int, long*, char*, yt_array*);
     get_attr = g_param_yt.particle_list[m_ParticleIndex].get_attr;
     if( get_attr == NULL ){
-        YT_ABORT("yt_rma_particle: In species [%s], get_attr not set!\n", m_ParticleType);
+        YT_ABORT("yt_rma_particle: Particle type [%s], get_attr not set!\n", m_ParticleType);
     }
 
     int dtype_size;
     if ( get_dtype_size(m_AttributeDataType, &dtype_size) != YT_SUCCESS ){
-        YT_ABORT("yt_rma_particle: In species [%s] attribute [%s], unknown yt_dtype.\n", m_ParticleType, m_AttributeName);
+        YT_ABORT("yt_rma_particle: Particle type [%s] attribute [%s], unknown yt_dtype.\n", m_ParticleType, m_AttributeName);
     }
 
     void *data_ptr;

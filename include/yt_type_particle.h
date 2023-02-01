@@ -21,17 +21,17 @@ void log_warning(const char *Format, ...);
 // Notes       :  1. Some data are overlap with yt_particle. We need this first be input by user through
 //                   yt_set_parameter(), so that we can set up and initialize particle_list properly.
 //
-// Data Member :  char  *species_name  : Particle species name, which in yt, it is ptype.
+// Data Member :  char  *par_type  : Particle type name (ptype in yt-term).
 //                int    num_attr      : Number of attributes in this species.
 //-------------------------------------------------------------------------------------------------------
 struct yt_par_type
 {
-	char *species_name;
+	char *par_type;
 	int   num_attr;
 
 	yt_par_type()
 	{
-		species_name = NULL;
+		par_type = NULL;
 		num_attr     = INT_UNDEFINED;
 	}
 };
@@ -156,10 +156,10 @@ struct yt_attribute
 // Structure   :  yt_particle
 // Description :  Data structure to store particle info and function to get them.
 // 
-// Notes       :  1. In YT, a particle type is "species_name" here.
+// Notes       :  1. Particle type is "par_type", which is "ptype" in YT-term.
 //                2. attr_list must only contain attributes that can get by get_attr.
 //
-// Data Member :  char         *species_name  : Species of this particle.
+// Data Member :  char         *par_type  : Particle type.
 //                int           num_attr      : Length of the attr_list.
 //                yt_attribute *attr_list     : Attribute list, contains a list of attributes name, and 
 //                                              function pointer get_attr knows how to get these data.
@@ -179,7 +179,7 @@ struct yt_particle
 {
 // data members
 // ======================================================================================================
-	char         *species_name;
+	char         *par_type;
 	int           num_attr;
 	yt_attribute *attr_list;
 
@@ -200,7 +200,7 @@ struct yt_particle
 // ======================================================================================================
 	yt_particle()
 	{
-		species_name = NULL;
+		par_type = NULL;
 		num_attr = INT_UNDEFINED;
 		attr_list = NULL;
 
@@ -232,7 +232,7 @@ struct yt_particle
 // Description : Validate data member in the struct.
 // 
 // Note        : 1. Validate data member value in one yt_particle struct.
-//                  (1) species_name is set != NULL
+//                  (1) par_type is set != NULL
 //                  (2) attr_list is set != NULL
 //                  (3) num_attr should > 0
 //                  (4) attr_name in attr_list should be unique 
@@ -244,24 +244,24 @@ struct yt_particle
 // Parameter   : None
 // ======================================================================================================
    	int validate() const {
-   		// species_name should be set
-   		if ( species_name == NULL ){
-   			YT_ABORT("species_name is not set!\n");
+   		// par_type should be set
+   		if ( par_type == NULL ){
+   			YT_ABORT("par_type is not set!\n");
    		}
 
    		// attr_list != NULL
    		if ( attr_list == NULL ){
-   			YT_ABORT("In particle species [ %s ], attr_list not set properly!\n", species_name);
+   			YT_ABORT("Particle type [ %s ], attr_list not set properly!\n", par_type);
    		}
 		// num_attr should > 0
    		if ( num_attr < 0 ){
-   			YT_ABORT("In particle species [ %s ], num_attr not set properly!\n", species_name);
+   			YT_ABORT("Particle type [ %s ], num_attr not set properly!\n", par_type);
    		}
    		
    		// call yt_attribute validate for each attr_list elements.
    		for ( int i = 0; i < num_attr; i++ ){
    			if ( !(attr_list[i].validate()) ){
-   				YT_ABORT("In particle species [ %s ], attr_list element [ %d ] not set properly!\n", species_name, i);
+   				YT_ABORT("Particle type [ %s ], attr_list element [ %d ] not set properly!\n", par_type, i);
    			}
    		}
 
@@ -269,26 +269,26 @@ struct yt_particle
    		for ( int i = 0; i < num_attr; i++ ){
    			for ( int j = i+1; j < num_attr; j++ ){
    				if ( strcmp(attr_list[i].attr_name, attr_list[j].attr_name) == 0 ){
-   					YT_ABORT("In particle species [ %s ], attr_list element [ %d ] and [ %d ] have same attr_name, expect them to be unique!\n", 
-   						      species_name, i, j);
+   					YT_ABORT("Particle type [ %s ], attr_list element [ %d ] and [ %d ] have same attr_name, expect them to be unique!\n",
+   						      par_type, i, j);
    				}
    			}
    		}
 
    		// if didn't input coor_x/y/z, yt cannot function properly for this particle.
    		if ( coor_x == NULL ){
-   			YT_ABORT("In particle species [ %s ], attribute name of coordinate x coor_x not set!\n", species_name);
+   			YT_ABORT("Particle type [ %s ], attribute name of coordinate x coor_x not set!\n", par_type);
    		}
    		if ( coor_y == NULL ){
-   			YT_ABORT("In particle species [ %s ], attribute name of coordinate y coor_y not set!\n", species_name);
+   			YT_ABORT("Particle type [ %s ], attribute name of coordinate y coor_y not set!\n", par_type);
    		}
    		if ( coor_z == NULL ){
-   			YT_ABORT("In particle species [ %s ], attribute name of coordinate z coor_z not set!\n", species_name);
+   			YT_ABORT("Particle type [ %s ], attribute name of coordinate z coor_z not set!\n", par_type);
    		}
 
    		// if didn't input get_attr, yt cannot function properly for this particle.
    		if ( get_attr == NULL ){
-   			YT_ABORT("In particle species [ %s ], function that gets particle attribute get_attr not set!\n", species_name);
+   			YT_ABORT("Particle type [ %s ], function that gets particle attribute get_attr not set!\n", par_type);
    		}
 
       	return YT_SUCCESS;
