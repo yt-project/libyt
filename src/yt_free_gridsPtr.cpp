@@ -37,8 +37,8 @@ int yt_free_gridsPtr() {
     //    field_list, particle_list, attr_list, num_grids_local_MPI
     if (g_param_libyt.param_yt_set) {
         if (g_param_yt.num_fields > 0) delete[] g_param_yt.field_list;
-        if (g_param_yt.num_species > 0) {
-            for (int i = 0; i < g_param_yt.num_species; i++) { delete[] g_param_yt.particle_list[i].attr_list; }
+        if (g_param_yt.num_par_types > 0) {
+            for (int i = 0; i < g_param_yt.num_par_types; i++) { delete[] g_param_yt.particle_list[i].attr_list; }
             delete[] g_param_yt.particle_list;
         }
         delete[] g_param_yt.num_grids_local_MPI;
@@ -49,7 +49,7 @@ int yt_free_gridsPtr() {
     if (g_param_libyt.get_gridsPtr && g_param_yt.num_grids_local > 0) {
         for (int i = 0; i < g_param_yt.num_grids_local; i = i + 1) {
             if (g_param_yt.num_fields > 0)  delete[] g_param_yt.grids_local[i].field_data;
-            if (g_param_yt.num_species > 0) delete[] g_param_yt.grids_local[i].particle_count_list;
+            if (g_param_yt.num_par_types > 0) delete[] g_param_yt.grids_local[i].particle_count_list;
         }
         delete[] g_param_yt.grids_local;
     }

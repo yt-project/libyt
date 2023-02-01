@@ -51,7 +51,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
   - Usage: Total number of grids.
 - `num_fields` (Default=`0`)
   - Usage: Number of fields.
-- `num_species` (Default=`0`)
+- `num_par_types` (Default=`0`)
   - Usage: Number of particle types.
 - `species_list` (Default=`NULL`)
   - Usage: Species list of particles. This should be a `yt_species` array. The lifespan of this array should at least cover `yt_inline` and `yt_inline_argument` API, which is when [Perform Inline-Analysis](./PerformInlineAnalysis.md).
@@ -75,9 +75,9 @@ param_yt.refine_by = REFINE_BY;                       // refinement factor betwe
 param_yt.num_grids = num_grids;                       // number of grids
 param_yt.num_grids_local = num_grids_local;           // number of local grids
 param_yt.num_fields = num_fields + 1;                 // number of fields, addition one for derived field demo
-param_yt.num_species = num_species;                   // number of particle types (or species)
+param_yt.num_par_types = num_par_types;               // number of particle types
 
-yt_species species_list[num_species];
+yt_species species_list[num_par_types];
 species_list[0].species_name = "io";
 species_list[0].num_attr = 4;
 param_yt.species_list = species_list;                 // define name and number of attributes in each particle

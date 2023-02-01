@@ -11,9 +11,9 @@
 // Note        :  1. Store yt relavent data in input "param_yt" to libyt.param_yt. Note that not all the 
 //                   data are passed in to python. 
 //                   To avoid user free the passed in array species_list, we initialize particle_list 
-//                   (needs info from species_list) right away. If num_species > 0.
+//                   (needs info from species_list) right away. If num_par_types > 0.
 //                   To make loading field_list and particle_list more systematic, we will allocate both
-//                   field_list (if num_fields>0 ) and particle_list (if num_species>0) here.
+//                   field_list (if num_fields>0 ) and particle_list (if num_par_types>0) here.
 //                2. Should be called after yt_init().
 //                3. Check the validation of the data in param_yt.
 //                4. Initialize python hierarchy allocate_hierarchy() and particle_list.
@@ -133,12 +133,12 @@ int yt_set_parameter( yt_param_yt *param_yt )
    }
 
 
-// if num_species > 0, which means want to load particle
-   if ( g_param_yt.num_species > 0 ){
+// if num_par_types > 0, which means want to load particle
+   if ( g_param_yt.num_par_types > 0 ){
       // Initialize and setup yt_particle *particle_list in g_param_yt.particle_list,
       // to avoid user freeing yt_species *species_list.
-      yt_particle *particle_list = new yt_particle [ g_param_yt.num_species ];
-      for ( int s = 0; s < g_param_yt.num_species; s++ ){
+      yt_particle *particle_list = new yt_particle [ g_param_yt.num_par_types ];
+      for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
          particle_list[s].species_name = g_param_yt.species_list[s].species_name;
          particle_list[s].num_attr     = g_param_yt.species_list[s].num_attr;
          particle_list[s].attr_list    = new yt_attribute [ particle_list[s].num_attr ];

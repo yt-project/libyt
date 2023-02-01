@@ -45,7 +45,7 @@ yt_rma_particle::yt_rma_particle(char *ptype, char *attribute, int len_prepare, 
     m_AttributeName = new char [len+1];
     strcpy(m_AttributeName, attribute);
 
-    for(int v = 0; v < g_param_yt.num_species; v++){
+    for(int v = 0; v < g_param_yt.num_par_types; v++){
         if( strcmp(m_ParticleType, g_param_yt.particle_list[v].species_name) == 0 ){
             m_ParticleIndex = v;
             for(int a = 0; a < g_param_yt.particle_list[v].num_attr; a++) {

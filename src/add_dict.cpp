@@ -359,7 +359,7 @@ int add_dict_particle_list(){
    PyObject  *particle_list_dict = PyDict_New();
    PyObject  *key, *val;
 
-   for ( int s = 0; s < g_param_yt.num_species; s++ ){
+   for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
       
       PyObject  *species_dict = PyDict_New();
       

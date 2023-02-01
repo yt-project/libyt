@@ -211,7 +211,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     yt_dtype attr_dtype = YT_DTYPE_UNKNOWN;
     int      species_index = -1;
 
-    for ( int s = 0; s < g_param_yt.num_species; s++ ){
+    for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
         if ( strcmp(g_param_yt.particle_list[s].species_name, ptype) == 0 ){
             species_index = s;
 

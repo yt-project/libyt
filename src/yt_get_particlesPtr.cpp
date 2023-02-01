@@ -29,10 +29,10 @@ int yt_get_particlesPtr( yt_particle **particle_list )
     	YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
     }
 
-    // check if num_species > 0, if not, particle_list won't be initialized
-    if ( g_param_yt.num_species <= 0 ){
-    	YT_ABORT( "num_species == %d <= 0, you don't need to input particle_list, and it is also not initialized!\n",
-    	           g_param_yt.num_species);
+    // check if num_par_types > 0, if not, particle_list won't be initialized
+    if ( g_param_yt.num_par_types <= 0 ){
+    	YT_ABORT( "num_par_types == %d <= 0, you don't need to input particle_list, and it is also not initialized!\n",
+    	           g_param_yt.num_par_types);
     }
 
    	log_info( "Getting pointer to particle list information ...\n" );

@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
     const double dh1 = dh0 / REFINE_BY;                       // cell size at level 1
     const int num_fields = 1;                                 // number of fields in simulation
     const int num_grids = CUBE(NGRID_1D) + CUBE(REFINE_BY);   // number of grids
-    const int num_species = 1;                                // number of particle types
+    const int num_par_types = 1;                              // number of particle types
 
     // simulation data stored in memory, there can be GHOST_CELL at the grid's boundary.
     yt_grid *sim_grids = new yt_grid [num_grids];
@@ -161,9 +161,9 @@ int main(int argc, char *argv[]) {
         param_yt.num_grids = num_grids;                       // number of grids
         param_yt.num_grids_local = num_grids_local;           // number of local grids
         param_yt.num_fields = num_fields + 1;                 // number of fields, addition one for derived field demo
-        param_yt.num_species = num_species;                   // number of particle types (or species)
+        param_yt.num_par_types = num_par_types;               // number of particle types (or species)
 
-        yt_species species_list[num_species];
+        yt_species species_list[num_par_types];
         species_list[0].species_name = "io";
         species_list[0].num_attr = 4;
         param_yt.species_list = species_list;                 // define name and number of attributes in each particle

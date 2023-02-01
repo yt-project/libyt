@@ -6,7 +6,7 @@
 // Description :  Get pointer of the array of struct yt_grid with length num_grids_local.
 //
 // Note        :  1. User should call this function after yt_set_parameter(), 
-//                   since we need num_grids_local, num_fields, and num_species.
+//                   since we need num_grids_local, num_fields, and num_par_types.
 //                2. Initialize field_data in one grid with
 //                   (1) data_dimensions[3] = {0, 0, 0}
 //                   (2) data_ptr           = NULL
@@ -63,9 +63,9 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 			}
 
 			// Dealing with particle_count
-			if ( g_param_yt.num_species > 0 ){
-				(*grids_local)[id].particle_count_list = new long [g_param_yt.num_species];
-				for ( int s = 0; s < g_param_yt.num_species; s++ ){
+			if ( g_param_yt.num_par_types > 0 ){
+				(*grids_local)[id].particle_count_list = new long [g_param_yt.num_par_types];
+				for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
 					(*grids_local)[id].particle_count_list[s] = 0;
 				}
 			}
