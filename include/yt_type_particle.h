@@ -3,7 +3,7 @@
 
 /*******************************************************************************
 /
-/  yt_species, yt_attribute, and yt_particle structure
+/  yt_par_type, yt_attribute, and yt_particle structure
 /
 /  ==> included by yt_type.h
 /
@@ -15,21 +15,21 @@ void log_debug( const char *Format, ... );
 void log_warning(const char *Format, ...);
 
 //-------------------------------------------------------------------------------------------------------
-// Structure   :  yt_species
+// Structure   :  yt_par_type
 // Description :  Data structure to store each species names and their number of attributes.
 // 
 // Notes       :  1. Some data are overlap with yt_particle. We need this first be input by user through
-//                   yt_set_parameter(), so that we can setup and initialize particle_list properly.
+//                   yt_set_parameter(), so that we can set up and initialize particle_list properly.
 //
 // Data Member :  char  *species_name  : Particle species name, which in yt, it is ptype.
 //                int    num_attr      : Number of attributes in this species.
 //-------------------------------------------------------------------------------------------------------
-struct yt_species
+struct yt_par_type
 {
 	char *species_name;
 	int   num_attr;
 
-	yt_species()
+	yt_par_type()
 	{
 		species_name = NULL;
 		num_attr     = INT_UNDEFINED;

@@ -136,7 +136,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
 // if num_par_types > 0, which means want to load particle
    if ( g_param_yt.num_par_types > 0 ){
       // Initialize and setup yt_particle *particle_list in g_param_yt.particle_list,
-      // to avoid user freeing yt_species *species_list.
+      // to avoid user freeing yt_par_type *species_list.
       yt_particle *particle_list = new yt_particle [ g_param_yt.num_par_types ];
       for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
          particle_list[s].species_name = g_param_yt.species_list[s].species_name;
