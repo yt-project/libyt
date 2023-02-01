@@ -90,10 +90,10 @@ struct yt_param_yt
 
 // variable for later runtime usage
 // Loaded by user
-   int          num_fields;
-   int          num_par_types;
-   yt_species  *species_list;
-   int          num_grids_local;
+   int           num_fields;
+   int           num_par_types;
+   yt_par_type  *species_list;
+   int           num_grids_local;
 
 // Loaded and controlled by libyt
    yt_field    *field_list;
