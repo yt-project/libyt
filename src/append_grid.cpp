@@ -36,8 +36,8 @@ int append_grid( yt_grid *grid ){
     FILL_ARRAY( "grid_parent_id",      &grid->parent_id,           1, npy_long   )
     FILL_ARRAY( "grid_levels",         &grid->level,               1, npy_int    )
     FILL_ARRAY( "proc_num",            &grid->proc_num,            1, npy_int    )
-    if ( g_param_yt.num_species > 0 ) {
-        FILL_ARRAY("particle_count_list", grid->particle_count_list, g_param_yt.num_species, npy_long)
+    if ( g_param_yt.num_par_types > 0 ) {
+        FILL_ARRAY("particle_count_list", grid->particle_count_list, g_param_yt.num_par_types, npy_long)
     }
 
     log_debug( "Inserting grid [%ld] info to libyt.hierarchy ... done\n", grid->id );

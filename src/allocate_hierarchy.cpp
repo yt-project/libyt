@@ -52,8 +52,8 @@ int allocate_hierarchy()
    ADD_DICT( 1, "grid_parent_id",      NPY_LONG   )
    ADD_DICT( 1, "grid_levels",         NPY_INT    )
    ADD_DICT( 1, "proc_num",            NPY_INT    )
-   if ( g_param_yt.num_species > 0 ) {
-       ADD_DICT( g_param_yt.num_species, "particle_count_list", NPY_LONG )
+   if ( g_param_yt.num_par_types > 0 ) {
+       ADD_DICT( g_param_yt.num_par_types, "particle_count_list", NPY_LONG )
    }
 
 #  undef ADD_DICT

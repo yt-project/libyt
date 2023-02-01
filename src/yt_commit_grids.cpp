@@ -7,7 +7,7 @@
 // Description :  Add local grids, append field list and particle list info to the libyt Python module.
 //
 // Note        :  1. Must call yt_set_parameter() in advance, which will preallocate memory for NumPy arrays.
-//                2. Must call yt_get_fieldsPtr (if num_fields>0), yt_get_particlesPtr (if num_species>0), 
+//                2. Must call yt_get_fieldsPtr (if num_fields>0), yt_get_particlesPtr (if num_par_types>0),
 //                   yt_get_gridsPtr, which gets data info from user.
 //                3. Check the local grids, field list, and particle list. 
 //                4. Append field_list info and particle_list info to libyt.param_yt['field_list'] and 
@@ -47,8 +47,8 @@ int yt_commit_grids()
 
 // check if user sets particle_list
    if ( !g_param_libyt.get_particlesPtr ){
-      YT_ABORT( "num_species == %d, please invoke yt_get_particlesPtr() before calling %s()!\n",
-                 g_param_yt.num_species, __FUNCTION__ );
+      YT_ABORT( "num_par_types == %d, please invoke yt_get_particlesPtr() before calling %s()!\n",
+                 g_param_yt.num_par_types, __FUNCTION__ );
    }
 
 // check if user has call yt_get_gridsPtr()
@@ -67,7 +67,7 @@ int yt_commit_grids()
    }
 
 // Check yt_particle* particle_list
-   if ( g_param_libyt.check_data == true && g_param_yt.num_species > 0 ){
+   if ( g_param_libyt.check_data == true && g_param_yt.num_par_types > 0 ){
       if ( check_particle_list() != YT_SUCCESS ){
          YT_ABORT("Check particle_list failed in %s!\n", __FUNCTION__);
       }
@@ -89,7 +89,7 @@ int yt_commit_grids()
    }
 
 // Add particle_list to libyt.param_yt['particle_list'] dictionary
-   if ( g_param_yt.num_species > 0 ){
+   if ( g_param_yt.num_par_types > 0 ){
       if ( add_dict_particle_list() != YT_SUCCESS ){
          YT_ABORT("Inserting dictionary libyt.param_yt['particle_list'] failed!\n");
       }
@@ -107,10 +107,10 @@ int yt_commit_grids()
 
 // initialize particle_count_list[ptype_label][grid_id]
    long **particle_count_list_full, **particle_count_list_local;
-   if ( g_param_yt.num_species > 0 ) {
-       particle_count_list_full  = new long* [g_param_yt.num_species];
-       particle_count_list_local = new long* [g_param_yt.num_species];
-       for (int s=0; s<g_param_yt.num_species; s++){
+   if ( g_param_yt.num_par_types > 0 ) {
+       particle_count_list_full  = new long* [g_param_yt.num_par_types];
+       particle_count_list_local = new long* [g_param_yt.num_par_types];
+       for (int s=0; s<g_param_yt.num_par_types; s++){
            if ( g_param_yt.num_grids > 0 ) particle_count_list_full[s] = new long [g_param_yt.num_grids];
            if ( g_param_yt.num_grids_local > 0 ) particle_count_list_local[s] = new long [g_param_yt.num_grids_local];
        }
@@ -124,7 +124,7 @@ int yt_commit_grids()
          hierarchy_local[i].right_edge[d] = grid.right_edge[d];
          hierarchy_local[i].dimensions[d] = grid.grid_dimensions[d];
       }
-      for (int s = 0; s < g_param_yt.num_species; s = s+1) {
+      for (int s = 0; s < g_param_yt.num_par_types; s = s+1) {
           particle_count_list_local[s][i] = grid.particle_count_list[s];
       }
       hierarchy_local[i].id                  = grid.id;
@@ -135,7 +135,7 @@ int yt_commit_grids()
 
    // Big MPI_Gatherv, this is just a workaround method.
    big_MPI_Gatherv(RootRank, g_param_yt.num_grids_local_MPI, (void*)hierarchy_local, &yt_hierarchy_mpi_type, (void*)hierarchy_full, 0);
-   for (int s=0; s<g_param_yt.num_species; s++){
+   for (int s=0; s<g_param_yt.num_par_types; s++){
        big_MPI_Gatherv(RootRank, g_param_yt.num_grids_local_MPI, (void*)particle_count_list_local[s], &yt_long_mpi_type, (void*)particle_count_list_full[s], 3);
    }
 
@@ -154,7 +154,7 @@ int yt_commit_grids()
 
 // broadcast hierarchy_full, particle_count_list_full to each rank as well.
    big_MPI_Bcast(RootRank, g_param_yt.num_grids, (void*) hierarchy_full, &yt_hierarchy_mpi_type, 0);
-   for (int s=0; s<g_param_yt.num_species; s++){
+   for (int s=0; s<g_param_yt.num_par_types; s++){
        big_MPI_Bcast(RootRank, g_param_yt.num_grids, (void*) particle_count_list_full[s], &yt_long_mpi_type, 3);
    }
 
@@ -173,7 +173,7 @@ int yt_commit_grids()
    end_block = start_block + g_param_yt.num_grids_local;
 
    yt_grid grid_combine;
-   grid_combine.particle_count_list = new long [g_param_yt.num_species];
+   grid_combine.particle_count_list = new long [g_param_yt.num_par_types];
    for (long i = 0; i < g_param_yt.num_grids; i = i+1) {
 
       // Load from hierarchy_full
@@ -182,7 +182,7 @@ int yt_commit_grids()
          grid_combine.right_edge[d]      = hierarchy_full[i].right_edge[d];
          grid_combine.grid_dimensions[d] = hierarchy_full[i].dimensions[d];
       }
-      for (int s=0; s<g_param_yt.num_species; s++){
+      for (int s=0; s<g_param_yt.num_par_types; s++){
           grid_combine.particle_count_list[s] = particle_count_list_full[s][i];
       }
       grid_combine.id                  = hierarchy_full[i].id;
@@ -216,8 +216,8 @@ int yt_commit_grids()
    // Freed resource 
    if ( g_param_yt.num_grids_local > 0 ) delete [] hierarchy_local;
    if ( g_param_yt.num_grids > 0 ) delete [] hierarchy_full;
-    if ( g_param_yt.num_species > 0 ) {
-        for (int s=0; s<g_param_yt.num_species; s++){
+    if ( g_param_yt.num_par_types > 0 ) {
+        for (int s=0; s<g_param_yt.num_par_types; s++){
             if ( g_param_yt.num_grids > 0 ) delete [] particle_count_list_full[s];
             if ( g_param_yt.num_grids_local > 0 ) delete [] particle_count_list_local[s];
         }
@@ -230,7 +230,7 @@ int yt_commit_grids()
     if ( g_param_libyt.get_gridsPtr && g_param_yt.num_grids_local > 0 ){
         for (int i = 0; i < g_param_yt.num_grids_local; i = i+1){
             if ( g_param_yt.num_fields > 0 ) delete [] g_param_yt.grids_local[i].field_data;
-            if ( g_param_yt.num_species > 0 ) delete [] g_param_yt.grids_local[i].particle_count_list;
+            if ( g_param_yt.num_par_types > 0 ) delete [] g_param_yt.grids_local[i].particle_count_list;
         }
         delete [] g_param_yt.grids_local;
     }
