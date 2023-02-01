@@ -163,10 +163,10 @@ int main(int argc, char *argv[]) {
         param_yt.num_fields = num_fields + 1;                 // number of fields, addition one for derived field demo
         param_yt.num_par_types = num_par_types;               // number of particle types (or species)
 
-        yt_par_type species_list[num_par_types];
-        species_list[0].species_name = "io";
-        species_list[0].num_attr = 4;
-        param_yt.species_list = species_list;                 // define name and number of attributes in each particle
+        yt_par_type par_type_list[num_par_types];
+        par_type_list[0].species_name = "io";
+        par_type_list[0].num_attr = 4;
+        param_yt.par_type_list = par_type_list;                 // define name and number of attributes in each particle
 
         for (int d = 0; d < 3; d++) {
             param_yt.domain_dimensions[d] = NGRID_1D * GRID_DIM; // domain dimensions in [x][y][z]

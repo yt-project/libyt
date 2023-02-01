@@ -28,7 +28,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
 
 ### Particle Counts
 - `particle_count_list` (Default=`0`)
-  - Usage: Number of particles in each particle type. The particle order should be the same as your input in `species_list` when [Set `yt` Parameter](./SetYTParameter.md#yt_param_yt).
+  - Usage: Number of particles in each particle type located in this grid. The particle order should be the same as your input in `par_type_list` when [Set `yt` Parameter](./SetYTParameter.md#yt_param_yt).
   - Valid Value: Should be greater than or equal to `0`.
 
 ### Field Data

@@ -10,9 +10,9 @@ int yt_get_particlesPtr( yt_particle **particle_list );
 
 ## yt\_particle
 - `species_name`
-  - Usage: Name of the particle type. `libyt` links your input [`species_list`](./SetYTParameter.md#yt_param_yt)'s data member `species_name` to this variable. You don't need to assign it again. 
+  - Usage: Name of the particle type. `libyt` links your input [`par_type_list`](./SetYTParameter.md#yt_param_yt)'s data member `species_name` to this variable. You don't need to assign it again. 
 - `num_attr`
-  - Usage: Number of attributes does this particle type has. `libyt` will assign your input [`species_list`](./SetYTParameter.md#yt_param_yt)'s data member `num_attr` to this variable. You may skip this.
+  - Usage: Number of attributes does this particle type has. `libyt` will assign your input [`par_type_list`](./SetYTParameter.md#yt_param_yt)'s data member `num_attr` to this variable. You may skip this.
 - `attr_list`
   - Usage: Attribute list of this particle. This is a `yt_attribute` array.
   - Valid Value: Each element in `yt_attribute` array should have
