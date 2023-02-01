@@ -16,9 +16,9 @@
 // Lists       :       Python Method         C Extension Function         
 //              .............................................................
 //                     derived_func          libyt_field_derived_func
-//                     get_attr              libyt_particle_get_attr
+//                     get_particle          libyt_particle_get_particle
 //                     get_field_remote      libyt_field_get_field_remote
-//                     get_attr_remote       libyt_particle_get_attr_remote
+//                     get_particle_remote   libyt_particle_get_particle_remote
 //-------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------------
@@ -173,7 +173,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  libyt_particle_get_attr
+// Function    :  libyt_particle_get_particle
 // Description :  Use the get_attr defined inside yt_particle struct to get the particle attributes.
 //
 // Note        :  1. Support only grid dimension = 3 for now, which is "coor_x", "coor_y", "coor_z" in
@@ -190,15 +190,15 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
 //
 // Return      :  numpy.1darray
 //-------------------------------------------------------------------------------------------------------
-static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
+static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
     // Parse the input arguments input by python.
-    // If not in the format libyt.get_attr( int , str , str ), raise an error
+    // If not in the format libyt.get_particle( int , str , str ), raise an error
     long  gid;
     char *ptype;
     char *attr_name;
 
     if ( !PyArg_ParseTuple(args, "lss", &gid, &ptype, &attr_name) ){
-        PyErr_SetString(PyExc_TypeError, "Wrong input type, expect to be libyt.get_attr(int, str, str).");
+        PyErr_SetString(PyExc_TypeError, "Wrong input type, expect to be libyt.get_particle(int, str, str).");
         return NULL;
     }
 
@@ -457,7 +457,7 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  libyt_particle_get_attr_remote
+// Function    :  libyt_particle_get_particle_remote
 // Description :  Get non-local particle data from remote ranks.
 //
 // Note        :  1. We return in dictionary objects.
@@ -473,7 +473,7 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
 //
 // Return      :  dict obj data[grid id][ptype][attribute]
 //-------------------------------------------------------------------------------------------------------
-static PyObject* libyt_particle_get_attr_remote(PyObject *self, PyObject *args){
+static PyObject* libyt_particle_get_particle_remote(PyObject *self, PyObject *args){
     // Parse the input list arguments by Python
     PyObject *py_ptf_dict;
     PyObject *arg2, *py_ptf_keys;
@@ -487,7 +487,7 @@ static PyObject* libyt_particle_get_attr_remote(PyObject *self, PyObject *args){
     if( !PyArg_ParseTuple(args, "OOOiOOl", &py_ptf_dict, &arg2, &py_prepare_list, &len_prepare,
                                             &py_to_get_list, &py_get_rank_list, &len_to_get) ){
         PyErr_SetString(PyExc_TypeError, "Wrong input type, "
-                                         "expect to be libyt.get_attr_remote(dict, iter, list, int, list, list, long).\n");
+                                         "expect to be libyt.get_particle_remote(dict, iter, list, int, list, list, long).\n");
         return NULL;
     }
 
@@ -643,13 +643,13 @@ static PyObject* libyt_particle_get_attr_remote(PyObject *self, PyObject *args){
 static PyMethodDef libyt_method_list[] =
 {
 // { "method_name", c_function_name, METH_VARARGS, "Description"},
-   {"derived_func",     libyt_field_derived_func, METH_VARARGS, 
+   {"derived_func",        libyt_field_derived_func, METH_VARARGS,
     "Get local derived field data."},
-   {"get_attr",         libyt_particle_get_attr,  METH_VARARGS,
+   {"get_particle",        libyt_particle_get_particle,  METH_VARARGS,
     "Get local particle attribute data."},
-   {"get_field_remote", libyt_field_get_field_remote, METH_VARARGS,
+   {"get_field_remote",    libyt_field_get_field_remote, METH_VARARGS,
     "Get remote field data."},
-   {"get_attr_remote",  libyt_particle_get_attr_remote, METH_VARARGS,
+   {"get_particle_remote", libyt_particle_get_particle_remote, METH_VARARGS,
     "Get remote particle attribute data."},
    { NULL, NULL, 0, NULL } // sentinel
 };
