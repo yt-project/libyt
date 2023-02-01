@@ -212,7 +212,7 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     int      species_index = -1;
 
     for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
-        if ( strcmp(g_param_yt.particle_list[s].species_name, ptype) == 0 ){
+        if ( strcmp(g_param_yt.particle_list[s].par_type, ptype) == 0 ){
             species_index = s;
 
             // Get get_attr
@@ -220,8 +220,8 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
                 get_attr = g_param_yt.particle_list[s].get_attr;
             }
             else {
-                PyErr_Format(PyExc_NotImplementedError, "In particle_list, species_name [ %s ], get_attr does not set properly.\n",
-                             g_param_yt.particle_list[s].species_name);
+                PyErr_Format(PyExc_NotImplementedError, "In particle_list par_type [ %s ], get_attr does not set properly.\n",
+                             g_param_yt.particle_list[s].par_type);
                 return NULL;
             }
 
@@ -238,11 +238,11 @@ static PyObject* libyt_particle_get_attr(PyObject *self, PyObject *args){
     }
 
     if ( species_index == -1 ){
-        PyErr_Format(PyExc_ValueError, "Cannot find species_name [ %s ] in particle_list.\n", ptype);
+        PyErr_Format(PyExc_ValueError, "Cannot find par_type [ %s ] in particle_list.\n", ptype);
         return NULL;
     }
     if ( attr_dtype == YT_DTYPE_UNKNOWN ){
-        PyErr_Format(PyExc_ValueError, "species_name [ %s ], attr_name [ %s ] not in particle_list.\n",
+        PyErr_Format(PyExc_ValueError, "par_type [ %s ], attr_name [ %s ] not in particle_list.\n",
                      ptype, attr_name);
         return NULL;
     }

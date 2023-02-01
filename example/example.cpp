@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
         param_yt.num_par_types = num_par_types;               // number of particle types (or species)
 
         yt_par_type par_type_list[num_par_types];
-        par_type_list[0].species_name = "io";
+        par_type_list[0].par_type = "io";
         par_type_list[0].num_attr = 4;
         param_yt.par_type_list = par_type_list;                 // define name and number of attributes in each particle
 
@@ -253,7 +253,8 @@ int main(int argc, char *argv[]) {
         yt_get_particlesPtr(&particle_list);
 
         // Particle type "io", each particle has position in the center of the grid it belongs to with value grid level.
-        particle_list[0].species_name = "io";
+        // par_type and num_attr will be assigned by libyt with the same value we passed in par_type_list at yt_set_parameter.
+        particle_list[0].par_type = "io";
         particle_list[0].num_attr = 4;
         char *attr_name[] = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
         char *attr_name_alias[] = {"grid_level"};
