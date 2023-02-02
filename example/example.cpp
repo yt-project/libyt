@@ -396,8 +396,8 @@ int main(int argc, char *argv[]) {
         // ==========================================
         // libyt: 8. call inline python function
         // ==========================================
-        if (yt_inline_argument("yt_inline_ProjectionPlot", 1, "\'density\'") != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_inline_argument() failed!\n");
+        if (yt_run_FunctionArguments("yt_inline_ProjectionPlot", 1, "\'density\'") != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_run_FunctionArguments() failed!\n");
             exit(EXIT_FAILURE);
         }
 
@@ -423,7 +423,7 @@ int main(int argc, char *argv[]) {
 
 
         // =======================================================================================================
-        // libyt: 9. activate python prompt in interactive mode, should call it after yt_inline/yt_inline_argument
+        // libyt: 9. activate python prompt in interactive mode, should call it in situ function call using API
         // =======================================================================================================
         // only supports when compile libyt using -DINTERACTIVE_MODE (needs "libyt_interactive_mode.h" header)
         // when detecting "LIBYT_STOP" file, or any inline function failed, interactive prompt will start

@@ -143,7 +143,7 @@ int func_status_list::add_new_func(const char *func_name, int run) {
 // Method      :  run_func
 //
 // Notes       :  1. This is a collective call. It executes new added functions that haven't run by
-//                   yt_inline/yt_inline_argument yet.
+//                   yt_inline/yt_run_FunctionArguments yet.
 //                2. Only supports function that don't have input arguments. It runs function func() in
 //                   Python.
 //

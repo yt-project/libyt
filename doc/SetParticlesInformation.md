@@ -17,7 +17,7 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
   - Usage: Attribute list of this particle. This is a `yt_attribute` array.
   - Valid Value: Each element in `yt_attribute` array should have
     - `attr_name` (Default=`NULL`)
-      - Usage: Attribute name. The lifespan of this variable should at least cover `yt_inline` and `yt_inline_argument` API, which is when [Perform Inline-Analysis](./PerformInlineAnalysis.md).
+      - Usage: Attribute name. The lifespan of this variable should at least cover in situ analysis process, which is when [Perform Inline-Analysis](./PerformInlineAnalysis.md).
     - `attr_dtype` (Default=`YT_DOUBLE`)
       - Usage: Attribute’s data type.
       - Valide Value: 

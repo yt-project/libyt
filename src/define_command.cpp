@@ -315,7 +315,7 @@ int define_command::set_func_run(const char *funcname, bool run, std::vector<std
 //
 // Notes      :  1. Get function status and print error msg if has.
 //               2. libyt.interactive_mode["func_err_msg"] only stores function's error msg when using
-//                  yt_inline/yt_inline_argument.
+//                  yt_inline/yt_run_FunctionArguments.
 //               3. A collective call, since it uses func_status::serial_print_error
 //
 // Arguments  :  const char *funcname : function name
@@ -345,7 +345,7 @@ int define_command::get_func_status(const char *funcname) {
         g_func_status_list[index].print_func_body(2, 0);
     }
 
-    // print error msg if it failed when running in yt_inline/yt_inline_argument. (collective call)
+    // print error msg if it failed when running in yt_inline/yt_run_FunctionArguments. (collective call)
     if (status == 0) {
         if (g_myrank == s_Root) {
             printf("\033[1;35m"); // bold purple

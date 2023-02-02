@@ -38,7 +38,7 @@ int yt_set_UserParameterDouble( const char *key, const int n, const double *inpu
 int yt_set_UserParameterString( const char *key,              const char   *input );
 int yt_commit();
 int yt_free();
-int yt_inline_argument( const char *function_name, int argc, ... );
+int yt_run_FunctionArguments( const char *function_name, int argc, ... );
 int yt_inline( const char *function_name );
 
 // For derived field function to get grid information by GID and by field_name.

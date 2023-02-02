@@ -2,7 +2,7 @@
 > :information_source: To make interactive prompt more smoothly, set lower [YT_VERBOSE](./Initialize.md#yt_param_libyt).
 
 ## Status Board
-Interactive python prompt will list all the inline functions call by [`yt_inline`](./PerformInlineAnalysis.md#yt_inline) or [`yt_inline_argument`](./PerformInlineAnalysis.md#yt_inline_argument).
+Interactive python prompt will list all the inline functions call by [`yt_inline`](./PerformInlineAnalysis.md#yt_inline) or [`yt_run_FunctionArguments`](./PerformInlineAnalysis.md#yt_run_FunctionArguments).
 
 #### Inline Function
 Whenever you load inline script at [initialization stage](./Initialize.md#yt_param_libyt), use [`%libyt load`](#load), or directly type in [Python prompt](#python-statements), `libyt` will detect callables and list them here.
@@ -19,7 +19,7 @@ Whether these functions will execute in next in situ analysis or not:
 - `V`: this function will run automatically in following in situ analysis.
 - `X`: this function will idle in next in situ analysis.
 
-> :information_source: When calling [`yt_run_InteractiveMode`](./ActivateInteractiveMode.md#yt_run_InteractiveMode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run), but had not been run by [`yt_inline`](./PerformInlineAnalysis.md#yt_inline) or [`yt_inline_argument`](./PerformInlineAnalysis.md#yt_inline_argument) yet.
+> :information_source: When calling [`yt_run_InteractiveMode`](./ActivateInteractiveMode.md#yt_run_InteractiveMode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run), but had not been run by [`yt_inline`](./PerformInlineAnalysis.md#yt_inline) or [`yt_run_FunctionArguments`](./PerformInlineAnalysis.md#yt_run_FunctionArguments) yet.
 
 ```
 =====================================================================
@@ -106,4 +106,4 @@ This is equivalent of `func(a, 2, "3")` in Python.
 ...     print(args)
 >>> %libyt run func a 2 "3"
 ```
-> :information_source: When calling [`yt_interactive_mode`](./ActivateInteractiveMode.md#yt_interactive_mode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run), but had not been run by [`yt_inline`](./PerformInlineAnalysis.md#yt_inline) or [`yt_inline_argument`](./PerformInlineAnalysis.md#yt_inline_argument) yet.
+> :information_source: When calling [`yt_interactive_mode`](./ActivateInteractiveMode.md#yt_interactive_mode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run), but had not been run by [`yt_inline`](./PerformInlineAnalysis.md#yt_inline) or [`yt_run_FunctionArguments`](./PerformInlineAnalysis.md#yt_run_FunctionArguments) yet.
