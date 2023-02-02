@@ -28,7 +28,7 @@ int yt_finalize()
    if ( !g_param_libyt.libyt_initialized )   YT_ABORT( "Calling yt_finalize() before yt_initialize()!\n" );
 
 // check if all the libyt allocated resource are freed
-   if ( !g_param_libyt.free_gridsPtr ) YT_ABORT("Please invoke yt_free_gridsPtr() before calling yt_finalize().\n");
+   if ( !g_param_libyt.free_gridsPtr ) YT_ABORT("Please invoke yt_free() before calling yt_finalize().\n");
 
 // free all libyt resources
    Py_Finalize();

@@ -11,7 +11,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
   - [Commit Your Settings - `yt_commit`](./CommitYourSettings.md#commit-your-settings)
   - [Perform Inline-Analysis - `yt_inline` and `yt_inline_argument`](./PerformInlineAnalysis.md#perform-inline-analysis)
   - [Activate Interactive Mode](./ActivateInteractiveMode.md#activate-interactive-mode) (Only availabe in interactive mode)
-  - [Free Resource - `yt_free_gridsPtr`](./FreeResource.md#free-resource)
+  - [Free Resource - `yt_free`](./FreeResource.md#free-resource)
   - [Finalize - `yt_finalize`](./Finalize.md#finalize)
 - [Inline Python Script](./InlinePythonScript.md#inline-python-script)
 
@@ -56,7 +56,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
       <td>Activate interactive prompt.</td>
     </tr>
     <tr>
-      <td>yt_free_gridsPtr</td>
+      <td>yt_free</td>
       <td>Free resources.</td>
     </tr>
     <tr>

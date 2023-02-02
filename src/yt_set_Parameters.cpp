@@ -38,8 +38,8 @@ int yt_set_Parameters( yt_param_yt *param_yt )
 
 // check if libyt has free all the resource in previous inline-analysis
    if ( !g_param_libyt.free_gridsPtr ){
-      log_warning( "Please invoke yt_free_gridsPtr() before calling %s() for next iteration!\n", __FUNCTION__ );
-      YT_ABORT("Overwrite existing parameters may leads to memory leak, please called yt_free_gridsPtr() first!\n");
+      log_warning( "Please invoke yt_free() before calling %s() for next iteration!\n", __FUNCTION__ );
+      YT_ABORT("Overwrite existing parameters may leads to memory leak, please called yt_free() first!\n");
    }
 
    log_info( "Setting YT parameters ...\n" );

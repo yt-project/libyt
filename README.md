@@ -96,7 +96,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
   - [Commit Your Settings - `yt_commit`](./doc/CommitYourSettings.md#commit-your-settings)
   - [Perform Inline-Analysis - `yt_inline` and `yt_inline_argument`](./doc/PerformInlineAnalysis.md#perform-inline-analysis)
   - [Activate Interactive Mode - `yt_run_InteractiveMode`](./doc/ActivateInteractiveMode.md#activate-interactive-mode) (Only availabe in interactive mode)
-  - [Free Resource - `yt_free_gridsPtr`](./doc/FreeResource.md#free-resource)
+  - [Free Resource - `yt_free`](./doc/FreeResource.md#free-resource)
   - [Finalize - `yt_finalize`](./doc/Finalize.md#finalize)
 - [Inline Python Script](./doc/InlinePythonScript.md#inline-python-script)
 

@@ -3,7 +3,7 @@
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_free_gridsPtr()
+// Function    :  yt_free()
 // Description :  Refresh the python yt state after finish inline-analysis
 //
 // Note        :  1. Call and use by user, after they are done with all the inline-analysis in this 
@@ -14,9 +14,9 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 //
-int yt_free_gridsPtr() {
+int yt_free() {
 #ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_free_gridsPtr", 0);
+    g_timer->record_time("yt_free", 0);
 #endif
 
     // check if libyt has been initialized
@@ -83,10 +83,10 @@ int yt_free_gridsPtr() {
 
 #ifdef SUPPORT_TIMER
     // end timer.
-    g_timer->record_time("yt_free_gridsPtr", 1);
+    g_timer->record_time("yt_free", 1);
     // print out record time in this iteration.
     g_timer->print_all_time();
 #endif
 
     return YT_SUCCESS;
-} // FUNCTION: yt_free_gridsPtr()
+} // FUNCTION: yt_free()
