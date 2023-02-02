@@ -1,7 +1,7 @@
 # Set Fields Information
-## yt\_get\_fieldsPtr
+## yt\_get\_FieldsPtr
 ```cpp
-int yt_get_fieldsPtr( yt_field **field_list )
+int yt_get_FieldsPtr( yt_field **field_list )
 ```
 - Usage: Get the `yt_field` array pointer where `libyt` access fields information from. Each MPI rank should call this function and fill them in. If you don't have any fields, then skip this.
 - Return: `YT_SUCCESS` or `YT_FAIL`
@@ -55,8 +55,8 @@ int yt_get_fieldsPtr( yt_field **field_list )
 ## Example
 ```cpp
 /* libyt API */  
-yt_field *field_list;  
-yt_get_fieldsPtr( &field_list );
+yt_field *field_list;
+yt_get_FieldsPtr( &field_list );
 
 // cell-centered type field "Dens" 
 field_list[0].field_name = "Dens";  

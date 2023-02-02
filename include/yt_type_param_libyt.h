@@ -25,7 +25,7 @@
 //                [private] ==> Set and used by libyt internally
 //                libyt_initialized           : true ==> yt_initialize() has been called successfully
 //                param_yt_set                : true ==> yt_set_Parameters() has been called successfully
-//                get_fieldsPtr               : true ==> yt_get_fieldsPtr() has been called successfully
+//                get_fieldsPtr               : true ==> yt_get_FieldsPtr() has been called successfully
 //                get_particlesPtr            : true ==> yt_get_particlesPtr() has been called successfully
 //                get_gridsPtr                : true ==> yt_get_gridsPtr() has been called successfully
 //                commit_grids                : true ==> yt_commit_grids() has been called successfully
