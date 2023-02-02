@@ -36,7 +36,7 @@
     int yt_getGridInfo_##NAME(const long gid, TYPE (*NAME)[3])                                                        \
     {                                                                                                                 \
         if (!g_param_libyt.commit_grids) {                                                                            \
-            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit_grids() before calling %s()!\n",  \
+            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",  \
                      __FUNCTION__);                                                                                   \
         }                                                                                                             \
         GET_ARRAY(KEY, *NAME, 3, TYPE, gid)                                                                           \
@@ -48,7 +48,7 @@
     int yt_getGridInfo_##NAME(const long gid, TYPE *NAME)                                                             \
     {                                                                                                                 \
         if (!g_param_libyt.commit_grids) {                                                                            \
-            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit_grids() before calling %s()!\n",  \
+            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",  \
                      __FUNCTION__);                                                                                   \
         }                                                                                                             \
         TYPE temp[1];                                                                                                 \
@@ -95,7 +95,7 @@ GET_GRIDINFO_DIM1(ProcNum, "proc_num", int)
 int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_count) {
 
     if (!g_param_libyt.commit_grids) {
-        YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit_grids() before calling %s()!\n",
+        YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }
 
@@ -143,7 +143,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_co
 int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *field_data) {
 
     if (!g_param_libyt.commit_grids) {
-        YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit_grids() before calling %s()!\n",
+        YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }
 

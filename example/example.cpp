@@ -387,8 +387,8 @@ int main(int argc, char *argv[]) {
         // ==========================================
         // libyt: 7. done loading information
         // ==========================================
-        if (yt_commit_grids() != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_commit_grids() failed!\n");
+        if (yt_commit() != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_commit() failed!\n");
             exit(EXIT_FAILURE);
         }
 

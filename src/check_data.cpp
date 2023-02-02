@@ -35,7 +35,7 @@ int check_sum_num_grids_local_MPI( int NRank, int * &num_grids_local_MPI ) {
 // Function    :  check_field_list
 // Description :  Check g_param_yt.field_list.
 //
-// Note        :  1. Use inside yt_commit_grids().
+// Note        :  1. Use inside yt_commit().
 //                2. Check field_list
 //                  (1) Validate each yt_field element in field_list.
 //                  (2) Name of each field are unique.
@@ -70,7 +70,7 @@ int check_field_list(){
 // Function    :  check_particle_list
 // Description :  Check g_param_yt.particle_list.
 //
-// Note        :  1. Use inside yt_commit_grids().
+// Note        :  1. Use inside yt_commit().
 //                2. Check particle_list
 //                  (1) Validate each yt_particle element in particle_list.
 //                  (2) Species name (or ptype in YT-term) cannot be the same as g_param_yt.frontend.
@@ -112,7 +112,7 @@ int check_particle_list(){
 // Function    :  check_grid
 // Description :  Check g_param_yt.grids_local.
 //
-// Note        :  1. Use inside yt_commit_grids().
+// Note        :  1. Use inside yt_commit().
 //                2. Check grids_local
 //                  (1) Validate each yt_grid element in grids_local.
 //                  (2) grid ID is between 0 ~ (num_grids-1).
@@ -230,7 +230,7 @@ int check_grid(){
 // Function    :  check_hierarchy
 // Description :  Check that the hierarchy, parent-children relationships are correct
 //
-// Note        :  1. Use inside yt_commit_grids()
+// Note        :  1. Use inside yt_commit()
 // 			      2. Check that the hierarchy is correct, even though we didn't build a parent-children 
 //                   map.
 //                  (1) Check every grid id are unique.
