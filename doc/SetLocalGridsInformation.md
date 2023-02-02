@@ -1,7 +1,7 @@
 # Set Local Grids Information
-## yt\_get\_gridsPtr
+## yt\_get\_GridsPtr
 ```cpp
-int yt_get_gridsPtr( yt_grid **grids_local );
+int yt_get_GridsPtr( yt_grid **grids_local );
 ```
 - Usage: Get the `yt_grid` pointer where `libyt` access grids information from. You should then fill in those information.
 - Return: `YT_SUCCESS` or `YT_FAIL`
@@ -49,7 +49,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
 ```cpp
 /* libyt API */
 yt_grid *grids_local;
-yt_get_gridsPtr( &grids_local );
+yt_get_GridsPtr( &grids_local );
 
 int index_local = 0;
 for (int gid = 0; gid < param_yt.num_grids; gid = gid + 1){

@@ -44,7 +44,7 @@ int yt_free_gridsPtr() {
         delete[] g_param_yt.num_grids_local_MPI;
     }
 
-    // Free resource allocated in yt_get_gridsPtr():
+    // Free resource allocated in yt_get_GridsPtr():
     //    grids_local, field_data, par_count_list
     if (g_param_libyt.get_gridsPtr && g_param_yt.num_grids_local > 0) {
         for (int i = 0; i < g_param_yt.num_grids_local; i = i + 1) {

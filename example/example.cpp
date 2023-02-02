@@ -360,7 +360,7 @@ int main(int argc, char *argv[]) {
         // ==============================================================
         // get pointer of the array where we should put data to
         yt_grid *grids_local;
-        yt_get_gridsPtr(&grids_local);
+        yt_get_GridsPtr(&grids_local);
 
         // Load the local grids information and data to libyt.
         int index_local = 0;

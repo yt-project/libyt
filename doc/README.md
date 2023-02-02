@@ -7,7 +7,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
   - [Set Code Specific Parameter - `yt_add_user_parameter_*`](./SetCodeSpecificParameter.md#set-code-specific-parameter)
   - [Set Fields Information - `yt_get_FieldsPtr`](./SetFieldsInformation.md#set-fields-information)
   - [Set Particles Information - `yt_get_ParticlesPtr`](./SetParticlesInformation.md#set-particles-information)
-  - [Set Local Grids Information - `yt_get_gridsPtr`](./SetLocalGridsInformation.md#set-local-grids-information)
+  - [Set Local Grids Information - `yt_get_GridsPtr`](./SetLocalGridsInformation.md#set-local-grids-information)
   - [Commit Your Settings - `yt_commit_grids`](./CommitYourSettings.md#commit-your-settings)
   - [Perform Inline-Analysis - `yt_inline` and `yt_inline_argument`](./PerformInlineAnalysis.md#perform-inline-analysis)
   - [Activate Interactive Mode](./ActivateInteractiveMode.md#activate-interactive-mode) (Only availabe in interactive mode)
@@ -40,7 +40,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
       <td>Set parameters.</td>
     </tr>
     <tr>
-      <td>yt_get_FieldsPtr, yt_get_ParticlesPtr, yt_get_gridsPtr</td>
+      <td>yt_get_FieldsPtr, yt_get_ParticlesPtr, yt_get_GridsPtr</td>
       <td>Set grids and particles information.</td>
     </tr>
     <tr>
