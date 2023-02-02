@@ -138,9 +138,7 @@ struct yt_param_yt
    // Method      :  init
    // Description :  Initialize all data members
    //
-   // Note        :  1. Called by the constructor and yt_inline()
-   //                2. It's separate from the constructor since we want yt_inline() to be
-   //                   able to call it in order to reinitialize all data members
+   // Note        :  1. Called by the constructor.
    //
    // Parameter   :  None
    //===================================================================================

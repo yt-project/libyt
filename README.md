@@ -94,7 +94,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
   - [Set Particles Information - `yt_get_ParticlesPtr`](./doc/SetParticlesInformation.md#set-particles-information)
   - [Set Local Grids Information - `yt_get_GridsPtr`](./doc/SetLocalGridsInformation.md#set-local-grids-information)
   - [Commit Your Settings - `yt_commit`](./doc/CommitYourSettings.md#commit-your-settings)
-  - [Perform Inline-Analysis - `yt_inline` and `yt_run_FunctionArguments`](./doc/PerformInlineAnalysis.md#perform-inline-analysis)
+  - [Perform Inline-Analysis - `yt_run_Function` and `yt_run_FunctionArguments`](./doc/PerformInlineAnalysis.md#perform-inline-analysis)
   - [Activate Interactive Mode - `yt_run_InteractiveMode`](./doc/ActivateInteractiveMode.md#activate-interactive-mode) (Only availabe in interactive mode)
   - [Free Resource - `yt_free`](./doc/FreeResource.md#free-resource)
   - [Finalize - `yt_finalize`](./doc/Finalize.md#finalize)

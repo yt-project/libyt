@@ -401,23 +401,23 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
 
-        if (yt_inline("yt_inline_ProfilePlot") != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_inline() failed!\n");
+        if (yt_run_Function("yt_inline_ProfilePlot") != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_run_Function() failed!\n");
             exit(EXIT_FAILURE);
         }
 
-        if (yt_inline("yt_inline_ParticlePlot") != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_inline() failed!\n");
+        if (yt_run_Function("yt_inline_ParticlePlot") != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_run_Function() failed!\n");
             exit(EXIT_FAILURE);
         }
 
-        if (yt_inline("yt_derived_field_demo") != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_derived_field_demo() failed!\n");
+        if (yt_run_Function("yt_derived_field_demo") != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_run_Function() failed!\n");
             exit(EXIT_FAILURE);
         }
 
-        if (yt_inline("test_function") != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: test_function() failed!\n");
+        if (yt_run_Function("test_function") != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_run_Function() failed!\n");
             exit(EXIT_FAILURE);
         }
 
