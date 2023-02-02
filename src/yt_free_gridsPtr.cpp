@@ -45,11 +45,11 @@ int yt_free_gridsPtr() {
     }
 
     // Free resource allocated in yt_get_gridsPtr():
-    //    grids_local, field_data, particle_count_list
+    //    grids_local, field_data, par_count_list
     if (g_param_libyt.get_gridsPtr && g_param_yt.num_grids_local > 0) {
         for (int i = 0; i < g_param_yt.num_grids_local; i = i + 1) {
             if (g_param_yt.num_fields > 0)  delete[] g_param_yt.grids_local[i].field_data;
-            if (g_param_yt.num_par_types > 0) delete[] g_param_yt.grids_local[i].particle_count_list;
+            if (g_param_yt.num_par_types > 0) delete[] g_param_yt.grids_local[i].par_count_list;
         }
         delete[] g_param_yt.grids_local;
     }

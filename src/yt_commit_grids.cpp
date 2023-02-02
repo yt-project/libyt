@@ -18,6 +18,7 @@
 //                7. Pass the grids and hierarchy to YT in function append_grid().
 //                8. We assume that one grid contains all the fields belong to that grid.
 //                9. Free g_param_yt.grids_local, after we have passed all grid info and data in.
+//               10. TODO: this can be more memory efficient when gathering hierarchy.
 //
 // Parameter   :
 //
@@ -125,7 +126,7 @@ int yt_commit_grids()
          hierarchy_local[i].dimensions[d] = grid.grid_dimensions[d];
       }
       for (int s = 0; s < g_param_yt.num_par_types; s = s+1) {
-          particle_count_list_local[s][i] = grid.particle_count_list[s];
+          particle_count_list_local[s][i] = grid.par_count_list[s];
       }
       hierarchy_local[i].id                  = grid.id;
       hierarchy_local[i].parent_id           = grid.parent_id;
@@ -173,7 +174,7 @@ int yt_commit_grids()
    end_block = start_block + g_param_yt.num_grids_local;
 
    yt_grid grid_combine;
-   grid_combine.particle_count_list = new long [g_param_yt.num_par_types];
+   grid_combine.par_count_list = new long [g_param_yt.num_par_types];
    for (long i = 0; i < g_param_yt.num_grids; i = i+1) {
 
       // Load from hierarchy_full
@@ -183,7 +184,7 @@ int yt_commit_grids()
          grid_combine.grid_dimensions[d] = hierarchy_full[i].dimensions[d];
       }
       for (int s=0; s<g_param_yt.num_par_types; s++){
-          grid_combine.particle_count_list[s] = particle_count_list_full[s][i];
+          grid_combine.par_count_list[s] = particle_count_list_full[s][i];
       }
       grid_combine.id                  = hierarchy_full[i].id;
       grid_combine.parent_id           = hierarchy_full[i].parent_id;
@@ -224,13 +225,13 @@ int yt_commit_grids()
         delete [] particle_count_list_full;
         delete [] particle_count_list_local;
     }
-    delete [] grid_combine.particle_count_list;
+    delete [] grid_combine.par_count_list;
 
     // Free grids_local
     if ( g_param_libyt.get_gridsPtr && g_param_yt.num_grids_local > 0 ){
         for (int i = 0; i < g_param_yt.num_grids_local; i = i+1){
             if ( g_param_yt.num_fields > 0 ) delete [] g_param_yt.grids_local[i].field_data;
-            if ( g_param_yt.num_par_types > 0 ) delete [] g_param_yt.grids_local[i].particle_count_list;
+            if ( g_param_yt.num_par_types > 0 ) delete [] g_param_yt.grids_local[i].par_count_list;
         }
         delete [] g_param_yt.grids_local;
     }

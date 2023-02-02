@@ -62,15 +62,15 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 				(*grids_local)[id].field_data   = NULL;
 			}
 
-			// Dealing with particle_count
+			// Dealing with particle count
 			if ( g_param_yt.num_par_types > 0 ){
-				(*grids_local)[id].particle_count_list = new long [g_param_yt.num_par_types];
+				(*grids_local)[id].par_count_list = new long [g_param_yt.num_par_types];
 				for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
-					(*grids_local)[id].particle_count_list[s] = 0;
+					(*grids_local)[id].par_count_list[s] = 0;
 				}
 			}
 			else{
-				(*grids_local)[id].particle_count_list = NULL;
+				(*grids_local)[id].par_count_list = NULL;
 			}
 		}
 
