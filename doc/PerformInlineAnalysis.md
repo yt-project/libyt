@@ -7,11 +7,11 @@ int yt_inline( const char *function_name );
 - Usage: Call Python function `function_name` defined inside your Python script. You may call as many times as you want, as long as the functions are defined in your input python script.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
-## yt\_inline\_argument
+## yt\_run\_FunctionArguments
 ```cpp
-int yt_inline_argument( const char *function_name, int argc, ... );
+int yt_run_FunctionArguments( const char *function_name, int argc, ... );
 ```
-- Usage: Call Python function `function_name` with input arguments in your Python script. This API will pass total number of `argc` arguments. Please wrap your arguments as strings. For example, `"0"` for `0`, `"\'FieldName\'"` for `'FieldName'`, `"a"` for defined python variable `a` within namespace.
+- Usage: Run Python function `function_name` with input arguments. This API will pass total number of `argc` arguments. Please wrap your arguments as strings. For example, `"0"` for `0`, `"\'FieldName\'"` for `'FieldName'`, `"a"` for defined python variable `a` within namespace.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## Example
@@ -44,8 +44,8 @@ if ( yt_inline( "yt_inline_ProfilePlot" ) != YT_SUCCESS ){
 }
 
 /* libyt API: run yt_inline_ProjectionPlot('density', a, 1). */
-if ( yt_inline_argument( "yt_inline_ProjectionPlot", 2, "\'density\'", "a", "1" ) != YT_SUCCESS ){
-    fprintf( stderr, "ERROR: yt_inline_argument() failed!\n" );  
+if ( yt_run_FunctionArguments( "yt_inline_ProjectionPlot", 2, "\'density\'", "a", "1" ) != YT_SUCCESS ){
+    fprintf( stderr, "ERROR: yt_run_FunctionArguments() failed!\n" );  
     exit( EXIT_FAILURE );  
 }
 ```

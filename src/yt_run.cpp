@@ -6,8 +6,8 @@
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_inline_argument
-// Description :  Execute the YT inline analysis script
+// Function    :  yt_run_FunctionArguments
+// Description :  Call function with arguments in in situ process
 //
 // Note        :  1. Python script name, which is also its namespace's name is stored in "g_param_libyt.script"
 //                2. This python script must contain function of <function_name> you called.
@@ -21,7 +21,7 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_inline_argument(const char *function_name, int argc, ...) {
+int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
 
 #ifdef SUPPORT_TIMER
     g_timer->record_time(function_name, 0);

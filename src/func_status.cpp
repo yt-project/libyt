@@ -20,7 +20,7 @@
 //                                      -1 -> not set yet
 //                   (4)   m_Status:     1 -> success
 //                                       0 -> failed
-//                                      -1 -> not execute by yt_inline/yt_inline_argument yet (default)
+//                                      -1 -> not execute by yt_inline/yt_run_FunctionArguments yet (default)
 //                                      -2 -> running
 //                2. Separate storing actual python source code in libyt.interactive_mode["func_body"].
 //
@@ -77,7 +77,7 @@ func_status::~func_status()
 //                4. Definition of m_Status:
 //                   1  -> success
 //                   0  -> failed
-//                   -1 -> not execute by yt_inline/yt_inline_argument yet (default)
+//                   -1 -> not execute by yt_inline/yt_run_FunctionArguments yet (default)
 //                   -2 -> running
 //
 // Arguments   :  None

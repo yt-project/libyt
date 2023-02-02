@@ -9,7 +9,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
   - [Set Particles Information - `yt_get_ParticlesPtr`](./SetParticlesInformation.md#set-particles-information)
   - [Set Local Grids Information - `yt_get_GridsPtr`](./SetLocalGridsInformation.md#set-local-grids-information)
   - [Commit Your Settings - `yt_commit`](./CommitYourSettings.md#commit-your-settings)
-  - [Perform Inline-Analysis - `yt_inline` and `yt_inline_argument`](./PerformInlineAnalysis.md#perform-inline-analysis)
+  - [Perform Inline-Analysis - `yt_inline` and `yt_run_FunctionArguments`](./PerformInlineAnalysis.md#perform-inline-analysis)
   - [Activate Interactive Mode](./ActivateInteractiveMode.md#activate-interactive-mode) (Only availabe in interactive mode)
   - [Free Resource - `yt_free`](./FreeResource.md#free-resource)
   - [Finalize - `yt_finalize`](./Finalize.md#finalize)
@@ -48,7 +48,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
       <td>Tell liybt you're done.</td>
     </tr>
     <tr>
-      <td>yt_inline, yt_inline_argument</td>
+      <td>yt_inline, yt_run_FunctionArguments</td>
       <td>Run Python functions.</td>
     </tr>
     <tr>

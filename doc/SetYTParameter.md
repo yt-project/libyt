@@ -54,7 +54,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
 - `num_par_types` (Default=`0`)
   - Usage: Number of particle types.
 - `par_type_list` (Default=`NULL`)
-  - Usage: Particle type list. This should be a `yt_par_type` array. The lifespan of the elements in this array should at least cover `yt_inline` and `yt_inline_argument` API, which is when [Perform Inline-Analysis](./PerformInlineAnalysis.md).
+  - Usage: Particle type list. This should be a `yt_par_type` array. The lifespan of the elements in this array should at least cover in situ analysis process, which is when [Perform Inline-Analysis](./PerformInlineAnalysis.md).
   - Valid Value: Each element in `yt_par_type` array
     - `par_type`: Name of the particle type.
     - `num_attr`: Number of attributes this particle type has. 
