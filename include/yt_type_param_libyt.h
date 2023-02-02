@@ -27,7 +27,7 @@
 //                param_yt_set                : true ==> yt_set_Parameters() has been called successfully
 //                get_fieldsPtr               : true ==> yt_get_FieldsPtr() has been called successfully
 //                get_particlesPtr            : true ==> yt_get_ParticlesPtr() has been called successfully
-//                get_gridsPtr                : true ==> yt_get_gridsPtr() has been called successfully
+//                get_gridsPtr                : true ==> yt_get_GridsPtr() has been called successfully
 //                commit_grids                : true ==> yt_commit_grids() has been called successfully
 //                free_gridsPtr               : true ==> yt_free_gridsPtr() has been called successfully, 
 //                                                       everything is reset and freed.

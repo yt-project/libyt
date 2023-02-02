@@ -28,7 +28,7 @@ int yt_finalize();
 int yt_set_Parameters  ( yt_param_yt *param_yt       );
 int yt_get_FieldsPtr   ( yt_field    **field_list    );
 int yt_get_ParticlesPtr( yt_particle **particle_list );
-int yt_get_gridsPtr( yt_grid **grids_local );
+int yt_get_GridsPtr    ( yt_grid     **grids_local   );
 int yt_add_user_parameter_int   ( const char *key, const int n, const int    *input );
 int yt_add_user_parameter_long  ( const char *key, const int n, const long   *input );
 int yt_add_user_parameter_uint  ( const char *key, const int n, const uint   *input );

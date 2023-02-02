@@ -2,7 +2,7 @@
 #include "libyt.h"
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_get_gridsPtr
+// Function    :  yt_get_GridsPtr
 // Description :  Get pointer of the array of struct yt_grid with length num_grids_local.
 //
 // Note        :  1. User should call this function after yt_set_Parameters(),
@@ -20,10 +20,10 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 //
-int yt_get_gridsPtr( yt_grid **grids_local )
+int yt_get_GridsPtr( yt_grid **grids_local )
 {
 #ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_get_gridsPtr", 0);
+    g_timer->record_time("yt_get_GridsPtr", 0);
 #endif
 
 	// check if libyt has been initialized
@@ -89,7 +89,7 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 	log_info( "Getting pointer to local grids information  ... done.\n" );
 
 #ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_get_gridsPtr", 1);
+    g_timer->record_time("yt_get_GridsPtr", 1);
 #endif
 
 	return YT_SUCCESS;

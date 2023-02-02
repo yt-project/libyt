@@ -8,7 +8,7 @@
 //
 // Note        :  1. Must call yt_set_Parameters() in advance, which will preallocate memory for NumPy arrays.
 //                2. Must call yt_get_FieldsPtr (if num_fields>0), yt_get_ParticlesPtr (if num_par_types>0),
-//                   yt_get_gridsPtr, which gets data info from user.
+//                   yt_get_GridsPtr, which gets data info from user.
 //                3. Check the local grids, field list, and particle list. 
 //                4. Append field_list info and particle_list info to libyt.param_yt['field_list'] and 
 //                   libyt.param_yt['particle_list'].
@@ -52,9 +52,9 @@ int yt_commit_grids()
                  g_param_yt.num_par_types, __FUNCTION__ );
    }
 
-// check if user has call yt_get_gridsPtr()
+// check if user has call yt_get_GridsPtr()
    if ( !g_param_libyt.get_gridsPtr ){
-      YT_ABORT( "Please invoke yt_get_gridsPtr() before calling %s()!\n", __FUNCTION__ );
+      YT_ABORT( "Please invoke yt_get_GridsPtr() before calling %s()!\n", __FUNCTION__ );
    }
 
    log_info("Loading grids to yt ...\n");
