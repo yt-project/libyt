@@ -19,7 +19,7 @@ Whether these functions will execute in next in situ analysis or not:
 - `V`: this function will run automatically in following in situ analysis.
 - `X`: this function will idle in next in situ analysis.
 
-> :information_source: When calling [`yt_interactive_mode`](./ActivateInteractiveMode.md#yt_interactive_mode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run), but had not been run by [`yt_inline`](./PerformInlineAnalysis.md#yt_inline) or [`yt_inline_argument`](./PerformInlineAnalysis.md#yt_inline_argument) yet.
+> :information_source: When calling [`yt_run_InteractiveMode`](./ActivateInteractiveMode.md#yt_run_InteractiveMode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run), but had not been run by [`yt_inline`](./PerformInlineAnalysis.md#yt_inline) or [`yt_inline_argument`](./PerformInlineAnalysis.md#yt_inline_argument) yet.
 
 ```
 =====================================================================

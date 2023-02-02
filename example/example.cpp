@@ -427,8 +427,8 @@ int main(int argc, char *argv[]) {
         // =======================================================================================================
         // only supports when compile libyt using -DINTERACTIVE_MODE (needs "libyt_interactive_mode.h" header)
         // when detecting "LIBYT_STOP" file, or any inline function failed, interactive prompt will start
-        // if (yt_interactive_mode("LIBYT_STOP") != YT_SUCCESS) {
-        //     fprintf(stderr, "ERROR: yt_interactive_mode failed!\n");
+        // if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
+        //     fprintf(stderr, "ERROR: yt_run_InteractiveMode failed!\n");
         //     exit(EXIT_FAILURE);
         // }
 

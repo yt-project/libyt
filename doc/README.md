@@ -52,7 +52,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
       <td>Run Python functions.</td>
     </tr>
     <tr>
-      <td>yt_interactive_mode (Only available in interactive mode)</td>
+      <td>yt_run_InteractiveMode (Only available in interactive mode)</td>
       <td>Activate interactive prompt.</td>
     </tr>
     <tr>
