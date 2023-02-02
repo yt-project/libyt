@@ -223,7 +223,7 @@ int main(int argc, char *argv[]) {
         // ==========================================
         // get pointer of the array where we should put data to
         yt_field *field_list;
-        yt_get_fieldsPtr(&field_list);
+        yt_get_FieldsPtr(&field_list);
 
         // Density field "Dens"
         field_list[0].field_name = "Dens";

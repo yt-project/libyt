@@ -2,7 +2,7 @@
 #include "libyt.h"
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_get_fieldsPtr
+// Function    :  yt_get_FieldsPtr
 // Description :  Get pointer of the array of struct yt_field with length num_fields.
 //
 // Note        :  1. User should call this function after yt_set_Parameters(), since we allocate field_list
@@ -14,10 +14,10 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 //
-int yt_get_fieldsPtr( yt_field **field_list )
+int yt_get_FieldsPtr( yt_field **field_list )
 {
 #ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_get_fieldsPtr", 0);
+    g_timer->record_time("yt_get_FieldsPtr", 0);
 #endif
 
 	// check if libyt has been initialized
@@ -46,7 +46,7 @@ int yt_get_fieldsPtr( yt_field **field_list )
 	log_info( "Getting pointer to field list information  ... done.\n" );
 
 #ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_get_fieldsPtr", 1);
+    g_timer->record_time("yt_get_FieldsPtr", 1);
 #endif
 
 	return YT_SUCCESS;

@@ -7,7 +7,7 @@
 // Description :  Add local grids, append field list and particle list info to the libyt Python module.
 //
 // Note        :  1. Must call yt_set_Parameters() in advance, which will preallocate memory for NumPy arrays.
-//                2. Must call yt_get_fieldsPtr (if num_fields>0), yt_get_particlesPtr (if num_par_types>0),
+//                2. Must call yt_get_FieldsPtr (if num_fields>0), yt_get_particlesPtr (if num_par_types>0),
 //                   yt_get_gridsPtr, which gets data info from user.
 //                3. Check the local grids, field list, and particle list. 
 //                4. Append field_list info and particle_list info to libyt.param_yt['field_list'] and 
@@ -42,7 +42,7 @@ int yt_commit_grids()
 
 // check if user sets field_list
    if ( !g_param_libyt.get_fieldsPtr ){
-      YT_ABORT( "num_fields == %d, please invoke yt_get_fieldsPtr() before calling %s()!\n",
+      YT_ABORT( "num_fields == %d, please invoke yt_get_FieldsPtr() before calling %s()!\n",
                  g_param_yt.num_fields, __FUNCTION__ );
    }
 

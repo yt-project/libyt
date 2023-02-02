@@ -91,7 +91,7 @@ int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *f
   - `data_dimensions[3]`: Dimension of the `data_ptr` array, in the point of view of itself.
   - `data_dtype`: Data type of the array.
 
-> :information_source: Field name `field_name` should be same as what you passed in `yt_get_fieldsPtr`.
+> :information_source: Field name `field_name` should be same as what you passed in `yt_get_FieldsPtr`.
 
 > :information_source: Do not mix grid dimensions get by `yt_getGridInfo_Dimensions` with data dimensions get by `yt_getGridInfo_FieldData`. Grid dimensions are grid length in [0][1][2] <-> [x][y][z], excluding ghost cells. Whereas data dimensions are just data length in data's point of view, which may consist of ghost cells.
 
@@ -102,7 +102,7 @@ Field `InvDens` is a derived field and is reciprocal of density field `Dens`. `d
 ```cpp
 // get pointer of the array where we should put data to
 yt_field *field_list;
-yt_get_fieldsPtr(&field_list);
+yt_get_FieldsPtr(&field_list);
 
 // Reciprocal of density field "InvDens"
 field_list[1].field_name = "InvDens";
@@ -124,7 +124,7 @@ void derived_func_InvDens(const int list_len, const long *gid_list, const char *
         // =============================================================
         // libyt: [Optional] Use libyt API to get data pointer passed in
         // =============================================================
-        // the label "Dens" we used here should be same as yt_get_fieldsPtr (libyt step 4)
+        // the label "Dens" we used here should be same as yt_get_FieldsPtr (libyt step 4)
         yt_data dens_data;
         yt_getGridInfo_FieldData(gid_list[lid], "Dens", &dens_data);
         

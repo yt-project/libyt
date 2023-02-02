@@ -25,8 +25,8 @@ extern "C" {
 // For libyt workflow
 int yt_initialize( int argc, char *argv[], const yt_param_libyt *param_libyt );
 int yt_finalize();
-int yt_set_Parameters  ( yt_param_yt *param_yt );
-int yt_get_fieldsPtr( yt_field **field_list );
+int yt_set_Parameters  ( yt_param_yt *param_yt       );
+int yt_get_FieldsPtr   ( yt_field    **field_list    );
 int yt_get_particlesPtr( yt_particle **particle_list );
 int yt_get_gridsPtr( yt_grid **grids_local );
 int yt_add_user_parameter_int   ( const char *key, const int n, const int    *input );
