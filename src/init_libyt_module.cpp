@@ -174,7 +174,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  libyt_particle_get_particle
-// Description :  Use the get_attr defined inside yt_particle struct to get the particle attributes.
+// Description :  Use the get_par_attr defined inside yt_particle struct to get the particle attributes.
 //
 // Note        :  1. Support only grid dimension = 3 for now, which is "coor_x", "coor_y", "coor_z" in
 //                   yt_particle must be set.
@@ -203,11 +203,11 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
     }
 
     
-    // Get get_attr function pointer defined in particle_list according to ptype and attr_name.
+    // Get get_par_attr function pointer defined in particle_list according to ptype and attr_name.
     // Get attr_dtype of the attr_name.
     // If cannot find ptype or attr_name, raise an error.
-    // If find them successfully, but get_attr not set, which is == NULL, raise an error.
-    void    (*get_attr) (int, long*, char*, yt_array*);
+    // If find them successfully, but get_par_attr not set, which is == NULL, raise an error.
+    void    (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*);
     yt_dtype attr_dtype = YT_DTYPE_UNKNOWN;
     int      species_index = -1;
 
@@ -215,12 +215,12 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
         if ( strcmp(g_param_yt.particle_list[s].par_type, ptype) == 0 ){
             species_index = s;
 
-            // Get get_attr
-            if ( g_param_yt.particle_list[s].get_attr != NULL ){
-                get_attr = g_param_yt.particle_list[s].get_attr;
+            // Get get_par_attr
+            if ( g_param_yt.particle_list[s].get_par_attr != NULL ){
+                get_par_attr = g_param_yt.particle_list[s].get_par_attr;
             }
             else {
-                PyErr_Format(PyExc_NotImplementedError, "In particle_list par_type [ %s ], get_attr does not set properly.\n",
+                PyErr_Format(PyExc_NotImplementedError, "In particle_list par_type [ %s ], get_par_attr does not set properly.\n",
                              g_param_yt.particle_list[s].par_type);
                 return NULL;
             }
@@ -270,7 +270,7 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
     }
 
     // Allocate the output array with size = array_length, type = attr_dtype, and initialize as 0
-    // Then pass in to get_attr(long, char*, void*) function
+    // Then pass in to get_par_attr(const int, const long*, const char*, const char*, yt_array*) function
     // Finally, return numpy 1D array, by wrapping the output.
     // We do not need to free output, since we make python owns this data after returning.
     int      nd = 1;
@@ -301,16 +301,16 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
         for ( long i = 0; i < array_length; i++ ){ ((long *)output)[i] = 0; }
     }
     else{
-        PyErr_Format(PyExc_ValueError, "In species [ %s ] attribute [ %s ], unknown yt_dtype.\n", ptype, attr_name);
+        PyErr_Format(PyExc_ValueError, "Particle [ %s ] attribute [ %s ], unknown yt_dtype.\n", ptype, attr_name);
         return NULL;
     }
     
-    // Call get_attr function pointer
+    // Call get_par_attr function pointer
     int  list_length = 1;
     long list_gid[1] = { gid };
     yt_array data_array[1];
     data_array[0].gid = gid; data_array[0].data_length = array_length; data_array[0].data_ptr = output;
-    get_attr(list_length, list_gid, attr_name, data_array);
+    get_par_attr(list_length, list_gid, ptype, attr_name, data_array);
 
     // Wrap the output and return back to python
     PyObject *outputNumpyArray = PyArray_SimpleNewFromData(nd, dims, typenum, output);

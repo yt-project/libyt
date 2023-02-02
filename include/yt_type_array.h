@@ -16,7 +16,7 @@
 //                functions or get particle attribute functions.
 //
 // Notes       :  1. This struct is used in yt_field data member derived_func.
-//                2. This struct is used in yt_particle data member get_attr.
+//                2. This struct is used in yt_particle data member get_par_attr.
 //
 // Data Member : gid                : gid of the field.
 //               data_length        : size of the data_ptr.

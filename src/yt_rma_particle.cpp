@@ -133,10 +133,10 @@ int yt_rma_particle::prepare_data(long& gid)
     }
 
     // Generate particle data
-    void (*get_attr) (int, long*, char*, yt_array*);
-    get_attr = g_param_yt.particle_list[m_ParticleIndex].get_attr;
-    if( get_attr == NULL ){
-        YT_ABORT("yt_rma_particle: Particle type [%s], get_attr not set!\n", m_ParticleType);
+    void (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*);
+    get_par_attr = g_param_yt.particle_list[m_ParticleIndex].get_par_attr;
+    if( get_par_attr == NULL ){
+        YT_ABORT("yt_rma_particle: Particle type [%s], get_par_attr not set!\n", m_ParticleType);
     }
 
     int dtype_size;
@@ -153,7 +153,7 @@ int yt_rma_particle::prepare_data(long& gid)
         yt_array data_array[1];
         data_array[0].gid = gid; data_array[0].data_length = par_info.data_len; data_array[0].data_ptr = data_ptr;
 
-        (*get_attr) (list_len, list_gid, m_AttributeName, data_array);
+        (*get_par_attr) (list_len, list_gid, m_ParticleType, m_AttributeName, data_array);
 
         // Attach buffer to window.
         int mpi_return_code = MPI_Win_attach(m_Window, data_ptr, par_info.data_len * dtype_size );
