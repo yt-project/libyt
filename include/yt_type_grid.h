@@ -131,7 +131,7 @@ struct yt_grid
     //
     // Note        :  1. Not used currently
     //                2. We do not free the pointer arrays "field_list" and "field_data" here
-    //                   ==> They are freed by yt_free_gridsPtr
+    //                   ==> They are freed by yt_free
     //
     // Parameter   :  None
     //===================================================================================

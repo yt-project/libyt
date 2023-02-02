@@ -29,7 +29,7 @@
 //                get_particlesPtr            : true ==> yt_get_ParticlesPtr() has been called successfully
 //                get_gridsPtr                : true ==> yt_get_GridsPtr() has been called successfully
 //                commit_grids                : true ==> yt_commit() has been called successfully
-//                free_gridsPtr               : true ==> yt_free_gridsPtr() has been called successfully, 
+//                free_gridsPtr               : true ==> yt_free() has been called successfully,
 //                                                       everything is reset and freed.
 //
 // Method      :  yt_param_libyt : Constructor

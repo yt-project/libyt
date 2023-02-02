@@ -435,8 +435,8 @@ int main(int argc, char *argv[]) {
         // =================================================
         // libyt: 10. finish in-situ analysis, clean up libyt
         // =================================================
-        if (yt_free_gridsPtr() != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_free_gridsPtr() failed!\n");
+        if (yt_free() != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_free() failed!\n");
             exit(EXIT_FAILURE);
         }
 
