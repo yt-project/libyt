@@ -192,9 +192,9 @@ int main(int argc, char *argv[]) {
         // ==========================================
         // specific parameters for GAMER yt frontend
         const int mhd = 0;
-        yt_add_user_parameter_int("mhd", 1, &mhd);
+        yt_set_UserParameterInt("mhd", 1, &mhd);
         const int srhd = 0;
-        yt_add_user_parameter_int("srhd", 1, &srhd);
+        yt_set_UserParameterInt("srhd", 1, &srhd);
 
         // demo of some other parameters we can add
         const int user_int = 1;
@@ -207,15 +207,15 @@ int main(int argc, char *argv[]) {
         const int user_int3[3] = {7, 8, 9};
         const double user_double3[3] = {10.0, 11.0, 12.0};
 
-        yt_add_user_parameter_int("user_int", 1, &user_int);
-        yt_add_user_parameter_long("user_long", 1, &user_long);
-        yt_add_user_parameter_uint("user_uint", 1, &user_uint);
-        yt_add_user_parameter_ulong("user_ulong", 1, &user_ulong);
-        yt_add_user_parameter_float("user_float", 1, &user_float);
-        yt_add_user_parameter_double("user_double", 1, &user_double);
-        yt_add_user_parameter_string("user_string", user_string);
-        yt_add_user_parameter_int("user_int3", 3, user_int3);
-        yt_add_user_parameter_double("user_double3", 3, user_double3);
+        yt_set_UserParameterInt("user_int", 1, &user_int);
+        yt_set_UserParameterLong("user_long", 1, &user_long);
+        yt_set_UserParameterUint("user_uint", 1, &user_uint);
+        yt_set_UserParameterUlong("user_ulong", 1, &user_ulong);
+        yt_set_UserParameterFloat("user_float", 1, &user_float);
+        yt_set_UserParameterDouble("user_double", 1, &user_double);
+        yt_set_UserParameterString("user_string", user_string);
+        yt_set_UserParameterInt("user_int3", 3, user_int3);
+        yt_set_UserParameterDouble("user_double3", 3, user_double3);
 
 
         // ==========================================

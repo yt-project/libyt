@@ -4,7 +4,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
 - Implement `libyt` to your code step by step
   - [Initialize - `yt_initialize`](./Initialize.md#initialize)
   - [Set `yt` Parameter - `yt_set_Parameters`](./SetYTParameter.md#set-yt-parameter)
-  - [Set Code Specific Parameter - `yt_add_user_parameter_*`](./SetCodeSpecificParameter.md#set-code-specific-parameter)
+  - [Set Code Specific Parameter - `yt_set_UserParameter*`](./SetCodeSpecificParameter.md#set-code-specific-parameter)
   - [Set Fields Information - `yt_get_FieldsPtr`](./SetFieldsInformation.md#set-fields-information)
   - [Set Particles Information - `yt_get_ParticlesPtr`](./SetParticlesInformation.md#set-particles-information)
   - [Set Local Grids Information - `yt_get_GridsPtr`](./SetLocalGridsInformation.md#set-local-grids-information)
@@ -36,7 +36,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
     </tr>
     <tr>
       <td rowspan=6>Iteration</td>
-      <td>yt_set_Parameters, yt_add_user_parameter_*</td>
+      <td>yt_set_Parameters, yt_set_UserParameter*</td>
       <td>Set parameters.</td>
     </tr>
     <tr>
