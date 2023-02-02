@@ -371,7 +371,7 @@ int main(int argc, char *argv[]) {
                     grids_local[index_local].right_edge[d] = sim_grids[gid].right_edge[d];            // right edge
                     grids_local[index_local].grid_dimensions[d] = sim_grids[gid].grid_dimensions[d];  // dimensions
                 }
-                grids_local[index_local].particle_count_list[0] = 1;             // number of particles in each particle type
+                grids_local[index_local].par_count_list[0] = 1;                  // number of particles in each particle type
                 grids_local[index_local].id = sim_grids[gid].id;                 // 0-indexed grid id
                 grids_local[index_local].parent_id = sim_grids[gid].parent_id;   // 0-indexed parent id (-1 for root level grids)
                 grids_local[index_local].level = sim_grids[gid].level;           // 0-indexed level

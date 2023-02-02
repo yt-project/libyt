@@ -247,7 +247,7 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    // Get length of the returned 1D numpy array, which is equal to particle_count_list in the grid.
+    // Get length of the returned 1D numpy array, which is equal to par_count_list in the grid.
     long  array_length;
     int proc_num;
     if ( yt_getGridInfo_ProcNum(gid, &proc_num) != YT_SUCCESS ||

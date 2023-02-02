@@ -27,7 +27,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
     - We start root level at `0`, so it should be greater than or equal to `0`.
 
 ### Particle Counts
-- `particle_count_list` (Default=`0`)
+- `par_count_list` (Default=all elements are `0`)
   - Usage: Number of particles in each particle type located in this grid. The particle order should be the same as your input in `par_type_list` when [Set `yt` Parameter](./SetYTParameter.md#yt_param_yt).
   - Valid Value: Should be greater than or equal to `0`.
 
@@ -65,7 +65,7 @@ for (int gid = 0; gid < param_yt.num_grids; gid = gid + 1){
         grids_local[index_local].level          = sim_grids[gid].level;
 
         /* Fill in particle count. */
-        grids_local[index_local].particle_count_list[0] = 1;
+        grids_local[index_local].par_count_list[0] = 1;
 
         /* Fill in field data. */
         for (int v = 0; v < param_yt.num_fields; v = v + 1){

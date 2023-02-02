@@ -38,8 +38,7 @@ struct yt_data {
 struct yt_grid {
     double left_edge[3];
     double right_edge[3];
-    long *particle_count_list;
-    long grid_particle_count;
+    long *par_count_list;
     long id;
     long parent_id;
     int grid_dimensions[3];
