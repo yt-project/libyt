@@ -33,7 +33,7 @@ int yt_free_gridsPtr() {
     // Make sure every rank has reach to this point
     MPI_Barrier(MPI_COMM_WORLD);
 
-    // Free resource allocated in yt_set_parameter():
+    // Free resource allocated in yt_set_Parameters():
     //    field_list, particle_list, attr_list, num_grids_local_MPI
     if (g_param_libyt.param_yt_set) {
         if (g_param_yt.num_fields > 0) delete[] g_param_yt.field_list;

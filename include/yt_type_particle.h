@@ -19,7 +19,7 @@ void log_warning(const char *Format, ...);
 // Description :  Data structure to store each species names and their number of attributes.
 // 
 // Notes       :  1. Some data are overlap with yt_particle. We need this first be input by user through
-//                   yt_set_parameter(), so that we can set up and initialize particle_list properly.
+//                   yt_set_Parameters(), so that we can set up and initialize particle_list properly.
 //
 // Data Member :  char  *par_type  : Particle type name (ptype in yt-term).
 //                int    num_attr      : Number of attributes in this species.
@@ -72,7 +72,7 @@ struct yt_attribute
 // Description : Constructor of the structure "yt_attribute"
 // 
 // Note        : 1. Initialize attr_unit as "". If it is not set by user, then yt will use the particle 
-//                  unit set by the frontend in yt_set_parameter(). If there still isn't one, then it 
+//                  unit set by the frontend in yt_set_Parameters(). If there still isn't one, then it
 //                  will use "". 
 //               2. Initialize attr_dtype as YT_DOUBLE.
 // 

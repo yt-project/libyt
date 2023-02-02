@@ -5,7 +5,7 @@
 // Function    :  check_sum_num_grids_local_MPI
 // Description :  Check sum of number of local grids in each MPI rank is equal to num_grids input by user.
 //
-// Note        :  1. Use inside yt_set_parameter()
+// Note        :  1. Use inside yt_set_Parameters()
 //                2. Check sum of number of local grids in each MPI rank is equal to num_grids input by 
 //                   user, which is equal to the number of total grids.
 //                

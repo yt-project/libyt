@@ -181,8 +181,8 @@ int main(int argc, char *argv[]) {
         param_yt.omega_matter = 0.3;                          // omega matter
         param_yt.hubble_constant = 0.7;                       // hubble constant
 
-        if (yt_set_parameter(&param_yt) != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_set_parameter() failed!\n");
+        if (yt_set_Parameters(&param_yt) != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_set_Parameters() failed!\n");
             exit(EXIT_FAILURE);
         }
 
@@ -253,7 +253,7 @@ int main(int argc, char *argv[]) {
         yt_get_particlesPtr(&particle_list);
 
         // Particle type "io", each particle has position in the center of the grid it belongs to with value grid level.
-        // par_type and num_attr will be assigned by libyt with the same value we passed in par_type_list at yt_set_parameter.
+        // par_type and num_attr will be assigned by libyt with the same value we passed in par_type_list at yt_set_Parameters.
         particle_list[0].par_type = "io";
         particle_list[0].num_attr = 4;
         char *attr_name[] = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
