@@ -78,7 +78,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_co
 ```
 - Usage: Get number of particle `ptype` located on grid `gid`.
 - Return: `YT_SUCCESS` or `YT_FAIL`
-> :information_source: Particle type name `ptype` should be same as what you passed in `yt_get_particlesPtr`.
+> :information_source: Particle type name `ptype` should be same as what you passed in `yt_get_ParticlesPtr`.
 
 #### yt\_getGridInfo\_FieldData
 ```cpp

@@ -2,7 +2,7 @@
 #include "libyt.h"
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_get_particlesPtr
+// Function    :  yt_get_ParticlesPtr
 // Description :  Get pointer of the array of struct yt_particle with length num_particles.
 //
 // Note        :  1. User should call this function after yt_set_Parameters(), since we initialize
@@ -13,10 +13,10 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 //
-int yt_get_particlesPtr( yt_particle **particle_list )
+int yt_get_ParticlesPtr( yt_particle **particle_list )
 {
 #ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_get_particlesPtr", 0);
+    g_timer->record_time("yt_get_ParticlesPtr", 0);
 #endif
 
 	// check if libyt has been initialized
@@ -43,7 +43,7 @@ int yt_get_particlesPtr( yt_particle **particle_list )
 	log_info( "Getting pointer to particle list information  ... done.\n" );
 
 #ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_get_particlesPtr", 1);
+    g_timer->record_time("yt_get_ParticlesPtr", 1);
 #endif
 
 	return YT_SUCCESS;

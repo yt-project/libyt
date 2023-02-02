@@ -1,7 +1,7 @@
 # Set Particles Information
-## yt\_get\_particlesPtr
+## yt\_get\_ParticlesPtr
 ```cpp
-int yt_get_particlesPtr( yt_particle **particle_list );
+int yt_get_ParticlesPtr( yt_particle **particle_list );
 ```
 - Usage: Get the `yt_particle` array pointer where `libyt` access particles information from. Each MPI rank should call this function and fill them in. If you don't have any particles, then skip this.
 - Return: `YT_SUCCESS` or `YT_FAIL`
@@ -73,7 +73,7 @@ int main(){
     ...
     /* libyt API. */
     yt_particle *particle_list;  
-    yt_get_particlesPtr( &particle_list );
+    yt_get_ParticlesPtr( &particle_list );
     
     /* This particle "io" has 4 attributes (position X/Y/Z and level). */
     char *attr_name[]  = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
