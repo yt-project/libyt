@@ -36,7 +36,7 @@ int yt_set_UserParameterUlong ( const char *key, const int n, const ulong  *inpu
 int yt_set_UserParameterFloat ( const char *key, const int n, const float  *input );
 int yt_set_UserParameterDouble( const char *key, const int n, const double *input );
 int yt_set_UserParameterString( const char *key,              const char   *input );
-int yt_commit_grids();
+int yt_commit();
 int yt_free_gridsPtr();
 int yt_inline_argument( const char *function_name, int argc, ... );
 int yt_inline( const char *function_name );

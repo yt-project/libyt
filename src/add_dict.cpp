@@ -180,7 +180,7 @@ template int add_dict_vector3 <ulong > ( PyObject *dict, const char *key, const 
 // Description :  Function for adding a dictionary item to a Python dictionary
 //
 // Note        :  1. Add a series of key-value pair to libyt.param_yt['field_list'] dictionary.
-//                2. Used in yt_commit_grids() on loading field_list structure to python.
+//                2. Used in yt_commit() on loading field_list structure to python.
 //                   This function will only be called when num_fields > 0.
 //                3. PyUnicode_FromString is Python-API >= 3.5, and it returns a new reference.
 //                4. We assume that we have all the field name unique.
@@ -329,7 +329,7 @@ int add_dict_field_list(){
 // Description :  Function for adding a dictionary item to a Python dictionary
 //
 // Note        :  1. Add a series of key-value pair to libyt.param_yt['particle_list'] dictionary.
-//                2. Used in yt_commit_grids() on loading particle_list structure to python. 
+//                2. Used in yt_commit() on loading particle_list structure to python.
 //                   This function will only be called when g_param_yt.num_particles > 0.
 //                3. PyUnicode_FromString is Python-API >= 3.5, and it returns a new reference.
 //                4. We assume that we have all the particle name "par_type" unique. And in each

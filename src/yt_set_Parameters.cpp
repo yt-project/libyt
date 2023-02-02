@@ -17,7 +17,7 @@
 //                2. Should be called after yt_initialize().
 //                3. Check the validation of the data in param_yt.
 //                4. Initialize python hierarchy allocate_hierarchy() and particle_list.
-//                5. Gather each ranks number of local grids, we need this info in yt_commit_grid().
+//                5. Gather each ranks number of local grids, we need this info in yt_commit().
 //
 // Parameter   :  param_yt : Structure storing YT-specific parameters that will later pass to YT, and
 //                           other relavent data.
@@ -170,7 +170,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
    }
 
    // Gather num_grids_local in every rank and store at num_grids_local_MPI, with "MPI_Gather"
-   // We need num_grids_local_MPI in MPI_Gatherv in yt_commit_grids()
+   // We need num_grids_local_MPI in MPI_Gatherv in yt_commit()
    int NRank;
    int RootRank = 0;
    MPI_Comm_size(MPI_COMM_WORLD, &NRank);

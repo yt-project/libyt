@@ -3,7 +3,7 @@
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_commit_grids
+// Function    :  yt_commit
 // Description :  Add local grids, append field list and particle list info to the libyt Python module.
 //
 // Note        :  1. Must call yt_set_Parameters() in advance, which will preallocate memory for NumPy arrays.
@@ -24,10 +24,10 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_commit_grids()
+int yt_commit()
 {
 #ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_commit_grids", 0);
+    g_timer->record_time("yt_commit", 0);
 #endif
 
 // check if libyt has been initialized
@@ -242,9 +242,9 @@ int yt_commit_grids()
    log_info("Loading grids to yt ... done.\n");
 
 #ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_commit_grids", 1);
+    g_timer->record_time("yt_commit", 1);
 #endif
 
    return YT_SUCCESS;
 
-} // FUNCTION : yt_commit_grids
+} // FUNCTION : yt_commit

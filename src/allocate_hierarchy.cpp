@@ -6,7 +6,7 @@
 // Description :  Fill the libyt.hierarchy dictionary with NumPy arrays allocated but uninitialized
 //
 // Note        :  1. Called by yt_set_Parameters(), since it needs param_yt.num_grids.
-//                2. These NumPy array will be set when calling yt_commit_grids()
+//                2. These NumPy array will be set when calling yt_commit()
 //
 // Parameter   :  None
 //

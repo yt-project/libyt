@@ -6,7 +6,7 @@
 // Description :  Add a single full grid to the libyt Python module
 //
 // Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data.
-//                2. Called and use by yt_commit_grids().
+//                2. Called and use by yt_commit().
 //
 // Parameter   :  yt_grid *grid
 //

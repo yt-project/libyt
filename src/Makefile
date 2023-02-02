@@ -19,7 +19,7 @@ OPTIONS :=
 #######################################################################################################
 # libyt
 CC_FILE := yt_initialize.cpp  yt_finalize.cpp  yt_set_Parameters.cpp  yt_inline.cpp  yt_set_UserParameter.cpp \
-           yt_commit_grids.cpp yt_get_GridsPtr.cpp yt_get_FieldsPtr.cpp yt_get_ParticlesPtr.cpp         \
+           yt_commit.cpp yt_get_GridsPtr.cpp yt_get_FieldsPtr.cpp yt_get_ParticlesPtr.cpp         \
            yt_free_gridsPtr.cpp yt_getGridInfo.cpp yt_rma_field.cpp yt_rma_particle.cpp
 CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp    \
 		   check_data.cpp append_grid.cpp get_dtype_property.cpp big_mpi.cpp
