@@ -1,10 +1,10 @@
 # Perform Inline-Analysis
 > :information_source: These two API run functions inside script's namespace, which means we can pass in objects defined in script directly.
-## yt\_inline
+## yt\_run\_Function
 ```cpp
-int yt_inline( const char *function_name );
+int yt_run_Function( const char *function_name );
 ```
-- Usage: Call Python function `function_name` defined inside your Python script. You may call as many times as you want, as long as the functions are defined in your input python script.
+- Usage: Run Python function `function_name`. Can call as many times as we want.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## yt\_run\_FunctionArguments
@@ -38,8 +38,8 @@ def yt_inline_ProjectionPlot( fields, *args ):
 Call the function inside simulation code:
 ```cpp
 /* libyt API: run yt_inline_ProfilePlot(). */
-if ( yt_inline( "yt_inline_ProfilePlot" ) != YT_SUCCESS ){  
-    fprintf( stderr, "ERROR: yt_inline() failed!\n" );
+if ( yt_run_Function( "yt_inline_ProfilePlot" ) != YT_SUCCESS ){  
+    fprintf( stderr, "ERROR: yt_run_Function() failed!\n" );
     exit( EXIT_FAILURE );  
 }
 

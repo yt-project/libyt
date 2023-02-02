@@ -106,7 +106,7 @@ int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_inline
+// Function    :  yt_run_Function
 // Description :  Execute the YT inline analysis script
 //
 // Note        :  1. Python script name, which is also its namespace's name is stored in "g_param_libyt.script"
@@ -119,7 +119,7 @@ int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_inline(const char *function_name) {
+int yt_run_Function(const char *function_name) {
 
 #ifdef SUPPORT_TIMER
     g_timer->record_time(function_name, 0);
