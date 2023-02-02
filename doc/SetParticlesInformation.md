@@ -35,27 +35,28 @@ int yt_get_particlesPtr( yt_particle **particle_list );
       - Usage: Display name on the output figure. If it is not set, then it will use `attr_name` instead.
 - `coor_x`, `coor_y`, `coor_z` (Default=`NULL`)
   - Usage: Attribute name representing coordinate or position x, y, and z.
-- `get_attr` (Default=`NULL`)
+- `get_par_attr` (Default=`NULL`)
   - Usage: Function pointer to get particle’s attribute.
 
-> :information_source: `libyt` borrows the full field information class (`class XXXFieldInfo`) from [`frontend`](./SetYTParameter.md#yt_param_yt). It is OK not to set a field's `attr_unit`, `num_attr_name_alias`, `attr_name_alias`, `attr_display_name`, if this `attr_name` is already inside your frontend.
+> :information_source: `libyt` borrows the full field and particle information class (`class XXXFieldInfo`) from [`frontend`](./SetYTParameter.md#yt_param_yt). It is OK not to set a particle's `attr_unit`, `num_attr_name_alias`, `attr_name_alias`, `attr_display_name`, if this `attr_name` is already inside your frontend.
 > If you are adding a totally new particle attribute, please add them. `libyt` will add these new attributes information alongside with your original one.
 
 ## Get Attribute Function
-For each particle type, there should be one get attribute function `get_attr`. This function is able to write particle attribute to an array, just through knowing the grid id and attribute name.
+For each particle type, there should be one get particle attribute function `get_par_attr`. This function is able to write particle attribute to an array, just through knowing the grid id, particle type, and attribute name.
 
 Get particle attribute function must have a prototype like this:
-- `get_attr(int, long*, char*, yt_array*)`: generate particle attribute in that grid when input grid id and particle attribute name.
+- `get_par_attr(const int, const long*, const char*, const char*, yt_array*)`: generate particle attribute in that grid when input grid id, particle type, and particle attribute name.
 
   ```cpp
-  void GetAttr(int list_len, long *list_gid, char *attr_name, yt_array *data_array);
+  void GetAttr(const int list_len, const long *list_gid, const char *par_type, const char *attr_name, yt_array *data_array);
   ```
-  - `int list_len`: number of gid in `list_gid`.
-  - `long *list_gid`: prepare particle data inside the list.
-  - `char *attr_name`: target attribute to get.
+  - `const int list_len`: number of grid id in `list_gid`.
+  - `const long *list_gid`: prepare particle data inside the grid id in this list.
+  - `const char *par_type`: target particle type to prepare.
+  - `const char *attr_name`: target attribute to prepare.
   - `yt_array *data_array`: write generated particle data to the pointer in this array correspondingly. See below for how to fill in data.
 
-Fill in particle attribute inside `yt_array` array according to grid id.
+Fill in particle attribute inside `yt_array` array using the same order as in `list_gid`.
 - `yt_array`
   - Usage: a struct used in derived function and get particle attribute function.
   - Data Member:
@@ -66,7 +67,7 @@ Fill in particle attribute inside `yt_array` array according to grid id.
 > :warning: You should always write your particle data in the same order, since we get attributes separately.
 
 ## Example
-`par_io_get_attr` function gets particle `io` attributes. This particle type has position at the center of the grid it belongs to with int value grid level.
+`par_io_get_par_attr` function gets particle type `io` attributes. This particle type has position at the center of the grid it belongs to with value grid level (int).
 ```cpp
 int main(){
     ...
@@ -97,10 +98,10 @@ int main(){
     particle_list[0].coor_z = attr_name[2];
     
     /* Fill in get attribute function pointer. */
-    particle_list[0].get_attr = par_io_get_attr;
+    particle_list[0].get_par_attr = par_io_get_par_attr;
 }
 
-void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array) {
+void par_io_get_par_attr(const int list_len, const long *gid_list, const char *par_type, const char *attribute, yt_array *data_array) {
     // loop over gid_list, and fill in particle attribute data inside data_array.
     for (int lid = 0; lid < list_len; lid++) {
         // =============================================================

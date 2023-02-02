@@ -71,7 +71,7 @@ typedef double real;
 real set_density(const double x, const double y, const double z, const double t, const double v);
 void get_randArray(int *array, int length);
 void derived_func_InvDens(const int list_len, const long *gid_list, const char *field_name, yt_array *data_array);
-void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array);
+void par_io_get_par_attr(const int list_len, const long *gid_list, const char *par_type, const char *attribute, yt_array *data_array);
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
         particle_list[0].coor_x = attr_name[0];
         particle_list[0].coor_y = attr_name[1];
         particle_list[0].coor_z = attr_name[2];
-        particle_list[0].get_attr = par_io_get_attr;
+        particle_list[0].get_par_attr = par_io_get_par_attr;
 
 
         // ==================================================
@@ -553,22 +553,23 @@ void derived_func_InvDens(const int list_len, const long *gid_list, const char *
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  par_io_get_attr
+// Function    :  par_io_get_par_attr
 // Description :  For particle type "io" to return their attribute.
 // 
-// Notes       :  1. Prototype must be void func(int, long*, char*, yt_array*).
+// Notes       :  1. Prototype must be void func(const int, const long*, const char*, const char*, yt_array*).
 //                2. This function will be concatenated into python C extension, so that yt can reach
 //                   particle attributes when it needs them.
 //                3. In this example, we will create particle with position at the center of the grid it
 //                   belongs to with Level equals to the level of the grid.
 //                4. Write particle data to yt_array *data_array.
 // 
-// Parameter   : int   list_len      : number of gid in the list gid_list.
-//               long *gid_list      : a list of gid to prepare.
-//               char *attribute     : get the attribute of the particle inside gid.
-//               yt_array *data_array: write the requested particle data to this array correspondingly.
+// Parameter   : const int   list_len  : number of gid in the list gid_list.
+//               const long *gid_list  : prepare the particle attribute in this grid id list.
+//               const char *par_type  : particle type to get.
+//               const char *attribute : attribute to get inside gid.
+//               yt_array   *data_array: write the requested particle data to this array correspondingly.
 //-------------------------------------------------------------------------------------------------------
-void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array) {
+void par_io_get_par_attr(const int list_len, const long *gid_list, const char *par_type, const char *attribute, yt_array *data_array) {
     // loop over gid_list, and fill in particle attribute data inside data_array.
     for (int lid = 0; lid < list_len; lid++) {
         // =============================================================

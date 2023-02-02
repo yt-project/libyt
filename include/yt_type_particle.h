@@ -157,18 +157,19 @@ struct yt_attribute
 // Description :  Data structure to store particle info and function to get them.
 // 
 // Notes       :  1. Particle type is "par_type", which is "ptype" in YT-term.
-//                2. attr_list must only contain attributes that can get by get_attr.
+//                2. attr_list must only contain attributes that can get by get_par_attr.
 //
 // Data Member :  char         *par_type  : Particle type.
-//                int           num_attr      : Length of the attr_list.
-//                yt_attribute *attr_list     : Attribute list, contains a list of attributes name, and 
-//                                              function pointer get_attr knows how to get these data.
-//                char         *coor_x        : Attribute name of coordinate x.
-//                char         *coor_y        : Attribute name of coordinate y.
-//                char         *coor_z        : Attribute name of coordinate z.
+//                int           num_attr  : Length of the attr_list.
+//                yt_attribute *attr_list : Attribute list, contains a list of attributes name, and
+//                                          function get_par_attr knows how to get these data.
+//                char         *coor_x    : Attribute name of coordinate x.
+//                char         *coor_y    : Attribute name of coordinate y.
+//                char         *coor_z    : Attribute name of coordinate z.
 //                
-//                (func pointer) get_attr     : pointer to function with arguments (int, long*, char*, yt_array*)
-//                                              that gets particle attribute.
+//                (func ptr) get_par_attr : pointer to function with input arguments
+//                                          (const int, const long*, const char*, const char*, yt_array*)
+//                                          that gets particle attribute.
 //
 // Method      :  yt_particle  : Constructor
 //               ~yt_particle  : Destructor
@@ -187,7 +188,7 @@ struct yt_particle
 	char         *coor_y;
 	char         *coor_z;
 
-	void        (*get_attr) (int, long*, char*, yt_array*);
+	void        (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*);
 
 
 //=======================================================================================================
@@ -208,7 +209,7 @@ struct yt_particle
 		coor_y = NULL;
 		coor_z = NULL;
 
-		get_attr = NULL;
+		get_par_attr = NULL;
 	}
 
 
@@ -238,7 +239,7 @@ struct yt_particle
 //                  (4) attr_name in attr_list should be unique 
 //                  (5) call yt_attribute validate for each attr_list elements.
 //                  (6) raise log_warning if coor_x, coor_y, coor_z is not set.
-//                  (7) raise log_warning if get_attr not set.
+//                  (7) raise log_warning if get_par_attr not set.
 //               2. Used inside check_particle_list().
 // 
 // Parameter   : None
@@ -286,9 +287,9 @@ struct yt_particle
    			YT_ABORT("Particle type [ %s ], attribute name of coordinate z coor_z not set!\n", par_type);
    		}
 
-   		// if didn't input get_attr, yt cannot function properly for this particle.
-   		if ( get_attr == NULL ){
-   			YT_ABORT("Particle type [ %s ], function that gets particle attribute get_attr not set!\n", par_type);
+   		// if didn't input get_par_attr, yt cannot function properly for this particle.
+   		if ( get_par_attr == NULL ){
+   			YT_ABORT("Particle type [ %s ], function that gets particle attribute get_par_attr not set!\n", par_type);
    		}
 
       	return YT_SUCCESS;
