@@ -42,14 +42,14 @@ int yt_run_FunctionArguments( const char *function_name, int argc, ... );
 int yt_run_Function         ( const char *function_name );
 
 // For derived field function to get grid information by GID and by field_name.
-int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] );
-int yt_getGridInfo_LeftEdge(const long, double (*)[3]);
-int yt_getGridInfo_RightEdge(const long, double (*)[3]);
-int yt_getGridInfo_ParentId(const long, long *);
-int yt_getGridInfo_Level(const long, int *);
-int yt_getGridInfo_ProcNum(const long, int *);
-int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_count);
-int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *field_data);
+int yt_getGridInfo_Dimensions   ( const long gid, int    (*dimensions)[3] );
+int yt_getGridInfo_LeftEdge     ( const long gid, double (*left_edge) [3]);
+int yt_getGridInfo_RightEdge    ( const long gid, double (*right_edge)[3]);
+int yt_getGridInfo_ParentId     ( const long gid, long    *parent_id     );
+int yt_getGridInfo_Level        ( const long gid, int     *level         );
+int yt_getGridInfo_ProcNum      ( const long gid, int     *proc_num      );
+int yt_getGridInfo_ParticleCount( const long gid, const char *ptype,      long    *par_count );
+int yt_getGridInfo_FieldData    ( const long gid, const char *field_name, yt_data *field_data);
 
 #ifdef __cplusplus
 }
