@@ -7,7 +7,7 @@
 /
 /  This is the API header to be included by simulation codes
 /
-/  All API files (i.e., yt_init.cpp) must include it as well to prevent name mangling
+/  All API files must include it as well to prevent name mangling
 /
 ********************************************************************************/
 
@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 // For libyt workflow
-int yt_init( int argc, char *argv[], const yt_param_libyt *param_libyt );
+int yt_initialize( int argc, char *argv[], const yt_param_libyt *param_libyt );
 int yt_finalize();
 int yt_set_parameter( yt_param_yt *param_yt );
 int yt_get_fieldsPtr( yt_field **field_list );

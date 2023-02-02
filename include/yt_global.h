@@ -11,7 +11,7 @@
 
 
 // convenient macros for defining and declaring global variables
-// ==> predefine DEFINE_GLOBAL in the file actually **defines** these global variables (e.g., yt_init.cpp)
+// ==> predefine DEFINE_GLOBAL in the file actually **defines** these global variables (e.g., yt_initialize.cpp)
 // ==> there should be one and only one file that defines DEFINE_GLOBAL
 
 // SET_GLOBAL will invoke SET_GLOBAL_INIT or SET_GLOBAL_NOINIT depending on the number of arguments
