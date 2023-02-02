@@ -89,7 +89,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
 - Implement `libyt` to your code step by step
   - [Initialize - `yt_initialize`](./doc/Initialize.md#initialize)
   - [Set `yt` Parameter - `yt_set_Parameters`](./doc/SetYTParameter.md#set-yt-parameter)
-  - [Set Code Specific Parameter - `yt_add_user_parameter_*`](./doc/SetCodeSpecificParameter.md#set-code-specific-parameter)
+  - [Set Code Specific Parameter - `yt_set_UserParameter*`](./doc/SetCodeSpecificParameter.md#set-code-specific-parameter)
   - [Set Fields Information - `yt_get_FieldsPtr`](./doc/SetFieldsInformation.md#set-fields-information)
   - [Set Particles Information - `yt_get_ParticlesPtr`](./doc/SetParticlesInformation.md#set-particles-information)
   - [Set Local Grids Information - `yt_get_GridsPtr`](./doc/SetLocalGridsInformation.md#set-local-grids-information)
