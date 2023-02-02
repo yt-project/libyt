@@ -449,7 +449,7 @@ int func_status_list::init_not_done_err_msg() {
 //                  2. Check current Python state to see if it is error msg that is caused by user input
 //                     not done yet.
 //                  3. If it is indeed caused by user not done its input, clear error buffer. If not,
-//                     restore the buffer and that yt_interactive_mode print the error msg.
+//                     restore the buffer and let yt_run_InteractiveMode print the error msg.
 //                  4. s_NotDone_ErrMsg's and s_NotDone_PyErr's elements are one-to-one relationship. Make
 //                     sure to go through every element, since some of them might have error of same type
 //                     but with different err msg.

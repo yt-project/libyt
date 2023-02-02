@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 // libyt interactive mode
-int yt_interactive_mode( const char* flag_file_name);
+int yt_run_InteractiveMode( const char* flag_file_name);
     
 #ifdef __cplusplus
 }
