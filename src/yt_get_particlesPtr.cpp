@@ -5,7 +5,7 @@
 // Function    :  yt_get_particlesPtr
 // Description :  Get pointer of the array of struct yt_particle with length num_particles.
 //
-// Note        :  1. User should call this function after yt_set_parameter(), since we initialize 
+// Note        :  1. User should call this function after yt_set_Parameters(), since we initialize
 //                   particle_list then.
 //
 // Parameter   :  yt_particle **particle_list  : Store the particle list array pointer.
@@ -24,9 +24,9 @@ int yt_get_particlesPtr( yt_particle **particle_list )
     	YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    	}
 
-	// check if yt_set_parameter() have been called
+	// check if yt_set_Parameters() have been called
    	if ( !g_param_libyt.param_yt_set ) {
-    	YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
+    	YT_ABORT( "Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__ );
     }
 
     // check if num_par_types > 0, if not, particle_list won't be initialized

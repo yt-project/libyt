@@ -5,7 +5,7 @@
 // Function    :  yt_get_gridsPtr
 // Description :  Get pointer of the array of struct yt_grid with length num_grids_local.
 //
-// Note        :  1. User should call this function after yt_set_parameter(), 
+// Note        :  1. User should call this function after yt_set_Parameters(),
 //                   since we need num_grids_local, num_fields, and num_par_types.
 //                2. Initialize field_data in one grid with
 //                   (1) data_dimensions[3] = {0, 0, 0}
@@ -31,9 +31,9 @@ int yt_get_gridsPtr( yt_grid **grids_local )
     	YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    	}
 
-	// check if yt_set_parameter() have been called
+	// check if yt_set_Parameters() have been called
    	if ( !g_param_libyt.param_yt_set ) {
-    	YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
+    	YT_ABORT( "Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__ );
     }
 
     // check if num_grids_local > 0, if not, grids_local won't be initialized

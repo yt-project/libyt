@@ -5,7 +5,7 @@
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_set_parameter
+// Function    :  yt_set_Parameters
 // Description :  Set YT-specific parameters
 //
 // Note        :  1. Store yt relavent data in input "param_yt" to libyt.param_yt. Note that not all the 
@@ -24,11 +24,11 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_set_parameter( yt_param_yt *param_yt )
+int yt_set_Parameters( yt_param_yt *param_yt )
 {
 #ifdef SUPPORT_TIMER
    // start timer.
-   g_timer->record_time("yt_set_parameter", 0);
+   g_timer->record_time("yt_set_Parameters", 0);
 #endif
 
 // check if libyt has been initialized
@@ -194,9 +194,9 @@ int yt_set_parameter( yt_param_yt *param_yt )
 
 #ifdef SUPPORT_TIMER
    // end timer.
-   g_timer->record_time("yt_set_parameter", 1);
+   g_timer->record_time("yt_set_Parameters", 1);
 #endif
 
    return YT_SUCCESS;
 
-} // FUNCTION : yt_set_parameter
+} // FUNCTION : yt_set_Parameters

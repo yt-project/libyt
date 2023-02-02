@@ -5,7 +5,7 @@
 // Function    :  yt_get_fieldsPtr
 // Description :  Get pointer of the array of struct yt_field with length num_fields.
 //
-// Note        :  1. User should call this function after yt_set_parameter(), since we allocate field_list
+// Note        :  1. User should call this function after yt_set_Parameters(), since we allocate field_list
 //                   there.
 //
 // Parameter   :  yt_field **field_list  : Initialize and store the field list array under this pointer 
@@ -25,9 +25,9 @@ int yt_get_fieldsPtr( yt_field **field_list )
     	YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    	}
 
-	// check if yt_set_parameter() have been called
+	// check if yt_set_Parameters() have been called
    	if ( !g_param_libyt.param_yt_set ) {
-    	YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
+    	YT_ABORT( "Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__ );
     }
 
     // check if num_fields > 0, if not, field_list won't be initialized

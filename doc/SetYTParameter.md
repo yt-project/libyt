@@ -1,7 +1,7 @@
 # Set `yt` Parameter
-## yt_set_parameter
+## yt_set_Parameters
 ```cpp
-int yt_set_parameter( yt_param_yt *param_yt )
+int yt_set_Parameters( yt_param_yt *param_yt )
 ```
 - Usage: Set `yt` parameter, number of fields, number of particle types and how many attributes do each of them have, and number of local grids exist on this MPI rank.
 - Return: `YT_SUCCESS` or `YT_FAIL`
@@ -95,8 +95,8 @@ param_yt.omega_lambda = 0.7;                          // omega lambda
 param_yt.omega_matter = 0.3;                          // omega matter
 param_yt.hubble_constant = 0.7;                       // hubble constant
 
-if (yt_set_parameter(&param_yt) != YT_SUCCESS) {
-    fprintf(stderr, "ERROR: yt_set_parameter() failed!\n");
+if (yt_set_Parameters(&param_yt) != YT_SUCCESS) {
+    fprintf(stderr, "ERROR: yt_set_Parameters() failed!\n");
     exit(EXIT_FAILURE);
 }
 ```
