@@ -22,7 +22,7 @@ int yt_get_fieldsPtr( yt_field **field_list )
 
 	// check if libyt has been initialized
    	if ( !g_param_libyt.libyt_initialized ){
-    	YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
+    	YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    	}
 
 	// check if yt_set_parameter() have been called

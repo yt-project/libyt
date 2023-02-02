@@ -28,7 +28,7 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 
 	// check if libyt has been initialized
    	if ( !g_param_libyt.libyt_initialized ){
-    	YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );     	
+    	YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    	}
 
 	// check if yt_set_parameter() have been called

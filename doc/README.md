@@ -2,7 +2,7 @@
 This guide will walk you through how to implement `libyt` into your code. And how you can convert your everyday used `yt` script to do inline-analysis. 
 
 - Implement `libyt` to your code step by step
-  - [Initialize - `yt_init`](./Initialize.md#initialize)
+  - [Initialize - `yt_initialize`](./Initialize.md#initialize)
   - [Set `yt` Parameter - `yt_set_parameter`](./SetYTParameter.md#set-yt-parameter)
   - [Set Code Specific Parameter - `yt_add_user_parameter_*`](./SetCodeSpecificParameter.md#set-code-specific-parameter)
   - [Set Fields Information - `yt_get_fieldsPtr`](./SetFieldsInformation.md#set-fields-information)
@@ -31,7 +31,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
   <tbody>
     <tr>
       <td rowspan=1>Initialization</td>
-      <td>yt_init</td>
+      <td>yt_initialize</td>
       <td>Initialize embedded Python and import inline Python script.</td>
     </tr>
     <tr>

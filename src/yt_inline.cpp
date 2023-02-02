@@ -29,7 +29,7 @@ int yt_inline_argument(const char *function_name, int argc, ...) {
 
     // check if libyt has been initialized
     if (!g_param_libyt.libyt_initialized) {
-        YT_ABORT("Please invoke yt_init() before calling %s()!\n", __FUNCTION__);
+        YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 
 #ifdef INTERACTIVE_MODE
@@ -127,7 +127,7 @@ int yt_inline(const char *function_name) {
 
     // check if libyt has been initialized
     if (!g_param_libyt.libyt_initialized) {
-        YT_ABORT("Please invoke yt_init() before calling %s()!\n", __FUNCTION__);
+        YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 
 #ifdef INTERACTIVE_MODE

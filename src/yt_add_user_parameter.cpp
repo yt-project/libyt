@@ -50,7 +50,7 @@ static int add_nonstring( const char *key, const int n, const T *input )
 
 // check if libyt has been initialized
    if ( !g_param_libyt.libyt_initialized )
-      YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
+      YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
 
 
 // export data to libyt.param_user
@@ -87,7 +87,7 @@ static int add_string( const char *key, const char *input )
 
 // check if libyt has been initialized
    if ( !g_param_libyt.libyt_initialized )
-      YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
+      YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
 
 
 // export data to libyt.param_user

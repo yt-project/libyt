@@ -98,8 +98,8 @@ int main(int argc, char *argv[]) {
     param_libyt.script = "inline_script";                      // inline python script, excluding ".py"
     param_libyt.check_data = false;                            // check passed in data or not
 
-    if (yt_init(argc, argv, &param_libyt) != YT_SUCCESS) {
-        fprintf(stderr, "ERROR: yt_init() failed!\n");
+    if (yt_initialize(argc, argv, &param_libyt) != YT_SUCCESS) {
+        fprintf(stderr, "ERROR: yt_initialize() failed!\n");
         exit(EXIT_FAILURE);
     }
 

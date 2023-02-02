@@ -32,7 +32,7 @@ int yt_commit_grids()
 
 // check if libyt has been initialized
    if ( !g_param_libyt.libyt_initialized ){
-      YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
+      YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    }
 
 // check if YT parameters have been set

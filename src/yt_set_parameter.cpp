@@ -14,7 +14,7 @@
 //                   (needs info from par_type_list) right away. If num_par_types > 0.
 //                   To make loading field_list and particle_list more systematic, we will allocate both
 //                   field_list (if num_fields>0 ) and particle_list (if num_par_types>0) here.
-//                2. Should be called after yt_init().
+//                2. Should be called after yt_initialize().
 //                3. Check the validation of the data in param_yt.
 //                4. Initialize python hierarchy allocate_hierarchy() and particle_list.
 //                5. Gather each ranks number of local grids, we need this info in yt_commit_grid().
@@ -33,7 +33,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
 
 // check if libyt has been initialized
    if ( !g_param_libyt.libyt_initialized ){
-      YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
+      YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    }
 
 // check if libyt has free all the resource in previous inline-analysis

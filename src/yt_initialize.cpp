@@ -19,7 +19,7 @@ static void init_general_info();
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_init
+// Function    :  yt_initialize
 // Description :  Initialize libyt
 //
 // Note        :  1. Input "param_libyt" will be backed up to a libyt global variable
@@ -33,23 +33,23 @@ static void init_general_info();
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_init(int argc, char *argv[], const yt_param_libyt *param_libyt) {
+int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
 #ifdef SUPPORT_TIMER
     // initialize timer
     char filename[50];
     sprintf(filename, "RecordTime_%d", g_myrank);
     g_timer = new Timer(filename);
     // start timer.
-    g_timer->record_time("yt_init", 0);
+    g_timer->record_time("yt_initialize", 0);
 #endif
 
-    // yt_init should only be called once
+    // yt_initialize should only be called once
     static int init_count = 0;
     init_count++;
 
     // still need to check "init_count" since yt_finalize() will set "g_param_libyt.libyt_initialized = false"
     if (g_param_libyt.libyt_initialized || init_count >= 2)
-        YT_ABORT("yt_init() should not be called more than once!\n");
+        YT_ABORT("yt_initialize() should not be called more than once!\n");
 
 
     // store user-provided parameters to a libyt internal variable
@@ -92,12 +92,12 @@ int yt_init(int argc, char *argv[], const yt_param_libyt *param_libyt) {
 
 #ifdef SUPPORT_TIMER
     // end timer.
-    g_timer->record_time("yt_init", 1);
+    g_timer->record_time("yt_initialize", 1);
 #endif
 
     return YT_SUCCESS;
 
-} // FUNCTION : yt_init
+} // FUNCTION : yt_initialize
 
 
 static void init_general_info() {
