@@ -250,7 +250,7 @@ int main(int argc, char *argv[]) {
         // ==========================================
         // get pointer of the array where we should put data to
         yt_particle *particle_list;
-        yt_get_particlesPtr(&particle_list);
+        yt_get_ParticlesPtr(&particle_list);
 
         // Particle type "io", each particle has position in the center of the grid it belongs to with value grid level.
         // par_type and num_attr will be assigned by libyt with the same value we passed in par_type_list at yt_set_Parameters.
