@@ -29,7 +29,7 @@ int main(int argc, char *argv[]){
     ...
     yt_param_libyt param_libyt;
     param_libyt.verbose = YT_VERBOSE_DEBUG;
-    param_libyt.script  = "inline_script"
+    param_libyt.script  = "inline_script";
     param_libyt.check_data = false;
 	
     /* Initialize libyt, should only be called once. */

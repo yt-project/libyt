@@ -32,7 +32,7 @@ struct yt_par_type
 	yt_par_type()
 	{
 		par_type = NULL;
-		num_attr     = INT_UNDEFINED;
+		num_attr = INT_UNDEFINED;
 	}
 };
 
