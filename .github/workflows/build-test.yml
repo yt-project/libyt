@@ -51,7 +51,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           cd ..
-          git clone --depth 1 -b libyt --single-branch "https://github.com/cindytsai/yt.git" yt
+          git clone --depth 1 -b libyt-dev --single-branch "https://github.com/cindytsai/yt.git" yt
           cd yt
           git checkout libyt
           pip install .
