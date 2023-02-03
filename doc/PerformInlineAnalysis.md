@@ -1,5 +1,5 @@
 # Perform Inline-Analysis
-> :information_source: These two API run functions inside script's namespace, which means we can pass in objects defined in script directly.
+
 ## yt\_run\_Function
 ```cpp
 int yt_run_Function( const char *function_name );
@@ -12,6 +12,7 @@ int yt_run_Function( const char *function_name );
 int yt_run_FunctionArguments( const char *function_name, int argc, ... );
 ```
 - Usage: Run Python function `function_name` with input arguments. This API will pass total number of `argc` arguments. Please wrap your arguments as strings. For example, `"0"` for `0`, `"\'FieldName\'"` for `'FieldName'`, `"a"` for defined python variable `a` within namespace.
+> :information_source: These two API run functions inside script's namespace, which means we can pass in objects defined in script directly.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## Example

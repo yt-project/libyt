@@ -4,7 +4,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
 - Implement `libyt` to your code step by step
   - [Initialize - `yt_initialize`](./Initialize.md#initialize)
   - [Set `yt` Parameter - `yt_set_Parameters`](./SetYTParameter.md#set-yt-parameter)
-  - [Set Code Specific Parameter - `yt_set_UserParameter*`](./SetCodeSpecificParameter.md#set-code-specific-parameter)
+  - [Set Code Specific Parameter - `yt_set_UserParameter*`](./SetCodeSpecificParameter.md#set-code-or-user-specific-parameter)
   - [Set Fields Information - `yt_get_FieldsPtr`](./SetFieldsInformation.md#set-fields-information)
   - [Set Particles Information - `yt_get_ParticlesPtr`](./SetParticlesInformation.md#set-particles-information)
   - [Set Local Grids Information - `yt_get_GridsPtr`](./SetLocalGridsInformation.md#set-local-grids-information)
@@ -41,11 +41,11 @@ This guide will walk you through how to implement `libyt` into your code. And ho
     </tr>
     <tr>
       <td>yt_get_FieldsPtr, yt_get_ParticlesPtr, yt_get_GridsPtr</td>
-      <td>Set grids and particles information.</td>
+      <td>Get fields, particles, and grids information array (ptr), and write in it.</td>
     </tr>
     <tr>
       <td>yt_commit</td>
-      <td>Tell liybt you're done.</td>
+      <td>Tell libyt you're done.</td>
     </tr>
     <tr>
       <td>yt_run_Function, yt_run_FunctionArguments</td>

@@ -1,5 +1,5 @@
 # Initialize
-## yt\_initialize API
+## yt\_initialize
 ```cpp
 int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt)
 ```

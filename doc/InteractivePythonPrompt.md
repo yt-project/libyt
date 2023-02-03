@@ -19,7 +19,7 @@ Whether these functions will execute in next in situ analysis or not:
 - `V`: this function will run automatically in following in situ analysis.
 - `X`: this function will idle in next in situ analysis.
 
-> :information_source: When calling [`yt_run_InteractiveMode`](./ActivateInteractiveMode.md#yt_run_interactivemode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run), but had not been run by [`yt_run_Function`](./PerformInlineAnalysis.md#yt_run_function) or [`yt_run_FunctionArguments`](./PerformInlineAnalysis.md#yt_run_functionarguments) yet.
+> :information_source: When calling [`yt_run_InteractiveMode`](./ActivateInteractiveMode.md#yt_run_interactivemode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run-1), but had not been run by [`yt_run_Function`](./PerformInlineAnalysis.md#yt_run_function) or [`yt_run_FunctionArguments`](./PerformInlineAnalysis.md#yt_run_functionarguments) yet.
 
 ```
 =====================================================================
@@ -35,7 +35,9 @@ Whether these functions will execute in next in situ analysis or not:
 ```
 
 ## Python Statements
-You can run any python statements here, including importing modules. These statements run in [already loaded inline script](./Initialize.md#yt_param_libyt)'s namespace, and will make changes to it. This is like using IPython, except that there are functions and objects already defined in it. Changes will maintain througout in situ analysis.
+You can run any python statements here, including importing modules. These statements run in [already loaded inline script](./Initialize.md#yt_param_libyt)'s namespace, and will make changes to it. This is like using IPython, except that there are functions and objects already defined in it. 
+
+> :warning: Changes will maintain througout every in situ analysis.
 
 
 ## libyt Defined Commands
@@ -45,7 +47,7 @@ You can run any python statements here, including importing modules. These state
 
 > :information_source: No spaces between `%`and `libyt`.
 
-### Commands
+### General Commands
 #### help
 ```
 >>> %libyt help
@@ -64,7 +66,7 @@ Exit interactive mode, and continue iteration process in simulation.
 ```
 Load and run file in [already loaded inline script](./Initialize.md#yt_param_libyt)'s namespace. This is like running every single line in these files line by line in IPython, so you can overwrite and update objects. Changes will maintain througout in situ analysis.
 
-All function detected in this new loaded script will be set to idle, and will not run in the following in situ analysis, unless you switch it on using [`%libyt run`](#run).
+All function detected in this new loaded script will be set to idle, and will not run in the following in situ analysis, unless you switch it on using [`%libyt run`](#run-1).
 
 #### export
 ```
@@ -80,6 +82,10 @@ Export successfully run libyt defined commands and python statement into file in
 ```
 Print status board.
 
+### Function Related Commands
+
+#### status
+
 ```
 >>> %libyt status <function name>
 ```
@@ -89,7 +95,7 @@ Print function's definition and error messages if has.
 ```
 >>> %libyt idle <function name>
 ```
-Idle `<function name>` in next in situ analysis. You will see `X` at run column in status board. It will clear all the input arguments set through [`%libyt run`](#run).
+Idle `<function name>` in next in situ analysis. You will see `X` at run column in status board. It will clear all the input arguments set through [`%libyt run`](#run-1).
 
 
 #### run
@@ -106,4 +112,4 @@ This is equivalent of `func(a, 2, "3")` in Python.
 ...     print(args)
 >>> %libyt run func a 2 "3"
 ```
-> :information_source: When calling [`yt_run_InteractiveMode`](./ActivateInteractiveMode.md#yt_run_interactivemode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run), but had not been run by [`yt_run_Function`](./PerformInlineAnalysis.md#yt_run_function) or [`yt_run_FunctionArguments`](./PerformInlineAnalysis.md#yt_run_functionarguments) yet.
+> :information_source: When calling [`yt_run_InteractiveMode`](./ActivateInteractiveMode.md#yt_run_interactivemode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run-1), but had not been run by [`yt_run_Function`](./PerformInlineAnalysis.md#yt_run_function) or [`yt_run_FunctionArguments`](./PerformInlineAnalysis.md#yt_run_functionarguments) yet.

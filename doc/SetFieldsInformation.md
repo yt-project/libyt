@@ -15,8 +15,8 @@ int yt_get_FieldsPtr( yt_field **field_list )
   - Usage: Define type of the field.
   - Valid Value:
     - `"cell-centered"`: Cell-centered data.
-    - `"face-centered"`: Face-centered data. For more details, see [Face-Centered Field](./FaceCenteredField.md).
-    - `"derived_func"`: Derived field data. When you want your simulation code to generate or convert existing data for `yt`, set to this. See [Derived Field](./DerivedField.md) on how to set them.
+    - `"face-centered"`: Face-centered data. For more details, see [Face-Centered Field](./FaceCenteredField.md#face-centered-field).
+    - `"derived_func"`: Derived field data. When you want your simulation code to generate or convert existing data for `yt`, set to this. See [Derived Field](./DerivedField.md#derived-field) on how to set them.
 - `field_ghost_cell` (Default=`0`)
   - Usage: Number of ghost cell to be ignored at the beginning and the end of each dimension. This is in the point of view of the data array. <br>
     `field_ghost_cell[0]`: Number of ghost cell to be ignored at the beginning of 0-dim of the data.<br>
@@ -39,7 +39,7 @@ int yt_get_FieldsPtr( yt_field **field_list )
     - `true`: Data is in x-address alters first orientation, which is [z][y][x].
     - `false`: Data is in z-address alters first orientation, which is [x][y][z].
 - `derived_func` (Default=`NULL`)
-  - Usage: Function pointer to generate derived field data when input grid id. This is only used in derived field, which is when `field_type` set to `derived_func`. See [Derived Field](./DerivedField.md) for more information.
+  - Usage: Function pointer to generate derived field data when input grid id. This is only used in derived field, which is when `field_type` set to `derived_func`. See [Derived Field](./DerivedField.md#derived-field) for more information.
 - `field_unit` (Default=`""`)
   - Usage: Unit of the field, using `yt` unit system.
 - `num_field_name_alias` (Default=`0`)
