@@ -1,5 +1,5 @@
 # Commit Your Settings
-## yt\_commit\_grids
+## yt\_commit
 ```cpp
 int yt_commit();
 ```

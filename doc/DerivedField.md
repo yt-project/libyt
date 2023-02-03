@@ -5,7 +5,7 @@ When you want your simulation code to generate or convert existing data to `yt`-
 ## Use `libyt` API to Build Derived Field Function
 ### Derived Field Function
 
-Derived functions have prototype like this respectively:
+Derived functions must have prototype:
 - `derived_func(const int, const long*, const char*, yt_array*)`: generate field data of that grid when input a list grid id.
 
   ```c++
@@ -78,7 +78,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_co
 ```
 - Usage: Get number of particle `ptype` located on grid `gid`.
 - Return: `YT_SUCCESS` or `YT_FAIL`
-> :information_source: Particle type name `ptype` should be same as what you passed in `yt_get_ParticlesPtr`.
+> :information_source: Particle type name `ptype` should be same as what you passed in [`yt_get_ParticlesPtr`](./SetParticlesInformation.md#yt_get_particlesptr).
 
 #### yt\_getGridInfo\_FieldData
 ```cpp
@@ -91,11 +91,11 @@ int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *f
   - `data_dimensions[3]`: Dimension of the `data_ptr` array, in the point of view of itself.
   - `data_dtype`: Data type of the array.
 
-> :information_source: Field name `field_name` should be same as what you passed in `yt_get_FieldsPtr`.
+> :information_source: Field name `field_name` should be same as what you passed in[ `yt_get_FieldsPtr`](./SetFieldsInformation.md#yt_get_fieldsptr).
 
-> :information_source: Do not mix grid dimensions get by `yt_getGridInfo_Dimensions` with data dimensions get by `yt_getGridInfo_FieldData`. Grid dimensions are grid length in [0][1][2] <-> [x][y][z], excluding ghost cells. Whereas data dimensions are just data length in data's point of view, which may consist of ghost cells.
+> :information_source: Do not mix grid dimensions get by [`yt_getGridInfo_Dimensions`](#yt_getgridinfo_dimensions) with data dimensions get by [`yt_getGridInfo_FieldData`](#yt_getgridinfo_fielddata). Grid dimensions are grid length in [0][1][2] <-> [x][y][z], excluding ghost cells. Whereas data dimensions are just data length in data's point of view, which may consist of ghost cells.
 
-> :warning: You should not be modifying `data_ptr`, as they are those data pointers you passed in and will be used in your later on iterations.
+> :warning: You should not be modifying `data_ptr`, because they are those data pointers you passed in when setting grid information [`yt_get_GridsPtr`](./SetLocalGridsInformation.md#yt_get_gridsptr).
 
 ## Example
 Field `InvDens` is a derived field and is reciprocal of density field `Dens`. `derived_func_InvDens` first gets level, grid dimensions and density data of the grid, and it generates data and stores them in `data_array`.

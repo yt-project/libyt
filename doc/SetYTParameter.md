@@ -3,7 +3,7 @@
 ```cpp
 int yt_set_Parameters( yt_param_yt *param_yt )
 ```
-- Usage: Set `yt` parameter, number of fields, number of particle types and how many attributes do each of them have, and number of local grids exist on this MPI rank.
+- Usage: Set `yt` parameters, number of fields, number of particle types and how many attributes do each of them have, and number of local grids exist on this MPI rank.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## yt_param_yt

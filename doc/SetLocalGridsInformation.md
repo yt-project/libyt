@@ -3,7 +3,7 @@
 ```cpp
 int yt_get_GridsPtr( yt_grid **grids_local );
 ```
-- Usage: Get the `yt_grid` pointer where `libyt` access grids information from. You should then fill in those information.
+- Usage: Get the `yt_grid` pointer where `libyt` access grids information from. We should then fill in those information.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## yt\_grid
