@@ -38,7 +38,8 @@ struct yt_data {
 struct yt_grid {
     double left_edge[3];
     double right_edge[3];
-    long *par_count_list;
+    long *particle_count_list;
+    long grid_particle_count;
     long id;
     long parent_id;
     int grid_dimensions[3];
@@ -131,8 +132,7 @@ int main(int argc, char *argv[]) {
                     const int gid = (grid_order[2] * REFINE_BY + grid_order[1]) * REFINE_BY
                                     + grid_order[0] + gid_offset;
                     for (int d = 0; d < 3; d++) {
-                        sim_grids[gid].left_edge[d] =
-                                sim_grids[gid_refine].left_edge[d] + grid_order[d] * GRID_DIM * dh1;
+                        sim_grids[gid].left_edge[d] = sim_grids[gid_refine].left_edge[d] + grid_order[d] * GRID_DIM * dh1;
                         sim_grids[gid].right_edge[d] = sim_grids[gid].left_edge[d] + GRID_DIM * dh1;
                         sim_grids[gid].grid_dimensions[d] = GRID_DIM;
                     }
