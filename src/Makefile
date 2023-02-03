@@ -5,14 +5,14 @@ PYTHON_VERSION := $(YOUR_PYTHON_VERSION)
 NUMPY_PATH     := $(YOUR_NUMPY_PATH)
 MPI_PATH       := $(YOUR_MPI_PATH)
 
-OPTIONS :=
 # Options
+OPTIONS :=
 #######################################################################################################
-# interactive mode: supports reloading inline script, active python prompt and does not halt when 
+# Interactive Mode: supports reloading inline script, active python prompt and does not halt when
 # error occurs.
 #OPTIONS += -DINTERACTIVE_MODE
 
-# turn on the timer in each libyt substep.
+# Timer: measure time each libyt substep. Should switch to off in production run.
 #OPTIONS += -DSUPPORT_TIMER
 
 # source files
