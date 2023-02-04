@@ -15,7 +15,7 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt)
     - `YT_VERBOSE_WARNING`: Output log level below or equal to warning.
     - `YT_VERBOSE_DEBUG`: Output all log.
 - `script` (Default=`yt_inline_script`)
-  - Usage: Your Python script name. Do NOT contain `.py`. The lifespan of this variable should cover `yt_initialize` API.
+  - Usage: Your Python script name. Do NOT contain `.py`.
 - `counter` (Default=`0`)
   - Usage: Number of rounds doing inline-analysis, may be useful in restart. We also append this number at the end of the figure name.
 - `check_data` (Default=`true`)
