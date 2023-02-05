@@ -9,7 +9,8 @@
 //
 // Notes       :  1. Initialize m_Window, which used inside OpenMPI RMA operation. And set m_Window info
 //                   to "no_locks".
-//                2. Copy the input fname to m_FieldName, in case it is freed.
+//                2. Assume the lifetime of field_name passed in through yt_get_FieldsPtr covers the whole
+//                   in situ process. libyt do not make a copy.
 //                3. Find the corresponding field_type and contiguous_in_x in field_list, and assign to
 //                   m_FieldDefineType and m_FieldSwapAxes.
 //                4. Find field index inside field_list and assign to m_FieldIndex.
