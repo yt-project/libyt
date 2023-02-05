@@ -15,11 +15,11 @@
 //                4. Find field index inside field_list and assign to m_FieldIndex.
 //                5. Set the std::vector capacity.
 //
-// Arguments   :  char*       fname: Field name.
-//                int   len_prepare: Number of grid to prepare.
-//                long len_get_grid: Number of grid to get.
+// Arguments   :  const char *fname       : Field name.
+//                int         len_prepare : Number of grid to prepare.
+//                long        len_get_grid: Number of grid to get.
 //-------------------------------------------------------------------------------------------------------
-yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
+yt_rma_field::yt_rma_field(const char* fname, int len_prepare, long len_get_grid)
 : m_LenAllPrepare(0), m_FieldIndex(-1)
 {
     // Initialize m_Window and set info to "no_locks".
@@ -34,13 +34,9 @@ yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
         log_error("yt_rma_field: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
     }
 
-    // Copy input fname, and find its field_type
-    int len = strlen(fname);
-    m_FieldName = new char [len+1];
-    strcpy(m_FieldName, fname);
-
     for(int v=0; v < g_param_yt.num_fields; v++){
-        if( strcmp(m_FieldName, g_param_yt.field_list[v].field_name) == 0){
+        if( strcmp(fname, g_param_yt.field_list[v].field_name) == 0){
+            m_FieldName       = g_param_yt.field_list[v].field_name;
             m_FieldDefineType = g_param_yt.field_list[v].field_type;
             m_FieldIndex      = v;
             m_FieldSwapAxes   = g_param_yt.field_list[v].contiguous_in_x;
@@ -63,7 +59,7 @@ yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
 // Class       :  yt_rma_field
 // Method      :  Destructor
 //
-// Notes       :  1. Free m_Window, m_FieldName.
+// Notes       :  1. Free m_Window.
 //                2. Clear m_Fetched and m_FetchedData.
 //
 // Arguments   :  None
@@ -71,7 +67,6 @@ yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
 yt_rma_field::~yt_rma_field()
 {
     MPI_Win_free(&m_Window);
-    delete [] m_FieldName;
     m_Fetched.clear();
     m_FetchedData.clear();
     log_debug("yt_rma_field: Destructor called.\n");
@@ -373,7 +368,7 @@ int yt_rma_field::clean_up()
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_rma_field::get_fetched_data(long *gid, char **fname, yt_dtype *data_dtype, int (*data_dim)[3], void **data_ptr){
+int yt_rma_field::get_fetched_data(long *gid, const char **fname, yt_dtype *data_dtype, int (*data_dim)[3], void **data_ptr){
     // Check if there are left fetched data to get.
     if( m_Fetched.size() == 0 ){
         return YT_FAIL;
