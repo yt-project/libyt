@@ -9,15 +9,17 @@ int yt_get_FieldsPtr( yt_field **field_list )
 > :warning: Every MPI rank must call this API and fill in the field information in the same order. We do not broadcast and sync information here.
 
 ## yt_field
-- `field_name` (Default=`NULL`)
+- `const char* field_name` (Default=`NULL`)
   - Usage: Field name. Please set the field name that matches your field information in [`frontend`](./SetYTParameter.md#yt_param_yt), because `libyt` borrows the frontend's `class XXXFieldInfo`.
-- `field_type` (Default=`"cell-centered"`)
+  > :pencil2: Please make sure the lifetime of `field_name` covers the whole in situ analysis process. `libyt` only borrows this name and does not make a copy.
+- `const char* field_type` (Default=`"cell-centered"`)
   - Usage: Define type of the field.
   - Valid Value:
     - `"cell-centered"`: Cell-centered data.
     - `"face-centered"`: Face-centered data. For more details, see [Face-Centered Field](./FaceCenteredField.md#face-centered-field).
     - `"derived_func"`: Derived field data. When you want your simulation code to generate or convert existing data for `yt`, set to this. See [Derived Field](./DerivedField.md#derived-field) on how to set them.
-- `field_ghost_cell` (Default=`0`)
+  > :pencil2: Please make sure the lifetime of `field_type` covers the whole in situ analysis process. `libyt` does not make a copy.
+- `short field_ghost_cell[6]` (Default=`0`)
   - Usage: Number of ghost cell to be ignored at the beginning and the end of each dimension. This is in the point of view of the data array. <br>
     `field_ghost_cell[0]`: Number of ghost cell to be ignored at the beginning of 0-dim of the data.<br>
     `field_ghost_cell[1]`: Number of ghost cell to be ignored at the end of 0-dim of the data.<br>
@@ -26,28 +28,31 @@ int yt_get_FieldsPtr( yt_field **field_list )
     `field_ghost_cell[4]`: Number of ghost cell to be ignored at the beginning of 2-dim of the data.<br>
     `field_ghost_cell[5]`: Number of ghost cell to be ignored at the end of 2-dim of the data.<br>
   - Valid Value: Must be greater than or equal to `0`.
-- `field_dtype` (Default=`YT_DTYPE_UNKNOWN`)
+- `yt_dtype field_dtype` (Default=`YT_DTYPE_UNKNOWN`)
   - Usage: Data type of the field.
-  - Valid Value: 
+  - Valid Value for `yt_dtype`: 
     - `YT_FLOAT`: C type float.
     - `YT_DOUBLE`: C type double.
-    - `YT_INT`: C type int. We do not guaranty this will work.
-    - `YT_LONG`: C type long. We do not guaranty this will work.
-- `contiguous_in_x` (Default=`true`)
+    - `YT_INT`: C type int.
+    - `YT_LONG`: C type long.
+- `bool contiguous_in_x` (Default=`true`)
   - Usage: Is the 3D data array define as [z][y][x], which is x address alters first.
   - Valid Value:
     - `true`: Data is in x-address alters first orientation, which is [z][y][x].
     - `false`: Data is in z-address alters first orientation, which is [x][y][z].
-- `derived_func` (Default=`NULL`)
-  - Usage: Function pointer to generate derived field data when input grid id. This is only used in derived field, which is when `field_type` set to `derived_func`. See [Derived Field](./DerivedField.md#derived-field) for more information.
-- `field_unit` (Default=`""`)
+- `void (*derived_func) (const int, const long *, const char *, yt_array*)` (Default=`NULL`)
+  - Usage: Function pointer to generate derived field data when input grid id. This is only used in derived field, which is when `field_type` set to `derived_func` (`field_type="derived_func"`). See [Derived Field](./DerivedField.md#derived-field) for more information.
+- `const char* field_unit` (Default=`""`)
   - Usage: Unit of the field, using `yt` unit system.
-- `num_field_name_alias` (Default=`0`)
+  > :pencil2: Please make sure the lifetime of `field_unit` covers [`yt_commit`](./CommitYourSettings.md#ytcommit).
+- `int num_field_name_alias` (Default=`0`)
   - Usage: Number of name aliases in `field_name_alias`.
-- `field_name_alias` (Default=`NULL`)
+- `const char** field_name_alias` (Default=`NULL`)
   - Usage: Name aliases.
-- `field_display_name` (Default=`NULL`)
+  > :pencil2: Please make sure the lifetime of `field_name_alias` covers [`yt_commit`](./CommitYourSettings.md#ytcommit).
+- `const char* field_display_name` (Default=`NULL`)
   - Usage: Display name of the field on the output figure. If not set, `yt` uses its field name instead.
+  > :pencil2: Please make sure the lifetime of `field_display_name` covers [`yt_commit`](./CommitYourSettings.md#ytcommit).
 
 > :information_source: `libyt` borrows the full field information class (`class XXXFieldInfo`) from [`frontend`](./SetYTParameter.md#yt_param_yt). It is OK not to set a field's `field_unit`, `num_field_name_alias`, `field_name_alias`, `field_display_name`, if this `field_name` is already inside your frontend.
 > If you are adding a totally new field, please add them. `libyt` will add these new field information alongside with your original one.
@@ -62,7 +67,7 @@ yt_get_FieldsPtr( &field_list );
 field_list[0].field_name = "Dens";  
 field_list[0].field_type = "cell-centered";  
 field_list[0].field_dtype = ( typeid(real) == typeid(float) ) ? YT_FLOAT : YT_DOUBLE;  
-char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};  
+const char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};  
 field_list[0].field_name_alias = field_name_alias;  
 field_list[0].num_field_name_alias = 3;  
 for(int d = 0; d < 6; d++){

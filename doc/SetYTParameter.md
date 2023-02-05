@@ -3,63 +3,68 @@
 ```cpp
 int yt_set_Parameters( yt_param_yt *param_yt )
 ```
-- Usage: Set `yt` parameters, number of fields, number of particle types and how many attributes do each of them have, and number of local grids exist on this MPI rank.
+- Usage: Set `yt` parameters, number of fields, number of particle types and how many attributes do each of them have, and number of local grids exist on this MPI rank. 
+- Notes: 
+  - We will reset all cosmological parameters (e.g. `current_redshift`, `omega_lambda`, `omega_matter`, `hubble_constant`) to `0` if `cosmological_simulation` is `0`.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## yt_param_yt
-- `frontend` (Default=`NULL`)
+- `const char* frontend` (Default=`NULL`)
   - Usage: Field information of the yt `frontend` to borrow from. This should be `yt` supported frontend.
-- `fig_basename` (Default=`"Fig"`)
+  > :pencil2: Please make sure the lifetime of `frontend` covers [`yt_commit`](./CommitYourSettings.md#ytcommit) if you set [`check_data`](./Initialize.md#ytparamlibyt) to `true` when initializing `libyt`.
+- `const char* fig_basename` (Default=`"Fig"`)
   - Usage: Base name of the output figures. Figure name will also be followed by counter number and `yt` functionality name.
-- `domain_left_edge`, `domain_right_edge`
-  - Usage: Simulation left edge and right edge in code units.
-- `current_time`
+- `double domain_left_edge[3], domain_right_edge[3]` (Default=`DBL_UNDEFINED`)
+  - Usage: Simulation left and right edge in code units.
+- `double current_time` (Default=`DBL_UNDEFINED`)
   - Usage: Simulation time in code units.
-- `current_redshift`
+- `double current_redshift` (Default=`DBL_UNDEFINED`)
   - Usage: Redshift.
-- `omega_lambda`
+- `double omega_lambda` (Default=`DBL_UNDEFINED`)
   - Usage: Dark energy mass density.
-- `omega_matter`
+- `double omega_matter` (Default=`DBL_UNDEFINED`)
   - Usage: Dark matter mass density.
-- `hubble_constant`
+- `double hubble_constant` (Default=`DBL_UNDEFINED`)
   - Usage: Dimensionless Hubble parameter at the present day.
-- `length_unit`
+- `double length_unit` (Default=`DBL_UNDEFINED`)
   - Usage: Simulation length unit in cm (CGS).
-- `mass_unit`
+- `double mass_unit` (Default=`DBL_UNDEFINED`)
   - Usage: Simulation mass unit in g (CGS).
-- `time_unit`
+- `double time_unit` (Default=`DBL_UNDEFINED`)
   - Usage: Simulation time unit in s (CGS).
-- `magnetic_unit` (Default=`1.0`)
+- `double magnetic_unit` (Default=`1.0`)
   - Usage: Simulation magnetic unit in gauss.
-- `periodicity`
+- `int periodicity[3]` (Default=`INT_UNDEFINED`)
   - Usage: Periodicity along each dimension [x][y][z].
   - Valid Value:
     - `0`: No
     - `1`: Yes
-- `cosmological_simulation`
+- `int cosmological_simulation` (Default=`INT_UNDEFINED`)
   - Usage: Cosmological simulation dataset.
   - Valid Value:
     - `0`: No
     - `1`: Yes
-- `dimensionality`
+- `int dimensionality` (Default=`INT_UNDEFINED`)
   - Usage: Dimensionality of the simulation. We only support 3 for now.
-- `domain_dimensions`
+- `int domain_dimensions[3]` (Default=`INT_UNDEFINED`)
   - Usage: Number of cells along each dimension on the root AMR level.
-- `refine_by`
+- `int refine_by` (Default=`INT_UNDEFINED`)
   - Usage: Refinement factor between a grid and its subgrid.
-- `num_grids`
+- `long num_grids` (Default=`LNG_UNDEFINED`)
   - Usage: Total number of grids.
-- `num_fields` (Default=`0`)
-  - Usage: Number of fields.
-- `num_par_types` (Default=`0`)
-  - Usage: Number of particle types.
-- `par_type_list` (Default=`NULL`)
-  - Usage: Particle type list. This should be a `yt_par_type` array. The lifespan of the elements in this array should at least cover in situ analysis process, which is when [Perform Inline-Analysis](./PerformInlineAnalysis.md).
-  - Valid Value: Each element in `yt_par_type` array
-    - `par_type`: Name of the particle type.
-    - `num_attr`: Number of attributes this particle type has. 
-- `num_grids_local`
+- `int num_grids_local` (Default=`0`)
   - Usage: Number of local grids store on this rank now.
+- `int num_fields` (Default=`0`)
+  - Usage: Number of fields.
+- `int num_par_types` (Default=`0`)
+  - Usage: Number of particle types.
+- `yt_par_type* par_type_list` (Default=`NULL`)
+  - Usage: Particle type list. This should be a `yt_par_type` array.
+  - Data member in `yt_par_type`:
+    - `const char* par_type`: Name of the particle type.
+    > :pencil2: Please make sure the lifetime of `par_type` covers the whole in situ process in `libyt`. `libyt` only borrows this name and does not make a copy.
+    - `int num_attr`: Number of attributes this particle type has. 
+
 
 ## Example
 ```cpp

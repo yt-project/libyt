@@ -96,7 +96,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
    add_dict_scalar(  g_py_param_yt, "time_unit",               g_param_yt.time_unit               );
 
    if ( g_param_yt.magnetic_unit == DBL_UNDEFINED ){
-      add_dict_scalar(  g_py_param_yt, "magnetic_unit",          1                                 );
+      add_dict_scalar(  g_py_param_yt, "magnetic_unit",        1                                  );
    }
    else{
       add_dict_scalar(  g_py_param_yt, "magnetic_unit",        g_param_yt.magnetic_unit           );

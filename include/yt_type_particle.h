@@ -20,14 +20,16 @@ void log_warning(const char *Format, ...);
 // 
 // Notes       :  1. Some data are overlap with yt_particle. We need this first be input by user through
 //                   yt_set_Parameters(), so that we can set up and initialize particle_list properly.
+//                2. For now, libyt only borrows the particle type par_type from simulation. The lifetime
+//                   of par_type should cover the whole in situ process.
 //
-// Data Member :  char  *par_type  : Particle type name (ptype in yt-term).
-//                int    num_attr      : Number of attributes in this species.
+// Data Member :  const char  *par_type  : Particle type name (ptype in yt-term).
+//                int          num_attr  : Number of attributes in this species.
 //-------------------------------------------------------------------------------------------------------
 struct yt_par_type
 {
-	char *par_type;
-	int   num_attr;
+	const char *par_type;
+	int         num_attr;
 
 	yt_par_type()
 	{
@@ -40,17 +42,19 @@ struct yt_par_type
 // Structure   :  yt_attribute
 // Description :  Data structure to store particle attributes.
 // 
-// Notes       :  1. "attr_unit", "attr_name_alias", "attr_display_name", are set corresponding to yt 
+// Notes       :  1. The lifetime of attr_name should cover the whole in situ analysis process.
+//                2. The lifetime of attr_unit, attr_name_alias, attr_display_name should cover yt_commit
+//                3. "attr_unit", "attr_name_alias", "attr_display_name", are set corresponding to yt
 //                   ( "name", ("units", ["alias1", "alias2"], "display_name"))
 //
-// Data Member :  char     *attr_name             : Particle label name, which in yt, it is its attribute.
-//                yt_dtype  attr_dtype            : Attribute's data type. Should be yt_dtype.
-//                char     *attr_unit             : Set attr_unit if needed, if not set, it will search 
-//                                               for XXXFieldInfo. Where XXX is set by g_param_yt.frontend.
-//                int       num_attr_name_alias   : Set attribute name to alias, number of the aliases.
-//                char    **attr_name_alias       : Aliases.
-//                char     *attr_display_name     : Set display name on the plottings, if not set, yt will 
-//                                                  use attr_name as display name.
+// Data Member :  const char   *attr_name           : Particle label name, which in yt, it is its attribute.
+//                yt_dtype      attr_dtype          : Attribute's data type. Should be yt_dtype.
+//                const char   *attr_unit           : Set attr_unit if needed, if not set, it will search
+//                                                    for XXXFieldInfo. Where XXX is set by g_param_yt.frontend.
+//                int           num_attr_name_alias : Set attribute name to alias, number of the aliases.
+//                const char  **attr_name_alias     : Aliases.
+//                const char   *attr_display_name   : Set display name on the plottings, if not set, yt will
+//                                                    use attr_name as display name.
 //
 // Method      :  yt_attribute  : Constructor
 //               ~yt_attribute  : Destructor
@@ -59,12 +63,12 @@ struct yt_par_type
 //-------------------------------------------------------------------------------------------------------
 struct yt_attribute
 {
-	char     *attr_name;
-	yt_dtype  attr_dtype;
-	char     *attr_unit;
-	int       num_attr_name_alias;
-	char    **attr_name_alias;
-	char     *attr_display_name;
+	const char     *attr_name;
+	yt_dtype        attr_dtype;
+	const char     *attr_unit;
+	int             num_attr_name_alias;
+	const char    **attr_name_alias;
+	const char     *attr_display_name;
 
 
 //=======================================================================================================
@@ -157,15 +161,17 @@ struct yt_attribute
 // Description :  Data structure to store particle info and function to get them.
 // 
 // Notes       :  1. Particle type is "par_type", which is "ptype" in YT-term.
-//                2. attr_list must only contain attributes that can get by get_par_attr.
+//                2. For now, libyt only borrows the particle type par_type from simulation. The lifetime
+//                   of par_type should cover the whole in situ process.
+//                3. attr_list must only contain attributes that can get by get_par_attr.
 //
-// Data Member :  char         *par_type  : Particle type.
+// Data Member :  const char   *par_type  : Particle type.
 //                int           num_attr  : Length of the attr_list.
 //                yt_attribute *attr_list : Attribute list, contains a list of attributes name, and
 //                                          function get_par_attr knows how to get these data.
-//                char         *coor_x    : Attribute name of coordinate x.
-//                char         *coor_y    : Attribute name of coordinate y.
-//                char         *coor_z    : Attribute name of coordinate z.
+//                const char   *coor_x    : Attribute name of coordinate x.
+//                const char   *coor_y    : Attribute name of coordinate y.
+//                const char   *coor_z    : Attribute name of coordinate z.
 //                
 //                (func ptr) get_par_attr : pointer to function with input arguments
 //                                          (const int, const long*, const char*, const char*, yt_array*)
@@ -180,13 +186,13 @@ struct yt_particle
 {
 // data members
 // ======================================================================================================
-	char         *par_type;
+	const char   *par_type;
 	int           num_attr;
 	yt_attribute *attr_list;
 
-	char         *coor_x;
-	char         *coor_y;
-	char         *coor_z;
+	const char   *coor_x;
+	const char   *coor_y;
+	const char   *coor_z;
 
 	void        (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*);
 

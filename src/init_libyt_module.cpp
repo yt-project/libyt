@@ -405,12 +405,12 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
         RMAOperation.clean_up();
 
         // Get those fetched data and wrap it to NumPy array
-        long      get_gid;
-        char     *get_fname;
-        yt_dtype  get_data_dtype;
-        int       get_data_dim[3];
-        void     *get_data_ptr;
-        long      num_to_get = len_get_grid;
+        long        get_gid;
+        const char *get_fname;
+        yt_dtype    get_data_dtype;
+        int         get_data_dim[3];
+        void       *get_data_ptr;
+        long        num_to_get = len_get_grid;
         while( num_to_get > 0 ){
             // Step1: Fetched data.
             if( RMAOperation.get_fetched_data(&get_gid, &get_fname, &get_data_dtype, &get_data_dim, &get_data_ptr) != YT_SUCCESS ){
@@ -553,12 +553,12 @@ static PyObject* libyt_particle_get_particle_remote(PyObject *self, PyObject *ar
             RMAOperation.clean_up();
 
             // Get fetched data, and wrap up to NumPy Array, then store inside py_output.
-            long      get_gid;
-            char     *get_ptype;
-            char     *get_attr;
-            yt_dtype  get_data_dtype;
-            long      get_data_len;
-            void     *get_data_ptr;
+            long         get_gid;
+            const char  *get_ptype;
+            const char  *get_attr;
+            yt_dtype     get_data_dtype;
+            long         get_data_len;
+            void        *get_data_ptr;
             long num_to_get = len_to_get;
             while( num_to_get > 0 ){
                 // Step1: Fetch data.
