@@ -20,14 +20,16 @@ void log_warning(const char *Format, ...);
 // 
 // Notes       :  1. Some data are overlap with yt_particle. We need this first be input by user through
 //                   yt_set_Parameters(), so that we can set up and initialize particle_list properly.
+//                2. For now, libyt only borrows the particle type par_type from simulation. The lifetime
+//                   of par_type should cover the whole in situ process.
 //
-// Data Member :  char  *par_type  : Particle type name (ptype in yt-term).
-//                int    num_attr      : Number of attributes in this species.
+// Data Member :  const char  *par_type  : Particle type name (ptype in yt-term).
+//                int          num_attr  : Number of attributes in this species.
 //-------------------------------------------------------------------------------------------------------
 struct yt_par_type
 {
-	char *par_type;
-	int   num_attr;
+	const char *par_type;
+	int         num_attr;
 
 	yt_par_type()
 	{
@@ -157,9 +159,11 @@ struct yt_attribute
 // Description :  Data structure to store particle info and function to get them.
 // 
 // Notes       :  1. Particle type is "par_type", which is "ptype" in YT-term.
-//                2. attr_list must only contain attributes that can get by get_par_attr.
+//                2. For now, libyt only borrows the particle type par_type from simulation. The lifetime
+//                   of par_type should cover the whole in situ process.
+//                3. attr_list must only contain attributes that can get by get_par_attr.
 //
-// Data Member :  char         *par_type  : Particle type.
+// Data Member :  const char   *par_type  : Particle type.
 //                int           num_attr  : Length of the attr_list.
 //                yt_attribute *attr_list : Attribute list, contains a list of attributes name, and
 //                                          function get_par_attr knows how to get these data.
@@ -180,7 +184,7 @@ struct yt_particle
 {
 // data members
 // ======================================================================================================
-	char         *par_type;
+	const char   *par_type;
 	int           num_attr;
 	yt_attribute *attr_list;
 

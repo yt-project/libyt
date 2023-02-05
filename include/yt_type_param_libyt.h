@@ -16,6 +16,8 @@
 // Structure   :  yt_param_libyt
 // Description :  Data structure of libyt runtime parameters
 //
+// Notes       :  1. The lifetime of script should cover the whole in situ process in libyt.
+//
 // Data Member :  [public ] ==> Set by users when calling yt_initialize()
 //                verbose : Verbose level
 //                script  : Name of the YT inline analysis script (without the .py extension)

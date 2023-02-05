@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
         yt_par_type par_type_list[num_par_types];
         par_type_list[0].par_type = "io";
         par_type_list[0].num_attr = 4;
-        param_yt.par_type_list = par_type_list;                 // define name and number of attributes in each particle
+        param_yt.par_type_list = par_type_list;               // define name and number of attributes in each particle
 
         for (int d = 0; d < 3; d++) {
             param_yt.domain_dimensions[d] = NGRID_1D * GRID_DIM; // domain dimensions in [x][y][z]
