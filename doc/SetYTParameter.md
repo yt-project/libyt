@@ -3,7 +3,9 @@
 ```cpp
 int yt_set_Parameters( yt_param_yt *param_yt )
 ```
-- Usage: Set `yt` parameters, number of fields, number of particle types and how many attributes do each of them have, and number of local grids exist on this MPI rank.
+- Usage: Set `yt` parameters, number of fields, number of particle types and how many attributes do each of them have, and number of local grids exist on this MPI rank. 
+- Notes: 
+  - We will reset all cosmological parameters (e.g. `current_redshift`, `omega_lambda`, `omega_matter`, `hubble_constant`) to `0` if `cosmological_simulation` is `0`.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## yt_param_yt
