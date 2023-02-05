@@ -230,7 +230,7 @@ int main(int argc, char *argv[]) {
         field_list[0].field_type = "cell-centered";
         field_list[0].contiguous_in_x = true;
         field_list[0].field_dtype = (typeid(real) == typeid(float)) ? YT_FLOAT : YT_DOUBLE;
-        char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
+        const char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
         field_list[0].field_name_alias = field_name_alias;
         field_list[0].num_field_name_alias = 3;
         for (int d = 0; d < 6; d++) {
