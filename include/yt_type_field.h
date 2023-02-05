@@ -20,7 +20,9 @@ void log_warning(const char *Format, ...);
 // Description :  Data structure to store a field's label and its definition of data representation.
 // 
 // Notes       :  1. The data representation type will be initialized as "cell-centered".
-//                2. "field_unit", "field_name_alias", "field_display_name", are set corresponding to yt 
+//                2. The lifetime of field_name and field_type should cover the whole in situ process.
+//                3. The lifetime of field_unit, field_name_alias, field_display_name should cover yt_commit.
+//                3. "field_unit", "field_name_alias", "field_display_name", are set corresponding to yt
 //                   ( "name", ("units", ["fields", "to", "alias"], "display_name"))
 //
 // Data Member :  const char   *field_name           : Field name
