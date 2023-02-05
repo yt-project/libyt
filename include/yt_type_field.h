@@ -20,30 +20,31 @@ void log_warning(const char *Format, ...);
 // Description :  Data structure to store a field's label and its definition of data representation.
 // 
 // Notes       :  1. The data representation type will be initialized as "cell-centered".
-//                2. "field_unit", "field_name_alias", "field_display_name", are set corresponding to yt 
+//                2. The lifetime of field_name and field_type should cover the whole in situ process.
+//                3. The lifetime of field_unit, field_name_alias, field_display_name should cover yt_commit.
+//                3. "field_unit", "field_name_alias", "field_display_name", are set corresponding to yt
 //                   ( "name", ("units", ["fields", "to", "alias"], "display_name"))
 //
-// Data Member :  char    *field_name           : Field name
-//                char    *field_type           : Define type, for now, we have these types, define in
-//                                                validate():
-//                                                  (1) "cell-centered"
-//                                                  (2) "face-centered"
-//                                                  (3) "derived_func"
-//                yt_dtype field_dtype          : Field type of the grid. Can be YT_FLOAT, YT_DOUBLE, YT_INT.
-//                bool     contiguous_in_x      : true  ==> [z][y][x], x address alter-first, default value.
-//                                                false ==> [x][y][z], z address alter-first
-//                short    field_ghost_cell[6]  : Number of cell to ignore at the beginning and the end of each dimension.
-//                                                The dimensions are in the point of view of the field data, it has
-//                                                nothing to do with coordinates.
+// Data Member :  const char   *field_name           : Field name
+//                const char   *field_type           : Define type, for now, we have these types,
+//                                                     (1) "cell-centered"
+//                                                     (2) "face-centered"
+//                                                     (3) "derived_func"
+//                yt_dtype      field_dtype          : Field type of the grid. (YT_FLOAT, YT_DOUBLE, YT_INT, YT_LONG)
+//                bool          contiguous_in_x      : true  ==> [z][y][x], x address alter-first, default value.
+//                                                     false ==> [x][y][z], z address alter-first
+//                short         field_ghost_cell[6]  : Number of cell to ignore at the beginning and the end of each dimension.
+//                                                     The dimensions are in the point of view of the field data, it has
+//                                                     nothing to do with x, y, z coordinates.
 //
-//                char    *field_unit           : Set field_unit if needed.
-//                int      num_field_name_alias : Set fields to alias, number of the aliases.
-//                char   **field_name_alias     : Aliases.
-//                char    *field_display_name   : Set display name on the plottings, if not set, yt will 
-//                                                use field_name as display name.
+//                const char   *field_unit           : Set field_unit if needed.
+//                int           num_field_name_alias : Set field to alias names, number of the aliases.
+//                const char  **field_name_alias     : Aliases.
+//                const char   *field_display_name   : Set display name on the figure, if not set, yt will use field
+//                                                     name as display name.
 //
-//                (func pointer) derived_func   : pointer to function that has argument
-//                                                (const int, const long*, const char*, yt_array*) with no return.
+//                (func pointer) derived_func        : pointer to function that has prototype
+//                                                     void (const int, const long*, const char*, yt_array*).
 //
 // Method      :  yt_field  : Constructor
 //               ~yt_field  : Destructor
@@ -54,15 +55,15 @@ struct yt_field
 {
 // data members
 // ======================================================================================================
-	char     *field_name;
-	char     *field_type;
-	yt_dtype  field_dtype;
-	bool      contiguous_in_x;
-    short     field_ghost_cell[6];
-	char     *field_unit;
-	int       num_field_name_alias;
-	char    **field_name_alias;
-	char     *field_display_name;
+	const char     *field_name;
+	const char     *field_type;
+	yt_dtype        field_dtype;
+	bool            contiguous_in_x;
+    short           field_ghost_cell[6];
+	const char     *field_unit;
+	int             num_field_name_alias;
+	const char    **field_name_alias;
+	const char     *field_display_name;
 
 	void (*derived_func) (const int, const long *, const char*, yt_array*);
 
@@ -128,7 +129,7 @@ struct yt_field
         // field_type can only be : "cell-centered", "face-centered", "derived_func".
         bool  check1 = false;
         int   num_type = 3;
-        char *type[3]  = {"cell-centered", "face-centered", "derived_func"};
+        const char *type[3]  = {"cell-centered", "face-centered", "derived_func"};
         for ( int i = 0; i < num_type; i++ ){
             if ( strcmp(field_type, type[i]) == 0 ) {
                 check1 = true;

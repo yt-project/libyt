@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
         yt_par_type par_type_list[num_par_types];
         par_type_list[0].par_type = "io";
         par_type_list[0].num_attr = 4;
-        param_yt.par_type_list = par_type_list;                 // define name and number of attributes in each particle
+        param_yt.par_type_list = par_type_list;               // define name and number of attributes in each particle
 
         for (int d = 0; d < 3; d++) {
             param_yt.domain_dimensions[d] = NGRID_1D * GRID_DIM; // domain dimensions in [x][y][z]
@@ -230,7 +230,7 @@ int main(int argc, char *argv[]) {
         field_list[0].field_type = "cell-centered";
         field_list[0].contiguous_in_x = true;
         field_list[0].field_dtype = (typeid(real) == typeid(float)) ? YT_FLOAT : YT_DOUBLE;
-        char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
+        const char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
         field_list[0].field_name_alias = field_name_alias;
         field_list[0].num_field_name_alias = 3;
         for (int d = 0; d < 6; d++) {
@@ -256,8 +256,8 @@ int main(int argc, char *argv[]) {
         // par_type and num_attr will be assigned by libyt with the same value we passed in par_type_list at yt_set_Parameters.
         particle_list[0].par_type = "io";
         particle_list[0].num_attr = 4;
-        char *attr_name[] = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
-        char *attr_name_alias[] = {"grid_level"};
+        const char *attr_name[] = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
+        const char *attr_name_alias[] = {"grid_level"};
         for (int v = 0; v < 4; v++) {
             particle_list[0].attr_list[v].attr_name = attr_name[v];
             if (v == 3) {

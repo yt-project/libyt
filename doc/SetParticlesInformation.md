@@ -9,33 +9,38 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
 > :warning: Every MPI rank must call this API and fill in the particle information in the same order. We do not broadcast and sync information here.
 
 ## yt\_particle
-- `par_type`
+- `const char* par_type` (set by `libyt`)
   - Usage: Name of the particle type. `libyt` copies the pointer from [`par_type_list`](./SetYTParameter.md#yt_param_yt)'s data member `par_type` to this variable. You don't need to assign it again. 
-- `num_attr`
+- `int num_attr` (set by `libyt`)
   - Usage: Number of attributes does this particle type has. `libyt` will assign your input [`par_type_list`](./SetYTParameter.md#yt_param_yt)'s data member `num_attr` to this variable. You may skip this.
-- `attr_list`
-  - Usage: Attribute list of this particle. This is a `yt_attribute` array.
-  - Valid Value: Each element in `yt_attribute` array should have
-    - `attr_name` (Default=`NULL`)
-      - Usage: Attribute name. The lifespan of this variable should at least cover in situ analysis process, which should cover [in situ analysis process](./PerformInlineAnalysis.md#perform-inline-analysis) and [interactive mode](./ActivateInteractiveMode.md#activate-interactive-mode) if has.
-    - `attr_dtype` (Default=`YT_DOUBLE`)
+- `yt_attribute* attr_list` (initialized by `libyt`)
+  - Usage: Attribute list of this particle. This is a `yt_attribute` array with length `num_attr`.
+  - Data member in `yt_attribute`:
+    - `const char* attr_name` (Default=`NULL`)
+      - Usage: Attribute name.
+      > :pencil2: The lifetime of `attr_name` should cover in situ analysis process. `libyt` only borrows this variable and does not make a copy.
+    - `yt_dtype attr_dtype` (Default=`YT_DOUBLE`)
       - Usage: Attribute’s data type.
-      - Valide Value: 
+      - Valid Value for `yt_dtype`: 
         - `YT_FLOAT`: C type float.
         - `YT_DOUBLE`: C type double.
         - `YT_INT`: C type int. 
         - `YT_LONG`: C type long.
-    - `attr_unit` (Default=`""`)
+    - `const char* attr_unit` (Default=`""`)
       - Usage: Unit of the attribute, using `yt` unit system.
-    - `num_attr_name_alias` (Default=`0`)
+      > :pencil2: The lifetime of `attr_unit` should cover [`yt_commit`](./CommitYourSettings.md#ytcommit).
+    - `int num_attr_name_alias` (Default=`0`)
       - Usage: Number of name aliases.
-    - `attr_name_alias` (Default=`NULL`)
+    - `const char **attr_name_alias` (Default=`NULL`)
       - Usage: A list of name aliases.
-    - `attr_display_name` (Default=`NULL`)
+      > :pencil2: The lifetime of `attr_name_alias` should cover [`yt_commit`](./CommitYourSettings.md#ytcommit).
+    - `const char *attr_display_name` (Default=`NULL`)
       - Usage: Display name on the output figure. If it is not set, then it will use `attr_name` instead.
-- `coor_x`, `coor_y`, `coor_z` (Default=`NULL`)
+      > :pencil2: The lifetime of `attr_display_name` should cover [`yt_commit`](./CommitYourSettings.md#ytcommit).
+- `const char *coor_x, *coor_y, *coor_z` (Default=`NULL`)
   - Usage: Attribute name representing coordinate or position x, y, and z.
-- `get_par_attr` (Default=`NULL`)
+  > :pencil2: The lifetime of `coor_x`, `coor_y`, `coor_z` should cover the in situ analysis process. `libyt` only borrows these names and does not make a copy.
+- `void (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*)` (Default=`NULL`)
   - Usage: Function pointer to get particle’s attribute.
 
 > :information_source: `libyt` borrows the full field and particle information class (`class XXXFieldInfo`) from [`frontend`](./SetYTParameter.md#yt_param_yt). It is OK not to set a particle's `attr_unit`, `num_attr_name_alias`, `attr_name_alias`, `attr_display_name`, if this `attr_name` is already inside your frontend.
@@ -76,8 +81,8 @@ int main(){
     yt_get_ParticlesPtr( &particle_list );
     
     /* This particle "io" has 4 attributes (position X/Y/Z and level). */
-    char *attr_name[]  = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
-    char *attr_name_alias[] = {"grid_level"};
+    const char *attr_name[]  = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
+    const char *attr_name_alias[] = {"grid_level"};
     for ( int v=0; v < 4; v++ ){
         particle_list[0].attr_list[v].attr_name  = attr_name[v];
         if ( v == 3 ){  

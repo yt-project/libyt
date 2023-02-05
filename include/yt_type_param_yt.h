@@ -177,11 +177,11 @@ struct yt_param_yt
       num_fields              = 0;
       num_par_types           = 0;
       num_grids_local         = 0;
-      field_list              = NULL;
-      particle_list           = NULL;
-      par_type_list            = NULL;
+      par_type_list           = NULL;
 
    // Loaded and controlled by libyt
+      field_list              = NULL;
+      particle_list           = NULL;
       grids_local             = NULL;
       num_grids_local_MPI     = NULL;
 

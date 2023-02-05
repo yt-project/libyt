@@ -7,19 +7,20 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt)
 - Return: `YT_SUCCESS` or `YT_FAIL`.
 
 ## yt_param_libyt
-- `verbose` (Default=`YT_VERBOSE_WARNING`)
+- `yt_verbose verbose` (Default=`YT_VERBOSE_WARNING`)
   - Usage: Set the log message level.
-  - Valid Value:
+  - Valid Value for `yt_verbose`:
     - `YT_VERBOSE_OFF`: Turn off log message.
     - `YT_VERBOSE_INFO`: Output log level below or equal to info.
     - `YT_VERBOSE_WARNING`: Output log level below or equal to warning.
     - `YT_VERBOSE_DEBUG`: Output all log.
-- `script` (Default=`yt_inline_script`)
-  - Usage: Your Python script name. Do NOT contain `.py`. The lifespan of this variable should cover `yt_initialize` API.
-- `counter` (Default=`0`)
+- `const char* script` (Default=`yt_inline_script`)
+  - Usage: Your Python script name. Do NOT contain `.py`. Make it a unique name that is different from python module name.
+  > :pencil2: Please make sure the lifetime of `script` covers the whole in situ analysis process.
+- `long counter` (Default=`0`)
   - Usage: Number of rounds doing inline-analysis, may be useful in restart. We also append this number at the end of the figure name.
-- `check_data` (Default=`true`)
-  - Usage: Check the input data (ex: hierarchy, grid information…), if it is true. You should set this to `false` at production run.
+- `bool check_data` (Default=`true`)
+  - Usage: Check the input data (ex: hierarchy, grid information…), if it is true. You should set this to `false` after you have successfully implemented libyt.
 
 
 

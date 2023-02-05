@@ -16,13 +16,16 @@
 // Structure   :  yt_param_libyt
 // Description :  Data structure of libyt runtime parameters
 //
+// Notes       :  1. The lifetime of script should cover the whole in situ process in libyt.
+//
 // Data Member :  [public ] ==> Set by users when calling yt_initialize()
 //                verbose : Verbose level
 //                script  : Name of the YT inline analysis script (without the .py extension)
 //                counter : Number of rounds doing inline-analysis
 //                check_data: Check the input data (ex: hierarchy, grid information...), if it is true.
 //
-//                [private] ==> Set and used by libyt internally
+//                [private] ==> Set and used by libyt internally. Don't touch these parts, since they will
+//                              be removed in the later update.
 //                libyt_initialized           : true ==> yt_initialize() has been called successfully
 //                param_yt_set                : true ==> yt_set_Parameters() has been called successfully
 //                get_fieldsPtr               : true ==> yt_get_FieldsPtr() has been called successfully
