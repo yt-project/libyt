@@ -256,8 +256,8 @@ int main(int argc, char *argv[]) {
         // par_type and num_attr will be assigned by libyt with the same value we passed in par_type_list at yt_set_Parameters.
         particle_list[0].par_type = "io";
         particle_list[0].num_attr = 4;
-        char *attr_name[] = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
-        char *attr_name_alias[] = {"grid_level"};
+        const char *attr_name[] = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
+        const char *attr_name_alias[] = {"grid_level"};
         for (int v = 0; v < 4; v++) {
             particle_list[0].attr_list[v].attr_name = attr_name[v];
             if (v == 3) {
