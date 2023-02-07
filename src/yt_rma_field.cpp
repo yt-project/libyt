@@ -21,7 +21,7 @@
 //                long        len_get_grid: Number of grid to get.
 //-------------------------------------------------------------------------------------------------------
 yt_rma_field::yt_rma_field(const char* fname, int len_prepare, long len_get_grid)
-: m_LenAllPrepare(0), m_FieldIndex(-1)
+: m_FieldIndex(-1), m_LenAllPrepare(0)
 {
     // Initialize m_Window and set info to "no_locks".
     MPI_Info windowInfo;
