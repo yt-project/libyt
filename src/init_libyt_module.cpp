@@ -796,7 +796,7 @@ int init_libyt_module()
     std::string filename = std::string(g_param_libyt.script) + ".py";
     func_status_list::load_file_func_body(filename.c_str());
     std::vector<std::string> func_list = func_status_list::get_funcname_defined(filename.c_str());
-    for (long i=0; i<func_list.size(); i++) {
+    for (int i=0; i<(int)func_list.size(); i++) {
         g_func_status_list.add_new_func(func_list[i].c_str(), -1);
     }
 #endif // #ifdef INTERACTIVE_MODE

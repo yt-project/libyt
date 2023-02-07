@@ -82,7 +82,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                 // check if it contains spaces only or null line if prompt >>>, otherwise python will counted as
                 // not finished yet.
                 long first_char = -1;
-                for (long i=0; i<strlen(input_line); i++) {
+                for (long i=0; i<(long)strlen(input_line); i++) {
                     if (isspace(input_line[i]) == 0) {
                         first_char = i;
                         break;
