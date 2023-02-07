@@ -12,8 +12,9 @@
 // Function    :  yt_run_InteractiveMode
 // Description :  Enter libyt interactive mode.
 //
-// Note        :  1. Only enter this mode when inline functions have errors or flag_file_name is detacted.
-//                2. Display inline script execute result finished/failed, and show errors if have.
+// Note        :  1. Only enter this mode when executed inline functions have errors or flag_file_name
+//                   is detacted.
+//                2. Display inline script execute result success/failed, and show errors if have.
 //                3. Enter interactive mode, user will be operating in inline script's name space.
 //                   (1) Python scripting
 //                   (2) libyt command
@@ -35,11 +36,15 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     // check if we need to enter interactive prompt
     struct stat buffer;
     if (stat(flag_file_name, &buffer) != 0) {
-        int tot_status = 0;
+        bool enter_interactive_mode = false;
         for (int i=0; i<g_func_status_list.size(); i++) {
-            tot_status = tot_status + g_func_status_list[i].get_status();
+            if ((g_func_status_list[i].get_run() == 1) && (g_func_status_list[i].get_status() == 0)) {
+                enter_interactive_mode = true;
+                break;
+            }
         }
-        if (tot_status == g_func_status_list.size()) {
+
+        if (!enter_interactive_mode) {
             log_info("No failed inline function and no stop file %s detected ... leaving interactive mode\n", flag_file_name);
             return YT_SUCCESS;
         }
