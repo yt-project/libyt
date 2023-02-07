@@ -1,5 +1,6 @@
 #ifdef INTERACTIVE_MODE
 
+#include <sys/stat.h>
 #include "yt_combo.h"
 #include "define_command.h"
 #include "libyt_interactive_mode.h"
@@ -31,12 +32,9 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     if (g_func_status_list.run_func() != YT_SUCCESS) YT_ABORT("Something went wrong when running new added functions\n");
     if (g_func_status_list.print_summary() != YT_SUCCESS) YT_ABORT("Something went wrong when summarizing inline function status\n");
 
-    // check if we need to enter interactive prompt, todo: using stat to check file existence
-    FILE *file;
-    if ( file = fopen(flag_file_name, "r") ) {
-        fclose(file);
-    }
-    else {
+    // check if we need to enter interactive prompt
+    struct stat buffer;
+    if (stat(flag_file_name, &buffer) != 0) {
         int tot_status = 0;
         for (int i=0; i<g_func_status_list.size(); i++) {
             tot_status = tot_status + g_func_status_list[i].get_status();
@@ -76,7 +74,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
         // root: prompt and input
         if (g_myrank == root) {
             input_line = readline(prompt);
-            if (input_line == NULL) continue; // todo: this does not work, it prints lots of >>>
+            if (input_line == NULL) continue;
 
             if (prompt == ps1) {
                 // check if it contains spaces only or null line if prompt >>>, otherwise python will counted as
