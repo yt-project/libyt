@@ -371,7 +371,7 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
     PyObject *py_get_grid_id;
     PyObject *py_get_grid_rank;
     int root = 0;
-    while( py_fname = PyIter_Next( fname_list ) ){
+    while( (py_fname = PyIter_Next( fname_list )) ){
         // Get fname, and create yt_rma_field class.
         char *fname = PyBytes_AsString( py_fname );
         yt_rma_field RMAOperation = yt_rma_field( fname, len_prepare, len_get_grid );
@@ -507,7 +507,7 @@ static PyObject* libyt_particle_get_particle_remote(PyObject *self, PyObject *ar
     PyObject *py_attribute, *py_attr_iter;
     PyObject *py_prepare_id, *py_get_id, *py_get_rank;
     int root = 0;
-    while( py_ptype = PyIter_Next( py_ptf_keys ) ){
+    while( (py_ptype = PyIter_Next( py_ptf_keys )) ){
 
         char *ptype = PyBytes_AsString( py_ptype );
 
@@ -521,7 +521,7 @@ static PyObject* libyt_particle_get_particle_remote(PyObject *self, PyObject *ar
         py_attr_iter = PyObject_GetIter( py_value );
 
         // Iterate through attribute list, and perform RMA operation.
-        while( py_attribute = PyIter_Next( py_attr_iter ) ){
+        while( (py_attribute = PyIter_Next( py_attr_iter )) ){
             // Initialize RMA operation
             char *attr = PyBytes_AsString( py_attribute );
             yt_rma_particle RMAOperation = yt_rma_particle( ptype, attr, len_prepare, len_to_get );
