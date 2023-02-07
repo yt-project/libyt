@@ -22,7 +22,7 @@
 //                long          len_get: Number of grid to get.
 //-------------------------------------------------------------------------------------------------------
 yt_rma_particle::yt_rma_particle(const char *ptype, const char *attribute, int len_prepare, long len_get)
- : m_LenAllPrepare(0), m_ParticleIndex(-1), m_AttributeIndex(-1)
+ : m_ParticleIndex(-1), m_AttributeIndex(-1), m_LenAllPrepare(0)
 {
     // Initialize m_Window and set info to "no_locks".
     MPI_Info windowInfo;
