@@ -156,6 +156,7 @@ int func_status_list::run_func() {
         int run = m_FuncStatusList[i].get_run();
         int status = m_FuncStatusList[i].get_status();
         if (run == 1 && status == -1) {
+            // TODO: Run this like how we run in yt_run_Function*, the error is caused by no traceback import.
             // command
             char *funcname = m_FuncStatusList[i].get_func_name();
             int command_width = 150 + strlen(g_param_libyt.script) + strlen(funcname) * 2;
@@ -174,6 +175,7 @@ int func_status_list::run_func() {
             PyObject *py_dum = PyEval_EvalCode(py_src, global_var, global_var);
             Py_XDECREF(py_src);
             Py_XDECREF(py_dum);
+            PyErr_Clear();
             
             m_FuncStatusList[i].get_status();
 
