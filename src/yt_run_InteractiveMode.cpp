@@ -1,5 +1,6 @@
 #ifdef INTERACTIVE_MODE
 
+#include <sys/stat.h>
 #include "yt_combo.h"
 #include "define_command.h"
 #include "libyt_interactive_mode.h"
@@ -11,8 +12,9 @@
 // Function    :  yt_run_InteractiveMode
 // Description :  Enter libyt interactive mode.
 //
-// Note        :  1. Only enter this mode when inline functions have errors or flag_file_name is detacted.
-//                2. Display inline script execute result finished/failed, and show errors if have.
+// Note        :  1. Only enter this mode when executed inline functions have errors or flag_file_name
+//                   is detacted.
+//                2. Display inline script execute result success/failed, and show errors if have.
 //                3. Enter interactive mode, user will be operating in inline script's name space.
 //                   (1) Python scripting
 //                   (2) libyt command
@@ -31,17 +33,18 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     if (g_func_status_list.run_func() != YT_SUCCESS) YT_ABORT("Something went wrong when running new added functions\n");
     if (g_func_status_list.print_summary() != YT_SUCCESS) YT_ABORT("Something went wrong when summarizing inline function status\n");
 
-    // check if we need to enter interactive prompt, todo: using stat to check file existence
-    FILE *file;
-    if ( file = fopen(flag_file_name, "r") ) {
-        fclose(file);
-    }
-    else {
-        int tot_status = 0;
+    // check if we need to enter interactive prompt
+    struct stat buffer;
+    if (stat(flag_file_name, &buffer) != 0) {
+        bool enter_interactive_mode = false;
         for (int i=0; i<g_func_status_list.size(); i++) {
-            tot_status = tot_status + g_func_status_list[i].get_status();
+            if ((g_func_status_list[i].get_run() == 1) && (g_func_status_list[i].get_status() == 0)) {
+                enter_interactive_mode = true;
+                break;
+            }
         }
-        if (tot_status == g_func_status_list.size()) {
+
+        if (!enter_interactive_mode) {
             log_info("No failed inline function and no stop file %s detected ... leaving interactive mode\n", flag_file_name);
             return YT_SUCCESS;
         }
@@ -76,13 +79,13 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
         // root: prompt and input
         if (g_myrank == root) {
             input_line = readline(prompt);
-            if (input_line == NULL) continue; // todo: this does not work, it prints lots of >>>
+            if (input_line == NULL) continue;
 
             if (prompt == ps1) {
                 // check if it contains spaces only or null line if prompt >>>, otherwise python will counted as
                 // not finished yet.
                 long first_char = -1;
-                for (long i=0; i<strlen(input_line); i++) {
+                for (long i=0; i<(long)strlen(input_line); i++) {
                     if (isspace(input_line[i]) == 0) {
                         first_char = i;
                         break;
