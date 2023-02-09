@@ -131,8 +131,7 @@ int func_status_list::add_new_func(const char *func_name, int run) {
 
     // add func_name, since it adds to the end, its index is equal to original size
     index = size();
-    func_status new_func(func_name, run);
-    m_FuncStatusList.push_back(new_func);
+    m_FuncStatusList.emplace_back(func_name, run);
 
     return index;
 }
