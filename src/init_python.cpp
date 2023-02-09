@@ -12,7 +12,7 @@ static int import_numpy();
 // Function    :  init_python
 // Description :  Initialize Python interpreter
 //
-// Note        :  1. Called by yt_init()
+// Note        :  1. Called by yt_initialize()
 //
 // Parameter   :  argc : Argument count
 //                argv : Argument vector
@@ -60,12 +60,27 @@ int init_python( int argc, char *argv[] )
    }
 
 
-// add the current location to the module search path (sys._parallel = True --> run yt in parallel )
-   if ( PyRun_SimpleString( "import sys; sys.path.insert(0,'.'); sys._parallel = True" ) == 0 )
+// add the current location to the module search path
+#ifdef INTERACTIVE_MODE
+   if ( PyRun_SimpleString( "import sys, traceback, inspect; sys.path.insert(0,'.')" ) == 0 )
+#else
+   if ( PyRun_SimpleString( "import sys; sys.path.insert(0,'.')" ) == 0 )
+#endif
       log_debug( "Adding search path for modules ... done\n" );
    else
       YT_ABORT(  "Adding search path for modules ... failed!\n" );
 
+   // set up yt config
+   // (sys._parallel = True --> run yt in parallel )
+   // (sys._interactive_mode = True --> mpi does not abort when there is error)
+#ifdef INTERACTIVE_MODE
+   if ( PyRun_SimpleString("sys._parallel = True; sys._interactive_mode = True") == 0 )
+#else
+   if ( PyRun_SimpleString("sys._parallel = True") == 0 )
+#endif
+       log_debug("Setting up config ... done\n");
+   else
+       YT_ABORT("Setting up config ... failed\n");
 
 // import the garbage collector interface
    if ( PyRun_SimpleString( "import gc" ) == 0 )

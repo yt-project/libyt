@@ -9,36 +9,38 @@
 //
 // Notes       :  1. Initialize m_Window, which used inside OpenMPI RMA operation. And set m_Window info
 //                   to "no_locks".
-//                2. Copy the input fname to m_FieldName, in case it is freed.
-//                3. Find the corresponding field_define_type and swap_axes in field_list, and assign to
+//                2. Assume the lifetime of field_name passed in through yt_get_FieldsPtr covers the whole
+//                   in situ process. libyt do not make a copy.
+//                3. Find the corresponding field_type and contiguous_in_x in field_list, and assign to
 //                   m_FieldDefineType and m_FieldSwapAxes.
 //                4. Find field index inside field_list and assign to m_FieldIndex.
 //                5. Set the std::vector capacity.
 //
-// Arguments   :  char*       fname: Field name.
-//                int   len_prepare: Number of grid to prepare.
-//                long len_get_grid: Number of grid to get.
+// Arguments   :  const char *fname       : Field name.
+//                int         len_prepare : Number of grid to prepare.
+//                long        len_get_grid: Number of grid to get.
 //-------------------------------------------------------------------------------------------------------
-yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
-: m_LenAllPrepare(0), m_FieldIndex(-1)
+yt_rma_field::yt_rma_field(const char* fname, int len_prepare, long len_get_grid)
+: m_FieldIndex(-1), m_LenAllPrepare(0)
 {
     // Initialize m_Window and set info to "no_locks".
     MPI_Info windowInfo;
     MPI_Info_create( &windowInfo );
     MPI_Info_set( windowInfo, "no_locks", "true" );
-    MPI_Win_create_dynamic( windowInfo, MPI_COMM_WORLD, &m_Window );
+    int mpi_return_code = MPI_Win_create_dynamic( windowInfo, MPI_COMM_WORLD, &m_Window );
     MPI_Info_free( &windowInfo );
 
-    // Copy input fname, and find its field_define_type
-    int len = strlen(fname);
-    m_FieldName = new char [len+1];
-    strcpy(m_FieldName, fname);
+    if (mpi_return_code != MPI_SUCCESS) {
+        log_error("yt_rma_field: create one-sided MPI (RMA) window failed!\n");
+        log_error("yt_rma_field: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
+    }
 
     for(int v=0; v < g_param_yt.num_fields; v++){
-        if( strcmp(m_FieldName, g_param_yt.field_list[v].field_name) == 0){
-            m_FieldDefineType = g_param_yt.field_list[v].field_define_type;
+        if( strcmp(fname, g_param_yt.field_list[v].field_name) == 0){
+            m_FieldName       = g_param_yt.field_list[v].field_name;
+            m_FieldDefineType = g_param_yt.field_list[v].field_type;
             m_FieldIndex      = v;
-            m_FieldSwapAxes   = g_param_yt.field_list[v].swap_axes;
+            m_FieldSwapAxes   = g_param_yt.field_list[v].contiguous_in_x;
             break;
         }
     }
@@ -58,7 +60,7 @@ yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
 // Class       :  yt_rma_field
 // Method      :  Destructor
 //
-// Notes       :  1. Free m_Window, m_FieldName.
+// Notes       :  1. Free m_Window.
 //                2. Clear m_Fetched and m_FetchedData.
 //
 // Arguments   :  None
@@ -66,7 +68,6 @@ yt_rma_field::yt_rma_field(char* fname, int len_prepare, long len_get_grid)
 yt_rma_field::~yt_rma_field()
 {
     MPI_Win_free(&m_Window);
-    delete [] m_FieldName;
     m_Fetched.clear();
     m_FetchedData.clear();
     log_debug("yt_rma_field: Destructor called.\n");
@@ -82,8 +83,8 @@ yt_rma_field::~yt_rma_field()
 //                2. Insert data pointer into m_PrepareData.
 //                3. Insert data information into m_Prepare.
 //                4. In "cell-centered" and "face-centered", we pass full data_ptr, including ghost cell.
-//                5. "derived_func" data_dimensions must be the same as grid dim up to a swap_axes.
-//                   Because derived_func generates only data without ghost cell.
+//                5. "derived_func" data_dimensions must be the same as grid dim after considering
+//                   contiguous_in_x, since derived_func generates only data without ghost cell.
 //                6. We assume that all input gid can be found on this rank.
 //                7. Check that we indeed get data pointer and its dimensions and data type.
 //
@@ -152,17 +153,12 @@ int yt_rma_field::prepare_data(long& gid)
         data_array[0].gid = gid; data_array[0].data_length = gridLength; data_array[0].data_ptr = data_ptr;
 
         if ( g_param_yt.field_list[m_FieldIndex].derived_func != NULL ){
-            void (*derived_func) (int, long*, yt_array*);
+            void (*derived_func) (const int, const long*, const char*, yt_array*);
             derived_func = g_param_yt.field_list[m_FieldIndex].derived_func;
-            (*derived_func) (list_length, list_gid, data_array);
-        }
-        else if ( g_param_yt.field_list[m_FieldIndex].derived_func_with_name != NULL ){
-            void (*derived_func_with_name) (int, long*, char*, yt_array*);
-            derived_func_with_name = g_param_yt.field_list[m_FieldIndex].derived_func_with_name;
-            (*derived_func_with_name) (list_length, list_gid, m_FieldName, data_array);
+            (*derived_func) (list_length, list_gid, m_FieldName, data_array);
         }
         else{
-            YT_ABORT("yt_rma_field: In field [%s], field_define_type == %s, but derived_func or derived_func_with_name not set!\n",
+            YT_ABORT("yt_rma_field: In field [%s], field_type == %s, but derived_func not set!\n",
                      m_FieldName, m_FieldDefineType);
         }
     }
@@ -189,7 +185,10 @@ int yt_rma_field::prepare_data(long& gid)
         YT_ABORT("yt_rma_field: Unable to get GID [%ld] field [%s] data.\n", gid, m_FieldName);
     }
 
-    if( MPI_Win_attach(m_Window, data_ptr, grid_info.data_dim[0] * grid_info.data_dim[1] * grid_info.data_dim[2] * size) != MPI_SUCCESS ){
+    int mpi_return_code = MPI_Win_attach(m_Window, data_ptr, grid_info.data_dim[0] * grid_info.data_dim[1] * grid_info.data_dim[2] * size);
+    if( mpi_return_code != MPI_SUCCESS ){
+        log_error("yt_rma_field: attach data buffer to one-sided MPI (RMA) window failed!\n");
+        log_error("yt_rma_field: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
         YT_ABORT("yt_rma_field: Attach buffer to window failed.\n");
     }
 
@@ -336,7 +335,7 @@ int yt_rma_field::clean_up()
         MPI_Win_detach(m_Window, m_PrepareData[i]);
     }
 
-    // Free local prepared data m_Prepare, m_PrepareData if field_define_type == "derived_func".
+    // Free local prepared data m_Prepare, m_PrepareData if field_type == "derived_func".
     if( strcmp(m_FieldDefineType, "derived_func") == 0 ) {
         for(int i = 0; i < (int)m_PrepareData.size(); i++) {
             free( m_PrepareData[i] );
@@ -370,7 +369,7 @@ int yt_rma_field::clean_up()
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_rma_field::get_fetched_data(long *gid, char **fname, yt_dtype *data_dtype, int (*data_dim)[3], void **data_ptr){
+int yt_rma_field::get_fetched_data(long *gid, const char **fname, yt_dtype *data_dtype, int (*data_dim)[3], void **data_ptr){
     // Check if there are left fetched data to get.
     if( m_Fetched.size() == 0 ){
         return YT_FAIL;

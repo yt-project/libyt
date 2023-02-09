@@ -1,16 +1,18 @@
 # Perform Inline-Analysis
-## yt\_inline
+
+## yt\_run\_Function
 ```cpp
-int yt_inline( char *function_name );
+int yt_run_Function( const char *function_name );
 ```
-- Usage: Call Python function `function_name` defined inside your Python script. You may call as many times as you want, as long as the functions are defined in your input python script.
+- Usage: Run Python function `function_name`. Can call as many times as we want.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
-## yt\_inline\_argument
+## yt\_run\_FunctionArguments
 ```cpp
-int yt_inline_argument( char *function_name, int argc, ... );
+int yt_run_FunctionArguments( const char *function_name, int argc, ... );
 ```
-- Usage: Call Python function `function_name` with input arguments in your Python script. This API will pass total number of `argc` arguments. Please wrap your arguments as strings. For example, `"0"` for `0`, and `"\'FieldName\'"` for `'FieldName'`.
+- Usage: Run Python function `function_name` with input arguments. This API will pass total number of `argc` arguments. Please wrap your arguments as strings. For example, `"0"` for `0`, `"\'FieldName\'"` for `'FieldName'`, `"a"` for defined python variable `a` within namespace.
+> :information_source: These two API run functions inside script's namespace, which means we can pass in objects defined in script directly.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## Example
@@ -19,30 +21,32 @@ Inline Python script:
 import yt
 yt.enable_parallelism()
 
+a = "var"
+
 def yt_inline_ProfilePlot():  
     ds = yt.frontends.libyt.libytDataset()  
     profile = yt.ProfilePlot(ds, "x", ["density"])  
     if yt.is_root():  
         profile.save()
 
-def yt_inline_ProjectionPlot( fields ):  
+def yt_inline_ProjectionPlot( fields, *args ):  
     ds = yt.frontends.libyt.libytDataset()
     prjz = yt.ProjectionPlot(ds, 'z', fields)  
     if yt.is_root():
         prjz.save()
 ```
 
-Call the function inside the script:
+Call the function inside simulation code:
 ```cpp
-/* libyt API, call the Python function. */
-if ( yt_inline( "yt_inline_ProfilePlot" ) != YT_SUCCESS ){  
-    fprintf( stderr, "ERROR: yt_inline() failed!\n" );
+/* libyt API: run yt_inline_ProfilePlot(). */
+if ( yt_run_Function( "yt_inline_ProfilePlot" ) != YT_SUCCESS ){  
+    fprintf( stderr, "ERROR: yt_run_Function() failed!\n" );
     exit( EXIT_FAILURE );  
 }
 
-/* libyt API, call the Python function with input arguments. */
-if ( yt_inline_argument( "yt_inline_ProjectionPlot", 1, "\'density\'" ) != YT_SUCCESS ){
-    fprintf( stderr, "ERROR: yt_inline_argument() failed!\n" );  
+/* libyt API: run yt_inline_ProjectionPlot('density', a, 1). */
+if ( yt_run_FunctionArguments( "yt_inline_ProjectionPlot", 2, "\'density\'", "a", "1" ) != YT_SUCCESS ){
+    fprintf( stderr, "ERROR: yt_run_FunctionArguments() failed!\n" );  
     exit( EXIT_FAILURE );  
 }
 ```

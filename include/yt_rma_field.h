@@ -28,11 +28,11 @@ class yt_rma_field
 {
 private:
 
-	MPI_Win  m_Window;
-	char    *m_FieldName;
-    char    *m_FieldDefineType;
-    int      m_FieldIndex;
-    bool     m_FieldSwapAxes;
+	MPI_Win      m_Window;
+	const char  *m_FieldName;
+    const char  *m_FieldDefineType;
+    int          m_FieldIndex;
+    bool         m_FieldSwapAxes;
 
 	std::vector<yt_rma_grid_info> m_Prepare;
     std::vector<void*> m_PrepareData;
@@ -45,7 +45,7 @@ private:
     std::vector<void*> m_FetchedData;
 
 public:
-    yt_rma_field(char* fname, int len_prepare, long len_get_grid);
+    yt_rma_field(const char* fname, int len_prepare, long len_get_grid);
 	~yt_rma_field();
 
     // OpenMPI RMA operation
@@ -53,7 +53,7 @@ public:
     int gather_all_prepare_data(int root);
     int fetch_remote_data(long& gid, int& rank);
     int clean_up();
-    int get_fetched_data(long *gid, char **fname, yt_dtype *data_dtype, int (*data_dim)[3], void **data_ptr);
+    int get_fetched_data(long *gid, const char **fname, yt_dtype *data_dtype, int (*data_dim)[3], void **data_ptr);
 };
 
 #endif // #ifndef __YT_RMA_FIELD_H__

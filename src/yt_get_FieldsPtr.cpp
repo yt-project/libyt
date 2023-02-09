@@ -2,10 +2,10 @@
 #include "libyt.h"
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_get_fieldsPtr
+// Function    :  yt_get_FieldsPtr
 // Description :  Get pointer of the array of struct yt_field with length num_fields.
 //
-// Note        :  1. User should call this function after yt_set_parameter(), since we allocate field_list
+// Note        :  1. User should call this function after yt_set_Parameters(), since we allocate field_list
 //                   there.
 //
 // Parameter   :  yt_field **field_list  : Initialize and store the field list array under this pointer 
@@ -14,20 +14,20 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 //
-int yt_get_fieldsPtr( yt_field **field_list )
+int yt_get_FieldsPtr( yt_field **field_list )
 {
 #ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_get_fieldsPtr", 0);
+    g_timer->record_time("yt_get_FieldsPtr", 0);
 #endif
 
 	// check if libyt has been initialized
    	if ( !g_param_libyt.libyt_initialized ){
-    	YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
+    	YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    	}
 
-	// check if yt_set_parameter() have been called
+	// check if yt_set_Parameters() have been called
    	if ( !g_param_libyt.param_yt_set ) {
-    	YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
+    	YT_ABORT( "Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__ );
     }
 
     // check if num_fields > 0, if not, field_list won't be initialized
@@ -46,7 +46,7 @@ int yt_get_fieldsPtr( yt_field **field_list )
 	log_info( "Getting pointer to field list information  ... done.\n" );
 
 #ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_get_fieldsPtr", 1);
+    g_timer->record_time("yt_get_FieldsPtr", 1);
 #endif
 
 	return YT_SUCCESS;

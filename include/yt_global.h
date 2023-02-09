@@ -11,7 +11,7 @@
 
 
 // convenient macros for defining and declaring global variables
-// ==> predefine DEFINE_GLOBAL in the file actually **defines** these global variables (e.g., yt_init.cpp)
+// ==> predefine DEFINE_GLOBAL in the file actually **defines** these global variables (e.g., yt_initialize.cpp)
 // ==> there should be one and only one file that defines DEFINE_GLOBAL
 
 // SET_GLOBAL will invoke SET_GLOBAL_INIT or SET_GLOBAL_NOINIT depending on the number of arguments
@@ -32,6 +32,13 @@
 // include relevant headers
 #include "yt_type.h"
 
+#ifdef INTERACTIVE_MODE
+#include "func_status_list.h"
+#endif
+
+#ifdef SUPPORT_TIMER
+#include "Timer.h"
+#endif
 
 // add the prefix "g_" for all global C variables
 SET_GLOBAL( yt_param_libyt, g_param_libyt           );   // libyt runtime parameters
@@ -43,6 +50,12 @@ SET_GLOBAL( int,            g_myrank                );   // My current MPI rank
 
 SET_GLOBAL( int,            g_mysize                );   // My current MPI size
 
+#ifdef INTERACTIVE_MODE
+
+SET_GLOBAL( func_status_list,  g_func_status_list, func_status_list(10) );   // Inline function status list (default 10)
+
+#endif
+
 // user-defined MPI data type
 SET_GLOBAL( MPI_Datatype,   yt_long_mpi_type              );
 
@@ -53,16 +66,18 @@ SET_GLOBAL( MPI_Datatype,   yt_rma_grid_info_mpi_type     );
 SET_GLOBAL( MPI_Datatype,   yt_rma_particle_info_mpi_type );
 
 #ifdef SUPPORT_TIMER
-#include "Timer.h"
 SET_GLOBAL( Timer,         *g_timer,          NULL  );   // Timer for recording performance.
 #endif // #ifdef SUPPORT_TIMER
 
 // add the prefix "g_py_" for all global Python objects
 #ifndef NO_PYTHON
-SET_GLOBAL( PyObject,      *g_py_grid_data,   NULL  );   // Python dictionary to store grid data
-SET_GLOBAL( PyObject,      *g_py_hierarchy,   NULL  );   // Python dictionary to store hierachy information
-SET_GLOBAL( PyObject,      *g_py_param_yt,    NULL  );   // Python dictionary to store YT parameters
-SET_GLOBAL( PyObject,      *g_py_param_user,  NULL  );   // Python dictionary to store code-specific parameters
+SET_GLOBAL( PyObject,      *g_py_grid_data,        NULL  );   // Python dictionary to store grid data
+SET_GLOBAL( PyObject,      *g_py_hierarchy,        NULL  );   // Python dictionary to store hierachy information
+SET_GLOBAL( PyObject,      *g_py_param_yt,         NULL  );   // Python dictionary to store YT parameters
+SET_GLOBAL( PyObject,      *g_py_param_user,       NULL  );   // Python dictionary to store code-specific parameters
+#ifdef INTERACTIVE_MODE
+SET_GLOBAL( PyObject,      *g_py_interactive_mode, NULL  );   // Python dictionary to store interactive_mode stuff
+#endif
 #endif
 
 

@@ -6,12 +6,12 @@ name: build-test
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master ]
+    branches: [ main ]
     paths-ignore:
       - 'doc/**'
       - '**.md'
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
     paths-ignore:
       - 'doc/**'
       - '**.md'
@@ -117,4 +117,4 @@ jobs:
           cd $GITHUB_WORKSPACE/example
           make clean
           make
-          mpirun -np 3 ./example
+          OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./example

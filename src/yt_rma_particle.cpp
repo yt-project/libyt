@@ -9,43 +9,41 @@
 //
 // Notes       :  1. Initialize m_Window, which used inside OpenMPI RMA operation. And set m_Window info
 //                   to "no_locks".
-//                2. Copy the input ptype to m_ParticleType and attribute to m_AttributeName, in case
-//                   it is freed.
+//                2. Assume the lifetime of par_type and attr_name cover the in situ analysis process,
+//                   libyt only borrows their names and does not make a copy.
 //                3. Find particle and its attribute index inside particle_list and assign to
 //                   m_ParticleIndex and m_AttributeIndex. We assume that we can always find them.
 //                4. Grab the data type of the attribute, and store in m_AttributeDataType.
 //                5. Set the std::vector capacity.
 //
-// Arguments   :  char*       ptype: Particle type.
-//                char*   attribute: Attribute name.
-//                int   len_prepare: Number of grid to prepare.
-//                long      len_get: Number of grid to get.
+// Arguments   :  const char*     ptype: Particle type.
+//                const char* attribute: Attribute name.
+//                int       len_prepare: Number of grid to prepare.
+//                long          len_get: Number of grid to get.
 //-------------------------------------------------------------------------------------------------------
-yt_rma_particle::yt_rma_particle(char *ptype, char *attribute, int len_prepare, long len_get)
- : m_LenAllPrepare(0), m_ParticleIndex(-1), m_AttributeIndex(-1)
+yt_rma_particle::yt_rma_particle(const char *ptype, const char *attribute, int len_prepare, long len_get)
+ : m_ParticleIndex(-1), m_AttributeIndex(-1), m_LenAllPrepare(0)
 {
     // Initialize m_Window and set info to "no_locks".
     MPI_Info windowInfo;
     MPI_Info_create( &windowInfo );
     MPI_Info_set( windowInfo, "no_locks", "true" );
-    MPI_Win_create_dynamic( windowInfo, MPI_COMM_WORLD, &m_Window );
+    int mpi_return_code = MPI_Win_create_dynamic( windowInfo, MPI_COMM_WORLD, &m_Window );
     MPI_Info_free( &windowInfo );
 
-    // Copy input ptype and attribute.
-    int len = strlen(ptype);
-    m_ParticleType = new char [len+1];
-    strcpy(m_ParticleType, ptype);
+    if (mpi_return_code != MPI_SUCCESS) {
+        log_error("yt_rma_particle: create one-sided MPI (RMA) window failed!\n");
+        log_error("yt_rma_particle: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
+    }
 
-    len = strlen(attribute);
-    m_AttributeName = new char [len+1];
-    strcpy(m_AttributeName, attribute);
-
-    for(int v = 0; v < g_param_yt.num_species; v++){
-        if( strcmp(m_ParticleType, g_param_yt.particle_list[v].species_name) == 0 ){
+    for(int v = 0; v < g_param_yt.num_par_types; v++){
+        if( strcmp(ptype, g_param_yt.particle_list[v].par_type) == 0 ){
+            m_ParticleType  = g_param_yt.particle_list[v].par_type;
             m_ParticleIndex = v;
             for(int a = 0; a < g_param_yt.particle_list[v].num_attr; a++) {
-                if( strcmp(m_AttributeName, g_param_yt.particle_list[v].attr_list[a].attr_name) == 0 ){
-                    m_AttributeIndex = a;
+                if( strcmp(attribute, g_param_yt.particle_list[v].attr_list[a].attr_name) == 0 ){
+                    m_AttributeName     = g_param_yt.particle_list[v].attr_list[a].attr_name;
+                    m_AttributeIndex    = a;
                     m_AttributeDataType = g_param_yt.particle_list[v].attr_list[a].attr_dtype;
                     break;
                 }
@@ -68,7 +66,7 @@ yt_rma_particle::yt_rma_particle(char *ptype, char *attribute, int len_prepare, 
 // Class       :  yt_rma_particle
 // Method      :  Destructor
 //
-// Notes       :  1. Free m_ParticleType, m_AttributeName, m_Window.
+// Notes       :  1. Free m_Window.
 //                2. Clear m_Fetched and m_FetchedData, even though it is already empty.
 //
 // Arguments   :  None
@@ -76,8 +74,6 @@ yt_rma_particle::yt_rma_particle(char *ptype, char *attribute, int len_prepare, 
 yt_rma_particle::~yt_rma_particle()
 {
     MPI_Win_free(&m_Window);
-    delete [] m_ParticleType;
-    delete [] m_AttributeName;
     m_Fetched.clear();
     m_FetchedData.clear();
     log_debug("yt_rma_particle: Destructor called.\n");
@@ -86,7 +82,7 @@ yt_rma_particle::~yt_rma_particle()
 //-------------------------------------------------------------------------------------------------------
 // Class       :  yt_rma_particle
 // Method      :  prepare_data
-// Description :  Prepare particle data in grid = gid and species_name = m_ParticleType, then attach
+// Description :  Prepare particle data in grid = gid and par_type = m_ParticleType, then attach
 //                particle data to m_Window and get the address.
 //
 // Notes       :  1. Prepare the particle data in grid = gid, and attach particle data to m_Window.
@@ -103,10 +99,10 @@ int yt_rma_particle::prepare_data(long& gid)
 {
     // Make sure particle type and its attribute name exist.
     if( m_ParticleIndex == -1 ){
-        YT_ABORT("yt_rma_particle: Cannot find species name [ %s ] in particle_list on MPI rank [ %d ].\n", m_ParticleType, g_myrank);
+        YT_ABORT("yt_rma_particle: Cannot find particle type [ %s ] in particle_list on MPI rank [ %d ].\n", m_ParticleType, g_myrank);
     }
     if( m_AttributeIndex == -1 ){
-        YT_ABORT("yt_rma_particle: Cannot find attribute name [ %s ] in species name [ %s ] on MPI rank [ %d ].\n",
+        YT_ABORT("yt_rma_particle: Cannot find attribute name [ %s ] in particle type [ %s ] on MPI rank [ %d ].\n",
                  m_AttributeName, m_ParticleType, g_myrank);
     }
 
@@ -126,15 +122,15 @@ int yt_rma_particle::prepare_data(long& gid)
     }
 
     // Generate particle data
-    void (*get_attr) (int, long*, char*, yt_array*);
-    get_attr = g_param_yt.particle_list[m_ParticleIndex].get_attr;
-    if( get_attr == NULL ){
-        YT_ABORT("yt_rma_particle: In species [%s], get_attr not set!\n", m_ParticleType);
+    void (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*);
+    get_par_attr = g_param_yt.particle_list[m_ParticleIndex].get_par_attr;
+    if( get_par_attr == NULL ){
+        YT_ABORT("yt_rma_particle: Particle type [%s], get_par_attr not set!\n", m_ParticleType);
     }
 
     int dtype_size;
     if ( get_dtype_size(m_AttributeDataType, &dtype_size) != YT_SUCCESS ){
-        YT_ABORT("yt_rma_particle: In species [%s] attribute [%s], unknown yt_dtype.\n", m_ParticleType, m_AttributeName);
+        YT_ABORT("yt_rma_particle: Particle type [%s] attribute [%s], unknown yt_dtype.\n", m_ParticleType, m_AttributeName);
     }
 
     void *data_ptr;
@@ -146,10 +142,13 @@ int yt_rma_particle::prepare_data(long& gid)
         yt_array data_array[1];
         data_array[0].gid = gid; data_array[0].data_length = par_info.data_len; data_array[0].data_ptr = data_ptr;
 
-        (*get_attr) (list_len, list_gid, m_AttributeName, data_array);
+        (*get_par_attr) (list_len, list_gid, m_ParticleType, m_AttributeName, data_array);
 
         // Attach buffer to window.
-        if( MPI_Win_attach(m_Window, data_ptr, par_info.data_len * dtype_size ) != MPI_SUCCESS ){
+        int mpi_return_code = MPI_Win_attach(m_Window, data_ptr, par_info.data_len * dtype_size );
+        if (mpi_return_code != MPI_SUCCESS) {
+            log_error("yt_rma_particle: attach data buffer to one-sided MPI (RMA) window failed!\n");
+            log_error("yt_rma_particle: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\"\n");
             YT_ABORT("yt_rma_particle: Attach particle [%s] attribute [%s] to window failed!\n",
                      m_ParticleType, m_AttributeName);
         }
@@ -336,7 +335,7 @@ int yt_rma_particle::clean_up()
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_rma_particle::get_fetched_data(long *gid, char **ptype, char **attribute, yt_dtype *data_dtype, long *data_len, void **data_ptr)
+int yt_rma_particle::get_fetched_data(long *gid, const char **ptype, const char **attribute, yt_dtype *data_dtype, long *data_len, void **data_ptr)
 {
     // Check if there are left fetched data to get.
     if( m_Fetched.size() == 0 ){
