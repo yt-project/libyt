@@ -131,8 +131,7 @@ int func_status_list::add_new_func(const char *func_name, int run) {
 
     // add func_name, since it adds to the end, its index is equal to original size
     index = size();
-    func_status new_func(func_name, run);
-    m_FuncStatusList.push_back(new_func);
+    m_FuncStatusList.emplace_back(func_name, run);
 
     return index;
 }
@@ -144,8 +143,9 @@ int func_status_list::add_new_func(const char *func_name, int run) {
 //
 // Notes       :  1. This is a collective call. It executes new added functions that haven't run by
 //                   yt_run_Function/yt_run_FunctionArguments yet.
-//                2. Only supports function that don't have input arguments. It runs function func() in
-//                   Python.
+//                2. How this method runs python function is identical to yt_run_Function*. It use
+//                   PyRun_SimpleString.
+//                3. Get input arguments from func_status.m_Args if it has.
 //
 // Arguments   :  None
 //
@@ -157,25 +157,24 @@ int func_status_list::run_func() {
         int status = m_FuncStatusList[i].get_status();
         if (run == 1 && status == -1) {
             // command
-            char *funcname = m_FuncStatusList[i].get_func_name();
-            int command_width = 150 + strlen(g_param_libyt.script) + strlen(funcname) * 2;
+            const char *funcname = m_FuncStatusList[i].get_func_name();
+            int command_width = 300 + strlen(g_param_libyt.script) + strlen(funcname) * 2;
             char *command = (char*) malloc(command_width * sizeof(char));
             sprintf(command, "try:\n"
-                             "    %s(%s)\n"
+                             "    exec(\"%s(%s)\", sys.modules[\"%s\"].__dict__)\n"
                              "except Exception as e:\n"
                              "    libyt.interactive_mode[\"func_err_msg\"][\"%s\"] = traceback.format_exc()\n",
-                             funcname, m_FuncStatusList[i].get_args().c_str(), funcname);
+                             funcname, m_FuncStatusList[i].get_args().c_str(), g_param_libyt.script, funcname);
 
             // run and update status
+            log_info("Performing YT inline analysis %s(%s) ...\n", funcname, m_FuncStatusList[i].get_args().c_str());
             m_FuncStatusList[i].set_status(-2);
-
-            PyObject *global_var = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
-            PyObject *py_src = Py_CompileString(command, "", Py_single_input);
-            PyObject *py_dum = PyEval_EvalCode(py_src, global_var, global_var);
-            Py_XDECREF(py_src);
-            Py_XDECREF(py_dum);
-            
+            if (PyRun_SimpleString(command) != 0) {
+                m_FuncStatusList[i].set_status(0);
+                YT_ABORT("Invoking \"%s(%s)\" ... failed\n", funcname, m_FuncStatusList[i].get_args().c_str());
+            }
             m_FuncStatusList[i].get_status();
+            log_info("Performing YT inline analysis %s(%s) ... done\n", funcname, m_FuncStatusList[i].get_args().c_str());
 
             // clean up
             free(command);
@@ -282,11 +281,11 @@ int func_status_list::load_input_func_body(char *code) {
     while (true) {
         std::size_t found = code_str.find('\n', start_pos);
         if (found != std::string::npos) {
-            command_str = command_str + "    ";
+            command_str += "    ";
             for (std::size_t c=start_pos; c<found; c++) {
-                command_str = command_str + code_str[c];
+                command_str += code_str[c];
             }
-            command_str = command_str + "\n";
+            command_str += "\n";
         }
         else {
             break;
@@ -377,21 +376,20 @@ std::vector<std::string> func_status_list::get_funcname_defined(const char *file
 // Notes         :  1. This is a static method.
 //                  2. Makes MPI not invoke MPI_Abort when getting errors in Python in interactive mode.
 //                  3. Can only be called after libyt is initialized.
-//                  4. todo: use g_myrank instead of import mpi4py
 //
 // Arguments     :  None
 //
 // Return        :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::set_exception_hook() {
-    const char *command = "import sys\n"
-                          "def mpi_libyt_interactive_mode_excepthook(exception_type, exception_value, tb):\n"
-                          "    from mpi4py import MPI\n"
-                          "    myrank = MPI.COMM_WORLD.Get_rank()\n"
-                          "    traceback.print_tb(tb)\n"
-                          "    print(\"[YT_ERROR  ] {}: {}\".format(exception_type.__name__, exception_value))\n"
-                          "    print(\"[YT_ERROR  ] Error occurred on rank {}.\".format(myrank))\n"
-                          "sys.excepthook = mpi_libyt_interactive_mode_excepthook\n";
+    char command[600];
+    sprintf(command, "import sys\n"
+                     "def mpi_libyt_interactive_mode_excepthook(exception_type, exception_value, tb):\n"
+                     "    traceback.print_tb(tb)\n"
+                     "    print(\"[YT_ERROR  ] {}: {}\".format(exception_type.__name__, exception_value))\n"
+                     "    print(\"[YT_ERROR  ] Error occurred on rank {}.\".format(%d))\n"
+                     "sys.excepthook = mpi_libyt_interactive_mode_excepthook\n", g_myrank);
+
     if (PyRun_SimpleString(command) == 0) return YT_SUCCESS;
     else return YT_FAIL;
 }

@@ -24,7 +24,8 @@
 //                                      -2 -> running
 //                2. Separate storing actual python source code in libyt.interactive_mode["func_body"].
 //
-// Arguments   :  char    *func_name: inline function name
+// Arguments   :  const char *func_name: inline function name
+//                int         run      : will run in next iteration or not
 //-------------------------------------------------------------------------------------------------------
 func_status::func_status(const char *func_name, int run)
 : m_Args(""), m_Run(run), m_Status(-1)
@@ -44,7 +45,6 @@ func_status::func_status(const char *func_name, int run)
 //                   g_func_status_list vector, which makes a copy.
 //                   Although we can replace it to store class's pointer, I don't want to access through
 //                   arrow.
-//                2. todo: use emplace_back instead of push_back.
 //
 // Arguments   :  const func_status& other
 //-------------------------------------------------------------------------------------------------------

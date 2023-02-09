@@ -210,7 +210,7 @@ int define_command::load_script(const char *filename) {
     // get function list defined inside the script, add the function name to list if it doesn't exist
     // and set to idle
     std::vector<std::string> func_list = func_status_list::get_funcname_defined(filename);
-    for (int i=0; i<func_list.size(); i++) {
+    for (int i=0; i<(int)func_list.size(); i++) {
         g_func_status_list.add_new_func(func_list[i].c_str(), 0);
     }
 
@@ -298,7 +298,7 @@ int define_command::set_func_run(const char *funcname, bool run, std::vector<std
 
         // update input args in func_status
         std::string args("");
-        for (int i=2; i<arg_list.size(); i++) {
+        for (int i=2; i<(int)arg_list.size(); i++) {
             args = args + arg_list[i] + " ,";
         }
         args.pop_back();

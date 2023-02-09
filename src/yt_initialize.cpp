@@ -74,11 +74,6 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
     // import libyt and inline python script.
     if (init_libyt_module() == YT_FAIL) return YT_FAIL;
 
-#ifdef INTERACTIVE_MODE
-    if (func_status_list::set_exception_hook() == YT_FAIL) return YT_FAIL;
-    if (func_status_list::init_not_done_err_msg() != YT_SUCCESS ) return YT_FAIL;
-#endif
-
     // Initialize general info: mpi size and rank ...
     init_general_info();
 
@@ -87,6 +82,12 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
     init_yt_hierarchy_mpi_type();
     init_yt_rma_grid_info_mpi_type();
     init_yt_rma_particle_info_mpi_type();
+
+    // set python exception hook and set not-yet-done error msg
+#ifdef INTERACTIVE_MODE
+    if (func_status_list::set_exception_hook() == YT_FAIL) return YT_FAIL;
+    if (func_status_list::init_not_done_err_msg() != YT_SUCCESS ) return YT_FAIL;
+#endif
 
     g_param_libyt.libyt_initialized = true;
 
