@@ -1,7 +1,7 @@
 # Set Particles Information
-## yt\_get\_particlesPtr
+## yt\_get\_ParticlesPtr
 ```cpp
-int yt_get_particlesPtr( yt_particle **particle_list );
+int yt_get_ParticlesPtr( yt_particle **particle_list );
 ```
 - Usage: Get the `yt_particle` array pointer where `libyt` access particles information from. Each MPI rank should call this function and fill them in. If you don't have any particles, then skip this.
 - Return: `YT_SUCCESS` or `YT_FAIL`
@@ -9,53 +9,59 @@ int yt_get_particlesPtr( yt_particle **particle_list );
 > :warning: Every MPI rank must call this API and fill in the particle information in the same order. We do not broadcast and sync information here.
 
 ## yt\_particle
-- `species_name`
-  - Usage: Name of the particle type. `libyt` links your input [`species_list`](./SetYTParameter.md#yt_param_yt)'s data member `species_name` to this variable. You don't need to assign it again. 
-- `num_attr`
-  - Usage: Number of attributes does this particle type has. `libyt` will assign your input [`species_list`](./SetYTParameter.md#yt_param_yt)'s data member `num_attr` to this variable. You may skip this.
-- `attr_list`
-  - Usage: Attribute list of this particle. This is a `yt_attribute` array.
-  - Valid Value: Each element in `yt_attribute` array should have
-    - `attr_name` (Default=`NULL`)
-      - Usage: Attribute name. The lifespan of this variable should at least cover `yt_inline` and `yt_inline_argument` API, which is when [Perform Inline-Analysis](./PerformInlineAnalysis.md).
-    - `attr_dtype` (Default=`YT_DOUBLE`)
+- `const char* par_type` (set by `libyt`)
+  - Usage: Name of the particle type. `libyt` copies the pointer from [`par_type_list`](./SetYTParameter.md#yt_param_yt)'s data member `par_type` to this variable. You don't need to assign it again. 
+- `int num_attr` (set by `libyt`)
+  - Usage: Number of attributes does this particle type has. `libyt` will assign your input [`par_type_list`](./SetYTParameter.md#yt_param_yt)'s data member `num_attr` to this variable. You may skip this.
+- `yt_attribute* attr_list` (initialized by `libyt`)
+  - Usage: Attribute list of this particle. This is a `yt_attribute` array with length `num_attr`.
+  - Data member in `yt_attribute`:
+    - `const char* attr_name` (Default=`NULL`)
+      - Usage: Attribute name.
+      > :pencil2: The lifetime of `attr_name` should cover in situ analysis process. `libyt` only borrows this variable and does not make a copy.
+    - `yt_dtype attr_dtype` (Default=`YT_DOUBLE`)
       - Usage: Attribute’s data type.
-      - Valide Value: 
+      - Valid Value for `yt_dtype`: 
         - `YT_FLOAT`: C type float.
         - `YT_DOUBLE`: C type double.
         - `YT_INT`: C type int. 
         - `YT_LONG`: C type long.
-    - `attr_unit` (Default=`""`)
+    - `const char* attr_unit` (Default=`""`)
       - Usage: Unit of the attribute, using `yt` unit system.
-    - `num_attr_name_alias` (Default=`0`)
+      > :pencil2: The lifetime of `attr_unit` should cover [`yt_commit`](./CommitYourSettings.md#ytcommit).
+    - `int num_attr_name_alias` (Default=`0`)
       - Usage: Number of name aliases.
-    - `attr_name_alias` (Default=`NULL`)
+    - `const char **attr_name_alias` (Default=`NULL`)
       - Usage: A list of name aliases.
-    - `attr_display_name` (Default=`NULL`)
+      > :pencil2: The lifetime of `attr_name_alias` should cover [`yt_commit`](./CommitYourSettings.md#ytcommit).
+    - `const char *attr_display_name` (Default=`NULL`)
       - Usage: Display name on the output figure. If it is not set, then it will use `attr_name` instead.
-- `coor_x`, `coor_y`, `coor_z` (Default=`NULL`)
+      > :pencil2: The lifetime of `attr_display_name` should cover [`yt_commit`](./CommitYourSettings.md#ytcommit).
+- `const char *coor_x, *coor_y, *coor_z` (Default=`NULL`)
   - Usage: Attribute name representing coordinate or position x, y, and z.
-- `get_attr` (Default=`NULL`)
+  > :pencil2: The lifetime of `coor_x`, `coor_y`, `coor_z` should cover the in situ analysis process. `libyt` only borrows these names and does not make a copy.
+- `void (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*)` (Default=`NULL`)
   - Usage: Function pointer to get particle’s attribute.
 
-> :information_source: `libyt` borrows the full field information class (`class XXXFieldInfo`) from [`frontend`](./SetYTParameter.md#yt_param_yt). It is OK not to set a field's `attr_unit`, `num_attr_name_alias`, `attr_name_alias`, `attr_display_name`, if this `attr_name` is already inside your frontend.
+> :information_source: `libyt` borrows the full field and particle information class (`class XXXFieldInfo`) from [`frontend`](./SetYTParameter.md#yt_param_yt). It is OK not to set a particle's `attr_unit`, `num_attr_name_alias`, `attr_name_alias`, `attr_display_name`, if this `attr_name` is already inside your frontend.
 > If you are adding a totally new particle attribute, please add them. `libyt` will add these new attributes information alongside with your original one.
 
 ## Get Attribute Function
-For each particle type, there should be one get attribute function `get_attr`. This function is able to write particle attribute to an array, just through knowing the grid id and attribute name.
+For each particle type, there should be one get particle attribute function `get_par_attr`. This function is able to write particle attribute to an array, just through knowing the grid id, particle type, and attribute name.
 
 Get particle attribute function must have a prototype like this:
-- `get_attr(int, long*, char*, yt_array*)`: generate particle attribute in that grid when input grid id and particle attribute name.
+- `get_par_attr(const int, const long*, const char*, const char*, yt_array*)`: generate particle attribute in that grid when input grid id, particle type, and particle attribute name.
 
   ```cpp
-  void GetAttr(int list_len, long *list_gid, char *attr_name, yt_array *data_array);
+  void GetAttr(const int list_len, const long *list_gid, const char *par_type, const char *attr_name, yt_array *data_array);
   ```
-  - `int list_len`: number of gid in `list_gid`.
-  - `long *list_gid`: prepare particle data inside the list.
-  - `char *attr_name`: target attribute to get.
+  - `const int list_len`: number of grid id in `list_gid`.
+  - `const long *list_gid`: prepare particle data inside the grid id in this list.
+  - `const char *par_type`: target particle type to prepare.
+  - `const char *attr_name`: target attribute to prepare.
   - `yt_array *data_array`: write generated particle data to the pointer in this array correspondingly. See below for how to fill in data.
 
-Fill in particle attribute inside `yt_array` array according to grid id.
+Fill in particle attribute inside `yt_array` array using the same order as in `list_gid`.
 - `yt_array`
   - Usage: a struct used in derived function and get particle attribute function.
   - Data Member:
@@ -66,17 +72,17 @@ Fill in particle attribute inside `yt_array` array according to grid id.
 > :warning: You should always write your particle data in the same order, since we get attributes separately.
 
 ## Example
-`par_io_get_attr` function gets particle `io` attributes. This particle type has position at the center of the grid it belongs to with int value grid level.
+`par_io_get_par_attr` function gets particle type `io` attributes. This particle type has position at the center of the grid it belongs to with value grid level (int).
 ```cpp
 int main(){
     ...
     /* libyt API. */
     yt_particle *particle_list;  
-    yt_get_particlesPtr( &particle_list );
+    yt_get_ParticlesPtr( &particle_list );
     
     /* This particle "io" has 4 attributes (position X/Y/Z and level). */
-    char *attr_name[]  = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
-    char *attr_name_alias[] = {"grid_level"};
+    const char *attr_name[]  = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
+    const char *attr_name_alias[] = {"grid_level"};
     for ( int v=0; v < 4; v++ ){
         particle_list[0].attr_list[v].attr_name  = attr_name[v];
         if ( v == 3 ){  
@@ -97,10 +103,10 @@ int main(){
     particle_list[0].coor_z = attr_name[2];
     
     /* Fill in get attribute function pointer. */
-    particle_list[0].get_attr = par_io_get_attr;
+    particle_list[0].get_par_attr = par_io_get_par_attr;
 }
 
-void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array) {
+void par_io_get_par_attr(const int list_len, const long *gid_list, const char *par_type, const char *attribute, yt_array *data_array) {
     // loop over gid_list, and fill in particle attribute data inside data_array.
     for (int lid = 0; lid < list_len; lid++) {
         // =============================================================
