@@ -282,11 +282,11 @@ int func_status_list::load_input_func_body(char *code) {
     while (true) {
         std::size_t found = code_str.find('\n', start_pos);
         if (found != std::string::npos) {
-            command_str = command_str + "    ";
+            command_str += "    ";
             for (std::size_t c=start_pos; c<found; c++) {
-                command_str = command_str + code_str[c];
+                command_str += code_str[c];
             }
-            command_str = command_str + "\n";
+            command_str += "\n";
         }
         else {
             break;
