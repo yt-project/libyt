@@ -1,5 +1,5 @@
 # libyt
-[![build-test](https://github.com/calab-ntu/libyt/actions/workflows/build-test.yml/badge.svg?branch=master)](https://github.com/calab-ntu/libyt/actions/workflows/build-test.yml)
+[![build-test](https://github.com/cindytsai/libyt/actions/workflows/build-test.yml/badge.svg?branch=master)](https://github.com/cindytsai/libyt/actions/workflows/build-test.yml)
 
 `libyt` is a C++ library for Python package [`yt`](https://yt-project.org/).  It aims to let simulation code uses [`yt`](https://yt-project.org/) to do inline-analysis, while the code is still running. In this way, we can skip the step of writing data to local disk first before doing any analysis. This greatly reduce the disk usage, and increase the temporal resolution.
 
