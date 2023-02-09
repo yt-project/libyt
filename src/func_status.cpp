@@ -45,7 +45,6 @@ func_status::func_status(const char *func_name, int run)
 //                   g_func_status_list vector, which makes a copy.
 //                   Although we can replace it to store class's pointer, I don't want to access through
 //                   arrow.
-//                2. todo: use emplace_back instead of push_back.
 //
 // Arguments   :  const func_status& other
 //-------------------------------------------------------------------------------------------------------
