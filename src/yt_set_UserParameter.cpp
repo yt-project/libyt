@@ -15,7 +15,7 @@ static const int MaxParamNameWidth = 15;
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_add_user_parameter
+// Function    :  yt_set_UserParameter*
 // Description :  Add code-specific parameters
 //
 // Note        :  1. All code-specific parameters are stored in "libyt.param_user"
@@ -31,13 +31,13 @@ static const int MaxParamNameWidth = 15;
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 
-int yt_add_user_parameter_int   ( const char *key, const int n, const int    *input ) { return add_nonstring( key, n, input ); }
-int yt_add_user_parameter_long  ( const char *key, const int n, const long   *input ) { return add_nonstring( key, n, input ); }
-int yt_add_user_parameter_uint  ( const char *key, const int n, const uint   *input ) { return add_nonstring( key, n, input ); }
-int yt_add_user_parameter_ulong ( const char *key, const int n, const ulong  *input ) { return add_nonstring( key, n, input ); }
-int yt_add_user_parameter_float ( const char *key, const int n, const float  *input ) { return add_nonstring( key, n, input ); }
-int yt_add_user_parameter_double( const char *key, const int n, const double *input ) { return add_nonstring( key, n, input ); }
-int yt_add_user_parameter_string( const char *key,              const char   *input ) { return add_string   ( key,    input ); }
+int yt_set_UserParameterInt   ( const char *key, const int n, const int    *input ) { return add_nonstring( key, n, input ); }
+int yt_set_UserParameterLong  ( const char *key, const int n, const long   *input ) { return add_nonstring( key, n, input ); }
+int yt_set_UserParameterUint  ( const char *key, const int n, const uint   *input ) { return add_nonstring( key, n, input ); }
+int yt_set_UserParameterUlong ( const char *key, const int n, const ulong  *input ) { return add_nonstring( key, n, input ); }
+int yt_set_UserParameterFloat ( const char *key, const int n, const float  *input ) { return add_nonstring( key, n, input ); }
+int yt_set_UserParameterDouble( const char *key, const int n, const double *input ) { return add_nonstring( key, n, input ); }
+int yt_set_UserParameterString( const char *key,              const char   *input ) { return add_string   ( key,    input ); }
 
 
 
@@ -50,7 +50,7 @@ static int add_nonstring( const char *key, const int n, const T *input )
 
 // check if libyt has been initialized
    if ( !g_param_libyt.libyt_initialized )
-      YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
+      YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
 
 
 // export data to libyt.param_user
@@ -87,7 +87,7 @@ static int add_string( const char *key, const char *input )
 
 // check if libyt has been initialized
    if ( !g_param_libyt.libyt_initialized )
-      YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
+      YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
 
 
 // export data to libyt.param_user

@@ -6,7 +6,7 @@
 // Description :  Add a single full grid to the libyt Python module
 //
 // Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data.
-//                2. Called and use by yt_commit_grids().
+//                2. Called and use by yt_commit().
 //
 // Parameter   :  yt_grid *grid
 //
@@ -36,8 +36,8 @@ int append_grid( yt_grid *grid ){
     FILL_ARRAY( "grid_parent_id",      &grid->parent_id,           1, npy_long   )
     FILL_ARRAY( "grid_levels",         &grid->level,               1, npy_int    )
     FILL_ARRAY( "proc_num",            &grid->proc_num,            1, npy_int    )
-    if ( g_param_yt.num_species > 0 ) {
-        FILL_ARRAY("particle_count_list", grid->particle_count_list, g_param_yt.num_species, npy_long)
+    if ( g_param_yt.num_par_types > 0 ) {
+        FILL_ARRAY("par_count_list", grid->par_count_list, g_param_yt.num_par_types, npy_long)
     }
 
     log_debug( "Inserting grid [%ld] info to libyt.hierarchy ... done\n", grid->id );
@@ -79,9 +79,9 @@ int append_grid( yt_grid *grid ){
 
         // (2) Get the dimension of the input array
         // Only "cell-centered" will be set to grid_dimensions + ghost cell, else should be set in data_dimensions.
-        if ( strcmp(g_param_yt.field_list[v].field_define_type, "cell-centered") == 0 ){
-            // Get grid_dimensions and consider swap_axes or not, since grid_dimensions is defined as [x][y][z].
-            if ( g_param_yt.field_list[v].swap_axes ){
+        if ( strcmp(g_param_yt.field_list[v].field_type, "cell-centered") == 0 ){
+            // Get grid_dimensions and consider contiguous_in_x or not, since grid_dimensions is defined as [x][y][z].
+            if ( g_param_yt.field_list[v].contiguous_in_x ){
                 for ( int d=0; d<3; d++ ) { (grid->field_data)[v].data_dimensions[d] = (grid->grid_dimensions)[2-d]; }
             }
             else{

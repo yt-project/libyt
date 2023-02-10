@@ -1,9 +1,13 @@
 # Inline Python Script
-The inline python script and the simulation executable should be placed in the same location. The script is only read once at the initialization stage and only one script can be loaded in a runtime, so user should put all their functions in one file. `libyt` will then call these Python functions in the runtime.
+The inline python script and the simulation executable should be placed in the same location. The script is only read once by `libyt` at the initialization stage and only one script can be loaded in the runtime, so user should put all their functions in one file. `libyt` will then call these python functions in the runtime.
+
+> :information_source: If we want to reload our script multiple times and make changes to python functions, please refer to [interactive mode](./ActivateInteractiveMode.md#activate-interactive-mode).
 
 - [Script Format](#script-format)
 - [Distinguish `libyt` Fields and `yt` Fields](#distinguish-libyt-fields-and-yt-fields)
 - [Supported `yt` Functionalities](#supported-yt-functionalities)
+
+
 
 ## Script Format
 You should always include the first two line, then move all the other commands into python functions and replace `yt.load()` to `yt.frontends.libyt.libytDataset()`. For example,

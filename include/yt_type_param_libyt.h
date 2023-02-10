@@ -16,20 +16,23 @@
 // Structure   :  yt_param_libyt
 // Description :  Data structure of libyt runtime parameters
 //
-// Data Member :  [public ] ==> Set by users when calling yt_init()
+// Notes       :  1. The lifetime of script should cover the whole in situ process in libyt.
+//
+// Data Member :  [public ] ==> Set by users when calling yt_initialize()
 //                verbose : Verbose level
 //                script  : Name of the YT inline analysis script (without the .py extension)
 //                counter : Number of rounds doing inline-analysis
 //                check_data: Check the input data (ex: hierarchy, grid information...), if it is true.
 //
-//                [private] ==> Set and used by libyt internally
-//                libyt_initialized           : true ==> yt_init() has been called successfully
-//                param_yt_set                : true ==> yt_set_parameter() has been called successfully
-//                get_fieldsPtr               : true ==> yt_get_fieldsPtr() has been called successfully
-//                get_particlesPtr            : true ==> yt_get_particlesPtr() has been called successfully
-//                get_gridsPtr                : true ==> yt_get_gridsPtr() has been called successfully
-//                commit_grids                : true ==> yt_commit_grids() has been called successfully
-//                free_gridsPtr               : true ==> yt_free_gridsPtr() has been called successfully, 
+//                [private] ==> Set and used by libyt internally. Don't touch these parts, since they will
+//                              be removed in the later update.
+//                libyt_initialized           : true ==> yt_initialize() has been called successfully
+//                param_yt_set                : true ==> yt_set_Parameters() has been called successfully
+//                get_fieldsPtr               : true ==> yt_get_FieldsPtr() has been called successfully
+//                get_particlesPtr            : true ==> yt_get_ParticlesPtr() has been called successfully
+//                get_gridsPtr                : true ==> yt_get_GridsPtr() has been called successfully
+//                commit_grids                : true ==> yt_commit() has been called successfully
+//                free_gridsPtr               : true ==> yt_free() has been called successfully,
 //                                                       everything is reset and freed.
 //
 // Method      :  yt_param_libyt : Constructor

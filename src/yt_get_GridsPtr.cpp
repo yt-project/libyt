@@ -2,11 +2,11 @@
 #include "libyt.h"
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_get_gridsPtr
+// Function    :  yt_get_GridsPtr
 // Description :  Get pointer of the array of struct yt_grid with length num_grids_local.
 //
-// Note        :  1. User should call this function after yt_set_parameter(), 
-//                   since we need num_grids_local, num_fields, and num_species.
+// Note        :  1. User should call this function after yt_set_Parameters(),
+//                   since we need num_grids_local, num_fields, and num_par_types.
 //                2. Initialize field_data in one grid with
 //                   (1) data_dimensions[3] = {0, 0, 0}
 //                   (2) data_ptr           = NULL
@@ -20,20 +20,20 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 //
-int yt_get_gridsPtr( yt_grid **grids_local )
+int yt_get_GridsPtr( yt_grid **grids_local )
 {
 #ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_get_gridsPtr", 0);
+    g_timer->record_time("yt_get_GridsPtr", 0);
 #endif
 
 	// check if libyt has been initialized
    	if ( !g_param_libyt.libyt_initialized ){
-    	YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );     	
+    	YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    	}
 
-	// check if yt_set_parameter() have been called
+	// check if yt_set_Parameters() have been called
    	if ( !g_param_libyt.param_yt_set ) {
-    	YT_ABORT( "Please invoke yt_set_parameter() before calling %s()!\n", __FUNCTION__ );
+    	YT_ABORT( "Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__ );
     }
 
     // check if num_grids_local > 0, if not, grids_local won't be initialized
@@ -62,15 +62,15 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 				(*grids_local)[id].field_data   = NULL;
 			}
 
-			// Dealing with particle_count
-			if ( g_param_yt.num_species > 0 ){
-				(*grids_local)[id].particle_count_list = new long [g_param_yt.num_species];
-				for ( int s = 0; s < g_param_yt.num_species; s++ ){
-					(*grids_local)[id].particle_count_list[s] = 0;
+			// Dealing with particle count
+			if ( g_param_yt.num_par_types > 0 ){
+				(*grids_local)[id].par_count_list = new long [g_param_yt.num_par_types];
+				for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
+					(*grids_local)[id].par_count_list[s] = 0;
 				}
 			}
 			else{
-				(*grids_local)[id].particle_count_list = NULL;
+				(*grids_local)[id].par_count_list = NULL;
 			}
 		}
 
@@ -89,7 +89,7 @@ int yt_get_gridsPtr( yt_grid **grids_local )
 	log_info( "Getting pointer to local grids information  ... done.\n" );
 
 #ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_get_gridsPtr", 1);
+    g_timer->record_time("yt_get_GridsPtr", 1);
 #endif
 
 	return YT_SUCCESS;

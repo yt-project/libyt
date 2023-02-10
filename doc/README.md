@@ -2,15 +2,16 @@
 This guide will walk you through how to implement `libyt` into your code. And how you can convert your everyday used `yt` script to do inline-analysis. 
 
 - Implement `libyt` to your code step by step
-  - [Initialize - `yt_init`](./Initialize.md#initialize)
-  - [Set `yt` Parameter - `yt_set_parameter`](./SetYTParameter.md#set-yt-parameter)
-  - [Set Code Specific Parameter - `yt_add_user_parameter_*`](./SetCodeSpecificParameter.md#set-code-specific-parameter)
-  - [Set Fields Information - `yt_get_fieldsPtr`](./SetFieldsInformation.md#set-fields-information)
-  - [Set Particles Information - `yt_get_particlesPtr`](./SetParticlesInformation.md#set-particles-information)
-  - [Set Local Grids Information - `yt_get_gridsPtr`](./SetLocalGridsInformation.md#set-local-grids-information)
-  - [Commit Your Settings - `yt_commit_grids`](./CommitYourSettings.md#commit-your-settings)
-  - [Perform Inline-Analysis - `yt_inline` and `yt_inline_argument`](./PerformInlineAnalysis.md#perform-inline-analysis)
-  - [Free Resource - `yt_free_gridsPtr`](./FreeResource.md#free-resource)
+  - [Initialize - `yt_initialize`](./Initialize.md#initialize)
+  - [Set `yt` Parameter - `yt_set_Parameters`](./SetYTParameter.md#set-yt-parameter)
+  - [Set Code Specific Parameter - `yt_set_UserParameter*`](./SetCodeSpecificParameter.md#set-code-or-user-specific-parameter)
+  - [Set Fields Information - `yt_get_FieldsPtr`](./SetFieldsInformation.md#set-fields-information)
+  - [Set Particles Information - `yt_get_ParticlesPtr`](./SetParticlesInformation.md#set-particles-information)
+  - [Set Local Grids Information - `yt_get_GridsPtr`](./SetLocalGridsInformation.md#set-local-grids-information)
+  - [Commit Your Settings - `yt_commit`](./CommitYourSettings.md#commit-your-settings)
+  - [Perform Inline-Analysis - `yt_run_Function` and `yt_run_FunctionArguments`](./PerformInlineAnalysis.md#perform-inline-analysis)
+  - [Activate Interactive Mode](./ActivateInteractiveMode.md#activate-interactive-mode) (Only availabe in interactive mode)
+  - [Free Resource - `yt_free`](./FreeResource.md#free-resource)
   - [Finalize - `yt_finalize`](./Finalize.md#finalize)
 - [Inline Python Script](./InlinePythonScript.md#inline-python-script)
 
@@ -30,28 +31,32 @@ This guide will walk you through how to implement `libyt` into your code. And ho
   <tbody>
     <tr>
       <td rowspan=1>Initialization</td>
-      <td>yt_init</td>
+      <td>yt_initialize</td>
       <td>Initialize embedded Python and import inline Python script.</td>
     </tr>
     <tr>
-      <td rowspan=5>Iteration</td>
-      <td>yt_set_parameter, yt_add_user_parameter_*</td>
+      <td rowspan=6>Iteration</td>
+      <td>yt_set_Parameters, yt_set_UserParameter*</td>
       <td>Set parameters.</td>
     </tr>
     <tr>
-      <td>yt_get_fieldsPtr, yt_get_particlesPtr, yt_get_gridsPtr</td>
-      <td>Set grids and particles information.</td>
+      <td>yt_get_FieldsPtr, yt_get_ParticlesPtr, yt_get_GridsPtr</td>
+      <td>Get fields, particles, and grids information array (ptr), and write in it.</td>
     </tr>
     <tr>
-      <td>yt_commit_grids</td>
-      <td>Tell liybt you're done.</td>
+      <td>yt_commit</td>
+      <td>Tell libyt you're done.</td>
     </tr>
     <tr>
-      <td>yt_inline, yt_inline_argument</td>
+      <td>yt_run_Function, yt_run_FunctionArguments</td>
       <td>Run Python functions.</td>
     </tr>
     <tr>
-      <td>yt_free_gridsPtr</td>
+      <td>yt_run_InteractiveMode (Only available in interactive mode)</td>
+      <td>Activate interactive prompt.</td>
+    </tr>
+    <tr>
+      <td>yt_free</td>
       <td>Free resources.</td>
     </tr>
     <tr>

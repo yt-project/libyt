@@ -5,8 +5,8 @@
 // Function    :  allocate_hierarchy
 // Description :  Fill the libyt.hierarchy dictionary with NumPy arrays allocated but uninitialized
 //
-// Note        :  1. Called by yt_set_parameter(), since it needs param_yt.num_grids.
-//                2. These NumPy array will be set when calling yt_commit_grids()
+// Note        :  1. Called by yt_set_Parameters(), since it needs param_yt.num_grids.
+//                2. These NumPy array will be set when calling yt_commit()
 //
 // Parameter   :  None
 //
@@ -20,7 +20,7 @@ int allocate_hierarchy()
 #endif
 
 // remove all key-value pairs if one wants to overwrite the existing dictionary
-// ==> it should happen only if one calls yt_set_parameter() more than once
+// ==> it should happen only if one calls yt_set_Parameters() more than once
    if ( PyDict_Size( g_py_hierarchy ) > 0 )
    {
       PyDict_Clear( g_py_hierarchy );
@@ -52,8 +52,8 @@ int allocate_hierarchy()
    ADD_DICT( 1, "grid_parent_id",      NPY_LONG   )
    ADD_DICT( 1, "grid_levels",         NPY_INT    )
    ADD_DICT( 1, "proc_num",            NPY_INT    )
-   if ( g_param_yt.num_species > 0 ) {
-       ADD_DICT( g_param_yt.num_species, "particle_count_list", NPY_LONG )
+   if ( g_param_yt.num_par_types > 0 ) {
+       ADD_DICT( g_param_yt.num_par_types, "par_count_list", NPY_LONG )
    }
 
 #  undef ADD_DICT

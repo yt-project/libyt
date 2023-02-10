@@ -5,41 +5,41 @@
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  yt_set_parameter
+// Function    :  yt_set_Parameters
 // Description :  Set YT-specific parameters
 //
 // Note        :  1. Store yt relavent data in input "param_yt" to libyt.param_yt. Note that not all the 
 //                   data are passed in to python. 
-//                   To avoid user free the passed in array species_list, we initialize particle_list 
-//                   (needs info from species_list) right away. If num_species > 0.
+//                   To avoid user free the passed in array par_type_list, we initialize particle_list
+//                   (needs info from par_type_list) right away. If num_par_types > 0.
 //                   To make loading field_list and particle_list more systematic, we will allocate both
-//                   field_list (if num_fields>0 ) and particle_list (if num_species>0) here.
-//                2. Should be called after yt_init().
+//                   field_list (if num_fields>0 ) and particle_list (if num_par_types>0) here.
+//                2. Should be called after yt_initialize().
 //                3. Check the validation of the data in param_yt.
 //                4. Initialize python hierarchy allocate_hierarchy() and particle_list.
-//                5. Gather each ranks number of local grids, we need this info in yt_commit_grid().
+//                5. Gather each ranks number of local grids, we need this info in yt_commit().
 //
 // Parameter   :  param_yt : Structure storing YT-specific parameters that will later pass to YT, and
 //                           other relavent data.
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_set_parameter( yt_param_yt *param_yt )
+int yt_set_Parameters( yt_param_yt *param_yt )
 {
 #ifdef SUPPORT_TIMER
    // start timer.
-   g_timer->record_time("yt_set_parameter", 0);
+   g_timer->record_time("yt_set_Parameters", 0);
 #endif
 
 // check if libyt has been initialized
    if ( !g_param_libyt.libyt_initialized ){
-      YT_ABORT( "Please invoke yt_init() before calling %s()!\n", __FUNCTION__ );
+      YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    }
 
 // check if libyt has free all the resource in previous inline-analysis
    if ( !g_param_libyt.free_gridsPtr ){
-      log_warning( "Please invoke yt_free_gridsPtr() before calling %s() for next iteration!\n", __FUNCTION__ );
-      YT_ABORT("Overwrite existing parameters may leads to memory leak, please called yt_free_gridsPtr() first!\n");
+      log_warning( "Please invoke yt_free() before calling %s() for next iteration!\n", __FUNCTION__ );
+      YT_ABORT("Overwrite existing parameters may leads to memory leak, please called yt_free() first!\n");
    }
 
    log_info( "Setting YT parameters ...\n" );
@@ -96,7 +96,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
    add_dict_scalar(  g_py_param_yt, "time_unit",               g_param_yt.time_unit               );
 
    if ( g_param_yt.magnetic_unit == DBL_UNDEFINED ){
-      add_dict_scalar(  g_py_param_yt, "magnetic_unit",          1                                 );
+      add_dict_scalar(  g_py_param_yt, "magnetic_unit",        1                                  );
    }
    else{
       add_dict_scalar(  g_py_param_yt, "magnetic_unit",        g_param_yt.magnetic_unit           );
@@ -133,14 +133,14 @@ int yt_set_parameter( yt_param_yt *param_yt )
    }
 
 
-// if num_species > 0, which means want to load particle
-   if ( g_param_yt.num_species > 0 ){
+// if num_par_types > 0, which means want to load particle
+   if ( g_param_yt.num_par_types > 0 ){
       // Initialize and setup yt_particle *particle_list in g_param_yt.particle_list,
-      // to avoid user freeing yt_species *species_list.
-      yt_particle *particle_list = new yt_particle [ g_param_yt.num_species ];
-      for ( int s = 0; s < g_param_yt.num_species; s++ ){
-         particle_list[s].species_name = g_param_yt.species_list[s].species_name;
-         particle_list[s].num_attr     = g_param_yt.species_list[s].num_attr;
+      // to avoid user freeing yt_par_type *par_type_list.
+      yt_particle *particle_list = new yt_particle [ g_param_yt.num_par_types ];
+      for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
+         particle_list[s].par_type     = g_param_yt.par_type_list[s].par_type;
+         particle_list[s].num_attr     = g_param_yt.par_type_list[s].num_attr;
          particle_list[s].attr_list    = new yt_attribute [ particle_list[s].num_attr ];
       }
       g_param_yt.particle_list   = particle_list;
@@ -170,7 +170,7 @@ int yt_set_parameter( yt_param_yt *param_yt )
    }
 
    // Gather num_grids_local in every rank and store at num_grids_local_MPI, with "MPI_Gather"
-   // We need num_grids_local_MPI in MPI_Gatherv in yt_commit_grids()
+   // We need num_grids_local_MPI in MPI_Gatherv in yt_commit()
    int NRank;
    int RootRank = 0;
    MPI_Comm_size(MPI_COMM_WORLD, &NRank);
@@ -194,9 +194,9 @@ int yt_set_parameter( yt_param_yt *param_yt )
 
 #ifdef SUPPORT_TIMER
    // end timer.
-   g_timer->record_time("yt_set_parameter", 1);
+   g_timer->record_time("yt_set_Parameters", 1);
 #endif
 
    return YT_SUCCESS;
 
-} // FUNCTION : yt_set_parameter
+} // FUNCTION : yt_set_Parameters

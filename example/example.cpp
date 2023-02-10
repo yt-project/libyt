@@ -4,21 +4,30 @@
     We assign grids to MPI processes randomly to simulate the actual code of having grid
     data on different ranks.
 
-    This is the procedure of libyt in-situ analysis process. If there is no fields,
-    particles, or grids information to set, we can skip those steps (step 4~6).
+    libyt has two modes, normal and interactive mode. Normal mode will shutdown all the 
+    process if there are errors during in situ analysis, while in interactive mode will 
+    not. Interactive mode also supports python prompt, where you can type in python 
+    statement and get feedback instantly. To use interactive mode, you need to compile 
+    libyt with -DINTERACTIVE_MODE flag.
 
-    Initialization        1. initialize libyt
+    This is the procedure of libyt in situ analysis process for both normal and interactive
+    mode. If there is no fields, particles, or grids information to set, we can skip those 
+    steps (step 4~6). 
+
+    Initialization        1.  initialize libyt
     ----------------------------------------------------------------------------------
-                          2. provide YT-specific parameters
-                          3. add code-specific parameters
-                          4. set field information
-    Iteration             5. set particle information
-    (In-Situ Analysis)    6. set grids information located on current MPI process
-                          7. done loading information
-                          8. call inline python function
-                          9. finish in-situ analysis, clean up libyt
+                          2.  provide YT-specific parameters
+                          3.  add code-specific parameters
+                          4.  set field information
+    Iteration             5.  set particle information
+    (In-Situ Analysis)    6.  set grids information located on current MPI process
+                          7.  done loading information
+                          8.  call inline python function
+                          9.  [optional] activate python prompt in interactive mode
+                              (Need to compile libyt with -DINTERACTIVE_MODE)
+                          10. finish in-situ analysis, clean up libyt
     ----------------------------------------------------------------------------------
-    Finalization         10. finalize libyt
+    Finalization         11. finalize libyt
 
 [Compile and Run]
     1. Compile libyt and move libyt.so.* library to lib directory.
@@ -37,7 +46,11 @@
 // ==========================================
 // libyt: 0. include libyt header
 // ==========================================
+// must include this for in situ process, no matter we are using interactive mode or not
 #include "libyt.h"
+
+// include this in interactive mode if we want to activate python prompt
+// #include "libyt_interactive_mode.h"
 
 
 // single or double precision in the field data
@@ -57,8 +70,8 @@ typedef double real;
 
 real set_density(const double x, const double y, const double z, const double t, const double v);
 void get_randArray(int *array, int length);
-void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array);
-void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array);
+void derived_func_InvDens(const int list_len, const long *gid_list, const char *field_name, yt_array *data_array);
+void par_io_get_par_attr(const int list_len, const long *gid_list, const char *par_type, const char *attribute, yt_array *data_array);
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -85,8 +98,8 @@ int main(int argc, char *argv[]) {
     param_libyt.script = "inline_script";                      // inline python script, excluding ".py"
     param_libyt.check_data = false;                            // check passed in data or not
 
-    if (yt_init(argc, argv, &param_libyt) != YT_SUCCESS) {
-        fprintf(stderr, "ERROR: yt_init() failed!\n");
+    if (yt_initialize(argc, argv, &param_libyt) != YT_SUCCESS) {
+        fprintf(stderr, "ERROR: yt_initialize() failed!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -103,7 +116,7 @@ int main(int argc, char *argv[]) {
     const double dh1 = dh0 / REFINE_BY;                       // cell size at level 1
     const int num_fields = 1;                                 // number of fields in simulation
     const int num_grids = CUBE(NGRID_1D) + CUBE(REFINE_BY);   // number of grids
-    const int num_species = 1;                                // number of particle types
+    const int num_par_types = 1;                              // number of particle types
 
     // simulation data stored in memory, there can be GHOST_CELL at the grid's boundary.
     yt_grid *sim_grids = new yt_grid [num_grids];
@@ -148,12 +161,12 @@ int main(int argc, char *argv[]) {
         param_yt.num_grids = num_grids;                       // number of grids
         param_yt.num_grids_local = num_grids_local;           // number of local grids
         param_yt.num_fields = num_fields + 1;                 // number of fields, addition one for derived field demo
-        param_yt.num_species = num_species;                   // number of particle types (or species)
+        param_yt.num_par_types = num_par_types;               // number of particle types (or species)
 
-        yt_species species_list[num_species];
-        species_list[0].species_name = "io";
-        species_list[0].num_attr = 4;
-        param_yt.species_list = species_list;                 // define name and number of attributes in each particle
+        yt_par_type par_type_list[num_par_types];
+        par_type_list[0].par_type = "io";
+        par_type_list[0].num_attr = 4;
+        param_yt.par_type_list = par_type_list;               // define name and number of attributes in each particle
 
         for (int d = 0; d < 3; d++) {
             param_yt.domain_dimensions[d] = NGRID_1D * GRID_DIM; // domain dimensions in [x][y][z]
@@ -168,8 +181,8 @@ int main(int argc, char *argv[]) {
         param_yt.omega_matter = 0.3;                          // omega matter
         param_yt.hubble_constant = 0.7;                       // hubble constant
 
-        if (yt_set_parameter(&param_yt) != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_set_parameter() failed!\n");
+        if (yt_set_Parameters(&param_yt) != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_set_Parameters() failed!\n");
             exit(EXIT_FAILURE);
         }
 
@@ -179,9 +192,9 @@ int main(int argc, char *argv[]) {
         // ==========================================
         // specific parameters for GAMER yt frontend
         const int mhd = 0;
-        yt_add_user_parameter_int("mhd", 1, &mhd);
+        yt_set_UserParameterInt("mhd", 1, &mhd);
         const int srhd = 0;
-        yt_add_user_parameter_int("srhd", 1, &srhd);
+        yt_set_UserParameterInt("srhd", 1, &srhd);
 
         // demo of some other parameters we can add
         const int user_int = 1;
@@ -194,15 +207,15 @@ int main(int argc, char *argv[]) {
         const int user_int3[3] = {7, 8, 9};
         const double user_double3[3] = {10.0, 11.0, 12.0};
 
-        yt_add_user_parameter_int("user_int", 1, &user_int);
-        yt_add_user_parameter_long("user_long", 1, &user_long);
-        yt_add_user_parameter_uint("user_uint", 1, &user_uint);
-        yt_add_user_parameter_ulong("user_ulong", 1, &user_ulong);
-        yt_add_user_parameter_float("user_float", 1, &user_float);
-        yt_add_user_parameter_double("user_double", 1, &user_double);
-        yt_add_user_parameter_string("user_string", user_string);
-        yt_add_user_parameter_int("user_int3", 3, user_int3);
-        yt_add_user_parameter_double("user_double3", 3, user_double3);
+        yt_set_UserParameterInt("user_int", 1, &user_int);
+        yt_set_UserParameterLong("user_long", 1, &user_long);
+        yt_set_UserParameterUint("user_uint", 1, &user_uint);
+        yt_set_UserParameterUlong("user_ulong", 1, &user_ulong);
+        yt_set_UserParameterFloat("user_float", 1, &user_float);
+        yt_set_UserParameterDouble("user_double", 1, &user_double);
+        yt_set_UserParameterString("user_string", user_string);
+        yt_set_UserParameterInt("user_int3", 3, user_int3);
+        yt_set_UserParameterDouble("user_double3", 3, user_double3);
 
 
         // ==========================================
@@ -210,14 +223,14 @@ int main(int argc, char *argv[]) {
         // ==========================================
         // get pointer of the array where we should put data to
         yt_field *field_list;
-        yt_get_fieldsPtr(&field_list);
+        yt_get_FieldsPtr(&field_list);
 
         // Density field "Dens"
         field_list[0].field_name = "Dens";
-        field_list[0].field_define_type = "cell-centered";
-        field_list[0].swap_axes = true;
+        field_list[0].field_type = "cell-centered";
+        field_list[0].contiguous_in_x = true;
         field_list[0].field_dtype = (typeid(real) == typeid(float)) ? YT_FLOAT : YT_DOUBLE;
-        char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
+        const char *field_name_alias[] = {"Name Alias 1", "Name Alias 2", "Name Alias 3"};
         field_list[0].field_name_alias = field_name_alias;
         field_list[0].num_field_name_alias = 3;
         for (int d = 0; d < 6; d++) {
@@ -226,8 +239,8 @@ int main(int argc, char *argv[]) {
 
         // Reciprocal of density field "InvDens"
         field_list[1].field_name = "InvDens";
-        field_list[1].field_define_type = "derived_func";
-        field_list[1].swap_axes = true;
+        field_list[1].field_type = "derived_func";
+        field_list[1].contiguous_in_x = true;
         field_list[1].field_dtype = (typeid(real) == typeid(float)) ? YT_FLOAT : YT_DOUBLE;
         field_list[1].derived_func = derived_func_InvDens;
 
@@ -237,13 +250,14 @@ int main(int argc, char *argv[]) {
         // ==========================================
         // get pointer of the array where we should put data to
         yt_particle *particle_list;
-        yt_get_particlesPtr(&particle_list);
+        yt_get_ParticlesPtr(&particle_list);
 
         // Particle type "io", each particle has position in the center of the grid it belongs to with value grid level.
-        particle_list[0].species_name = "io";
+        // par_type and num_attr will be assigned by libyt with the same value we passed in par_type_list at yt_set_Parameters.
+        particle_list[0].par_type = "io";
         particle_list[0].num_attr = 4;
-        char *attr_name[] = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
-        char *attr_name_alias[] = {"grid_level"};
+        const char *attr_name[] = {"ParPosX", "ParPosY", "ParPosZ", "Level"};
+        const char *attr_name_alias[] = {"grid_level"};
         for (int v = 0; v < 4; v++) {
             particle_list[0].attr_list[v].attr_name = attr_name[v];
             if (v == 3) {
@@ -258,7 +272,7 @@ int main(int argc, char *argv[]) {
         particle_list[0].coor_x = attr_name[0];
         particle_list[0].coor_y = attr_name[1];
         particle_list[0].coor_z = attr_name[2];
-        particle_list[0].get_attr = par_io_get_attr;
+        particle_list[0].get_par_attr = par_io_get_par_attr;
 
 
         // ==================================================
@@ -346,7 +360,7 @@ int main(int argc, char *argv[]) {
         // ==============================================================
         // get pointer of the array where we should put data to
         yt_grid *grids_local;
-        yt_get_gridsPtr(&grids_local);
+        yt_get_GridsPtr(&grids_local);
 
         // Load the local grids information and data to libyt.
         int index_local = 0;
@@ -357,7 +371,7 @@ int main(int argc, char *argv[]) {
                     grids_local[index_local].right_edge[d] = sim_grids[gid].right_edge[d];            // right edge
                     grids_local[index_local].grid_dimensions[d] = sim_grids[gid].grid_dimensions[d];  // dimensions
                 }
-                grids_local[index_local].particle_count_list[0] = 1;             // number of particles in each particle type
+                grids_local[index_local].par_count_list[0] = 1;                  // number of particles in each particle type
                 grids_local[index_local].id = sim_grids[gid].id;                 // 0-indexed grid id
                 grids_local[index_local].parent_id = sim_grids[gid].parent_id;   // 0-indexed parent id (-1 for root level grids)
                 grids_local[index_local].level = sim_grids[gid].level;           // 0-indexed level
@@ -373,8 +387,8 @@ int main(int argc, char *argv[]) {
         // ==========================================
         // libyt: 7. done loading information
         // ==========================================
-        if (yt_commit_grids() != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_commit_grids() failed!\n");
+        if (yt_commit() != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_commit() failed!\n");
             exit(EXIT_FAILURE);
         }
 
@@ -382,37 +396,47 @@ int main(int argc, char *argv[]) {
         // ==========================================
         // libyt: 8. call inline python function
         // ==========================================
-        if (yt_inline_argument("yt_inline_ProjectionPlot", 1, "\'density\'") != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_inline_argument() failed!\n");
+        if (yt_run_FunctionArguments("yt_inline_ProjectionPlot", 1, "\'density\'") != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_run_FunctionArguments() failed!\n");
             exit(EXIT_FAILURE);
         }
 
-        if (yt_inline("yt_inline_ProfilePlot") != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_inline() failed!\n");
+        if (yt_run_Function("yt_inline_ProfilePlot") != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_run_Function() failed!\n");
             exit(EXIT_FAILURE);
         }
 
-        if (yt_inline("yt_inline_ParticlePlot") != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_inline() failed!\n");
+        if (yt_run_Function("yt_inline_ParticlePlot") != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_run_Function() failed!\n");
             exit(EXIT_FAILURE);
         }
 
-        if (yt_inline("yt_derived_field_demo") != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_derived_field_demo() failed!\n");
+        if (yt_run_Function("yt_derived_field_demo") != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_run_Function() failed!\n");
             exit(EXIT_FAILURE);
         }
 
-        if (yt_inline("test_function") != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: test_function() failed!\n");
+        if (yt_run_Function("test_function") != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_run_Function() failed!\n");
             exit(EXIT_FAILURE);
         }
 
+
+        // =======================================================================================================
+        // libyt: 9. activate python prompt in interactive mode, should call it in situ function call using API
+        // =======================================================================================================
+        // only supports when compile libyt using -DINTERACTIVE_MODE (needs "libyt_interactive_mode.h" header)
+        // when detecting "LIBYT_STOP" file, or any inline function failed, interactive prompt will start
+        // if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
+        //     fprintf(stderr, "ERROR: yt_run_InteractiveMode failed!\n");
+        //     exit(EXIT_FAILURE);
+        // }
 
         // =================================================
-        // libyt: 9. finish in-situ analysis, clean up libyt
+        // libyt: 10. finish in-situ analysis, clean up libyt
         // =================================================
-        if (yt_free_gridsPtr() != YT_SUCCESS) {
-            fprintf(stderr, "ERROR: yt_free_gridsPtr() failed!\n");
+        if (yt_free() != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_free() failed!\n");
             exit(EXIT_FAILURE);
         }
 
@@ -425,7 +449,7 @@ int main(int argc, char *argv[]) {
 
 
     // =================================================
-    // libyt: 10. finalize libyt
+    // libyt: 11. finalize libyt
     // =================================================
     if (yt_finalize() != YT_SUCCESS) {
         fprintf(stderr, "ERROR: yt_finalize() failed!\n");
@@ -480,16 +504,20 @@ void get_randArray(int *array, int length) {
 // Function    :  derived_func_InvDens
 // Description :  derived inverse density field
 //
-// Notes       :  1. Derived function prototype must be void func(int, long*, yt_array*) or
-//                   void func(int, long*, char*, yt_array*).
+// Notes       :  1. Derived function prototype must be:
+//                     void func(const int, const long*, const char*, yt_array*)
 //                2. yt use this derived field function to generate data when needed.
-//                3. Since we set swap_axes = true in this field, we should write data in [z][y][x] order.
+//                3. Since we set contiguous_in_x = true in this field, we should write data in
+//                   [z][y][x] order.
+//                4. This function should generate and store data in data_array with the same gid order as
+//                   in gid_list.
 //
-// Parameter   : int       list_len  : number of gid in gid_list.
-//               long     *gid_list  : a list of gid field data to prepare.
-//               yt_array *data_array: write field data inside this yt_array correspondingly.
+// Parameter   : const int    list_len  : number of gid in gid_list.
+//               const long  *gid_list  : a list of gid to prepare.
+//               const char  *field_name: target field name.
+//               yt_array    *data_array: write field data inside this yt_array correspondingly.
 //-------------------------------------------------------------------------------------------------------
-void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array) {
+void derived_func_InvDens(const int list_len, const long *gid_list, const char *field_name, yt_array *data_array) {
     // loop over gid_list, and fill in grid data inside data_array.
     for (int lid = 0; lid < list_len; lid++) {
         // =================================================
@@ -505,7 +533,7 @@ void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array) {
         yt_data dens_data;
         yt_getGridInfo_FieldData(gid_list[lid], "Dens", &dens_data);
 
-        // generate and fill in data in [z][y][x] order, since we set this field swap_axes = true
+        // generate and fill in data in [z][y][x] order, since we set this field contiguous_in_x = true
         int index, index_with_ghost_cell;
         for (int k = 0; k < dim[2]; k++) {
             for (int j = 0; j < dim[1]; j++) {
@@ -525,22 +553,23 @@ void derived_func_InvDens(int list_len, long *gid_list, yt_array *data_array) {
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  par_io_get_attr
+// Function    :  par_io_get_par_attr
 // Description :  For particle type "io" to return their attribute.
 // 
-// Notes       :  1. Prototype must be void func(int, long*, char*, yt_array*).
+// Notes       :  1. Prototype must be void func(const int, const long*, const char*, const char*, yt_array*).
 //                2. This function will be concatenated into python C extension, so that yt can reach
 //                   particle attributes when it needs them.
 //                3. In this example, we will create particle with position at the center of the grid it
 //                   belongs to with Level equals to the level of the grid.
 //                4. Write particle data to yt_array *data_array.
 // 
-// Parameter   : int   list_len      : number of gid in the list gid_list.
-//               long *gid_list      : a list of gid to prepare.
-//               char *attribute     : get the attribute of the particle inside gid.
-//               yt_array *data_array: write the requested particle data to this array correspondingly.
+// Parameter   : const int   list_len  : number of gid in the list gid_list.
+//               const long *gid_list  : prepare the particle attribute in this grid id list.
+//               const char *par_type  : particle type to get.
+//               const char *attribute : attribute to get inside gid.
+//               yt_array   *data_array: write the requested particle data to this array correspondingly.
 //-------------------------------------------------------------------------------------------------------
-void par_io_get_attr(int list_len, long *gid_list, char *attribute, yt_array *data_array) {
+void par_io_get_par_attr(const int list_len, const long *gid_list, const char *par_type, const char *attribute, yt_array *data_array) {
     // loop over gid_list, and fill in particle attribute data inside data_array.
     for (int lid = 0; lid < list_len; lid++) {
         // =============================================================

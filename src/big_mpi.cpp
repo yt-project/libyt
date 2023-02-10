@@ -5,7 +5,7 @@
 // Function    :  big_MPI_Gatherv
 // Description :  This is a workaround method for passing big send count of MPI_Gatherv.
 //
-// Note        :  1. Use inside yt_commit_grids(), yt_rma_field, yt_rma_particle.
+// Note        :  1. Use inside yt_commit(), yt_rma_field, yt_rma_particle.
 //                2. Because void* pointer has no arithmetic, cast_type indicates what C type or struct
 //                   to cast to.
 //                   cast_type             type
@@ -173,7 +173,7 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
 // Function    :  big_MPI_Bcast
 // Description :  This is a workaround method for passing big send count of MPI_Bcast.
 //
-// Note        :  1. Use inside yt_commit_grids(), yt_rma_field, yt_rma_particle.
+// Note        :  1. Use inside yt_commit(), yt_rma_field, yt_rma_particle.
 //                2. Because void* pointer has no arithmetic, cast_type indicates what C type or struct
 //                   to cast to.
 //                   cast_type             type

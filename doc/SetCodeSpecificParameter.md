@@ -1,15 +1,15 @@
-# Set Code Specific Parameter
-## yt\_add\_user\_parameter_*
+# Set Code or User Specific Parameter
+## yt\_set\_UserParameter*
 ```cpp
-int yt_add_user_parameter_int   ( const char *key, const int n, const int    *input );
-int yt_add_user_parameter_long  ( const char *key, const int n, const long   *input );
-int yt_add_user_parameter_uint  ( const char *key, const int n, const uint   *input );
-int yt_add_user_parameter_ulong ( const char *key, const int n, const ulong  *input );
-int yt_add_user_parameter_float ( const char *key, const int n, const float  *input );
-int yt_add_user_parameter_double( const char *key, const int n, const double *input );
-int yt_add_user_parameter_string( const char *key,              const char   *input );
+int yt_set_UserParameterInt   ( const char *key, const int n, const int    *input );
+int yt_set_UserParameterLong  ( const char *key, const int n, const long   *input );
+int yt_set_UserParameterUint  ( const char *key, const int n, const uint   *input );
+int yt_set_UserParameterUlong ( const char *key, const int n, const ulong  *input );
+int yt_set_UserParameterFloat ( const char *key, const int n, const float  *input );
+int yt_set_UserParameterDouble( const char *key, const int n, const double *input );
+int yt_set_UserParameterString( const char *key,              const char   *input );
 ```
-- Usage: Add code specific parameters as new attributes to data set in `yt`. You must add code specific parameters to match your input [`frontend`](./SetYTParameter.md#yt_param_yt), since `libyt` will borrow field information (`class XXXFieldInfo`) from it.
+- Usage: Add code or user specific parameters that is used in your input yt [`frontend`](./SetYTParameter.md#yt_param_yt) `XXXDataset` class, since `libyt` will borrow field information (`class XXXFieldInfo`) from it. `libyt` will add them to `libytDataset` class as new attributes.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## Example
@@ -27,9 +27,9 @@ We must set these parameters to match the field information in this frontend.
 ```cpp
 /* Since we set frontend to "gamer", we should set the code specific parameter
    mhd and srhd here. */
-const int mhd = 0; 
-yt_add_user_parameter_int("mhd", 1, &mhd);  
-const int srhd = 0;  
-yt_add_user_parameter_int("srhd", 1, &srhd);
+const int mhd = 0;
+yt_set_UserParameterInt("mhd", 1, &mhd);  
+const int srhd = 0;
+yt_set_UserParameterInt("srhd", 1, &srhd);
 ```
 
