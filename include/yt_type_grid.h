@@ -63,8 +63,8 @@ struct yt_data
 // Data Member :  grid_dimensions : Number of cells along each direction in [x][y][z] coordinate.
 //                left_edge       : Grid left  edge in code units
 //                right_edge      : Grid right edge in code units
-//                particle_count_list : Array that records number of particles in each species, the input order
-//                                      should be the same as the input particle_list.
+//                par_count_list  : Array that records number of particles in each species, the input order
+//                                  should be the same as the input particle_list.
 //                level           : AMR level (0 for the root level)
 //                id              : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
 //                parent_id       : Parent grid ID (0-indexed, -1 for grids on the root level)
@@ -84,7 +84,7 @@ struct yt_grid
     double    left_edge[3];
     double    right_edge[3];
 
-    long     *particle_count_list;
+    long     *par_count_list;
     long      id;
     long      parent_id;
 
@@ -113,7 +113,7 @@ struct yt_grid
         for (int d=0; d<3; d++) {
             grid_dimensions[d]  = INT_UNDEFINED; }
 
-        particle_count_list = NULL;
+        par_count_list = NULL;
         id             = LNG_UNDEFINED;
         parent_id      = LNG_UNDEFINED;
         level          = INT_UNDEFINED;
@@ -131,7 +131,7 @@ struct yt_grid
     //
     // Note        :  1. Not used currently
     //                2. We do not free the pointer arrays "field_list" and "field_data" here
-    //                   ==> They are freed by yt_free_gridsPtr
+    //                   ==> They are freed by yt_free
     //
     // Parameter   :  None
     //===================================================================================

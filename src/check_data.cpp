@@ -5,7 +5,7 @@
 // Function    :  check_sum_num_grids_local_MPI
 // Description :  Check sum of number of local grids in each MPI rank is equal to num_grids input by user.
 //
-// Note        :  1. Use inside yt_set_parameter()
+// Note        :  1. Use inside yt_set_Parameters()
 //                2. Check sum of number of local grids in each MPI rank is equal to num_grids input by 
 //                   user, which is equal to the number of total grids.
 //                
@@ -35,7 +35,7 @@ int check_sum_num_grids_local_MPI( int NRank, int * &num_grids_local_MPI ) {
 // Function    :  check_field_list
 // Description :  Check g_param_yt.field_list.
 //
-// Note        :  1. Use inside yt_commit_grids().
+// Note        :  1. Use inside yt_commit().
 //                2. Check field_list
 //                  (1) Validate each yt_field element in field_list.
 //                  (2) Name of each field are unique.
@@ -70,7 +70,7 @@ int check_field_list(){
 // Function    :  check_particle_list
 // Description :  Check g_param_yt.particle_list.
 //
-// Note        :  1. Use inside yt_commit_grids().
+// Note        :  1. Use inside yt_commit().
 //                2. Check particle_list
 //                  (1) Validate each yt_particle element in particle_list.
 //                  (2) Species name (or ptype in YT-term) cannot be the same as g_param_yt.frontend.
@@ -83,23 +83,23 @@ int check_field_list(){
 int check_particle_list(){
 
     // (1) Validate each yt_particle element in particle_list.
-    // (2) Check species name (or ptype in YT-term) cannot be the same as g_param_yt.frontend.
-    for ( int p = 0; p < g_param_yt.num_species; p++ ){
+    // (2) Check particle type name (or ptype in YT-term) cannot be the same as g_param_yt.frontend.
+    for ( int p = 0; p < g_param_yt.num_par_types; p++ ){
         yt_particle particle = g_param_yt.particle_list[p];
         if ( !(particle.validate()) ){
             YT_ABORT("Validating input particle list element [%d] ... failed\n", p);
         }
-        if ( strcmp(particle.species_name, g_param_yt.frontend) == 0 ){
-            YT_ABORT("particle_list[%d], species_name == %s, frontend == %s, expect species_name different from the frontend!\n",
-                     p, particle.species_name, g_param_yt.frontend);
+        if ( strcmp(particle.par_type, g_param_yt.frontend) == 0 ){
+            YT_ABORT("particle_list[%d], par_type == %s, frontend == %s, expect particle type name different from the frontend!\n",
+                     p, particle.par_type, g_param_yt.frontend);
         }
     }
 
-    // (3) Species names (or ptype in YT-term) are all unique.
-    for ( int p1 = 0; p1 < g_param_yt.num_species; p1++ ){
-        for ( int p2 = p1+1; p2 < g_param_yt.num_species; p2++ ){
-            if ( strcmp(g_param_yt.particle_list[p1].species_name, g_param_yt.particle_list[p2].species_name) == 0 ){
-                YT_ABORT("species_name in particle_list[%d] and particle_list[%d] are not unique!\n", p1, p2);
+    // (3) Particle type name (or ptype in YT-term) are all unique.
+    for ( int p1 = 0; p1 < g_param_yt.num_par_types; p1++ ){
+        for ( int p2 = p1+1; p2 < g_param_yt.num_par_types; p2++ ){
+            if ( strcmp(g_param_yt.particle_list[p1].par_type, g_param_yt.particle_list[p2].par_type) == 0 ){
+                YT_ABORT("par_type in particle_list[%d] and particle_list[%d] are the same, par_type should be unique!\n", p1, p2);
             }
         }
     }
@@ -112,7 +112,7 @@ int check_particle_list(){
 // Function    :  check_grid
 // Description :  Check g_param_yt.grids_local.
 //
-// Note        :  1. Use inside yt_commit_grids().
+// Note        :  1. Use inside yt_commit().
 //                2. Check grids_local
 //                  (1) Validate each yt_grid element in grids_local.
 //                  (2) grid ID is between 0 ~ (num_grids-1).
@@ -122,8 +122,8 @@ int check_particle_list(){
 //                  (6) grid right edge <= domain right edge.
 //                  (7) grid left edge <= grid right edge. 
 //                      (Not sure if this still holds for periodic condition.)
-//                  (8) Abort if field_define_type = "cell-centered", and data_ptr == NULL.
-//                  (9) Abort if field_define_type = "face-centered", and data_ptr == NULL.
+//                  (8) Abort if field_type = "cell-centered", and data_ptr == NULL.
+//                  (9) Abort if field_type = "face-centered", and data_ptr == NULL.
 //                  (10) If data_ptr != NULL, then data_dimensions > 0
 //
 // Parameter   :  None
@@ -178,43 +178,43 @@ int check_grid(){
         // check field_data in each individual grid
         for (int v = 0; v < g_param_yt.num_fields; v = v+1){
 
-            // If field_define_type == "cell-centered"
-            if ( strcmp(g_param_yt.field_list[v].field_define_type, "cell-centered") == 0 ) {
+            // If field_type == "cell-centered"
+            if ( strcmp(g_param_yt.field_list[v].field_type, "cell-centered") == 0 ) {
 
-                // (8) Raise warning if field_define_type = "cell-centered", and data_ptr is not set == NULL.
+                // (8) Raise warning if field_type = "cell-centered", and data_ptr is not set == NULL.
                 if ( grid.field_data[v].data_ptr == NULL ){
-                    YT_ABORT( "Grid [%ld], field_data [%s], field_define_type [%s], data_ptr is NULL, not set yet!",
-                                 grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_define_type);
+                    YT_ABORT( "Grid [%ld], field_data [%s], field_type [%s], data_ptr is NULL, not set yet!",
+                                 grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_type);
                 }
             }
 
-            // If field_define_type == "face-centered"
-            if ( strcmp(g_param_yt.field_list[v].field_define_type, "face-centered") == 0 ) {
+            // If field_type == "face-centered"
+            if ( strcmp(g_param_yt.field_list[v].field_type, "face-centered") == 0 ) {
 
-                // (9) Raise warning if field_define_type = "face-centered", and data_ptr is not set == NULL.
+                // (9) Raise warning if field_type = "face-centered", and data_ptr is not set == NULL.
                 if ( grid.field_data[v].data_ptr == NULL ){
-                    YT_ABORT( "Grid [%ld], field_data [%s], field_define_type [%s], data_ptr is NULL, not set yet!",
-                                 grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_define_type);
+                    YT_ABORT( "Grid [%ld], field_data [%s], field_type [%s], data_ptr is NULL, not set yet!",
+                                 grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_type);
                 }
                 else{
                     // (10) If data_ptr != NULL, then data_dimensions > 0
                     for ( int d = 0; d < 3; d++ ){
                         if ( grid.field_data[v].data_dimensions[d] <= 0 ){
-                            YT_ABORT("Grid [%ld], field_data [%s], field_define_type [%s], data_dimensions[%d] == %d <= 0, should be > 0!\n",
-                                      grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_define_type, d, grid.field_data[v].data_dimensions[d]);
+                            YT_ABORT("Grid [%ld], field_data [%s], field_type [%s], data_dimensions[%d] == %d <= 0, should be > 0!\n",
+                                      grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_type, d, grid.field_data[v].data_dimensions[d]);
                         }
                     }
                 }
             }
 
-            // If field_define_type == "derived_func"
-            if ( strcmp(g_param_yt.field_list[v].field_define_type, "derived_func") == 0 ) {
+            // If field_type == "derived_func"
+            if ( strcmp(g_param_yt.field_list[v].field_type, "derived_func") == 0 ) {
                 // (10) If data_ptr != NULL, then data_dimensions > 0
                 if ( grid.field_data[v].data_ptr != NULL ){
                     for ( int d = 0; d < 3; d++ ){
                         if ( grid.field_data[v].data_dimensions[d] <= 0 ){
-                            YT_ABORT("Grid [%ld], field_data [%s], field_define_type [%s], data_dimensions[%d] == %d <= 0, should be > 0!\n",
-                                      grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_define_type, d, grid.field_data[v].data_dimensions[d]);
+                            YT_ABORT("Grid [%ld], field_data [%s], field_type [%s], data_dimensions[%d] == %d <= 0, should be > 0!\n",
+                                      grid.id, g_param_yt.field_list[v].field_name, g_param_yt.field_list[v].field_type, d, grid.field_data[v].data_dimensions[d]);
                         }
                     }
                 }
@@ -230,7 +230,7 @@ int check_grid(){
 // Function    :  check_hierarchy
 // Description :  Check that the hierarchy, parent-children relationships are correct
 //
-// Note        :  1. Use inside yt_commit_grids()
+// Note        :  1. Use inside yt_commit()
 // 			      2. Check that the hierarchy is correct, even though we didn't build a parent-children 
 //                   map.
 //                  (1) Check every grid id are unique.

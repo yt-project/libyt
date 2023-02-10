@@ -1,15 +1,15 @@
 # Free Resource
-## yt\_free\_gridsPtr
+## yt\_free
 ```cpp
-int yt_free_gridsPtr();
+int yt_free();
 ```
-- Usage: Free resource allocated by `libyt` in this round of inline-analysis. After you have done calling Python script, you should call this API in each MPI rank.
+- Usage: Free resource allocated by `libyt`. We should always remember to call this after in situ analysis. Otherwise, we will get memory leakage.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## Example
 ```cpp
-if ( yt_free_gridsPtr() != YT_SUCCESS ){  
-    fprintf( stderr, "ERROR: yt_free_gridsPtr() failed!\n" );  
+if ( yt_free() != YT_SUCCESS ){  
+    fprintf( stderr, "ERROR: yt_free() failed!\n" );  
     exit( EXIT_FAILURE );  
 }
 ```

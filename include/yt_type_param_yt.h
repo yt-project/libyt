@@ -47,11 +47,13 @@ void log_warning(const char *Format, ...);
 //                refine_by               : Refinement factor between a grid and its subgrid
 //                num_grids               : Total number of grids
 //                num_fields              : Number of fields
-//                num_species             : Number of particle species, initialized as 0.
+//                num_par_types           : Number of particle types, initialized as 0.
 //                num_grids_local         : Number of local grids in each rank
-//                field_list              : field list, including {field_name, field_define_type, field_unit ,...}
-//                particle_list           : particle list, including {species_name, attr_list, ...}
-//                species_list            : species list of particles, includeing {species_name, num_attr}
+//                field_list              : field list, including {field_name, field_type, field_unit ,...}
+//                particle_list           : particle list, including {par_type, attr_list, ...}
+//                par_type_list           : particle type list, including only {par_type, num_attr},
+//                                          elements here will be copied into particle_list. This is because
+//                                          we want libyt to handle initialization of particle_list.
 //                grids_local             : Ptr to full information of local grids
 //
 // Method      :  yt_param_yt : Constructor
@@ -90,10 +92,10 @@ struct yt_param_yt
 
 // variable for later runtime usage
 // Loaded by user
-   int          num_fields;
-   int          num_species;
-   yt_species  *species_list;
-   int          num_grids_local;
+   int           num_fields;
+   int           num_par_types;
+   yt_par_type  *par_type_list;
+   int           num_grids_local;
 
 // Loaded and controlled by libyt
    yt_field    *field_list;
@@ -136,9 +138,7 @@ struct yt_param_yt
    // Method      :  init
    // Description :  Initialize all data members
    //
-   // Note        :  1. Called by the constructor and yt_inline()
-   //                2. It's separate from the constructor since we want yt_inline() to be
-   //                   able to call it in order to reinitialize all data members
+   // Note        :  1. Called by the constructor.
    //
    // Parameter   :  None
    //===================================================================================
@@ -175,13 +175,13 @@ struct yt_param_yt
       num_grids               = LNG_UNDEFINED;
 
       num_fields              = 0;
-      num_species             = 0;
+      num_par_types           = 0;
       num_grids_local         = 0;
-      field_list              = NULL;
-      particle_list           = NULL;
-      species_list            = NULL;
+      par_type_list           = NULL;
 
    // Loaded and controlled by libyt
+      field_list              = NULL;
+      particle_list           = NULL;
       grids_local             = NULL;
       num_grids_local_MPI     = NULL;
 
@@ -226,10 +226,10 @@ struct yt_param_yt
       if ( dimensionality          == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "dimensionality" );
       if ( refine_by               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "refine_by" );
       if ( num_grids               == LNG_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_grids" );
-      if ( num_species > 0 && species_list == NULL  )   YT_ABORT( "Particle species info species_list has not been set!\n");
-      if ( num_species < 0 && species_list != NULL  )   YT_ABORT( "Particle species info num_species has not been set!\n");
-      for (int s=0; s<num_species; s++) {
-      if ( species_list[s].species_name == NULL || species_list[s].num_attr < 0 ) YT_ABORT( "species_list element [ %d ] is not set properly!\n", s);
+      if ( num_par_types > 0 && par_type_list == NULL  )   YT_ABORT( "Particle species info par_type_list has not been set!\n");
+      if ( num_par_types < 0 && par_type_list != NULL  )   YT_ABORT( "Particle species info num_par_types has not been set!\n");
+      for (int s=0; s<num_par_types; s++) {
+      if ( par_type_list[s].par_type == NULL || par_type_list[s].num_attr < 0 ) YT_ABORT( "par_type_list element [ %d ] is not set properly!\n", s);
       }
 
       return YT_SUCCESS;
@@ -288,9 +288,9 @@ struct yt_param_yt
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids",               num_grids               );
       
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_fields",              num_fields              );
-      log_debug( "   %-*s = %ld\n",        width_scalar, "num_species",             num_species             );
-      for (int s=0; s<num_species; s++){
-      log_debug( "   %-*s[%d] = (type=\"%s\", num_attr=%d)\n", width_vector, "species_list", s, species_list[s].species_name, species_list[s].num_attr);
+      log_debug( "   %-*s = %ld\n",        width_scalar, "num_par_types",           num_par_types           );
+      for (int s=0; s<num_par_types; s++){
+      log_debug( "   %-*s[%d] = (type=\"%s\", num_attr=%d)\n", width_vector, "par_type_list", s, par_type_list[s].par_type, par_type_list[s].num_attr);
       }
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids_local",         num_grids_local         );
 
