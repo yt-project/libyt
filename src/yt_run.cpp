@@ -12,7 +12,10 @@
 // Note        :  1. Python script name, which is also its namespace's name is stored in "g_param_libyt.script"
 //                2. This python script must contain function of <function_name> you called.
 //                3. Must give argc (argument count), even if there are no arguments.
-//                4. Under INTERACTIVE_MODE, function will be wrapped inside try/except. If there is error
+//                4. libyt wraps function and its arguments using either """ or ''' triple quotes, and then
+//                   call exec to execute under script's namespace. So we must avoid using both of these
+//                   triple quotes in function arguments, use only one of them.
+//                5. Under INTERACTIVE_MODE, function will be wrapped inside try/except. If there is error
 //                   it will store under libyt.interactive_mode["func_err_msg"]["func_name"].
 //
 // Parameter   :  const char *function_name : function name in python script 
@@ -53,20 +56,61 @@ int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
     // start running inline function when every rank come to this stage.
     MPI_Barrier(MPI_COMM_WORLD);
 
-    // join function name and input arguments
+    // join function name and input arguments and
+    // detect whether to use ''' or """ to wrap the function with arguments (default uses """ to wrap)
     va_list Args;
     va_start(Args, argc);
+    std::string str_wrapper("\"\"\"");
+    bool wrapper_detected = false, unable_to_wrapped = false;
+
     std::string str_function(std::string(function_name) + std::string("("));
     for (int i = 0; i < argc; i++) {
         if (i != 0) str_function += std::string(",");
-        str_function += std::string(va_arg(Args, const char*));
+
+        // find what wrapper to use, raise error msg if it uses both """ and '''.
+        std::string str_va_arg(va_arg(Args, const char*));
+        if (!wrapper_detected) {
+            if (str_va_arg.find("\"\"\"") != std::string::npos) {
+                wrapper_detected = true;
+                str_wrapper = std::string("'''");
+            }
+            else if (str_va_arg.find("'''") != std::string::npos) {
+                wrapper_detected = true;
+                str_wrapper = std::string("\"\"\"");
+            }
+        }
+        else {
+            // using both """ and ''' for triple quotes, unable to wrap
+            if (str_va_arg.find(str_wrapper.c_str()) != std::string::npos) {
+                unable_to_wrapped = true;
+            }
+        }
+
+        // join arguments
+        str_function += str_va_arg;
     }
     str_function += std::string(")");
     va_end(Args);
 
+    if (unable_to_wrapped) {
+#ifdef INTERACTIVE_MODE
+        // set error msg in interactive mode before returning YT_FAIL.
+        std::string str_set_error = std::string("libyt.interactive_mode[\"func_err_msg\"][\"")
+                                    + std::string(function_name)
+                                    + std::string("\"] = \"LIBYT Error: Please avoid using both \\\"\\\"\\\" and \'\'\' for triple quotes.\\n\"");
+        g_func_status_list[func_index].set_status(0);
+        if (PyRun_SimpleString(str_set_error.c_str()) != 0) {
+            log_error("Unexpected error occurred when setting unable to wrap error message in interactive mode.\n");
+        }
+#endif
+        // return YT_FAIL
+        log_error("Please avoid using both \"\"\" and ''' for triple quotes.\n");
+        YT_ABORT("Invoking %s ... failed\n", str_function.c_str());
+    }
+
     // join function and input arguments into string wrapped by exec()
-    std::string str_CallYT(std::string("exec(\"") + str_function + std::string("\", sys.modules[\"") 
-                           + std::string(g_param_libyt.script) + std::string("\"].__dict__)"));
+    std::string str_CallYT(std::string("exec(") + str_wrapper + str_function + str_wrapper
+                           + std::string(", sys.modules[\"") + std::string(g_param_libyt.script) + std::string("\"].__dict__)"));
 
     log_info("Performing YT inline analysis %s ...\n", str_function.c_str());
 
@@ -88,7 +132,7 @@ int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
 #ifdef INTERACTIVE_MODE
         g_func_status_list[func_index].set_status(0);
 #endif
-        YT_ABORT("Invoking \"%s\" ... failed\n", str_function.c_str());
+        YT_ABORT("Unexpected error occurred while executing %s in script's namespace.\n", str_function.c_str());
     }
 
 #ifdef INTERACTIVE_MODE
@@ -176,7 +220,7 @@ int yt_run_Function(const char *function_name) {
 #ifdef INTERACTIVE_MODE
         g_func_status_list[func_index].set_status(0);
 #endif
-        YT_ABORT("Invoking \"%s\" ... failed\n", str_function.c_str());
+        YT_ABORT("Unexpected error occurred while executing %s in script's namespace.\n", str_function.c_str());
     }
 
 #ifdef INTERACTIVE_MODE
