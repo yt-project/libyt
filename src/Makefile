@@ -57,7 +57,7 @@ endif
 
 #CXXWARN_FLAG := -w1
 CXXWARN_FLAG := -Wall -Wno-write-strings
-CXXFLAG := $(CXXWARN_FLAG) $(INCLUDE) $(OPTIONS) -O2 -fPIC
+CXXFLAG := $(CXXWARN_FLAG) $(INCLUDE) $(OPTIONS) -O2 -fPIC -std=c++11
 
 
 # rules and targets
