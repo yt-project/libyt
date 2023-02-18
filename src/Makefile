@@ -7,7 +7,6 @@ MPI_PATH       := $(YOUR_MPI_PATH)
 READLINE_PATH  := $(YOUR_READLINE_PATH)
 
 # Options
-OPTIONS :=
 #######################################################################################################
 OPTIONS :=
 
