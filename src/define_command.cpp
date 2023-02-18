@@ -256,7 +256,8 @@ int define_command::export_script(const char *filename) {
 // Method     :  set_func_run
 //
 // Notes      :  1. Determine which function will run or idle in next step.
-//               2. arg_list is optional.
+//               2. arg_list is optional. If arg_list is passed in, then libyt will definitely set it to
+//                  run.
 //
 // Arguments  :  const char               *funcname : function name
 //               bool                      run      : run in next inline process or not
@@ -280,6 +281,9 @@ int define_command::set_func_run(const char *funcname, bool run) {
         std::string args("");
         g_func_status_list[index].set_args(args);
 
+        // print args if function is set to run
+        if (g_myrank == s_Root && run) printf("Run %s(%s) in next iteration\n", funcname, g_func_status_list[index].get_args().c_str());
+
         return YT_SUCCESS;
     }
 }
@@ -287,23 +291,54 @@ int define_command::set_func_run(const char *funcname, bool run) {
 int define_command::set_func_run(const char *funcname, bool run, std::vector<std::string>& arg_list) {
     m_Undefine = false;
 
+    // get function index
     int index = g_func_status_list.get_func_index(funcname);
     if (index == -1) {
         if (g_myrank == s_Root) printf("Function %s not found\n", funcname);
         return YT_FAIL;
     }
-    else {
-        g_func_status_list[index].set_run(run);
-        if (g_myrank == s_Root) printf("Function %s set to %s ... done\n", funcname, run ? "run" : "idle");
 
-        // update input args in func_status
-        std::string args("");
-        for (int i=2; i<(int)arg_list.size(); i++) {
-            args = args + arg_list[i] + " ,";
+    // update input args in func_status, and determine whether the wrapper is """ or '''
+    bool wrapper_detected = false, unable_to_wrapped = false;
+    std::string args("");
+
+    // input parameters starts at index 2
+    for (int i=2; i<(int)arg_list.size(); i++) {
+        // determining wrapper
+        if (!wrapper_detected) {
+            if (arg_list[i].find("\"\"\"") != std::string::npos) {
+                wrapper_detected = true;
+                g_func_status_list[index].set_wrapper(false);
+            }
+            else if (arg_list[i].find("'''") != std::string::npos) {
+                wrapper_detected = true;
+                g_func_status_list[index].set_wrapper(true);
+            }
         }
-        args.pop_back();
-        g_func_status_list[index].set_args(args);
+        else {
+            const char *wrapper = g_func_status_list[index].get_wrapper() ? "\"\"\"" : "'''";
+            if (arg_list[i].find(wrapper) != std::string::npos) {
+                unable_to_wrapped = true;
+            }
+        }
 
+        // joining args
+        args += arg_list[i];
+        args += ",";
+    }
+    args.pop_back();
+
+    if (unable_to_wrapped) {
+        if (g_myrank == s_Root) printf("[YT_ERROR  ] Please avoid using both \"\"\" and ''' for triple quotes\n");
+        return YT_FAIL;
+    }
+    else {
+        g_func_status_list[index].set_args(args);
+        g_func_status_list[index].set_run(run);
+        if (g_myrank == s_Root) {
+            printf("Function %s set to run ... done\n", funcname);
+            printf("Run %s(%s) in next iteration\n", funcname, g_func_status_list[index].get_args().c_str());
+        }
         return YT_SUCCESS;
     }
 }
