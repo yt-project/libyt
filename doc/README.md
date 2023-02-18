@@ -10,7 +10,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
   - [Set Local Grids Information - `yt_get_GridsPtr`](./SetLocalGridsInformation.md#set-local-grids-information)
   - [Commit Your Settings - `yt_commit`](./CommitYourSettings.md#commit-your-settings)
   - [Perform Inline-Analysis - `yt_run_Function` and `yt_run_FunctionArguments`](./PerformInlineAnalysis.md#perform-inline-analysis)
-  - [Activate Interactive Mode](./ActivateInteractiveMode.md#activate-interactive-mode) (Only availabe in interactive mode)
+  - [Activate Interactive Mode - `yt_run_InteractiveMode`](./ActivateInteractiveMode.md#activate-interactive-mode) (Only available in interactive mode)
   - [Free Resource - `yt_free`](./FreeResource.md#free-resource)
   - [Finalize - `yt_finalize`](./Finalize.md#finalize)
 - [Inline Python Script](./InlinePythonScript.md#inline-python-script)
