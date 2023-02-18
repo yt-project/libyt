@@ -106,7 +106,7 @@ Run `<function name>` in the following in situ analysis using `[args ...]` if gi
 
 > :information_source: When calling [`yt_run_InteractiveMode`](./ActivateInteractiveMode.md#yt_run_interactivemode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run-1), but had not been run by [`yt_run_Function`](./PerformInlineAnalysis.md#yt_run_function) or [`yt_run_FunctionArguments`](./PerformInlineAnalysis.md#yt_run_functionarguments) yet. Which means input arguments passed in through [`yt_run_FunctionArguments`](./PerformInlineAnalysis.md#yt_run_functionarguments) have a bigger priority.
 
-> :warning: When using triple quotes in input arguments, use either `"""` or `'''`, but not both of them at the same time. For example, `%libyt run func """b""" """c"""` is good, but `%libyt run func """b""" '''c'''` leads to error.
+> :warning: When using triple quotes in input arguments, use either `"""` or `'''`, but not both of them at the same time. If you really need triple quotes, stick to only one of them. For example, `%libyt run func """b""" """c"""` is good, but `%libyt run func """b""" '''c'''` leads to error.
 
 ###### Example
 This is equivalent of `func(a, 2, "3")` in Python.
