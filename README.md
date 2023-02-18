@@ -46,15 +46,18 @@ MPI_PATH       := $(YOUR_MPI_PATH)
 
 #### Options
 ##### Normal Mode
-Normal mode will shutdown and terminate all the processes including simulation if there are errors during in situ analysis using Python.
+Normal mode will shut down and terminate all the processes including simulation if there are errors during in situ analysis using Python.
 
 ##### Interactive Mode
-Interactive mode will not terminate the processes if there are errors during in situ analysis using Python. Interactive mode is more like an add-ons for normal mode. To use interactive mode, we should add `-DINTERACTIVE_MODE` in `Makefile`.
+Interactive mode will not terminate the processes if there are errors during in situ analysis using Python. Interactive mode is more like an add-ons for normal mode. 
+
+To use interactive mode, we need `readline` library and switch `-DINTERACTIVE_MODE` to on in `Makefile`. Please set the path, if `readline` library is not on your system include search path.
+
 ```makefile
-# Options
-#######################################################################################################
-# interactive mode: supports reloading inline script, active python prompt and does not halt when 
-# error occurs.
+READLINE_PATH  := $(YOUR_READLINE_PATH)
+
+# Interactive Mode: supports reloading inline script, active python prompt and does not halt when
+# error occurs. Require readline library, add READLINE_PATH if it is not inside include search path.
 OPTIONS += -DINTERACTIVE_MODE
 ```
 
