@@ -4,12 +4,14 @@ PYTHON_PATH    := $(YOUR_PYTHON_PATH)
 PYTHON_VERSION := $(YOUR_PYTHON_VERSION)
 NUMPY_PATH     := $(YOUR_NUMPY_PATH)
 MPI_PATH       := $(YOUR_MPI_PATH)
+READLINE_PATH  := $(YOUR_READLINE_PATH)
 
 # Options
-OPTIONS :=
 #######################################################################################################
+OPTIONS :=
+
 # Interactive Mode: supports reloading inline script, active python prompt and does not halt when
-# error occurs.
+# error occurs. Require readline library, add READLINE_PATH if it is not inside include search path.
 #OPTIONS += -DINTERACTIVE_MODE
 
 # Timer: measure time each libyt substep. Should switch to off in production run.
@@ -19,9 +21,9 @@ OPTIONS :=
 #######################################################################################################
 # libyt
 CC_FILE := yt_initialize.cpp  yt_finalize.cpp  yt_set_Parameters.cpp  yt_run.cpp  yt_set_UserParameter.cpp \
-           yt_commit.cpp yt_get_GridsPtr.cpp yt_get_FieldsPtr.cpp yt_get_ParticlesPtr.cpp         \
-           yt_free.cpp yt_getGridInfo.cpp yt_rma_field.cpp yt_rma_particle.cpp
-CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp    \
+           yt_commit.cpp yt_get_GridsPtr.cpp yt_get_FieldsPtr.cpp yt_get_ParticlesPtr.cpp yt_free.cpp      \
+           yt_getGridInfo.cpp yt_rma_field.cpp yt_rma_particle.cpp
+CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp       \
 		   check_data.cpp append_grid.cpp get_dtype_property.cpp big_mpi.cpp
 
 # for interactive mode
@@ -52,12 +54,13 @@ INCLUDE := -I../include -I$(PYTHON_PATH)/include/python$(PYTHON_VERSION) \
            -I$(MPI_PATH)/include
 
 ifeq "$(filter -DINTERACTIVE_MODE, $(OPTIONS))" "-DINTERACTIVE_MODE"
-LIB += -lreadline
+LIB     += -L$(READLINE_PATH)/lib -lreadline
+INCLUDE += -I$(READLINE_PATH)/include
 endif
 
 #CXXWARN_FLAG := -w1
 CXXWARN_FLAG := -Wall -Wno-write-strings
-CXXFLAG := $(CXXWARN_FLAG) $(INCLUDE) $(OPTIONS) -O2 -fPIC
+CXXFLAG := $(CXXWARN_FLAG) $(INCLUDE) $(OPTIONS) -O2 -fPIC -std=c++11
 
 
 # rules and targets
