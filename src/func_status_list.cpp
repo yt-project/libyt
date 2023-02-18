@@ -145,7 +145,11 @@ int func_status_list::add_new_func(const char *func_name, int run) {
 //                   yt_run_Function/yt_run_FunctionArguments yet.
 //                2. How this method runs python function is identical to yt_run_Function*. It use
 //                   PyRun_SimpleString.
-//                3. Get input arguments from func_status.m_Args if it has.
+//                3. libyt uses either """ or ''' to wrap the code to execute in exec(). It finds if the
+//                   arguments are using triple quotes, if yes, it chooses using """ or '''.
+//                4. When setting arguments in %libyt run func args, libyt will make sure user are only
+//                   using either """ or ''', if they are using triple quotes.
+//                5. Get input arguments from func_status.m_Args if it has.
 //
 // Arguments   :  None
 //
@@ -158,20 +162,23 @@ int func_status_list::run_func() {
         if (run == 1 && status == -1) {
             // command
             const char *funcname = m_FuncStatusList[i].get_func_name();
-            int command_width = 300 + strlen(g_param_libyt.script) + strlen(funcname) * 2;
+            int command_width = 350 + strlen(g_param_libyt.script) + strlen(funcname) * 2;
             char *command = (char*) malloc(command_width * sizeof(char));
+            const char *wrapped = m_FuncStatusList[i].get_wrapper() ? "\"\"\"" : "'''";
             sprintf(command, "try:\n"
-                             "    exec(\"%s(%s)\", sys.modules[\"%s\"].__dict__)\n"
+                             "    exec(%s%s(%s)%s, sys.modules[\"%s\"].__dict__)\n"
                              "except Exception as e:\n"
                              "    libyt.interactive_mode[\"func_err_msg\"][\"%s\"] = traceback.format_exc()\n",
-                             funcname, m_FuncStatusList[i].get_args().c_str(), g_param_libyt.script, funcname);
+                             wrapped, funcname, m_FuncStatusList[i].get_args().c_str(), wrapped,
+                             g_param_libyt.script, funcname);
 
             // run and update status
             log_info("Performing YT inline analysis %s(%s) ...\n", funcname, m_FuncStatusList[i].get_args().c_str());
             m_FuncStatusList[i].set_status(-2);
             if (PyRun_SimpleString(command) != 0) {
                 m_FuncStatusList[i].set_status(0);
-                YT_ABORT("Invoking \"%s(%s)\" ... failed\n", funcname, m_FuncStatusList[i].get_args().c_str());
+                YT_ABORT("Unexpected error occurred while executing %s(%s) in script's namespace.\n",
+                         funcname, m_FuncStatusList[i].get_args().c_str());
             }
             m_FuncStatusList[i].get_status();
             log_info("Performing YT inline analysis %s(%s) ... done\n", funcname, m_FuncStatusList[i].get_args().c_str());

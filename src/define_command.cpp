@@ -287,23 +287,48 @@ int define_command::set_func_run(const char *funcname, bool run) {
 int define_command::set_func_run(const char *funcname, bool run, std::vector<std::string>& arg_list) {
     m_Undefine = false;
 
+    // get function index
     int index = g_func_status_list.get_func_index(funcname);
     if (index == -1) {
         if (g_myrank == s_Root) printf("Function %s not found\n", funcname);
         return YT_FAIL;
     }
-    else {
-        g_func_status_list[index].set_run(run);
-        if (g_myrank == s_Root) printf("Function %s set to %s ... done\n", funcname, run ? "run" : "idle");
 
-        // update input args in func_status
-        std::string args("");
-        for (int i=2; i<(int)arg_list.size(); i++) {
-            args = args + arg_list[i] + " ,";
+    // update input args in func_status, and determine whether the wrapper is """ or '''
+    bool wrapper_detected = false, unable_to_wrapped = false;
+    std::string args("");
+
+    // input parameters starts at index 2
+    for (int i=2; i<(int)arg_list.size(); i++) {
+        // determining wrapper
+        if (!wrapper_detected) {
+            const char *wrapper = g_func_status_list[index].get_wrapper() ? "\"\"\"" : "'''";
+            if (arg_list[i].find(wrapper) != std::string::npos) {
+                wrapper_detected = true;
+                g_func_status_list[index].set_wrapper(!g_func_status_list[index].get_wrapper());
+            }
         }
-        args.pop_back();
-        g_func_status_list[index].set_args(args);
+        else {
+            const char *wrapper = g_func_status_list[index].get_wrapper() ? "\"\"\"" : "'''";
+            if (arg_list[i].find(wrapper) != std::string::npos) {
+                unable_to_wrapped = true;
+            }
+        }
 
+        // joining args
+        args += arg_list[i];
+        args += ",";
+    }
+    args.pop_back();
+
+    if (unable_to_wrapped) {
+        if (g_myrank == s_Root) printf("[YT_ERROR  ] Please avoid using both \"\"\" and ''' for triple quotes\n");
+        return YT_FAIL;
+    }
+    else {
+        g_func_status_list[index].set_args(args);
+        g_func_status_list[index].set_run(run);
+        if (g_myrank == s_Root) printf("Function %s set to run ... done\n", funcname);
         return YT_SUCCESS;
     }
 }
