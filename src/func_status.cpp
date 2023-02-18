@@ -15,6 +15,11 @@
 //                   (1) m_FuncName: function name, does not include argument
 //                   (2)     m_Args: input arguments for new added functions. libyt uses m_Args when using
 //                                   func_status_list::run_func to run the functions.
+//                   (3)  m_Wrapper: wrapped with """ or ''' when executing python function inside exec.
+//                                   this is only used when libyt runs functions not called by yt_run_Function*
+//                                   yet in interactive mode.
+//                                    true -> wrapped with """ (default)
+//                                   false -> wrapped with '''
 //                   (3)      m_Run:     1 -> will run in next iteration
 //                                       0 -> will idle in next iteration
 //                                      -1 -> not set yet
@@ -28,7 +33,7 @@
 //                int         run      : will run in next iteration or not
 //-------------------------------------------------------------------------------------------------------
 func_status::func_status(const char *func_name, int run)
-: m_Args(""), m_Run(run), m_Status(-1)
+: m_Args(""), m_Wrapper(true), m_Run(run), m_Status(-1)
 {
     // copy func_name to m_FuncName
     int len = strlen(func_name);
@@ -49,7 +54,7 @@ func_status::func_status(const char *func_name, int run)
 // Arguments   :  const func_status& other
 //-------------------------------------------------------------------------------------------------------
 func_status::func_status(const func_status& other)
-: m_Args(other.m_Args), m_Run(other.m_Run), m_Status(-1)
+: m_Args(other.m_Args), m_Wrapper(other.m_Wrapper), m_Run(other.m_Run), m_Status(-1)
 {
     // copy m_FuncName;
     int len = strlen(other.m_FuncName);
