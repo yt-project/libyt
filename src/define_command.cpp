@@ -256,7 +256,8 @@ int define_command::export_script(const char *filename) {
 // Method     :  set_func_run
 //
 // Notes      :  1. Determine which function will run or idle in next step.
-//               2. arg_list is optional.
+//               2. arg_list is optional. If arg_list is passed in, then libyt will definitely set it to
+//                  run.
 //
 // Arguments  :  const char               *funcname : function name
 //               bool                      run      : run in next inline process or not
@@ -280,6 +281,9 @@ int define_command::set_func_run(const char *funcname, bool run) {
         std::string args("");
         g_func_status_list[index].set_args(args);
 
+        // print args if function is set to run
+        if (g_myrank == s_Root && run) printf("Run %s(%s) in next iteration\n", funcname, g_func_status_list[index].get_args().c_str());
+
         return YT_SUCCESS;
     }
 }
@@ -302,10 +306,13 @@ int define_command::set_func_run(const char *funcname, bool run, std::vector<std
     for (int i=2; i<(int)arg_list.size(); i++) {
         // determining wrapper
         if (!wrapper_detected) {
-            const char *wrapper = g_func_status_list[index].get_wrapper() ? "\"\"\"" : "'''";
-            if (arg_list[i].find(wrapper) != std::string::npos) {
+            if (arg_list[i].find("\"\"\"") != std::string::npos) {
                 wrapper_detected = true;
-                g_func_status_list[index].set_wrapper(!g_func_status_list[index].get_wrapper());
+                g_func_status_list[index].set_wrapper(false);
+            }
+            else if (arg_list[i].find("'''") != std::string::npos) {
+                wrapper_detected = true;
+                g_func_status_list[index].set_wrapper(true);
             }
         }
         else {
@@ -328,7 +335,10 @@ int define_command::set_func_run(const char *funcname, bool run, std::vector<std
     else {
         g_func_status_list[index].set_args(args);
         g_func_status_list[index].set_run(run);
-        if (g_myrank == s_Root) printf("Function %s set to run ... done\n", funcname);
+        if (g_myrank == s_Root) {
+            printf("Function %s set to run ... done\n", funcname);
+            printf("Run %s(%s) in next iteration\n", funcname, g_func_status_list[index].get_args().c_str());
+        }
         return YT_SUCCESS;
     }
 }
