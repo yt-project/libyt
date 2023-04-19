@@ -31,13 +31,14 @@ static const int MaxParamNameWidth = 15;
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 
-int yt_set_UserParameterInt   ( const char *key, const int n, const int    *input ) { return add_nonstring( key, n, input ); }
-int yt_set_UserParameterLong  ( const char *key, const int n, const long   *input ) { return add_nonstring( key, n, input ); }
-int yt_set_UserParameterUint  ( const char *key, const int n, const uint   *input ) { return add_nonstring( key, n, input ); }
-int yt_set_UserParameterUlong ( const char *key, const int n, const ulong  *input ) { return add_nonstring( key, n, input ); }
-int yt_set_UserParameterFloat ( const char *key, const int n, const float  *input ) { return add_nonstring( key, n, input ); }
-int yt_set_UserParameterDouble( const char *key, const int n, const double *input ) { return add_nonstring( key, n, input ); }
-int yt_set_UserParameterString( const char *key,              const char   *input ) { return add_string   ( key,    input ); }
+int yt_set_UserParameterInt     ( const char *key, const int n, const int       *input ) { return add_nonstring( key, n, input ); }
+int yt_set_UserParameterLong    ( const char *key, const int n, const long      *input ) { return add_nonstring( key, n, input ); }
+int yt_set_UserParameterLongLong( const char *key, const int n, const long long *input ) { return add_nonstring( key, n, input ); }
+int yt_set_UserParameterUint    ( const char *key, const int n, const uint      *input ) { return add_nonstring( key, n, input ); }
+int yt_set_UserParameterUlong   ( const char *key, const int n, const ulong     *input ) { return add_nonstring( key, n, input ); }
+int yt_set_UserParameterFloat   ( const char *key, const int n, const float     *input ) { return add_nonstring( key, n, input ); }
+int yt_set_UserParameterDouble  ( const char *key, const int n, const double    *input ) { return add_nonstring( key, n, input ); }
+int yt_set_UserParameterString  ( const char *key,              const char      *input ) { return add_string   ( key,    input ); }
 
 
 
@@ -56,7 +57,8 @@ static int add_nonstring( const char *key, const int n, const T *input )
 // export data to libyt.param_user
    if (  typeid(T) == typeid(float)  ||  typeid(T) == typeid(double)  ||
          typeid(T) == typeid(  int)  ||  typeid(T) == typeid(  long)  ||
-         typeid(T) == typeid( uint)  ||  typeid(T) == typeid( ulong)    )
+         typeid(T) == typeid( uint)  ||  typeid(T) == typeid( ulong)  ||
+         typeid(T) == typeid(long long)                                 )
    {
 //    scalar and 3-element array
       if      ( n == 1 ) {   if ( add_dict_scalar ( g_py_param_user, key, *input ) == YT_FAIL )   return YT_FAIL;   }
@@ -67,7 +69,7 @@ static int add_nonstring( const char *key, const int n, const T *input )
    }
 
    else
-      YT_ABORT( "Unsupported data type (only support char*, float*, double*, int*, long*, unit*, ulong*)!\n" );
+      YT_ABORT( "Unsupported data type (only support char*, float*, double*, int*, long*, long long*, uint*, ulong*)!\n" );
 
 
 
