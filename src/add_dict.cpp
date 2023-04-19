@@ -38,8 +38,11 @@ int add_dict_scalar( PyObject *dict, const char *key, const T value )
               typeid(T) == typeid(uint)  ||  typeid(T) == typeid(ulong)    )
       py_obj = PyLong_FromLong( (long)value );
 
+   else if (  typeid(T) == typeid(long long)  )
+       py_obj = PyLong_FromLongLong( (long long)value);
+
    else
-      YT_ABORT( "Unsupported data type (only support float, double, int, long, unit, ulong)!\n" );
+      YT_ABORT( "Unsupported data type (only support float, double, int, long, long long, uint, ulong)!\n" );
 
 
 // insert "value" into "dict" with "key"
@@ -97,8 +100,14 @@ int add_dict_vector3( PyObject *dict, const char *key, const T *vector )
          element[v] = PyLong_FromLong( (long)vector[v] );
    }
 
+   else if (  typeid(T) == typeid(long long)  )
+   {
+       for (int v=0; v<VecSize; v++)
+         element[v] = PyLong_FromLongLong( (long long)vector[v] );
+   }
+
    else
-      YT_ABORT( "Unsupported data type (only support float, double, int, long, unit, ulong)!\n" );
+      YT_ABORT( "Unsupported data type (only support float, double, int, long, long long, uint, ulong)!\n" );
 
 
 // create a tuple object
@@ -161,19 +170,21 @@ int add_dict_string( PyObject *dict, const char *key, const char *string )
 
 
 // explicit template instantiation
-template int add_dict_scalar <float > ( PyObject *dict, const char *key, const float  value );
-template int add_dict_scalar <double> ( PyObject *dict, const char *key, const double value );
-template int add_dict_scalar <int   > ( PyObject *dict, const char *key, const int    value );
-template int add_dict_scalar <long  > ( PyObject *dict, const char *key, const long   value );
-template int add_dict_scalar <uint  > ( PyObject *dict, const char *key, const uint   value );
-template int add_dict_scalar <ulong > ( PyObject *dict, const char *key, const ulong  value );
+template int add_dict_scalar <float     > ( PyObject *dict, const char *key, const float     value );
+template int add_dict_scalar <double    > ( PyObject *dict, const char *key, const double    value );
+template int add_dict_scalar <int       > ( PyObject *dict, const char *key, const int       value );
+template int add_dict_scalar <long      > ( PyObject *dict, const char *key, const long      value );
+template int add_dict_scalar <long long > ( PyObject *dict, const char *key, const long long value );
+template int add_dict_scalar <uint      > ( PyObject *dict, const char *key, const uint      value );
+template int add_dict_scalar <ulong     > ( PyObject *dict, const char *key, const ulong     value );
 
-template int add_dict_vector3 <float > ( PyObject *dict, const char *key, const float  *vector );
-template int add_dict_vector3 <double> ( PyObject *dict, const char *key, const double *vector );
-template int add_dict_vector3 <int   > ( PyObject *dict, const char *key, const int    *vector );
-template int add_dict_vector3 <long  > ( PyObject *dict, const char *key, const long   *vector );
-template int add_dict_vector3 <uint  > ( PyObject *dict, const char *key, const uint   *vector );
-template int add_dict_vector3 <ulong > ( PyObject *dict, const char *key, const ulong  *vector );
+template int add_dict_vector3 <float    > ( PyObject *dict, const char *key, const float     *vector );
+template int add_dict_vector3 <double   > ( PyObject *dict, const char *key, const double    *vector );
+template int add_dict_vector3 <int      > ( PyObject *dict, const char *key, const int       *vector );
+template int add_dict_vector3 <long     > ( PyObject *dict, const char *key, const long      *vector );
+template int add_dict_vector3 <long long> ( PyObject *dict, const char *key, const long long *vector );
+template int add_dict_vector3 <uint     > ( PyObject *dict, const char *key, const uint      *vector );
+template int add_dict_vector3 <ulong    > ( PyObject *dict, const char *key, const ulong     *vector );
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  add_dict_field_list
