@@ -60,22 +60,23 @@ int add_dict_scalar( PyObject *dict, const char *key, const T value )
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  add_dict_vector3
-// Description :  Auxiliary function for adding a 3-element vector item to a Python dictionary
+// Function    :  add_dict_vector_n
+// Description :  Auxiliary function for adding an n-element vector item to a Python dictionary
 //
 // Note        :  1. Overloaded with various data types: float, double, int, long, uint, ulong
 //                   ==> (float,double)        are converted to double internally
 //                       (int,long,uint,ulong) are converted to long internally
-//                2. Currently the size of vector must be 3
+//                       (long long)           are converted to long long internally
 //
 // Parameter   :  dict   : Target Python dictionary
 //                key    : Dictionary key
+//                len    : Length of the vector size
 //                vector : Vector to be inserted
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 template <typename T>
-int add_dict_vector3( PyObject *dict, const char *key, const T *vector )
+int add_dict_vector_n( PyObject *dict, const char *key, const int len, const T *vector )
 {
 
 // check if "dict" is indeeed a dict object
@@ -84,7 +85,7 @@ int add_dict_vector3( PyObject *dict, const char *key, const T *vector )
 
 
 // convert "vector" to a Python object (currently the size of vector is fixed to 3)
-   Py_ssize_t VecSize = 3;
+   Py_ssize_t VecSize = len;
    PyObject *tuple = PyTuple_New(VecSize);
 
    if (tuple != NULL)
@@ -122,7 +123,7 @@ int add_dict_vector3( PyObject *dict, const char *key, const T *vector )
 
    return YT_SUCCESS;
 
-} // FUNCTION : add_dict_vector3
+} // FUNCTION : add_dict_vector_n
 
 
 
@@ -174,13 +175,13 @@ template int add_dict_scalar <long long > ( PyObject *dict, const char *key, con
 template int add_dict_scalar <uint      > ( PyObject *dict, const char *key, const uint      value );
 template int add_dict_scalar <ulong     > ( PyObject *dict, const char *key, const ulong     value );
 
-template int add_dict_vector3 <float    > ( PyObject *dict, const char *key, const float     *vector );
-template int add_dict_vector3 <double   > ( PyObject *dict, const char *key, const double    *vector );
-template int add_dict_vector3 <int      > ( PyObject *dict, const char *key, const int       *vector );
-template int add_dict_vector3 <long     > ( PyObject *dict, const char *key, const long      *vector );
-template int add_dict_vector3 <long long> ( PyObject *dict, const char *key, const long long *vector );
-template int add_dict_vector3 <uint     > ( PyObject *dict, const char *key, const uint      *vector );
-template int add_dict_vector3 <ulong    > ( PyObject *dict, const char *key, const ulong     *vector );
+template int add_dict_vector_n <float    > ( PyObject *dict, const char *key, const int len, const float     *vector );
+template int add_dict_vector_n <double   > ( PyObject *dict, const char *key, const int len, const double    *vector );
+template int add_dict_vector_n <int      > ( PyObject *dict, const char *key, const int len, const int       *vector );
+template int add_dict_vector_n <long     > ( PyObject *dict, const char *key, const int len, const long      *vector );
+template int add_dict_vector_n <long long> ( PyObject *dict, const char *key, const int len, const long long *vector );
+template int add_dict_vector_n <uint     > ( PyObject *dict, const char *key, const int len, const uint      *vector );
+template int add_dict_vector_n <ulong    > ( PyObject *dict, const char *key, const int len, const ulong     *vector );
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  add_dict_field_list

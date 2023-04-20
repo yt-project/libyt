@@ -108,10 +108,10 @@ int yt_set_Parameters( yt_param_yt *param_yt )
    add_dict_scalar(  g_py_param_yt, "num_grids",               g_param_yt.num_grids               );
 
 // vectors (stored as Python tuples)
-   add_dict_vector3( g_py_param_yt, "domain_left_edge",        g_param_yt.domain_left_edge        );
-   add_dict_vector3( g_py_param_yt, "domain_right_edge",       g_param_yt.domain_right_edge       );
-   add_dict_vector3( g_py_param_yt, "periodicity",             g_param_yt.periodicity             );
-   add_dict_vector3( g_py_param_yt, "domain_dimensions",       g_param_yt.domain_dimensions       );
+   add_dict_vector_n( g_py_param_yt, "domain_left_edge",    3, g_param_yt.domain_left_edge        );
+   add_dict_vector_n( g_py_param_yt, "domain_right_edge",   3, g_param_yt.domain_right_edge       );
+   add_dict_vector_n( g_py_param_yt, "periodicity",         3, g_param_yt.periodicity             );
+   add_dict_vector_n( g_py_param_yt, "domain_dimensions",   3, g_param_yt.domain_dimensions       );
 
    log_debug( "Inserting YT parameters to libyt.param_yt ... done\n" );
 
