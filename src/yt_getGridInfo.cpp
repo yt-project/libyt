@@ -171,10 +171,11 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
 
     // get NumPy data dtype, and convert to YT_DTYPE.
     PyArray_Descr *py_array_info = PyArray_DESCR(py_array_obj);
-    if ((py_array_info->type_num) == NPY_FLOAT)        (*field_data).data_dtype = YT_FLOAT;
-    else if ((py_array_info->type_num) == NPY_DOUBLE)  (*field_data).data_dtype = YT_DOUBLE;
-    else if ((py_array_info->type_num) == NPY_INT)     (*field_data).data_dtype = YT_INT;
-    else if ((py_array_info->type_num) == NPY_LONG)    (*field_data).data_dtype = YT_LONG;
+    if ((py_array_info->type_num) == NPY_FLOAT)           (*field_data).data_dtype = YT_FLOAT;
+    else if ((py_array_info->type_num) == NPY_DOUBLE)     (*field_data).data_dtype = YT_DOUBLE;
+    else if ((py_array_info->type_num) == NPY_LONGDOUBLE) (*field_data).data_dtype = YT_LONGDOUBLE;
+    else if ((py_array_info->type_num) == NPY_INT)        (*field_data).data_dtype = YT_INT;
+    else if ((py_array_info->type_num) == NPY_LONG)       (*field_data).data_dtype = YT_LONG;
     else {
         YT_ABORT("No matching yt_dtype for NumPy data type num [%d].\n", py_array_info->type_num);
     }
