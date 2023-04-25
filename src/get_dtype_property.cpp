@@ -13,6 +13,7 @@
 //                  ========================================
 //                     YT_FLOAT            NPY_FLOAT
 //                     YT_DOUBLE           NPY_DOUBLE
+//                     YT_LONGDOUBLE       NPY_LONGDOUBLE
 //                     YT_INT              NPY_INT
 //                     YT_LONG             NPY_LONG
 //
@@ -29,6 +30,9 @@ int get_npy_dtype( yt_dtype data_type, int *npy_dtype ){
 	else if ( data_type == YT_DOUBLE ){
 		*npy_dtype = NPY_DOUBLE;
 	}
+    else if ( data_type == YT_LONGDOUBLE){
+        *npy_dtype = NPY_LONGDOUBLE;
+    }
 	else if ( data_type == YT_INT ){
 		*npy_dtype = NPY_INT;
 	}
@@ -69,6 +73,7 @@ int get_npy_dtype( yt_dtype data_type, int *npy_dtype ){
 //                  ========================================
 //                     YT_FLOAT            MPI_FLOAT
 //                     YT_DOUBLE           MPI_DOUBLE
+//                     YT_LONGDOUBLE       MPI_LONG_DOUBLE
 //                     YT_INT              MPI_INT
 //                     YT_LONG             MPI_LONG
 //
@@ -84,6 +89,9 @@ int get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype ){
     }
     else if ( data_type == YT_DOUBLE ){
         *mpi_dtype = MPI_DOUBLE;
+    }
+    else if ( data_type == YT_LONGDOUBLE ){
+        *mpi_dtype = MPI_LONG_DOUBLE;
     }
     else if ( data_type == YT_INT ){
         *mpi_dtype = MPI_INT;
@@ -124,6 +132,7 @@ int get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype ){
 //                  ========================================
 //                     YT_FLOAT            float
 //                     YT_DOUBLE           double
+//                     YT_LONGDOUBLE       long double
 //                     YT_INT              int
 //                     YT_LONG             long
 //
@@ -139,6 +148,9 @@ int get_dtype_size( yt_dtype data_type, int *dtype_size ){
     }
     else if ( data_type == YT_DOUBLE ){
         *dtype_size = sizeof(double);
+    }
+    else if ( data_type == YT_LONGDOUBLE ){
+        *dtype_size = sizeof(long double);
     }
     else if ( data_type == YT_INT ){
         *dtype_size = sizeof(int);
