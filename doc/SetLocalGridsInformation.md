@@ -41,6 +41,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
       - Valid value for `yt_dtype`:
         - `YT_FLOAT`: C type float.
         - `YT_DOUBLE`: C type double.
+        - `YT_LONGDOUBLE`: C type long double.
         - `YT_INT`: C type int.
         - `YT_LONG`: C type long.
 
