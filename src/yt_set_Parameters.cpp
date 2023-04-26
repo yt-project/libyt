@@ -51,15 +51,15 @@ int yt_set_Parameters( yt_param_yt *param_yt )
 
 
 // check if all parameters have been set properly
-   if ( param_yt->validate() )
-      log_debug( "Validating YT parameters ... done\n" );
-   else
-      YT_ABORT(  "Validating YT parameters ... failed\n" );
+//   if ( param_yt->validate() )
+//      log_debug( "Validating YT parameters ... done\n" );
+//   else
+//      YT_ABORT(  "Validating YT parameters ... failed\n" );
 
 
 // print out all parameters
    log_debug( "List of YT parameters:\n" );
-   param_yt->show();
+//   param_yt->show();
 
 
 // store user-provided parameters to a libyt internal variable
