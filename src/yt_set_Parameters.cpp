@@ -51,15 +51,15 @@ int yt_set_Parameters( yt_param_yt *param_yt )
 
 
 // check if all parameters have been set properly
-   if ( param_yt->validate() )
-      log_debug( "Validating YT parameters ... done\n" );
-   else
-      YT_ABORT(  "Validating YT parameters ... failed\n" );
+//   if ( param_yt->validate() )
+//      log_debug( "Validating YT parameters ... done\n" );
+//   else
+//      YT_ABORT(  "Validating YT parameters ... failed\n" );
 
 
 // print out all parameters
    log_debug( "List of YT parameters:\n" );
-   param_yt->show();
+//   param_yt->show();
 
 
 // store user-provided parameters to a libyt internal variable
@@ -108,10 +108,10 @@ int yt_set_Parameters( yt_param_yt *param_yt )
    add_dict_scalar(  g_py_param_yt, "num_grids",               g_param_yt.num_grids               );
 
 // vectors (stored as Python tuples)
-   add_dict_vector3( g_py_param_yt, "domain_left_edge",        g_param_yt.domain_left_edge        );
-   add_dict_vector3( g_py_param_yt, "domain_right_edge",       g_param_yt.domain_right_edge       );
-   add_dict_vector3( g_py_param_yt, "periodicity",             g_param_yt.periodicity             );
-   add_dict_vector3( g_py_param_yt, "domain_dimensions",       g_param_yt.domain_dimensions       );
+   add_dict_vector_n( g_py_param_yt, "domain_left_edge",    3, g_param_yt.domain_left_edge        );
+   add_dict_vector_n( g_py_param_yt, "domain_right_edge",   3, g_param_yt.domain_right_edge       );
+   add_dict_vector_n( g_py_param_yt, "periodicity",         3, g_param_yt.periodicity             );
+   add_dict_vector_n( g_py_param_yt, "domain_dimensions",   3, g_param_yt.domain_dimensions       );
 
    log_debug( "Inserting YT parameters to libyt.param_yt ... done\n" );
 

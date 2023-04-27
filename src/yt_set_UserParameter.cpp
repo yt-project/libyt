@@ -19,13 +19,13 @@ static const int MaxParamNameWidth = 15;
 // Description :  Add code-specific parameters
 //
 // Note        :  1. All code-specific parameters are stored in "libyt.param_user"
-//                2. Overloaded with various data types: float, double, int, long, uint, ulong, char*
+//                2. Overloaded with various data types: float, double, int, long, long long, uint, ulong,
+//                   char*
 //                   ==> But do not use c++ template since I don't know how to instantiating template
 //                       without function name mangling ...
 //
 // Parameter   :  key   : Dictionary key
 //                n     : Number of elements in the input array
-//                        ==> Currently it must be 1 or 3 (or arbitrary if input is a string)
 //                input : Input array containing "n" elements or a single string
 //
 // Return      :  YT_SUCCESS or YT_FAIL
@@ -61,17 +61,18 @@ static int add_nonstring( const char *key, const int n, const T *input )
          typeid(T) == typeid(long long)                                 )
    {
 //    scalar and 3-element array
-      if      ( n == 1 ) {   if ( add_dict_scalar ( g_py_param_user, key, *input ) == YT_FAIL )   return YT_FAIL;   }
-      else if ( n == 3 ) {   if ( add_dict_vector3( g_py_param_user, key,  input ) == YT_FAIL )   return YT_FAIL;   }
+      if ( n == 1 )
+      {
+          if (add_dict_scalar  ( g_py_param_user, key,   *input ) == YT_FAIL ) return YT_FAIL;
+      }
       else
-         YT_ABORT( "Currently %s() only supports loading a single scalar or a three-element array!\n",
-                   __FUNCTION__ );
+      {
+          if (add_dict_vector_n( g_py_param_user, key, n, input ) == YT_FAIL ) return YT_FAIL;
+      }
    }
 
    else
       YT_ABORT( "Unsupported data type (only support char*, float*, double*, int*, long*, long long*, uint*, ulong*)!\n" );
-
-
 
    log_debug( "Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key );
 

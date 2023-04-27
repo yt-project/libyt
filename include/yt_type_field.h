@@ -30,7 +30,7 @@ void log_warning(const char *Format, ...);
 //                                                     (1) "cell-centered"
 //                                                     (2) "face-centered"
 //                                                     (3) "derived_func"
-//                yt_dtype      field_dtype          : Field type of the grid. (YT_FLOAT, YT_DOUBLE, YT_INT, YT_LONG)
+//                yt_dtype      field_dtype          : Field type of the grid.
 //                bool          contiguous_in_x      : true  ==> [z][y][x], x address alter-first, default value.
 //                                                     false ==> [x][y][z], z address alter-first
 //                short         field_ghost_cell[6]  : Number of cell to ignore at the beginning and the end of each dimension.

@@ -21,6 +21,7 @@
 #define NO_IMPORT_ARRAY
 #endif
 #define PY_ARRAY_UNIQUE_SYMBOL LIBYT_ARRAY_API
+#define PY_UFUNC_UNIQUE_SYMBOL LIBYT_UFUNC_API
 
 // to get rid of the warning messages about using deprecated NumPy API
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
