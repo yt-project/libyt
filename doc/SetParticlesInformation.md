@@ -24,6 +24,7 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
       - Valid Value for `yt_dtype`: 
         - `YT_FLOAT`: C type float.
         - `YT_DOUBLE`: C type double.
+        - `YT_LONGDOUBLE`: C type long double.
         - `YT_INT`: C type int. 
         - `YT_LONG`: C type long.
     - `const char* attr_unit` (Default=`""`)

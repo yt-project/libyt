@@ -33,6 +33,7 @@ int yt_get_FieldsPtr( yt_field **field_list )
   - Valid Value for `yt_dtype`: 
     - `YT_FLOAT`: C type float.
     - `YT_DOUBLE`: C type double.
+    - `YT_LONGDOUBLE`: C type long double.
     - `YT_INT`: C type int.
     - `YT_LONG`: C type long.
 - `bool contiguous_in_x` (Default=`true`)

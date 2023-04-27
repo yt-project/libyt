@@ -60,22 +60,23 @@ int add_dict_scalar( PyObject *dict, const char *key, const T value )
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  add_dict_vector3
-// Description :  Auxiliary function for adding a 3-element vector item to a Python dictionary
+// Function    :  add_dict_vector_n
+// Description :  Auxiliary function for adding an n-element vector item to a Python dictionary
 //
 // Note        :  1. Overloaded with various data types: float, double, int, long, uint, ulong
 //                   ==> (float,double)        are converted to double internally
 //                       (int,long,uint,ulong) are converted to long internally
-//                2. Currently the size of vector must be 3
+//                       (long long)           are converted to long long internally
 //
 // Parameter   :  dict   : Target Python dictionary
 //                key    : Dictionary key
+//                len    : Length of the vector size
 //                vector : Vector to be inserted
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 template <typename T>
-int add_dict_vector3( PyObject *dict, const char *key, const T *vector )
+int add_dict_vector_n( PyObject *dict, const char *key, const int len, const T *vector )
 {
 
 // check if "dict" is indeeed a dict object
@@ -84,36 +85,33 @@ int add_dict_vector3( PyObject *dict, const char *key, const T *vector )
 
 
 // convert "vector" to a Python object (currently the size of vector is fixed to 3)
-   const int VecSize = 3;
-   PyObject *tuple, *element[VecSize];
+   Py_ssize_t VecSize = len;
+   PyObject *tuple = PyTuple_New(VecSize);
 
-   if (  typeid(T) == typeid(float)  ||  typeid(T) == typeid(double)  )
+   if (tuple != NULL)
    {
-      for (int v=0; v<VecSize; v++)
-         element[v] = PyFloat_FromDouble( (double)vector[v] );
+       if (  typeid(T) == typeid(float)  ||  typeid(T) == typeid(double)  )
+       {
+           for (Py_ssize_t v=0; v<VecSize; v++) { PyTuple_SET_ITEM(tuple, v, PyFloat_FromDouble((double)vector[v])); }
+       }
+       else if (  typeid(T) == typeid( int)  ||  typeid(T) == typeid( long)  ||
+                  typeid(T) == typeid(uint)  ||  typeid(T) == typeid(ulong)    )
+       {
+           for (Py_ssize_t v=0; v<VecSize; v++) { PyTuple_SET_ITEM(tuple, v, PyLong_FromLong((long)vector[v])); }
+       }
+       else if (  typeid(T) == typeid(long long)  )
+       {
+           for (Py_ssize_t v=0; v<VecSize; v++) { PyTuple_SET_ITEM(tuple, v, PyLong_FromLongLong((long long)vector[v])); }
+       }
+       else
+       {
+           YT_ABORT( "Unsupported data type (only support float, double, int, long, long long, uint, ulong)!\n" );
+       }
    }
-
-   else if (  typeid(T) == typeid( int)  ||  typeid(T) == typeid( long)  ||
-              typeid(T) == typeid(uint)  ||  typeid(T) == typeid(ulong)    )
-   {
-      for (int v=0; v<VecSize; v++)
-         element[v] = PyLong_FromLong( (long)vector[v] );
-   }
-
-   else if (  typeid(T) == typeid(long long)  )
-   {
-       for (int v=0; v<VecSize; v++)
-         element[v] = PyLong_FromLongLong( (long long)vector[v] );
-   }
-
    else
-      YT_ABORT( "Unsupported data type (only support float, double, int, long, long long, uint, ulong)!\n" );
-
-
-// create a tuple object
-   if (  ( tuple = PyTuple_Pack( VecSize, element[0], element[1], element[2] ) ) == NULL  )
-      YT_ABORT( "Creating a tuple object (key = \"%s\") ... failed!\n", key );
-
+   {
+       YT_ABORT( "Creating a tuple object (key = \"%s\") ... failed!\n", key );
+   }
 
 // insert "vector" into "dict" with "key"
    if ( PyDict_SetItemString( dict, key, tuple ) != 0 )
@@ -122,11 +120,10 @@ int add_dict_vector3( PyObject *dict, const char *key, const T *vector )
 
 // decrease the reference count
    Py_DECREF( tuple );
-   for (int v=0; v<VecSize; v++)   Py_DECREF( element[v] );
 
    return YT_SUCCESS;
 
-} // FUNCTION : add_dict_vector3
+} // FUNCTION : add_dict_vector_n
 
 
 
@@ -178,13 +175,13 @@ template int add_dict_scalar <long long > ( PyObject *dict, const char *key, con
 template int add_dict_scalar <uint      > ( PyObject *dict, const char *key, const uint      value );
 template int add_dict_scalar <ulong     > ( PyObject *dict, const char *key, const ulong     value );
 
-template int add_dict_vector3 <float    > ( PyObject *dict, const char *key, const float     *vector );
-template int add_dict_vector3 <double   > ( PyObject *dict, const char *key, const double    *vector );
-template int add_dict_vector3 <int      > ( PyObject *dict, const char *key, const int       *vector );
-template int add_dict_vector3 <long     > ( PyObject *dict, const char *key, const long      *vector );
-template int add_dict_vector3 <long long> ( PyObject *dict, const char *key, const long long *vector );
-template int add_dict_vector3 <uint     > ( PyObject *dict, const char *key, const uint      *vector );
-template int add_dict_vector3 <ulong    > ( PyObject *dict, const char *key, const ulong     *vector );
+template int add_dict_vector_n <float    > ( PyObject *dict, const char *key, const int len, const float     *vector );
+template int add_dict_vector_n <double   > ( PyObject *dict, const char *key, const int len, const double    *vector );
+template int add_dict_vector_n <int      > ( PyObject *dict, const char *key, const int len, const int       *vector );
+template int add_dict_vector_n <long     > ( PyObject *dict, const char *key, const int len, const long      *vector );
+template int add_dict_vector_n <long long> ( PyObject *dict, const char *key, const int len, const long long *vector );
+template int add_dict_vector_n <uint     > ( PyObject *dict, const char *key, const int len, const uint      *vector );
+template int add_dict_vector_n <ulong    > ( PyObject *dict, const char *key, const int len, const ulong     *vector );
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  add_dict_field_list
