@@ -13,7 +13,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
   - Usage: Grid left and right edge in code units.
 - `long id` (Default=`LNG_UNDEFINED`)
   - Usage: Grid global id.
-  - Valid Value: It is 0-index based and should be in between `0` and `num_grids - 1`.
+  - Valid Value: It should be contiguous starting from [`index_offset`](./SetYTParameter.md#ytparamyt) set in [`yt_set_Parameters`](./SetYTParameter.md#ytsetparameters).
 - `long parent_id` (Default=`LNG_UNDEFINED`)
   - Usage: Parent grid id.
   - Valide Value:
