@@ -45,6 +45,7 @@ void log_warning(const char *Format, ...);
 //                time_unit               : Simulation time   unit in s  (CGS)
 //                magnetic_unit           : Simulation magnetic unit in gauss
 //                refine_by               : Refinement factor between a grid and its subgrid
+//                index_offset            : Offset of the index.
 //                num_grids               : Total number of grids
 //                num_fields              : Number of fields
 //                num_par_types           : Number of particle types, initialized as 0.
@@ -88,6 +89,7 @@ struct yt_param_yt
    int    dimensionality;
    int    domain_dimensions[3];
    int    refine_by;
+   int    index_offset;
    long   num_grids;
 
 // variable for later runtime usage
@@ -172,6 +174,7 @@ struct yt_param_yt
       cosmological_simulation = INT_UNDEFINED;
       dimensionality          = INT_UNDEFINED;
       refine_by               = INT_UNDEFINED;
+      index_offset            = 0;
       num_grids               = LNG_UNDEFINED;
 
       num_fields              = 0;
@@ -285,6 +288,7 @@ struct yt_param_yt
       log_debug( "   %-*s[%d] = %d\n",     width_vector, "domain_dimensions", d,    domain_dimensions[d]    ); }
       log_debug( "   %-*s = %d\n",         width_scalar, "dimensionality",          dimensionality          );
       log_debug( "   %-*s = %d\n",         width_scalar, "refine_by",               refine_by               );
+      log_debug( "   %-*s = %d\n",         width_scalar, "index_offset",            index_offset            );
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids",               num_grids               );
       
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_fields",              num_fields              );

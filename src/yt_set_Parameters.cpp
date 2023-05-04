@@ -105,6 +105,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
    add_dict_scalar(  g_py_param_yt, "cosmological_simulation", g_param_yt.cosmological_simulation );
    add_dict_scalar(  g_py_param_yt, "dimensionality",          g_param_yt.dimensionality          );
    add_dict_scalar(  g_py_param_yt, "refine_by",               g_param_yt.refine_by               );
+   add_dict_scalar(  g_py_param_yt, "index_offset",            g_param_yt.index_offset            );
    add_dict_scalar(  g_py_param_yt, "num_grids",               g_param_yt.num_grids               );
 
 // vectors (stored as Python tuples)
