@@ -32,7 +32,7 @@ int append_grid( yt_grid *grid ){
          if (  ( py_array_obj = (PyArrayObject*)PyDict_GetItemString( g_py_hierarchy, KEY ) ) == NULL )     \
             YT_ABORT( "Accessing the key \"%s\" from libyt.hierarchy ... failed!\n", KEY );                 \
                                                                                                             \
-         *(TYPE*)PyArray_GETPTR2( py_array_obj, grid->id - g_param_yt.index_offset, t ) = (TYPE)(ARRAY)[t]; \
+         *(TYPE*)PyArray_GETPTR2( py_array_obj, (grid->id) - g_param_yt.index_offset, t ) = (TYPE)(ARRAY)[t]; \
       }                                                                                                     \
    }
 
