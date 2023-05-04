@@ -8,7 +8,9 @@
 // Note        :  1. It searches libyt.hierarchy for grid's dimensions, and does not check whether the grid
 //                   is on this rank or not.
 //                2. grid_dimensions is defined in [x][y][z] <-> [0][1][2] coordinate.
-//                3.    Function                                              Search NumPy Array
+//                3. Since gid doesn't need to be 0-indexed, we need to minus g_param_yt.index_offset
+//                   when look up.
+//                4.    Function                                              Search NumPy Array
 //                   --------------------------------------------------------------------------------
 //                    yt_getGridInfo_Dimensions(const long, int (*)[3])       libyt.hierarchy["grid_dimensions"]
 //                    yt_getGridInfo_LefgEdge(const long, double (*)[3])      libyt.hierarchy["grid_left_edge"]
@@ -27,7 +29,7 @@
     {                                                                                                    \
         PyArrayObject *py_array_obj = (PyArrayObject*) PyDict_GetItemString( g_py_hierarchy, KEY );      \
         for (int t=0; t<DIM; t++) {                                                                      \
-            (ARRAY)[t] = *(TYPE*)PyArray_GETPTR2( py_array_obj, GID, t );                                \
+            (ARRAY)[t] = *(TYPE*)PyArray_GETPTR2( py_array_obj, GID - g_param_yt.index_offset, t );      \
         }                                                                                                \
     }
 
@@ -80,8 +82,10 @@ GET_GRIDINFO_DIM1(ProcNum, "proc_num", int)
 // Function    :  yt_getGridInfo_ParticleCount
 // Description :  Get particle count of particle type ptype in grid gid.
 //
-// Note        :  1. It searches libyt.hierarchy["par_count_list"][gid][ptype], and does not check whether the grid
-//                   is on this rank or not.
+// Note        :  1. It searches libyt.hierarchy["par_count_list"][index][ptype],
+//                   and does not check whether the grid is on this rank or not.
+//                2. Since gid doesn't need to be 0-indexed, we need to minus g_param_yt.index_offset
+//                   when look up in hierarchy.
 //
 // Parameter   :  const long   gid           : Target grid id.
 //                const char  *ptype         : Target particle type.
@@ -113,8 +117,8 @@ int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_co
     PyArrayObject *py_array_obj = (PyArrayObject*)PyDict_GetItemString(g_py_hierarchy, "par_count_list");
     if ( py_array_obj == NULL ) YT_ABORT("Cannot find key \"par_count_list\" in libyt.hierarchy dict.\n");
 
-    // read libyt.hierarchy["par_count_list"][gid][ptype]
-    *par_count = *(long*)PyArray_GETPTR2(py_array_obj, gid, label);
+    // read libyt.hierarchy["par_count_list"][index][ptype]
+    *par_count = *(long*)PyArray_GETPTR2(py_array_obj, gid - g_param_yt.index_offset, label);
 
     return YT_SUCCESS;
 }
@@ -125,10 +129,11 @@ int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_co
 //
 // Note        :  1. It searches libyt.grid_data[gid][fname], and return YT_FAIL if it cannot find
 //                   corresponding data.
-//                2. User should cast to their own datatype after receiving the pointer.
-//                3. Returns an existing data pointer and data dimensions user passed in,
+//                2. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+//                3. User should cast to their own datatype after receiving the pointer.
+//                4. Returns an existing data pointer and data dimensions user passed in,
 //                   and does not make a copy of it!!
-//                4. Works only for 3-dim data.
+//                5. Works only for 3-dim data.
 //
 // Parameter   :  const long   gid              : Target grid id.
 //                const char  *field_name       : Target field name.
