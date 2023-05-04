@@ -16,8 +16,8 @@
 //                right_edge     : Grid right edge in code units
 //                level          : AMR level (0 for the root level)
 //                proc_num       : An array of MPI rank that the grid belongs
-//                id             : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
-//                parent_id      : Parent grid ID (0-indexed, -1 for grids on the root level)
+//                id             : Grid ID
+//                parent_id      : Parent grid ID
 //                proc_num       : Process number, grid belong to which MPI rank
 //-------------------------------------------------------------------------------------------------------
 struct yt_hierarchy{

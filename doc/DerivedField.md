@@ -62,7 +62,7 @@ int yt_getGridInfo_ParentId(const long gid, long *parent_id);
 ```cpp
 int yt_getGridInfo_Level(const long gid, int *level);
 ```
-- Usage: Get level of grid `gid`. It is 0-indexed. If grids are on root level, `level` will be `0`.
+- Usage: Get level of grid `gid`. If grids are on root level, `level` will be `0`.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 #### yt\_getGridInfo\_ProcNum

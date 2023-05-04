@@ -6,7 +6,13 @@
 // Description :  Add a single full grid to the libyt Python module
 //
 // Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data.
-//                2. Called and use by yt_commit().
+//                2. When setting libyt.hierarchy:
+//                   since grid id doesn't have to be 0-indexed (set g_param_yt.index_offset), but the
+//                   hierarchy array starts at 0, we need to minus index_offset when setting hierarchy.
+//                3. When setting libyt.grid_data:
+//                   always maintain the same grid passed in by simulation, which means it doesn't have
+//                   to start from 0.
+//                4. Called and use by yt_commit().
 //
 // Parameter   :  yt_grid *grid
 //
@@ -19,15 +25,15 @@ int append_grid( yt_grid *grid ){
 
 // convenient macro
 // note that PyDict_GetItemString() returns a **borrowed** reference ==> no need to call Py_DECREF
-#  define FILL_ARRAY( KEY, ARRAY, DIM, TYPE )                                                            \
-   {                                                                                                     \
-      for (int t=0; t<DIM; t++)                                                                          \
-      {                                                                                                  \
-         if (  ( py_array_obj = (PyArrayObject*)PyDict_GetItemString( g_py_hierarchy, KEY ) ) == NULL )  \
-            YT_ABORT( "Accessing the key \"%s\" from libyt.hierarchy ... failed!\n", KEY );              \
-                                                                                                         \
-         *(TYPE*)PyArray_GETPTR2( py_array_obj, grid->id, t ) = (TYPE)(ARRAY)[t];                        \
-      }                                                                                                  \
+#  define FILL_ARRAY( KEY, ARRAY, DIM, TYPE )                                                               \
+   {                                                                                                        \
+      for (int t=0; t<DIM; t++)                                                                             \
+      {                                                                                                     \
+         if (  ( py_array_obj = (PyArrayObject*)PyDict_GetItemString( g_py_hierarchy, KEY ) ) == NULL )     \
+            YT_ABORT( "Accessing the key \"%s\" from libyt.hierarchy ... failed!\n", KEY );                 \
+                                                                                                            \
+         *(TYPE*)PyArray_GETPTR2( py_array_obj, grid->id - g_param_yt.index_offset, t ) = (TYPE)(ARRAY)[t]; \
+      }                                                                                                     \
    }
 
     FILL_ARRAY( "grid_left_edge",       grid->left_edge,           3, npy_double )

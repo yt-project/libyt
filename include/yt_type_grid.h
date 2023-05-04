@@ -66,8 +66,8 @@ struct yt_data
 //                par_count_list  : Array that records number of particles in each species, the input order
 //                                  should be the same as the input particle_list.
 //                level           : AMR level (0 for the root level)
-//                id              : Grid ID (0-indexed ==> must be in the range 0 <= id < total number of grids)
-//                parent_id       : Parent grid ID (0-indexed, -1 for grids on the root level)
+//                id              : Grid ID
+//                parent_id       : Parent grid ID
 //                proc_num        : Process number, grid belong to which MPI rank
 //                field_data      : Pointer pointing to yt_data array, which stored data pointer 
 //                                  and data dimensions.
@@ -172,7 +172,6 @@ struct yt_grid
 //    additional checks
         for (int d=0; d<3; d++) {
             if ( grid_dimensions[d] <= 0 )   YT_ABORT( "\"%s[%d]\" == %d <= 0 for grid [%ld]!\n", "grid_dimensions", d, grid_dimensions[d], id ); }
-        if ( id < 0 )               YT_ABORT( "\"%s\" == %d < 0!\n", "id", id );
         if ( level < 0 )            YT_ABORT( "\"%s\" == %d < 0 for grid [%ld]!\n", "level", level, id );
 
         return YT_SUCCESS;
