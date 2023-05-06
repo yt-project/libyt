@@ -20,7 +20,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
     - Should be in between `0` and `num_grids - 1`.
     - If the grid does not have parent grid, set to `-1`.
 - `int grid_dimensions[3]` (Default=`INT_UNDEFINED`)
-  - Usage: Number of cells along each direction in [x][y][z] order.
+  - Usage: Number of cells along each direction in [x][y][z] order excluding ghost cells.
 - `int level` (Default=`INT_UNDEFINED`)
   - Usage: AMR level of the grid.
   - Valid Value:
@@ -36,7 +36,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
   - Usage: Store all the field data under this grid. This is a `yt_data` array with length equals to number of fields.
   - Data member in `yt_data`:
     - `void* data_ptr`: Data pointer to the field data of the grid.
-    - `int data_dimensions[3]`: Dimension of `data_ptr`.
+    - `int data_dimensions[3]`: Dimension of `data_ptr`, which is the actual dimension of this pointer.
     - `yt_dtype data_dtype`: Data type of `data_ptr`.
       - Valid value for `yt_dtype`:
         - `YT_FLOAT`: C type float.
