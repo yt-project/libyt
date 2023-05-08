@@ -50,6 +50,8 @@ int yt_set_Parameters( yt_param_yt *param_yt )
   - Usage: Number of cells along each dimension on the root AMR level.
 - `int refine_by` (Default=`INT_UNDEFINED`)
   - Usage: Refinement factor between a grid and its subgrid.
+- `int index_offset` (Default=`0`)
+  - Usage: Index offset.
 - `long num_grids` (Default=`LNG_UNDEFINED`)
   - Usage: Total number of grids.
 - `int num_grids_local` (Default=`0`)

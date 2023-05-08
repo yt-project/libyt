@@ -134,6 +134,10 @@ int yt_rma_field::prepare_data(long& gid)
             data_ptr = malloc( gridLength * sizeof(double) );
             for(long i = 0; i < gridLength; i++){ ((double *) data_ptr)[i] = 0.0; }
         }
+        else if ( grid_info.data_dtype == YT_LONGDOUBLE ){
+            data_ptr = malloc( gridLength * sizeof(long double) );
+            for(long i = 0; i < gridLength; i++){ ((long double *) data_ptr)[i] = 0.0; }
+        }
         else if ( grid_info.data_dtype == YT_INT ){
             data_ptr = malloc( gridLength * sizeof(int) );
             for(long i = 0; i < gridLength; i++){ ((int *) data_ptr)[i] = 0; }

@@ -258,6 +258,7 @@ int big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_
 //                   ===================================
 //                    YT_FLOAT          float
 //                    YT_DOUBLE         double
+//                    YT_LONGDOUBLE     long double
 //                    YT_INT            int
 //                    YT_LONG           long
 //
@@ -307,6 +308,19 @@ int big_MPI_Get(void *recv_buff, long data_len, yt_dtype *data_dtype, MPI_Dataty
             }
             else {
                 MPI_Get(&(((double*)recv_buff)[index]), stride, *mpi_dtype, get_rank, address, stride, *mpi_dtype, *window);
+            }
+            address += stride * size;
+        }
+    }
+    else if( *data_dtype == YT_LONGDOUBLE ){
+        // Split to many time if data_len > INT_MAX
+        for (int i = 0; i < part; i++){
+            index = i * stride;
+            if ( i == part - 1 ){
+                MPI_Get(&(((long double*)recv_buff)[index]), remain, *mpi_dtype, get_rank, address, remain, *mpi_dtype, *window);
+            }
+            else {
+                MPI_Get(&(((long double*)recv_buff)[index]), stride, *mpi_dtype, get_rank, address, stride, *mpi_dtype, *window);
             }
             address += stride * size;
         }

@@ -118,6 +118,10 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
         output = malloc( gridTotalSize * sizeof(double) );
         for (long i = 0; i < gridTotalSize; i++) { ((double *) output)[i] = 0.0; }
     }
+    else if ( field_dtype == YT_LONGDOUBLE ){
+        output = malloc( gridTotalSize * sizeof(long double) );
+        for (long i = 0; i < gridTotalSize; i++) { ((long double *) output)[i] = 0.0; }
+    }
     else if ( field_dtype == YT_INT ){
         output = malloc( gridTotalSize * sizeof(int) );
         for (long i = 0; i < gridTotalSize; i++) { ((int *) output)[i] = 0; }
@@ -295,6 +299,10 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
     else if ( attr_dtype == YT_DOUBLE ){
         output = malloc( array_length * sizeof(double) );
         for ( long i = 0; i < array_length; i++ ){ ((double *)output)[i] = 0.0; }
+    }
+    else if ( attr_dtype == YT_LONGDOUBLE ){
+        output = malloc( array_length * sizeof(long double) );
+        for ( long i = 0; i < array_length; i++ ){ ((long double *)output)[i] = 0.0; }
     }
     else if ( attr_dtype == YT_LONG ){
         output = malloc( array_length * sizeof(long) );
