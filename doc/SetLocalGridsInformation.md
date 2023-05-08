@@ -13,14 +13,14 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
   - Usage: Grid left and right edge in code units.
 - `long id` (Default=`LNG_UNDEFINED`)
   - Usage: Grid global id.
-  - Valid Value: It is 0-index based and should be in between `0` and `num_grids - 1`.
+  - Valid Value: It should be contiguous starting from [`index_offset`](./SetYTParameter.md#ytparamyt) set in [`yt_set_Parameters`](./SetYTParameter.md#ytsetparameters).
 - `long parent_id` (Default=`LNG_UNDEFINED`)
   - Usage: Parent grid id.
   - Valide Value:
     - Should be in between `0` and `num_grids - 1`.
     - If the grid does not have parent grid, set to `-1`.
 - `int grid_dimensions[3]` (Default=`INT_UNDEFINED`)
-  - Usage: Number of cells along each direction in [x][y][z] order.
+  - Usage: Number of cells along each direction in [x][y][z] order excluding ghost cells.
 - `int level` (Default=`INT_UNDEFINED`)
   - Usage: AMR level of the grid.
   - Valid Value:
@@ -36,11 +36,12 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
   - Usage: Store all the field data under this grid. This is a `yt_data` array with length equals to number of fields.
   - Data member in `yt_data`:
     - `void* data_ptr`: Data pointer to the field data of the grid.
-    - `int data_dimensions[3]`: Dimension of `data_ptr`.
+    - `int data_dimensions[3]`: Dimension of `data_ptr`, which is the actual dimension of this pointer.
     - `yt_dtype data_dtype`: Data type of `data_ptr`.
       - Valid value for `yt_dtype`:
         - `YT_FLOAT`: C type float.
         - `YT_DOUBLE`: C type double.
+        - `YT_LONGDOUBLE`: C type long double.
         - `YT_INT`: C type int.
         - `YT_LONG`: C type long.
 

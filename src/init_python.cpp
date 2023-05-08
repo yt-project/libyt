@@ -36,16 +36,14 @@ int init_python( int argc, char *argv[] )
    else {
       YT_ABORT(  "Initializing Python interpreter ... failed!\n" ); }
 
-// Q: What can argc, argv be used for?
-// A: Probably can encode some settings, but since we aren't use them, comment them out.
-   // wchar_t **wchar_t_argv = (wchar_t **) malloc(argc * sizeof(wchar_t *));
-   // wchar_t wchar_temp[1000];
-   // for (int i = 0; i < argc; i = i+1) {
-	  // printf("argv[%d] = %s\n", i, argv[i]);
-   //    mbtowc(wchar_temp, argv[i], 1000);
-   //    wchar_t_argv[i] = wchar_temp;
-   // }
-   // PySys_SetArgv( argc, wchar_t_argv );
+//   Probably can encode some settings, but since we aren't use them, comment them out.
+//   This needs extra care and consider different Python versions.
+//   wchar_t **wchar_t_argv = (wchar_t **) malloc(argc * sizeof(wchar_t *));
+//   for (int i = 0; i < argc; i = i+1) {
+//	    printf("argv[%d] = %s\n", i, argv[i]);
+//      wchar_t_argv[i] = Py_DecodeLocale(argv[0], NULL);;
+//   }
+//   PySys_SetArgv( argc, wchar_t_argv );
 
 
 // import numpy
