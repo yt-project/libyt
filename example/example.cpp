@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
         param_yt.current_time = time;                         // simulation time in code units
         param_yt.dimensionality = 3;                          // dimensionality, support 3 only
         param_yt.refine_by = REFINE_BY;                       // refinement factor between a grid and its subgrid
-        param_yt.index_offset = 0;                            // grid id starts at 0.
+        param_yt.index_offset = 1;                            // grid id starts at 1. (default is 0-indexed)
         param_yt.num_grids = num_grids;                       // number of grids
         param_yt.num_grids_local = num_grids_local;           // number of local grids
         param_yt.num_fields = num_fields + 1;                 // number of fields, addition one for derived field demo
@@ -367,18 +367,31 @@ int main(int argc, char *argv[]) {
         int index_local = 0;
         for (int gid = 0; gid < param_yt.num_grids; gid = gid + 1) {
             if (grids_MPI[gid] == myrank) {
+                // grid left edge, grid right edge, grid dimensions
                 for (int d = 0; d < 3; d = d + 1) {
-                    grids_local[index_local].left_edge[d] = sim_grids[gid].left_edge[d];              // left edge
-                    grids_local[index_local].right_edge[d] = sim_grids[gid].right_edge[d];            // right edge
-                    grids_local[index_local].grid_dimensions[d] = sim_grids[gid].grid_dimensions[d];  // dimensions
+                    grids_local[index_local].left_edge[d] = sim_grids[gid].left_edge[d];
+                    grids_local[index_local].right_edge[d] = sim_grids[gid].right_edge[d];
+                    grids_local[index_local].grid_dimensions[d] = sim_grids[gid].grid_dimensions[d];
                 }
-                grids_local[index_local].par_count_list[0] = 1;                  // number of particles in each particle type
-                grids_local[index_local].id = sim_grids[gid].id;                 // grid id
-                grids_local[index_local].parent_id = sim_grids[gid].parent_id;   // parent id
-                grids_local[index_local].level = sim_grids[gid].level;           // level, root level starts at 0
 
+                // number of particles in particle type index 0 located on this grid
+                grids_local[index_local].par_count_list[0] = 1;
+
+                // grid id and its parent id, if there is no parent grid, set parent grid id to -1
+                grids_local[index_local].id = sim_grids[gid].id + param_yt.index_offset;
+                if (sim_grids[gid].parent_id == -1) {
+                    grids_local[index_local].parent_id = -1;
+                }
+                else {
+                    grids_local[index_local].parent_id = sim_grids[gid].parent_id + param_yt.index_offset;
+                }
+
+                // grid level, root level starts at 0
+                grids_local[index_local].level = sim_grids[gid].level;
+
+                // field pointers belong to this grid
                 for (int v = 0; v < num_fields; v = v + 1) {
-                    grids_local[index_local].field_data[v].data_ptr = field_data[gid][v];   // field data ptr
+                    grids_local[index_local].field_data[v].data_ptr = field_data[gid][v];
                 }
                 index_local = index_local + 1;
             }
