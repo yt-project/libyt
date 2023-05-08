@@ -15,10 +15,10 @@
 // Structure   :  yt_data
 // Description :  Data structure to store a field data's pointer and its array dimensions.
 // 
-// Notes       :  1. This struct will be use in yt_grid data member field_data.
+// Notes       :  1. This struct will be use in yt_grid data member field_data and particle_data.
 // 
-// Data Member :  data_ptr           : field data pointer
-//                data_dimensions[3] : dimension of the field data to be passed to python, which is the actual
+// Data Member :  data_ptr           : data pointer
+//                data_dimensions[3] : dimension of the data to be passed to python for wrapping, which is the actual
 //                                     size of the array.
 //                                     Def => fieldData[ dim[0] ][ dim[1] ][ dim[2] ]
 //                data_dtype         : Data type of the field in specific grid. If this is set as YT_DTYPE_UNKNOWN,
@@ -69,8 +69,11 @@ struct yt_data
 //                id              : Grid ID
 //                parent_id       : Parent grid ID
 //                proc_num        : Process number, grid belong to which MPI rank
-//                field_data      : Pointer pointing to yt_data array, which stored data pointer 
-//                                  and data dimensions.
+//                field_data      : Pointer pointing to yt_data array, each element stores an info for
+//                                  field array to be wrapped.
+//                particle_data   : Pointer to pointer pointing to yt_data array (yt_data** array),
+//                                  Ex: particle_data[0][1] represents particle data for
+//                                  particle_list[0].attr_list[1].
 //
 // Method      :  yt_grid  : Constructor
 //               ~yt_grid  : Destructor
@@ -81,18 +84,19 @@ struct yt_grid
 
 // data members
 // ===================================================================================
-    double    left_edge[3];
-    double    right_edge[3];
+    double     left_edge[3];
+    double     right_edge[3];
 
-    long     *par_count_list;
-    long      id;
-    long      parent_id;
+    long      *par_count_list;
+    long       id;
+    long       parent_id;
 
-    int       grid_dimensions[3];
-    int       level;
-    int       proc_num;
+    int        grid_dimensions[3];
+    int        level;
+    int        proc_num;
 
-    yt_data  *field_data;
+    yt_data   *field_data;
+    yt_data  **particle_data;
 
     //===================================================================================
     // Method      :  yt_grid
@@ -121,6 +125,7 @@ struct yt_grid
         proc_num       = INT_UNDEFINED;
 
         field_data     = NULL;
+        particle_data  = NULL;
 
     } // METHOD : yt_grid
 
@@ -130,8 +135,7 @@ struct yt_grid
     // Description :  Destructor of the structure "yt_grid"
     //
     // Note        :  1. Not used currently
-    //                2. We do not free the pointer arrays "field_list" and "field_data" here
-    //                   ==> They are freed by yt_free
+    //                2. We do not free the pointer arrays field_data, particle_data
     //
     // Parameter   :  None
     //===================================================================================
@@ -167,7 +171,6 @@ struct yt_grid
         if ( parent_id      == LNG_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "parent_id",      id );
         if ( level          == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "level",          id );
         if ( proc_num       == INT_UNDEFINED    )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "proc_num",       id );
-        if ( field_data     == NULL             )   YT_ABORT(     "\"%s\" has not been set for grid id [%ld]!\n", "field_data",     id );
 
 //    additional checks
         for (int d=0; d<3; d++) {
