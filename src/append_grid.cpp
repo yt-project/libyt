@@ -1,15 +1,18 @@
 #include "yt_combo.h"
 #include "libyt.h"
 
+static int set_field_data( yt_grid *grid );
+static int set_particle_data( yt_grid *grid );
+
 //-------------------------------------------------------------------------------------------------------
 // Function    :  append_grid
 // Description :  Add a single full grid to the libyt Python module
 //
-// Note        :  1. Store the input "grid" to libyt.hierarchy and libyt.grid_data.
+// Note        :  1. Store the input "grid" to libyt.hierarchy, libyt.grid_data, libyt.particle_data.
 //                2. When setting libyt.hierarchy:
 //                   since grid id doesn't have to be 0-indexed (set g_param_yt.index_offset), but the
 //                   hierarchy array starts at 0, we need to minus index_offset when setting hierarchy.
-//                3. When setting libyt.grid_data:
+//                3. When setting libyt.grid_data and libyt.particle_data:
 //                   always maintain the same grid passed in by simulation, which means it doesn't have
 //                   to start from 0.
 //                4. Called and use by yt_commit().
@@ -48,17 +51,132 @@ int append_grid( yt_grid *grid ){
 
     log_debug( "Inserting grid [%ld] info to libyt.hierarchy ... done\n", grid->id );
 
-    // return if no field data, no need to do anything.
-    if ( grid->field_data == NULL ) return YT_SUCCESS;
+    if ( grid->field_data != NULL && set_field_data(grid) != YT_SUCCESS ) {
+        YT_ABORT("Failed to append grid [%ld] field data.\n", grid->id);
+    }
+    if ( grid->particle_data != NULL && set_particle_data(grid) != YT_SUCCESS ) {
+        YT_ABORT("Failed to append grid [%ld] particle data.\n", grid->id);
+    }
 
-    // export grid data to libyt.grid_data as "libyt.grid_data[grid_id][field_list.field_name][field_data.data_ptr]"
-    // if there is data to append.
+    return YT_SUCCESS;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  set_field_data
+// Description :  Wrap data pointer and added under libyt.grid_data
+//
+// Note        :  1. libyt.grid_data[grid_id][field_list.field_name] = NumPy array from field pointer.
+//                2. Append to dictionary only when there is data pointer passed in.
+//
+// Parameter   :  yt_grid *grid
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+static int set_field_data( yt_grid *grid ) {
     PyObject *py_grid_id, *py_field_labels, *py_field_data;
 
-    // append data to dict only if data is not NULL.
     py_grid_id = PyLong_FromLong( grid->id );
     py_field_labels = PyDict_New();
     for (int v=0; v<g_param_yt.num_fields; v++) {
+        // append data to dict only if data is not NULL.
+        if ( (grid->field_data)[v].data_ptr == NULL ) continue;
+
+        // check if dictionary exists, if no add new dict under key gid
+        if ( PyDict_Contains( g_py_grid_data, py_grid_id ) != 1 ) {
+            PyDict_SetItem( g_py_grid_data, py_grid_id, py_field_labels );
+        }
+
+        // insert data under py_field_labels dict
+        // (1) Grab NumPy Enumerate Type in order: (1)data_dtype (2)field_dtype
+        int grid_dtype;
+        if ( get_npy_dtype((grid->field_data)[v].data_dtype, &grid_dtype) == YT_SUCCESS ){
+            log_debug("Grid ID [ %ld ], field data [ %s ], grab NumPy enumerate type from data_dtype.\n",
+                      grid->id, g_param_yt.field_list[v].field_name);
+        }
+        else if ( get_npy_dtype(g_param_yt.field_list[v].field_dtype, &grid_dtype) == YT_SUCCESS ){
+            (grid->field_data)[v].data_dtype = g_param_yt.field_list[v].field_dtype;
+            log_debug("Grid ID [ %ld ], field data [ %s ], grab NumPy enumerate type from field_dtype.\n",
+                      grid->id, g_param_yt.field_list[v].field_name);
+        }
+        else{
+            YT_ABORT("Grid ID [ %ld ], field data [ %s ], cannot get the NumPy enumerate type properly.\n",
+                     grid->id, g_param_yt.field_list[v].field_name);
+        }
+
+        // (2) Get the dimension of the input array
+        // Only "cell-centered" will be set to grid_dimensions + ghost cell, else should be set in data_dimensions.
+        if ( strcmp(g_param_yt.field_list[v].field_type, "cell-centered") == 0 ){
+            // Get grid_dimensions and consider contiguous_in_x or not, since grid_dimensions is defined as [x][y][z].
+            if ( g_param_yt.field_list[v].contiguous_in_x ){
+                for ( int d=0; d<3; d++ ) { (grid->field_data)[v].data_dimensions[d] = (grid->grid_dimensions)[2-d]; }
+            }
+            else{
+                for ( int d=0; d<3; d++ ) { (grid->field_data)[v].data_dimensions[d] = (grid->grid_dimensions)[d]; }
+            }
+            // Plus the ghost cell to get the actual array dimensions.
+            for(int d = 0; d < 6; d++) {
+                (grid->field_data)[v].data_dimensions[ d / 2 ] += g_param_yt.field_list[v].field_ghost_cell[d];
+            }
+        }
+        // See if all data_dimensions > 0, abort if not.
+        for (int d = 0; d < 3; d++){
+            if ( (grid->field_data)[v].data_dimensions[d] <= 0 ){
+                YT_ABORT("Grid ID [ %ld ], field data [ %s ], data_dimensions[%d] = %d <= 0.\n",
+                         grid->id, g_param_yt.field_list[v].field_name, d, (grid->field_data)[v].data_dimensions[d]);
+            }
+        }
+
+        npy_intp grid_dims[3] = { (grid->field_data)[v].data_dimensions[0],
+                                  (grid->field_data)[v].data_dimensions[1],
+                                  (grid->field_data)[v].data_dimensions[2]};
+
+        // (3) Insert data to dict
+        // PyArray_SimpleNewFromData simply creates an array wrapper and does not allocate and own the array
+        py_field_data = PyArray_SimpleNewFromData( 3, grid_dims, grid_dtype, (grid->field_data)[v].data_ptr );
+
+        // Mark this memory (NumPy array) read-only
+        PyArray_CLEARFLAGS( (PyArrayObject*) py_field_data, NPY_ARRAY_WRITEABLE);
+
+        // add the field data to dict "libyt.grid_data[grid_id][field_list.field_name]"
+        PyDict_SetItemString( py_field_labels, g_param_yt.field_list[v].field_name, py_field_data );
+
+        // call decref since PyDict_SetItemString() returns a new reference
+        Py_DECREF( py_field_data );
+
+        log_debug( "Inserting grid [%ld] field data [%s] to libyt.grid_data ... done\n",
+                   grid->id, g_param_yt.field_list[v].field_name );
+
+    }
+
+    // call decref since both PyLong_FromLong() and PyDict_New() return a new reference
+    Py_DECREF( py_grid_id );
+    Py_DECREF( py_field_labels );
+
+    return YT_SUCCESS;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  set_particle_data
+// Description :  Wrap data pointer and added under libyt.particle_data
+//
+// Note        :  1. libyt.particle_data[grid_id][particle_list.par_type][attr_name]
+//                   = NumPy array created through wrapping data pointer.
+//                2. Append to dictionary only when there is data pointer passed in.
+//
+// Parameter   :  yt_grid *grid
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+static int set_particle_data( yt_grid* grid ) {
+    PyObject *py_grid_id, *py_ptype_labels, *py_attributes, *py_data;
+
+
+    py_grid_id = PyLong_FromLong( grid->id );
+    py_field_labels = PyDict_New();
+    for (int v=0; v<g_param_yt.num_fields; v++) {
+        // append data to dict only if data is not NULL.
         if ( (grid->field_data)[v].data_ptr == NULL ) continue;
 
         // check if dictionary exists, if no add new dict under key gid
