@@ -69,6 +69,7 @@ int yt_free() {
 
     // Reset data in libyt module
     PyDict_Clear(g_py_grid_data);
+    PyDict_Clear(g_py_particle_data);
     PyDict_Clear(g_py_hierarchy);
     PyDict_Clear(g_py_param_yt);
     PyDict_Clear(g_py_param_user);
