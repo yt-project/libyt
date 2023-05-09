@@ -55,6 +55,7 @@ yt_rma_particle::yt_rma_particle(const char *ptype, const char *attribute, int l
     // Set std::vector capacity
     m_Prepare.reserve(len_prepare);
     m_PrepareData.reserve(len_prepare);
+    m_FreePrepareData.reserve(len_prepare);
     m_Fetched.reserve(len_get);
     m_FetchedData.reserve(len_get);
 
@@ -86,9 +87,11 @@ yt_rma_particle::~yt_rma_particle()
 //                particle data to m_Window and get the address.
 //
 // Notes       :  1. Prepare the particle data in grid = gid, and attach particle data to m_Window.
-//                2. Insert data pointer into m_PrepareData.
+//                2. Insert data pointer into m_PrepareData, and if data gets from get_par_attr,
+//                   we push m_FreePrepareData to true.
 //                3. Insert data information into m_Prepare.
 //                4. data_len is the length of the particle data array.
+//                5. Only prepare data length > 0. data_ptr with length = 0 will be set as NULL.
 //                5. We assume that all gid can be found on this rank.
 //
 // Arguments   :  long gid : Particle data to prepare in grid id = gid.
@@ -121,28 +124,40 @@ int yt_rma_particle::prepare_data(long& gid)
         YT_ABORT("yt_rma_particle: Particle %s count = %ld < 0 in grid [%ld].\n", m_ParticleType, par_info.data_len, gid);
     }
 
-    // Generate particle data
-    void (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*);
-    get_par_attr = g_param_yt.particle_list[m_ParticleIndex].get_par_attr;
-    if( get_par_attr == NULL ){
-        YT_ABORT("yt_rma_particle: Particle type [%s], get_par_attr not set!\n", m_ParticleType);
-    }
-
+    // Get particle data
+    void *data_ptr = NULL;
+    par_info.address = NULL;
     int dtype_size;
-    if ( get_dtype_size(m_AttributeDataType, &dtype_size) != YT_SUCCESS ){
-        YT_ABORT("yt_rma_particle: Particle type [%s] attribute [%s], unknown yt_dtype.\n", m_ParticleType, m_AttributeName);
-    }
+    bool to_free = false;
+    if (par_info.data_len > 0) {
+        // get data type
+        if ( get_dtype_size(m_AttributeDataType, &dtype_size) != YT_SUCCESS ){
+            YT_ABORT("yt_rma_particle: Particle type [%s] attribute [%s], unknown yt_dtype.\n", m_ParticleType, m_AttributeName);
+        }
 
-    void *data_ptr;
-    if( par_info.data_len > 0 ){
-        // Generate buffer.
-        data_ptr = malloc( par_info.data_len * dtype_size );
-        int list_len = 1;
-        long list_gid[1] = { gid };
-        yt_array data_array[1];
-        data_array[0].gid = gid; data_array[0].data_length = par_info.data_len; data_array[0].data_ptr = data_ptr;
+        // get data_ptr
+        yt_data par_array;
+        if (yt_getGridInfo_ParticleData(gid, m_ParticleType, m_AttributeName, &par_array) != YT_SUCCESS ) {
+            data_ptr = par_array.data_ptr;
+            to_free = false;
+        }
+        else {
+            // Generate particle data through get_par_attr function pointer, if we cannot find it in libyt.particle_data
+            void (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*);
+            get_par_attr = g_param_yt.particle_list[m_ParticleIndex].get_par_attr;
+            if( get_par_attr == NULL ){
+                YT_ABORT("yt_rma_particle: Particle type [%s], get_par_attr not set!\n", m_ParticleType);
+            }
 
-        (*get_par_attr) (list_len, list_gid, m_ParticleType, m_AttributeName, data_array);
+            // Generate buffer.
+            data_ptr = malloc( par_info.data_len * dtype_size );
+            to_free = true;
+            int list_len = 1;
+            long list_gid[1] = { gid };
+            yt_array data_array[1];
+            data_array[0].gid = gid; data_array[0].data_length = par_info.data_len; data_array[0].data_ptr = data_ptr;
+            (*get_par_attr) (list_len, list_gid, m_ParticleType, m_AttributeName, data_array);
+        }
 
         // Attach buffer to window.
         int mpi_return_code = MPI_Win_attach(m_Window, data_ptr, par_info.data_len * dtype_size );
@@ -159,13 +174,10 @@ int yt_rma_particle::prepare_data(long& gid)
                      m_ParticleType, m_AttributeName);
         }
     }
-    else{
-        data_ptr = NULL;
-        par_info.address = NULL;
-    }
 
     // Push back to m_Prepare, m_PrepareData.
     m_PrepareData.push_back( data_ptr );
+    m_FreePrepareData.push_back( to_free );
     m_Prepare.push_back( par_info );
 
     return YT_SUCCESS;
@@ -288,7 +300,8 @@ int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
 //
 // Notes       :  1. Close the window epoch, and detach the prepared data buffer.
 //                2. Free m_AllPrepare, m_SearchRange.
-//                3. Free local prepared data, drop m_Prepare and m_PrepareData vector.
+//                3. Free local prepared data if m_FreePrepareData is true.
+//                4. Drop m_Prepare, m_PrepareData, m_FreePrepareData vector.
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
@@ -301,14 +314,17 @@ int yt_rma_particle::clean_up()
     for(int i = 0; i < (int)m_Prepare.size(); i++){
         if( m_Prepare[i].data_len > 0 ){
             MPI_Win_detach(m_Window, m_PrepareData[i]);
-            free( m_PrepareData[i] );
+            if (m_FreePrepareData[i]) {
+                free( m_PrepareData[i] );
+            }
         }
     }
 
-    // Free m_AllPrepare, m_SearchRange, m_PrepareData, m_Prepare
+    // Free m_AllPrepare, m_SearchRange, m_PrepareData, m_FreePrepareData, m_Prepare
     delete [] m_AllPrepare;
     delete [] m_SearchRange;
     m_PrepareData.clear();
+    m_FreePrepareData.clear();
     m_Prepare.clear();
 
     return YT_SUCCESS;
