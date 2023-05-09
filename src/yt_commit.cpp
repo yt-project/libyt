@@ -194,11 +194,13 @@ int yt_commit()
       // load from g_param_yt.grids_local
       if ( start_block <= i && i < end_block ) {
          // Get the pointer to data from grids_local
-         grid_combine.field_data   = g_param_yt.grids_local[i - start_block].field_data;
+         grid_combine.field_data    = g_param_yt.grids_local[i - start_block].field_data;
+         grid_combine.particle_data = g_param_yt.grids_local[i - start_block].particle_data;
       }
       else {
          // Make it points to NULL
          grid_combine.field_data = NULL;
+         grid_combine.particle_data = NULL;
       }
 
       // Append grid to YT
