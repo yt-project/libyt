@@ -190,6 +190,10 @@ static int set_particle_data( yt_grid* grid ) {
                           g_param_yt.particle_list[p].par_type, g_param_yt.particle_list[p].attr_list[a].attr_name);
                 continue;
             }
+            if ((grid->par_count_list)[p] <= 0) {
+                log_error("Cannot wrapped particle array with length %ld <= 0\n", (grid->par_count_list)[p]);
+                continue;
+            }
             npy_intp array_dims[1] = {(grid->par_count_list)[p]};
             py_data = PyArray_SimpleNewFromData( 1, array_dims, data_dtype, (grid->particle_data)[p][a].data_ptr );
             PyArray_CLEARFLAGS( (PyArrayObject*) py_data, NPY_ARRAY_WRITEABLE);
