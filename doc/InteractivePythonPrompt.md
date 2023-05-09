@@ -66,7 +66,7 @@ Exit interactive mode, and continue iteration process in simulation.
 ```
 Load and run file in [already loaded inline script](./Initialize.md#yt_param_libyt)'s namespace. This is like running every single line in these files line by line in IPython, so you can overwrite and update objects. Changes will maintain througout in situ analysis.
 
-All function detected in this new loaded script will be set to idle, and will not run in the following in situ analysis, unless you switch it on using [`%libyt run`](#run-1).
+All new functions detected in this new loaded script will be set to idle, and will not run in the following in situ analysis, unless you switch it on using [`%libyt run`](#run-1).
 
 #### export
 ```
