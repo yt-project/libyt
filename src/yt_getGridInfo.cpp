@@ -125,7 +125,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_co
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_getGridInfo_FieldData
-// Description :  Get field_data of field_name in the grid with grid id = gid .
+// Description :  Get libyt.grid_data of field_name in the grid with grid id = gid .
 //
 // Note        :  1. It searches libyt.grid_data[gid][fname], and return YT_FAIL if it cannot find
 //                   corresponding data.
@@ -134,6 +134,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_co
 //                4. Returns an existing data pointer and data dimensions user passed in,
 //                   and does not make a copy of it!!
 //                5. Works only for 3-dim data.
+//                6. libyt also use this function to look up data.
 //
 // Parameter   :  const long   gid              : Target grid id.
 //                const char  *field_name       : Target field name.
@@ -187,6 +188,75 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
 
     // dereference
     Py_DECREF(py_grid_id);
+
+    return YT_SUCCESS;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  yt_getGridInfo_ParticleData
+// Description :  Get libyt.particle_data of ptype attr attributes in the grid with grid id = gid.
+//
+// Note        :  1. It searches libyt.particle_data[gid][ptype][attr], and return YT_FAIL if it cannot
+//                   find corresponding data.
+//                2. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+//                3. User should cast to their own datatype after receiving the pointer.
+//                4. Returns an existing data pointer and data dimensions user passed in,
+//                   and does not make a copy of it!!
+//                5. Works only for 3-dim data. For 1-dim data, the higher dimensions is set to 0.
+//
+// Parameter   :  const long   gid              : Target grid id.
+//                const char  *ptype            : Target particle type.
+//                const char  *attr             : Target attribute name.
+//                yt_data     *par_data         : Store the yt_data struct pointer that points to data.
+//
+// Example     :
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int yt_getGridInfo_ParticleData(const long gid, const char *ptype, const char *attr, yt_data *par_data) {
+
+    if (!g_param_libyt.commit_grids) {
+        YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
+                 __FUNCTION__);
+    }
+
+    // get dictionary libyt.particle_data[gid][ptype]
+    PyObject *py_grid_id = PyLong_FromLong(gid);
+    PyObject *py_ptype   = PyUnicode_FromString(ptype);
+    PyObject *py_attr    = PyUnicode_FromString(attr);
+
+    if (PyDict_Contains(g_py_particle_data, py_grid_id) != 1) {
+        YT_ABORT("Cannot find particle type [%s] attribute [%s] data in grid [%ld] on MPI rank [%d].\n",
+                 ptype, attr, gid, g_myrank);
+    }
+    if (PyDict_Contains(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype) != 1) {
+        YT_ABORT("Cannot find particle type [%s] attribute [%s] data in grid [%ld] on MPI rank [%d].\n",
+                 ptype, attr, gid, g_myrank);
+    }
+    PyArrayObject *py_data = (PyArrayObject*) PyDict_GetItem(PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr);
+
+    Py_DECREF(py_grid_id);
+    Py_DECREF(py_ptype);
+    Py_DECREF(py_attr);
+
+    // extracting py_data to par_data
+    npy_intp *py_data_dims = PyArray_DIMS(py_data);
+    (*par_data).data_dimensions[0] = (int) py_data_dims[0];
+    (*par_data).data_dimensions[1] = 0;
+    (*par_data).data_dimensions[2] = 0;
+
+    (*par_data).data_ptr = PyArray_DATA(py_data);
+
+    PyArray_Descr *py_data_info = PyArray_DESCR(py_data);
+    if ((py_data_info->type_num) == NPY_FLOAT)           (*par_data).data_dtype = YT_FLOAT;
+    else if ((py_data_info->type_num) == NPY_DOUBLE)     (*par_data).data_dtype = YT_DOUBLE;
+    else if ((py_data_info->type_num) == NPY_LONGDOUBLE) (*par_data).data_dtype = YT_LONGDOUBLE;
+    else if ((py_data_info->type_num) == NPY_INT)        (*par_data).data_dtype = YT_INT;
+    else if ((py_data_info->type_num) == NPY_LONG)       (*par_data).data_dtype = YT_LONG;
+    else {
+        YT_ABORT("No matching yt_dtype for NumPy data type num [%d].\n", py_data_info->type_num);
+    }
 
     return YT_SUCCESS;
 }
