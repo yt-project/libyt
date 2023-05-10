@@ -72,6 +72,7 @@ SET_GLOBAL( Timer,         *g_timer,          NULL  );   // Timer for recording 
 // add the prefix "g_py_" for all global Python objects
 #ifndef NO_PYTHON
 SET_GLOBAL( PyObject,      *g_py_grid_data,        NULL  );   // Python dictionary to store grid data
+SET_GLOBAL( PyObject,      *g_py_particle_data,    NULL  );   // Python dictionary to store particle data
 SET_GLOBAL( PyObject,      *g_py_hierarchy,        NULL  );   // Python dictionary to store hierachy information
 SET_GLOBAL( PyObject,      *g_py_param_yt,         NULL  );   // Python dictionary to store YT parameters
 SET_GLOBAL( PyObject,      *g_py_param_user,       NULL  );   // Python dictionary to store code-specific parameters

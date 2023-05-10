@@ -6,7 +6,7 @@ FILE := example.cpp
 COMPILER := $(MPI_PATH)/bin/mpic++
 
 $(BIN): $(FILE)
-	$(COMPILER) -o $(BIN) $(FILE) -I../include -L../src -lyt
+	$(COMPILER) -o $(BIN) $(FILE) -I../include -L../lib -lyt
 	
 clean:
 	rm -f $(BIN)

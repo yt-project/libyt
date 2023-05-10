@@ -685,15 +685,17 @@ static PyObject* PyInit_libyt(void)
   }
 
   // Add objects dictionary
-  g_py_grid_data  = PyDict_New();
-  g_py_hierarchy  = PyDict_New();
-  g_py_param_yt   = PyDict_New();
-  g_py_param_user = PyDict_New();
+  g_py_grid_data     = PyDict_New();
+  g_py_particle_data = PyDict_New();
+  g_py_hierarchy     = PyDict_New();
+  g_py_param_yt      = PyDict_New();
+  g_py_param_user    = PyDict_New();
 
-  PyModule_AddObject(libyt_module, "grid_data",  g_py_grid_data );
-  PyModule_AddObject(libyt_module, "hierarchy",  g_py_hierarchy );
-  PyModule_AddObject(libyt_module, "param_yt",   g_py_param_yt  );
-  PyModule_AddObject(libyt_module, "param_user", g_py_param_user);
+  PyModule_AddObject(libyt_module, "grid_data",      g_py_grid_data     );
+  PyModule_AddObject(libyt_module, "particle_data",  g_py_particle_data );
+  PyModule_AddObject(libyt_module, "hierarchy",      g_py_hierarchy     );
+  PyModule_AddObject(libyt_module, "param_yt",       g_py_param_yt      );
+  PyModule_AddObject(libyt_module, "param_user",     g_py_param_user    );
 
 #ifdef INTERACTIVE_MODE
   g_py_interactive_mode = PyDict_New();
