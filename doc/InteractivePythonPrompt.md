@@ -17,9 +17,7 @@ List functions' status:
 #### Run
 Whether these functions will execute in next in situ analysis or not:
 - `V`: this function will run automatically in following in situ analysis.
-- `X`: this function will idle in next in situ analysis.
-
-> :information_source: When calling [`yt_run_InteractiveMode`](./ActivateInteractiveMode.md#yt_run_interactivemode), `libyt` will run all the functions that was set to run using [`%libyt run`](#run-1), but had not been run by [`yt_run_Function`](./PerformInlineAnalysis.md#yt_run_function) or [`yt_run_FunctionArguments`](./PerformInlineAnalysis.md#yt_run_functionarguments) yet.
+- `X`: this function will idle in next in situ analysis, even if it is called through [`yt_run_FunctionArguments`](./PerformInlineAnalysis.md#yt_run_functionarguments) or [`yt_run_Function`](./PerformInlineAnalysis.md#ytrunfunction) in simulation.
 
 ```
 =====================================================================
