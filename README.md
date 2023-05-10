@@ -71,11 +71,10 @@ MPI_PATH       := $(YOUR_MPI_PATH)
   ```
 
 #### Install
-Compile and move `libyt.so.*` to `libyt/lib` folder:
+Compile:
 ```bash
 make clean
 make
-cp libyt.so* ../lib/
 ```
 
 Include `libyt.h` header which is in `libyt/include` and library in your simulation code.
