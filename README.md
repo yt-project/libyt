@@ -33,7 +33,19 @@
 ## Installation
 ### libyt
 #### Set Path
-In `/libyt/src/Makefile`, update `PYTHON_PATH`, `PYTHON_VERSION`, `NUMPY_PATH` and `MPI_PATH`:
+In `libyt/src/Makefile`, update `PYTHON_PATH`, `PYTHON_VERSION`, `NUMPY_PATH` and `MPI_PATH`:
+- **PYTHON_PATH**: Python installation prefix, under this folder, there should be folders like `include`, `lib` etc.
+- **PYTHON_VERSION**: Python `major.minor` version.
+- **NUMPY_PATH**: Look up where `numpy` folder is installed.
+  - Use `pip` to look up, and NUMPY_PATH is `<path>/numpy`.
+    ```bash
+    $ pip list -v | grep numpy
+    Package   Version   Location   Installer
+    --------- --------- ---------- -----------
+    numpy     <version> <path>     pip
+    ```
+- **MPI_PATH**: MPI installation prefix, under this folder, there should be folders like `include`, `lib` etc.
+
 ```makefile
 # Your paths
 ############################################################
@@ -42,45 +54,46 @@ PYTHON_VERSION := $(YOUR_PYTHON_VERSION)
 NUMPY_PATH     := $(YOUR_NUMPY_PATH)
 MPI_PATH       := $(YOUR_MPI_PATH)
 ```
-> :information_source: Make sure you are using the same `MPI_PATH` to compile `libyt` and your simulation code.
+> :warning: Make sure you are using the same MPI to compile `libyt` and your simulation code.
 
 #### Options
-##### Normal Mode
-Normal mode will shut down and terminate all the processes including simulation if there are errors during in situ analysis using Python.
+- **Normal Mode**: Normal mode will shut down and terminate all the processes including simulation if there are errors during in situ analysis using Python.
 
-##### Interactive Mode
-Interactive mode will not terminate the processes if there are errors during in situ analysis using Python. Interactive mode is more like an add-ons for normal mode. 
+- **Interactive Mode**: Interactive mode will not terminate the processes if there are errors during in situ analysis using Python. Interactive mode is more like an add-ons for normal mode. 
+  - To use interactive mode, we need `readline` library and switch `-DINTERACTIVE_MODE` to on in `Makefile`. Please set the path, if `readline` library is not on your system include search path.
 
-To use interactive mode, we need `readline` library and switch `-DINTERACTIVE_MODE` to on in `Makefile`. Please set the path, if `readline` library is not on your system include search path.
+  ```makefile
+  READLINE_PATH  := $(YOUR_READLINE_PATH)
 
-```makefile
-READLINE_PATH  := $(YOUR_READLINE_PATH)
+  # Interactive Mode: supports reloading inline script, active python prompt and does not halt when
+  # error occurs. Require readline library, add READLINE_PATH if it is not inside include search path.
+  OPTIONS += -DINTERACTIVE_MODE
+  ```
 
-# Interactive Mode: supports reloading inline script, active python prompt and does not halt when
-# error occurs. Require readline library, add READLINE_PATH if it is not inside include search path.
-OPTIONS += -DINTERACTIVE_MODE
-```
-
-#### Compile, Link, and Headers
-Compile and move `libyt.so.*` to `/libyt/lib` folder:
+#### Install
+Compile and move `libyt.so.*` to `libyt/lib` folder:
 ```bash
 make clean
 make
 cp libyt.so* ../lib/
 ```
 
-Include `libyt.h` header which is in `/libyt/include` and library in your simulation code. We should also include `libyt_interactive_mode.h` in interactive mode.
+Include `libyt.h` header which is in `libyt/include` and library in your simulation code. We should also include `libyt_interactive_mode.h` in interactive mode.
 
-### yt
-> :warning: We will submit a pull request to [`yt-project/yt`](https://github.com/yt-project/yt). This section is only for temporary. For now, you can only build from source code.
+### yt_libyt
+Even though `libyt` can call arbitrary Python module, `yt` is the core analytic tool used in `libyt`. This is singled out as an individual frontend for `yt`, and this will work with any version of [`yt`](https://yt-project.org/) with Python version > 3.6.
 
-Clone [`cindytsai/yt`-`libyt` branch](https://github.com/cindytsai/yt/tree/libyt):
+#### Requirements
+- `mpi4py`
+- `yt`
+> :warning: Please make sure `mpi4py` we used in Python and MPI we used in simulation are matched. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
+
+#### Install From Source
+- `yt_libyt`
+
 ```bash
-git clone -b libyt https://github.com/cindytsai/yt.git
-```
-
-Install using pip:
-```bash
+git clone https://github.com/data-exp-lab/yt_libyt.git
+cd yt_libyt
 pip install .
 ```
 

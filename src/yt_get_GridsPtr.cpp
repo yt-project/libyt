@@ -7,10 +7,12 @@
 //
 // Note        :  1. User should call this function after yt_set_Parameters(),
 //                   since we need num_grids_local, num_fields, and num_par_types.
-//                2. Initialize field_data in one grid with
+//                2. Initialize field_data and particle_data in one grid with
 //                   (1) data_dimensions[3] = {0, 0, 0}
 //                   (2) data_ptr           = NULL
 //                   (3) data_dtype         = YT_DTYPE_UNKNOWN
+//                   field_data[0]       represents field_list[0]
+//                   particle_data[0][1] represents particle_list[0].attr_list[1]
 //                3. If user call this function twice, then it will just return the previously initialized 
 //                   and allocated array.
 //
@@ -53,25 +55,33 @@ int yt_get_GridsPtr( yt_grid **grids_local )
 		for ( int id = 0; id < g_param_yt.num_grids_local; id = id+1 ){
 			
 			(*grids_local)[id].proc_num     = g_myrank;
-			
-			// Dealing with individual field in one grid
+
 			if ( g_param_yt.num_fields > 0 ){
+                // Array for storing pointers for fields in a grid
 				(*grids_local)[id].field_data   = new yt_data [g_param_yt.num_fields];
 			}
 			else{
 				(*grids_local)[id].field_data   = NULL;
 			}
 
-			// Dealing with particle count
-			if ( g_param_yt.num_par_types > 0 ){
-				(*grids_local)[id].par_count_list = new long [g_param_yt.num_par_types];
-				for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
-					(*grids_local)[id].par_count_list[s] = 0;
-				}
-			}
-			else{
-				(*grids_local)[id].par_count_list = NULL;
-			}
+            if (g_param_yt.num_par_types > 0 ){
+                // Array for storing pointers for different particle data attributes in a grid.
+                // Ex: particle_data[0][1] represents particle_list[0].attr_list[1] data
+                (*grids_local)[id].particle_data = new yt_data* [g_param_yt.num_par_types];
+                for (int p = 0; p < g_param_yt.num_par_types; p++){
+                    (*grids_local)[id].particle_data[p] = new yt_data [g_param_yt.particle_list[p].num_attr];
+                }
+
+                // Array for storing particle count in different particle type
+                (*grids_local)[id].par_count_list = new long [g_param_yt.num_par_types];
+                for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
+                    (*grids_local)[id].par_count_list[s] = 0;
+                }
+            }
+            else{
+                (*grids_local)[id].particle_data = NULL;
+                (*grids_local)[id].par_count_list = NULL;
+            }
 		}
 
 		// Store the grids_local to g_param_yt

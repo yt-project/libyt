@@ -194,11 +194,13 @@ int yt_commit()
       // load from g_param_yt.grids_local
       if ( start_block <= i && i < end_block ) {
          // Get the pointer to data from grids_local
-         grid_combine.field_data   = g_param_yt.grids_local[i - start_block].field_data;
+         grid_combine.field_data    = g_param_yt.grids_local[i - start_block].field_data;
+         grid_combine.particle_data = g_param_yt.grids_local[i - start_block].particle_data;
       }
       else {
          // Make it points to NULL
          grid_combine.field_data = NULL;
+         grid_combine.particle_data = NULL;
       }
 
       // Append grid to YT
@@ -230,8 +232,16 @@ int yt_commit()
     // Free grids_local
     if ( g_param_libyt.get_gridsPtr && g_param_yt.num_grids_local > 0 ){
         for (int i = 0; i < g_param_yt.num_grids_local; i = i+1){
-            if ( g_param_yt.num_fields > 0 ) delete [] g_param_yt.grids_local[i].field_data;
-            if ( g_param_yt.num_par_types > 0 ) delete [] g_param_yt.grids_local[i].par_count_list;
+            if ( g_param_yt.num_fields > 0 ) {
+                delete[] g_param_yt.grids_local[i].field_data;
+            }
+            if ( g_param_yt.num_par_types > 0 ) {
+                delete[] g_param_yt.grids_local[i].par_count_list;
+                for (int p = 0; p < g_param_yt.num_par_types; p++){
+                    delete[] g_param_yt.grids_local[i].particle_data[p];
+                }
+                delete[] g_param_yt.grids_local[i].particle_data;
+            }
         }
         delete [] g_param_yt.grids_local;
     }
