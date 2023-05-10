@@ -1,4 +1,5 @@
 import yt
+import yt_libyt
 from mpi4py import MPI
 import pandas as pd
 import numpy as np
@@ -18,7 +19,7 @@ class DataIOTestFailed(Exception):
 
 def yt_inline_ProjectionPlot( fields ):
     # Load the data, just like using yt.load()
-    ds = yt.frontends.libyt.libytDataset()
+    ds = yt_libyt.libytDataset()
 
     # Do yt operation
     prjz = yt.ProjectionPlot(ds, 'z', fields)
@@ -28,14 +29,14 @@ def yt_inline_ProjectionPlot( fields ):
         prjz.save()
 
 def yt_inline_ProfilePlot():
-    ds = yt.frontends.libyt.libytDataset()
+    ds = yt_libyt.libytDataset()
     profile = yt.ProfilePlot(ds, "x", ["density"])
 
     if yt.is_root():
         profile.save()
 
 def yt_inline_ParticlePlot():
-    ds = yt.frontends.libyt.libytDataset()
+    ds = yt_libyt.libytDataset()
 
     ## ParticleProjectionPlot
     #==========================
@@ -49,7 +50,7 @@ def yt_inline_ParticlePlot():
         par.save()
 
 def yt_derived_field_demo():
-    ds = yt.frontends.libyt.libytDataset()
+    ds = yt_libyt.libytDataset()
     slc = yt.SlicePlot(ds, "z", ("gamer", "InvDens"))
 
     if yt.is_root():
@@ -58,7 +59,7 @@ def yt_derived_field_demo():
 def test_function():
     global step
 
-    ds = yt.frontends.libyt.libytDataset()
+    ds = yt_libyt.libytDataset()
 
     for gid in range(ds.index.num_grids):
         # Read simulation data, this is the original data in [x][y][z] orientation.
