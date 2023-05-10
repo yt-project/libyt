@@ -78,7 +78,7 @@ make
 cp libyt.so* ../lib/
 ```
 
-Include `libyt.h` header which is in `libyt/include` and library in your simulation code. We should also include `libyt_interactive_mode.h` in interactive mode.
+Include `libyt.h` header which is in `libyt/include` and library in your simulation code.
 
 ### yt_libyt
 Even though `libyt` can call arbitrary Python module, `yt` is the core analytic tool used in `libyt`. This is singled out as an individual frontend for `yt`, and this will work with any version of [`yt`](https://yt-project.org/) with Python version > 3.6.
