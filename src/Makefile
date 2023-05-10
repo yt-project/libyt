@@ -87,4 +87,4 @@ $(LIB_REALNAME) : $(OBJ)
 #######################################################################################################
 clean :
 	 rm -f $(OBJ)
-	 rm -f $(LIB_REALNAME)
+	 rm -f $(LIB_REALNAME) $(LIB_SONAME) libyt.so
