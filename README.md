@@ -58,7 +58,7 @@ MPI_PATH       := $(YOUR_MPI_PATH)
   OPTIONS += -DINTERACTIVE_MODE
   ```
 
-#### Compile, Link, and Headers
+#### Install
 Compile and move `libyt.so.*` to `libyt/lib` folder:
 ```bash
 make clean
@@ -71,13 +71,14 @@ Include `libyt.h` header which is in `libyt/include` and library in your simulat
 ### yt_libyt
 Even though `libyt` can call arbitrary Python module, `yt` is the core analytic tool used in `libyt`. This is singled out as an individual frontend for `yt`, and this will work with any version of [`yt`](https://yt-project.org/) with Python version > 3.6.
 
+#### Requirements
+- `mpi4py`
+- `yt`
+> :warning: Please make sure `mpi4py` we used in Python and MPI we used in simulation are matched. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
 
-```bash
-pip install mpi4py
-```
-> :warning: Please make sure `mpi4py` you used in Python and in simulation are matched. You can also check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
+#### Install From Source
+- `yt_libyt`
 
-Clone [`data-exp-lab/yt_libyt`](https://github.com/data-exp-lab/yt_libyt.git):
 ```bash
 git clone https://github.com/data-exp-lab/yt_libyt.git
 cd yt_libyt
