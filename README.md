@@ -34,6 +34,18 @@
 ### libyt
 #### Set Path
 In `libyt/src/Makefile`, update `PYTHON_PATH`, `PYTHON_VERSION`, `NUMPY_PATH` and `MPI_PATH`:
+- **PYTHON_PATH**: Python installation prefix, under this folder, there should be folders like `include`, `lib` etc.
+- **PYTHON_VERSION**: Python `major.minor` version.
+- **NUMPY_PATH**: Look up where `numpy` folder is installed.
+  - Use `pip` to look up, and NUMPY_PATH is `<path>/numpy`.
+    ```bash
+    $ pip list -v | grep numpy
+    Package   Version   Location   Installer
+    --------- --------- ---------- -----------
+    numpy     <version> <path>     pip
+    ```
+- **MPI_PATH**: MPI installation prefix, under this folder, there should be folders like `include`, `lib` etc.
+
 ```makefile
 # Your paths
 ############################################################
