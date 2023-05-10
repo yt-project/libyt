@@ -39,8 +39,10 @@ endif
 
 # library name
 #######################################################################################################
-LIB_REALNAME := libyt.so.1.0.0
-LIB_SONAME   := libyt.so.1
+LIBYT_MAJOR_VERSION := 0
+LIBYT_MINOR_VERSION := 1.0
+LIB_REALNAME := libyt.so.$(LIBYT_MAJOR_VERSION).$(LIBYT_MINOR_VERSION)
+LIB_SONAME   := libyt.so.$(LIBYT_MAJOR_VERSION)
 
 
 # flags
@@ -76,6 +78,9 @@ $(OBJ_PATH)/%.o : %.cpp
 #######################################################################################################
 $(LIB_REALNAME) : $(OBJ)
 	 $(CXX) -shared -Wl,-soname,$(LIB_SONAME) -o $@ $^ $(LIB)
+	 ln -s $(LIB_REALNAME) $(LIB_SONAME)
+	 ln -s $(LIB_SONAME)   libyt.so
+	 cp libyt.so* ../lib/.
 
 
 # miscellaneous
