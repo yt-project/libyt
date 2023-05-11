@@ -50,13 +50,13 @@ READLINE_PATH  := $(YOUR_READLINE_PATH)
   - Use `pip` to look up, and NUMPY_PATH is `<path>/numpy`.
     ```bash
     $ pip list -v | grep numpy
-    Package   Version   Location   Installer
-    --------- --------- ---------- -----------
-    numpy     <version> <path>     pip
+    Package   Version       Location   Installer
+    --------- ------------- ---------- -----------
+    numpy     <version>     <path>     pip
     ```
 - **MPI_PATH**: MPI installation prefix, under this folder, there should be folders like `include`, `lib` etc.
   > :warning: Make sure you are using the same MPI to compile `libyt` and your simulation code.
-- **READLINE_PATH**: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) path, under this folder, there should contain `include`, `lib` etc. This is needed in interactive mode.
+- **READLINE_PATH**: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) path, under this folder, there should contain `include`, `lib` etc. This is needed only in interactive mode (See below options).
 
 #### Options
 - **Normal Mode**: Normal mode will shut down and terminate all the processes including simulation if there are errors during in situ analysis using Python.
