@@ -1,12 +1,12 @@
-#ifdef INTERACTIVE_MODE
-
-#include <sys/stat.h>
 #include "yt_combo.h"
-#include "define_command.h"
-#include "libyt_interactive_mode.h"
-#include <ctype.h>
-#include <readline/readline.h>
+#include "libyt.h"
 
+#ifdef INTERACTIVE_MODE
+#include <ctype.h>
+#include "define_command.h"
+#include <sys/stat.h>
+#include <readline/readline.h>
+#endif
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_run_InteractiveMode
@@ -26,6 +26,11 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_run_InteractiveMode(const char* flag_file_name) {
+#ifndef INTERACTIVE_MODE
+    log_error("Cannot enter interactive prompt. "
+              "Please compile libyt with -DINTERACTIVE_MODE\n");
+    return YT_FAIL;
+#else
     fflush(stdout);
     fflush(stderr);
 
@@ -222,6 +227,5 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     }
 
     return YT_SUCCESS;
+#endif // #ifndef INTERACTIVE_MODE
 }
-
-#endif // #ifdef INTERACTIVE_MODE
