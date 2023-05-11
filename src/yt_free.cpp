@@ -8,6 +8,8 @@
 //
 // Note        :  1. Call and use by user, after they are done with all the inline-analysis in this 
 //                   round or they want to freed everything allocated by libyt.
+//                2. We also freed grids_local here, in case user didn't call yt_commit and cause memory
+//                   leak.
 //
 // Parameter   :  None
 //
@@ -44,12 +46,20 @@ int yt_free() {
         delete[] g_param_yt.num_grids_local_MPI;
     }
 
-    // Free resource allocated in yt_get_GridsPtr():
-    //    grids_local, field_data, par_count_list
+    // Free resource allocated in yt_get_GridsPtr() in case it hasn't get freed yet:
+    //    grids_local, field_data, particle_data, par_count_list
     if (g_param_libyt.get_gridsPtr && g_param_yt.num_grids_local > 0) {
         for (int i = 0; i < g_param_yt.num_grids_local; i = i + 1) {
-            if (g_param_yt.num_fields > 0)  delete[] g_param_yt.grids_local[i].field_data;
-            if (g_param_yt.num_par_types > 0) delete[] g_param_yt.grids_local[i].par_count_list;
+            if (g_param_yt.num_fields > 0) {
+                delete[] g_param_yt.grids_local[i].field_data;
+            }
+            if (g_param_yt.num_par_types > 0) {
+                delete[] g_param_yt.grids_local[i].par_count_list;
+                for (int p = 0; p < g_param_yt.num_par_types; p++){
+                    delete[] g_param_yt.grids_local[i].particle_data[p];
+                }
+                delete[] g_param_yt.grids_local[i].particle_data;
+            }
         }
         delete[] g_param_yt.grids_local;
     }
@@ -59,6 +69,7 @@ int yt_free() {
 
     // Reset data in libyt module
     PyDict_Clear(g_py_grid_data);
+    PyDict_Clear(g_py_particle_data);
     PyDict_Clear(g_py_hierarchy);
     PyDict_Clear(g_py_param_yt);
     PyDict_Clear(g_py_param_user);

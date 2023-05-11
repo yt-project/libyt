@@ -47,15 +47,14 @@ jobs:
         with:
           mpi: 'openmpi'
 
-      - name: Install cindytsai/yt and mpi4py
+      - name: Install yt, mpi4py, and yt_libyt
         run: |
+          pip install mpi4py yt
           cd $GITHUB_WORKSPACE
           cd ..
-          git clone --depth 1 -b libyt-dev --single-branch "https://github.com/cindytsai/yt.git" yt
-          cd yt
-          git checkout libyt-dev
+          git clone https://github.com/data-exp-lab/yt_libyt.git
+          cd yt_libyt
           pip install .
-          pip install mpi4py
           
       - name: Set PYTHON_PATH, NUMPY_PATH, MPI_PATH 
         run: |
@@ -75,7 +74,6 @@ jobs:
           sed -i 's@$(YOUR_PYTHON_VERSION)@"${{ matrix.python-version }}m"@' Makefile
           make clean
           make
-          cp libyt* ../lib
           echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
           
       - name: Build libyt
@@ -88,7 +86,6 @@ jobs:
           sed -i 's@$(YOUR_PYTHON_VERSION)@"${{ matrix.python-version }}"@' Makefile
           make clean
           make
-          cp libyt* ../lib
           echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
       - name: Prepare Test Script

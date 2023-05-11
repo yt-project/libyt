@@ -40,7 +40,8 @@ int yt_set_UserParameterString  ( const char *key,              const char      
 int yt_commit();
 int yt_free();
 int yt_run_FunctionArguments( const char *function_name, int argc, ... );
-int yt_run_Function         ( const char *function_name );
+int yt_run_Function         ( const char *function_name  );
+int yt_run_InteractiveMode  ( const char *flag_file_name );
 
 // For derived field function to get grid information by GID and by field_name.
 int yt_getGridInfo_Dimensions   ( const long gid, int    (*dimensions)[3] );
@@ -49,8 +50,9 @@ int yt_getGridInfo_RightEdge    ( const long gid, double (*right_edge)[3]);
 int yt_getGridInfo_ParentId     ( const long gid, long    *parent_id     );
 int yt_getGridInfo_Level        ( const long gid, int     *level         );
 int yt_getGridInfo_ProcNum      ( const long gid, int     *proc_num      );
-int yt_getGridInfo_ParticleCount( const long gid, const char *ptype,      long    *par_count );
-int yt_getGridInfo_FieldData    ( const long gid, const char *field_name, yt_data *field_data);
+int yt_getGridInfo_ParticleCount( const long gid, const char *ptype,      long       *par_count );
+int yt_getGridInfo_FieldData    ( const long gid, const char *field_name, yt_data    *field_data);
+int yt_getGridInfo_ParticleData ( const long gid, const char *ptype,      const char *attr,        yt_data *par_data);
 
 #ifdef __cplusplus
 }

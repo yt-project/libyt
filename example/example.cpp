@@ -49,8 +49,6 @@
 // must include this for in situ process, no matter we are using interactive mode or not
 #include "libyt.h"
 
-// include this in interactive mode if we want to activate python prompt
-// #include "libyt_interactive_mode.h"
 
 
 // single or double precision in the field data
@@ -439,7 +437,7 @@ int main(int argc, char *argv[]) {
         // =======================================================================================================
         // libyt: 9. activate python prompt in interactive mode, should call it in situ function call using API
         // =======================================================================================================
-        // only supports when compile libyt using -DINTERACTIVE_MODE (needs "libyt_interactive_mode.h" header)
+        // only supports when compile libyt using -DINTERACTIVE_MODE
         // when detecting "LIBYT_STOP" file, or any inline function failed, interactive prompt will start
         // if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
         //     fprintf(stderr, "ERROR: yt_run_InteractiveMode failed!\n");

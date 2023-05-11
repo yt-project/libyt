@@ -22,14 +22,11 @@ OPTIONS :=
 # libyt
 CC_FILE := yt_initialize.cpp  yt_finalize.cpp  yt_set_Parameters.cpp  yt_run.cpp  yt_set_UserParameter.cpp \
            yt_commit.cpp yt_get_GridsPtr.cpp yt_get_FieldsPtr.cpp yt_get_ParticlesPtr.cpp yt_free.cpp      \
-           yt_getGridInfo.cpp yt_rma_field.cpp yt_rma_particle.cpp
+           yt_getGridInfo.cpp yt_rma_field.cpp yt_rma_particle.cpp yt_run_InteractiveMode.cpp
 CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp       \
-		   check_data.cpp append_grid.cpp get_dtype_property.cpp big_mpi.cpp
+		   check_data.cpp append_grid.cpp get_dtype_property.cpp big_mpi.cpp func_status.cpp               \
+		   func_status_list.cpp define_command.cpp
 
-# for interactive mode
-ifeq "$(filter -DINTERACTIVE_MODE, $(OPTIONS))" "-DINTERACTIVE_MODE"
-CC_FILE += yt_run_InteractiveMode.cpp func_status.cpp func_status_list.cpp define_command.cpp
-endif
 
 # for testing and performance measuring
 ifeq "$(filter -DSUPPORT_TIMER, $(OPTIONS))" "-DSUPPORT_TIMER"
@@ -39,8 +36,10 @@ endif
 
 # library name
 #######################################################################################################
-LIB_REALNAME := libyt.so.1.0.0
-LIB_SONAME   := libyt.so.1
+LIBYT_MAJOR_VERSION := 0
+LIBYT_MINOR_VERSION := 1.0
+LIB_REALNAME := libyt.so.$(LIBYT_MAJOR_VERSION).$(LIBYT_MINOR_VERSION)
+LIB_SONAME   := libyt.so.$(LIBYT_MAJOR_VERSION)
 
 
 # flags
@@ -76,10 +75,13 @@ $(OBJ_PATH)/%.o : %.cpp
 #######################################################################################################
 $(LIB_REALNAME) : $(OBJ)
 	 $(CXX) -shared -Wl,-soname,$(LIB_SONAME) -o $@ $^ $(LIB)
+	 ln -s $(LIB_REALNAME) $(LIB_SONAME)
+	 ln -s $(LIB_SONAME)   libyt.so
+	 cp libyt.so* ../lib/.
 
 
 # miscellaneous
 #######################################################################################################
 clean :
 	 rm -f $(OBJ)
-	 rm -f $(LIB_REALNAME)
+	 rm -f $(LIB_REALNAME) $(LIB_SONAME) libyt.so
