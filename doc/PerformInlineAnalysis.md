@@ -20,19 +20,20 @@ int yt_run_FunctionArguments( const char *function_name, int argc, ... );
 ## Example
 Inline Python script:
 ```python
+import yt_libyt
 import yt
 yt.enable_parallelism()
 
 a = "var"
 
 def yt_inline_ProfilePlot():  
-    ds = yt.frontends.libyt.libytDataset()  
+    ds = yt_libyt.libytDataset()  
     profile = yt.ProfilePlot(ds, "x", ["density"])  
     if yt.is_root():  
         profile.save()
 
 def yt_inline_ProjectionPlot( fields, *args ):  
-    ds = yt.frontends.libyt.libytDataset()
+    ds = yt_libyt.libytDataset()
     prjz = yt.ProjectionPlot(ds, 'z', fields)  
     if yt.is_root():
         prjz.save()
