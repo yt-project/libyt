@@ -4,7 +4,7 @@ After ignoring the ghost cells, a face-centered data should only have one dimens
 
 ## How We Convert Face-Centered to Cell-Centered Data in `yt`
 ```python
-# yt/frontends/libyt/io.py
+# yt_libyt/io.py
 ...
 # data_temp is raw data.
 # Remove ghost cell, and get my slice.
