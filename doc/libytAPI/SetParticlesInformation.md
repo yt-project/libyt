@@ -10,9 +10,9 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
 
 ## yt\_particle
 - `const char* par_type` (set by `libyt`)
-  - Usage: Name of the particle type. `libyt` copies the pointer from [`par_type_list`](./SetYTParameter.md#yt_param_yt)'s data member `par_type` to this variable. You don't need to assign it again. 
+  - Usage: Name of the particle type. `libyt` copies the pointer from [`par_type_list`](SetYTParameter.mdt_param_yt)'s data member `par_type` to this variable. You don't need to assign it again. 
 - `int num_attr` (set by `libyt`)
-  - Usage: Number of attributes does this particle type has. `libyt` will assign your input [`par_type_list`](./SetYTParameter.md#yt_param_yt)'s data member `num_attr` to this variable. You may skip this.
+  - Usage: Number of attributes does this particle type has. `libyt` will assign your input [`par_type_list`](SetYTParameter.mdt_param_yt)'s data member `num_attr` to this variable. You may skip this.
 - `yt_attribute* attr_list` (initialized by `libyt`)
   - Usage: Attribute list of this particle. This is a `yt_attribute` array with length `num_attr`.
   - Data member in `yt_attribute`:
@@ -29,22 +29,22 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
         - `YT_LONG`: C type long.
     - `const char* attr_unit` (Default=`""`)
       - Usage: Unit of the attribute, using `yt` unit system.
-      > :pencil2: The lifetime of `attr_unit` should cover [`yt_commit`](./CommitYourSettings.md#ytcommit).
+      > :pencil2: The lifetime of `attr_unit` should cover [`yt_commit`](CommitYourSettings.md#ytcommit).
     - `int num_attr_name_alias` (Default=`0`)
       - Usage: Number of name aliases.
     - `const char **attr_name_alias` (Default=`NULL`)
       - Usage: A list of name aliases.
-      > :pencil2: The lifetime of `attr_name_alias` should cover [`yt_commit`](./CommitYourSettings.md#ytcommit).
+      > :pencil2: The lifetime of `attr_name_alias` should cover [`yt_commit`](CommitYourSettings.md#ytcommit).
     - `const char *attr_display_name` (Default=`NULL`)
       - Usage: Display name on the output figure. If it is not set, then it will use `attr_name` instead.
-      > :pencil2: The lifetime of `attr_display_name` should cover [`yt_commit`](./CommitYourSettings.md#ytcommit).
+      > :pencil2: The lifetime of `attr_display_name` should cover [`yt_commit`](CommitYourSettings.md#ytcommit).
 - `const char *coor_x, *coor_y, *coor_z` (Default=`NULL`)
   - Usage: Attribute name representing coordinate or position x, y, and z.
   > :pencil2: The lifetime of `coor_x`, `coor_y`, `coor_z` should cover the in situ analysis process. `libyt` only borrows these names and does not make a copy.
 - `void (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*)` (Default=`NULL`)
   - Usage: Function pointer to get particle’s attribute.
 
-> :information_source: `libyt` borrows the full field and particle information class (`class XXXFieldInfo`) from [`frontend`](./SetYTParameter.md#yt_param_yt). It is OK not to set a particle's `attr_unit`, `num_attr_name_alias`, `attr_name_alias`, `attr_display_name`, if this `attr_name` is already inside your frontend.
+> :information_source: `libyt` borrows the full field and particle information class (`class XXXFieldInfo`) from [`frontend`](SetYTParameter.mdt_param_yt). It is OK not to set a particle's `attr_unit`, `num_attr_name_alias`, `attr_name_alias`, `attr_display_name`, if this `attr_name` is already inside your frontend.
 > If you are adding a totally new particle attribute, please add them. `libyt` will add these new attributes information alongside with your original one.
 
 ## Get Attribute Function

@@ -11,7 +11,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
 ## yt_param_yt
 - `const char* frontend` (Default=`NULL`)
   - Usage: Field information of the yt `frontend` to borrow from. This should be `yt` supported frontend.
-  > :pencil2: Please make sure the lifetime of `frontend` covers [`yt_commit`](./CommitYourSettings.md#ytcommit) if you set [`check_data`](./Initialize.md#ytparamlibyt) to `true` when initializing `libyt`.
+  > :pencil2: Please make sure the lifetime of `frontend` covers [`yt_commit`](CommitYourSettings.md#ytcommit) if you set [`check_data`](Initialize.md#ytparamlibyt) to `true` when initializing `libyt`.
 - `const char* fig_basename` (Default=`"Fig"`)
   - Usage: Base name of the output figures. Figure name will also be followed by counter number and `yt` functionality name.
 - `double domain_left_edge[3], domain_right_edge[3]` (Default=`DBL_UNDEFINED`)
