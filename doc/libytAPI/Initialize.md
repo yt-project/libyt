@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Initialize libyt
+title: yt_initialize -- Initialize libyt
 parent: libyt API
 nav_order: 1
 ---
