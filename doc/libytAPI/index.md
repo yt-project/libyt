@@ -71,6 +71,7 @@ Currently, `libyt` only supports loading simulation data with adaptive mesh refi
 
 ## Label Meanings
 - :pencil2: means be careful about the lifetime of this variable. `libyt` only borrows it, and does not make a copy.
+- :information_source: means information worth notice.
 
 ----
 [^1] Even though we can still activate Python prompt and run in situ Python script with no data loaded ahead in non-AMR grid simulation with just `yt_initialize`, `yt_run_Function`, `yt_run_FunctionArguments`, `yt_run_InteractiveMode`, and `yt_finalize`. We are trying to make `libyt` works with more data structure.

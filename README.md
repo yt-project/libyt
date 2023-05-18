@@ -39,7 +39,7 @@ This guide will walk you through how to implement `libyt` into your code. And ho
   - [Initialize - `yt_initialize`](doc/libytAPI/Initialize.md#initialize)
   - [Set `yt` Parameter - `yt_set_Parameters`](doc/libytAPI/SetYTParameter.md#set-yt-parameter)
   - [Set Code Specific Parameter - `yt_set_UserParameter*`](doc/libytAPI/SetCodeSpecificParameter.md#set-code-or-user-specific-parameter)
-  - [Set Fields Information - `yt_get_FieldsPtr`](doc/libytAPI/SetFieldsInformation.md#set-fields-information)
+  - [Set Fields Information - `yt_get_FieldsPtr`](doc/libytAPI/FieldInfo/SetFieldsInformation.md#set-fields-information)
   - [Set Particles Information - `yt_get_ParticlesPtr`](doc/libytAPI/SetParticlesInformation.md#set-particles-information)
   - [Set Local Grids Information - `yt_get_GridsPtr`](doc/libytAPI/SetLocalGridsInformation.md#set-local-grids-information)
   - [Commit Your Settings - `yt_commit`](doc/libytAPI/CommitYourSettings.md#commit-your-settings)
