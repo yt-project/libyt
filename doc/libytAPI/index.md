@@ -20,6 +20,8 @@ has_toc: false
 ---
 
 ## Procedure
+Currently, `libyt` only supports loading simulation data with adaptive mesh refinement grid structure (AMR grid) to Python.[^1]
+
 <table>
   <thead>
     <tr>
@@ -66,3 +68,11 @@ has_toc: false
     </tr>
   </tbody>
 </table>
+
+## Label Meanings
+- :pencil2: means be careful about the lifetime of this variable. `libyt` only borrows it, and does not make a copy.
+
+----
+[^1] Even though we can still activate Python prompt and run in situ Python script with no data loaded ahead in non-AMR grid simulation with just `yt_initialize`, `yt_run_Function`, `yt_run_FunctionArguments`, `yt_run_InteractiveMode`, and `yt_finalize`. We are trying to make `libyt` works with more data structure.
+
+
