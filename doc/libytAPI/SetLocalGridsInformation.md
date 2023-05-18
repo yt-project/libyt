@@ -13,7 +13,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
   - Usage: Grid left and right edge in code units.
 - `long id` (Default=`LNG_UNDEFINED`)
   - Usage: Grid global id.
-  - Valid Value: It should be contiguous starting from [`index_offset`](./SetYTParameter.md#ytparamyt) set in [`yt_set_Parameters`](./SetYTParameter.md#ytsetparameters).
+  - Valid Value: It should be contiguous starting from [`index_offset`](SetYTParameter.mdtparamyt) set in [`yt_set_Parameters`](SetYTParameter.mdtsetparameters).
 - `long parent_id` (Default=`LNG_UNDEFINED`)
   - Usage: Parent grid id.
   - Valide Value:
@@ -28,7 +28,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
 
 ### Particle Counts
 - `long* par_count_list` (initialized by `libyt`)
-  - Usage: Number of particles in each particle type located in this grid. This `long` array has length equals to number of particle types. The particle order should be the same as your input in `par_type_list` when [Set `yt` Parameter](./SetYTParameter.md#yt_param_yt).
+  - Usage: Number of particles in each particle type located in this grid. This `long` array has length equals to number of particle types. The particle order should be the same as your input in `par_type_list` when [Set `yt` Parameter](SetYTParameter.mdt_param_yt).
   - Valid Value: Should be greater than or equal to `0`.
 
 ### Field Data
@@ -45,7 +45,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
         - `YT_INT`: C type int.
         - `YT_LONG`: C type long.
 
-> :information_source: If it is a cell-centered field, `libyt` will fill in `data_dimensions` according to `grid_dimensions` in [`yt_grid`](#yt_grid) and `field_ghost_cell` in [`yt_field`](./SetFieldsInformation.md#yt_field).
+> :information_source: If it is a cell-centered field, `libyt` will fill in `data_dimensions` according to `grid_dimensions` in [`yt_grid`](#yt_grid) and `field_ghost_cell` in [`yt_field`](SetFieldsInformation.mdt_field).
 > Otherwise, you should always fill in `data_dimensions`, if you wish to wrap an existing data in memory.
 
 > :information_source: You only need to set `data_dtype` when this grid's data type is different from the one set in fields'.
