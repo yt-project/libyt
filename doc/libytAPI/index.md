@@ -4,6 +4,65 @@ title: libyt API
 nav_order: 5
 has_children: true
 permalink: libytAPI
+has_toc: false
 ---
 
 # libyt API
+{: .no_toc }
+<details open markdown="block">
+  <summary>
+    Table of contents
+  </summary>
+  {: .text-delta }
+- TOC
+{:toc}
+</details>
+---
+
+## Procedure
+<table>
+  <thead>
+    <tr>
+      <th>Stage</th>
+      <th>libyt API</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan=1><strong>Initialization</strong></td>
+      <td><code>yt_initialize</code></td>
+      <td>Initialize embedded Python and import inline Python script.</td>
+    </tr>
+    <tr>
+      <td rowspan=6><strong>Iteration</strong></td>
+      <td><code>yt_set_Parameters</code>, <code>yt_set_UserParameter*</code></td>
+      <td>Set yt parameters and user specific parameters.</td>
+    </tr>
+    <tr>
+      <td><code>yt_get_FieldsPtr</code>, <code>yt_get_ParticlesPtr</code>, <code>yt_get_GridsPtr</code></td>
+      <td>Get fields, particles, and grids information array (ptr), and write corresponding data in.</td>
+    </tr>
+    <tr>
+      <td><code>yt_commit</code></td>
+      <td>Tell libyt you're done.</td>
+    </tr>
+    <tr>
+      <td><code>yt_run_Function</code>, <code>yt_run_FunctionArguments</code></td>
+      <td>Run Python functions.</td>
+    </tr>
+    <tr>
+      <td><code>yt_run_InteractiveMode</code></td>
+      <td>Activate interactive prompt. This is only available in interactive mode.</td>
+    </tr>
+    <tr>
+      <td><code>yt_free</code></td>
+      <td>Free resources for in situ analysis.</td>
+    </tr>
+    <tr>
+      <td rowspan=1><strong>Finalization</strong></td>
+      <td><code>yt_finalize</code></td>
+      <td>Finalize libyt.</td>
+    </tr>
+  </tbody>
+</table>
