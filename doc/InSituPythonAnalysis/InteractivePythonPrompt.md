@@ -1,4 +1,21 @@
+---
+layout: default
+title: Interactive Python Prompt
+parent: In Situ Python Analysis
+nav_order: 4
+---
 # Interactive Python Prompt
+{: .no_toc }
+<details open markdown="block">
+  <summary>
+    Table of contents
+  </summary>
+  {: .text-delta }
+- TOC
+{:toc}
+</details>
+---
+
 > :information_source: To make interactive prompt more smoothly, set lower [YT_VERBOSE](../libytAPI/Initialize.md#yt_param_libyt).
 
 ## Status Board
