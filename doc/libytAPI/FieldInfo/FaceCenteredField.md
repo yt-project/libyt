@@ -21,6 +21,9 @@ nav_order: 2
 After ignoring the ghost cells, a face-centered data should only have one dimension greater than the grid's by one, considering swap axes or not. We will then do interpolation to convert it to cell-centered data.
 
 ## How libyt Convert Face-Centered to Cell-Centered Data
+1. `libyt` reads simulation data wrapped by `libyt` and ignores ghost cells.
+2. Do interpolation on the axis that has dimension different from the grid dimension by one.
+
 ```python
 # yt_libyt/io.py
 ...

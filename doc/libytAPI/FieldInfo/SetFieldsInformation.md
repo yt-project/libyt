@@ -35,8 +35,8 @@ int yt_get_FieldsPtr( yt_field **field_list )
   - Usage: Define type of the field.
   - Valid Value:
     - `"cell-centered"`: Cell-centered data.
-    - `"face-centered"`: Face-centered data. For more details, see [Face-Centered Field](FaceCenteredField.md#face-centered-field).
-    - `"derived_func"`: Derived field data. When you want your simulation code to generate or convert existing data for `yt`, set to this. See [Derived Field](DerivedField.md#derived-field) on how to set them.
+    - `"face-centered"`: Face-centered data. For more details, see [Face-Centered Field]({% link libytAPI/FieldInfo/FaceCenteredField.md %}#face-centered-field).
+    - `"derived_func"`: Derived field data. When you want your simulation code to generate or convert existing data for `yt`, set to this. See [Derived Field]({% link libytAPI/FieldInfo/DerivedField.md %}#derived-field) on how to set them.
   > :pencil2: Please make sure the lifetime of `field_type` covers the whole in situ analysis process. `libyt` does not make a copy.
 - `short field_ghost_cell[6]` (Default=`0`)
   - Usage: Number of ghost cell to be ignored at the beginning and the end of each dimension. This is in the point of view of the data array. <br>
@@ -61,20 +61,20 @@ int yt_get_FieldsPtr( yt_field **field_list )
     - `true`: Data is in x-address alters first orientation, which is [z][y][x].
     - `false`: Data is in z-address alters first orientation, which is [x][y][z].
 - `void (*derived_func) (const int, const long *, const char *, yt_array*)` (Default=`NULL`)
-  - Usage: Function pointer to generate derived field data when input grid id. This is only used in derived field, which is when `field_type` set to `derived_func` (`field_type="derived_func"`). See [Derived Field](DerivedField.md#derived-field) for more information.
+  - Usage: Function pointer to generate derived field data when input grid id. This is only used in derived field, which is when `field_type` set to `derived_func` (`field_type="derived_func"`). See [Derived Field]({% link libytAPI/FieldInfo/DerivedField.md %}#derived-field) for more information.
 - `const char* field_unit` (Default=`""`)
   - Usage: Unit of the field, using `yt` unit system.
-  > :pencil2: Please make sure the lifetime of `field_unit` covers [`yt_commit`](../CommitYourSettings.md#ytcommit).
+  > :pencil2: Please make sure the lifetime of `field_unit` covers [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit).
 - `int num_field_name_alias` (Default=`0`)
   - Usage: Number of name aliases in `field_name_alias`.
 - `const char** field_name_alias` (Default=`NULL`)
   - Usage: Name aliases.
-  > :pencil2: Please make sure the lifetime of `field_name_alias` covers [`yt_commit`](../CommitYourSettings.md#ytcommit).
+  > :pencil2: Please make sure the lifetime of `field_name_alias` covers [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit).
 - `const char* field_display_name` (Default=`NULL`)
   - Usage: Display name of the field on the output figure. If not set, `yt` uses its field name instead.
-  > :pencil2: Please make sure the lifetime of `field_display_name` covers [`yt_commit`](../CommitYourSettings.md#ytcommit).
+  > :pencil2: Please make sure the lifetime of `field_display_name` covers [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit).
 
-> :information_source: `libyt` borrows the full field information class (`class XXXFieldInfo`) from [`frontend`](SetYTParameter.mdt_param_yt). It is OK not to set a field's `field_unit`, `num_field_name_alias`, `field_name_alias`, `field_display_name`, if this `field_name` is already inside your frontend.
+> :information_source: `libyt` borrows the full field information class (`class XXXFieldInfo`) from [`frontend`]({% link libytAPI/SetYTParameter.md%}#yt_param_yt). It is OK not to set a field's `field_unit`, `num_field_name_alias`, `field_name_alias`, `field_display_name`, if this `field_name` is already inside your frontend.
 > If you are adding a totally new field, please add them. `libyt` will add these new field information alongside with your original one.
 
 ## Example
