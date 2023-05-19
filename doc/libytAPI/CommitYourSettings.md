@@ -1,5 +1,22 @@
+---
+layout: default
+title: yt_commit -- Commit settings into Python
+parent: libyt API
+nav_order: 7
+---
 # Commit Your Settings
-## yt\_commit
+{: .no_toc }
+<details open markdown="block">
+  <summary>
+    Table of contents
+  </summary>
+  {: .text-delta }
+- TOC
+{:toc}
+</details>
+---
+
+## yt_commit
 ```cpp
 int yt_commit();
 ```
