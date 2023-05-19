@@ -1,12 +1,31 @@
+---
+layout: default
+title: yt_run_InteractiveMode -- Activate Python prompt
+parent: libyt API
+nav_order: 10
+---
 # Activate Interactive Mode
+{: .no_toc }
+<details open markdown="block">
+  <summary>
+    Table of contents
+  </summary>
+  {: .text-delta }
+- TOC
+{:toc}
+</details>
+---
 
 ## yt\_run\_InteractiveMode
 ```cpp
 int yt_run_InteractiveMode(const char* flag_file_name);
 ```
-> :information_source: Must compile `libyt` with -DINTERACTIVE_MODE
-- Usage: It will first run other inline python functions that are set to [run](../InSituPythonAnalysis/InteractivePythonPrompt.md#run-1) but haven't called by [`yt_run_Function`](PerformInlineAnalysis.md#yt_run_function) or [`yt_run_FunctionArguments`](PerformInlineAnalysis.md#yt_run_functionarguments) yet. Then it activates [interactive python prompt](../InSituPythonAnalysis/InteractivePythonPrompt.md#interactive-python-prompt) when there are errors occurred or file `flag_file_name` is detected.
-- Return: `YT_SUCCESS` or `YT_FAIL`
+- Usage: Activate interactive Python prompt when there are errors occurred in Python runtime during [calling Python functions]({% link libytAPI/PerformInlineAnalysis.md %}#calling-python-functions) or file `flag_file_name` is detected in the same directory where simulation executable is.
+- Return: 
+  - `YT_SUCCESS`
+  - `YT_FAIL`: When `libyt` is not compiled with `-DINTERACTIVE_MODE`, it returns `YT_FAIL`.
+
+> :information_source: Must compile `libyt` with `-DINTERACTIVE_MODE`. See [How to Install]({% link HowToInstall.md %}#options).
 
 ## Example
 ```cpp

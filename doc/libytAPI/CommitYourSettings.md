@@ -2,7 +2,7 @@
 layout: default
 title: yt_commit -- Commit settings into Python
 parent: libyt API
-nav_order: 7
+nav_order: 8
 ---
 # Commit Your Settings
 {: .no_toc }
