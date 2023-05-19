@@ -20,6 +20,9 @@ has_toc: false
 ---
 
 ## Procedure
+It can break down into three stages, initialization, loading simulation data into Python and do in situ analysis during the iterative process in simulation, 
+and finalization.
+
 Currently, `libyt` only supports loading simulation data with adaptive mesh refinement grid structure (AMR grid) to Python.[^1]
 
 <table>
