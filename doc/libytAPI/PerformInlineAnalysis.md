@@ -2,9 +2,9 @@
 layout: default
 title: yt_run_Function/Arguments -- Call Python functions
 parent: libyt API
-nav_order: 8
+nav_order: 9
 ---
-# Perform Inline-Analysis
+# Calling Python Functions
 {: .no_toc }
 <details open markdown="block">
   <summary>
