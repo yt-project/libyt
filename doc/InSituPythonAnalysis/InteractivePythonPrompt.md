@@ -16,25 +16,12 @@ nav_order: 3
 </details>
 ---
 
-> :information_source: To make interactive prompt more smoothly, set lower [YT_VERBOSE](../libytAPI/Initialize.md#yt_param_libyt).
+> :information_source: We need `libyt` to be in [**interactive mode**]({% link HowToInstall.md %}#options).
 
 ## Status Board
-Interactive python prompt will list all the inline functions call by [`yt_run_Function`](../libytAPI/PerformInlineAnalysis.md#yt_run_function) or [`yt_run_FunctionArguments`](../libytAPI/PerformInlineAnalysis.md#yt_run_functionarguments), or functions detected during interactive mode. These are functions we can control whether to run in next round, and to access error message during execution.
-
-#### Inline Function
-Whenever you load inline script at [initialization stage](../libytAPI/Initialize.md#yt_param_libyt), use [`%libyt load`](#load), or directly type in [Python prompt](#python-statements), `libyt` will detect callables and list them here.
-
-#### Status
-List functions' status:
-- `success`: run successfully.
-- `failed`: failed.
-- `idle`: this function was set to idle in current step.
-- `not run yet`: not execute by `libyt` yet.
-
-#### Run
-Whether these functions will execute in next in situ analysis or not:
-- `V`: this function will run automatically in following in situ analysis.
-- `X`: this function will idle in next in situ analysis, even if it is called through [`yt_run_FunctionArguments`](../libytAPI/PerformInlineAnalysis.md#yt_run_functionarguments) or [`yt_run_Function`](../libytAPI/PerformInlineAnalysis.md#ytrunfunction) in simulation.
+At the start of interactive mode, `libyt` prints the status board.
+Interactive Python prompt will list all the Python function it finds, either in imported script, or input from interactive Python prompt.
+These are functions we can control whether to run in next round, and to access error message if it has.
 
 ```
 =====================================================================
@@ -46,21 +33,38 @@ Whether these functions will execute in next in situ analysis or not:
   * yt_derived_field_demo                      success         V
   * test_function                              failed          V
 =====================================================================
->>> [Type in python statements or libyt defined commands]
+>>> 
 ```
 
-## Python Statements
-You can run any python statements here, including importing modules. These statements run in [already loaded inline script](../libytAPI/Initialize.md#yt_param_libyt)'s namespace, and will make changes to it. This is like using IPython, except that there are functions and objects already defined in it. 
+- **Inline Function**: whenever we load inline script at [`yt_initialize`]({% link libytAPI/Initialize.md %}#yt_initialize), use [`%libyt load`](#load), or directly type in [Python prompt](#python-prompt), `libyt` will detect callables and list them here.
+- **Status**: function status.
+  - `success`: run successfully.
+  - `failed`: failed.
+  - `idle`: this function was set to idle in current step.
+  - `not run yet`: not execute by `libyt` yet.
+- **Run**: whether the function will run automatically in next round or not.
+  - `V`: this function will run automatically in the following in situ analysis.
+  - `X`: this function will idle in next in situ analysis, even if it is called through [`yt_run_FunctionArguments`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_functionarguments) or [`yt_run_Function`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_function) in simulation.
 
-> :warning: Changes will maintain througout every in situ analysis.
+## Python Prompt
+```
+>>> 
+```
+MPI root process is the user interface, which takes user inputs and broadcasts to other ranks.
+So every MPI process execute the same piece of input at the same time.
+After that, they print feedbacks to your terminal.
 
+We can run any Python statements or [**libyt commands**](#libyt-defined-commands) here, including importing modules. These statements run in inline script's namespace, and will update and make changes to it. This is like using normal Python prompt, except that there are functions, objects, and simulation data already defined in it. 
+
+> :warning: Changes will maintain throughout every in situ analysis.
+
+> :information_source: To make interactive prompt more smoothly, set lower [YT_VERBOSE]({% link libytAPI/Initialize.md %}#yt_param_libyt).
+
+> :lizard: Currently, `libyt` interactive mode only works on local machine or submit the job to HPC platforms through interactive queue like `qsub -I`.
+> The reason is that the user interface is directly through the terminal. We will work on it to support Jupyter Notebook Interface, so that it is more flexible to HPC system.
 
 ## libyt Defined Commands
-```
->>> %libyt [Command]
-```
-
-> :information_source: No spaces between `%`and `libyt`.
+> :information_source: There should be no spaces between `%` and `libyt`.
 
 ### General Commands
 #### help
@@ -73,21 +77,21 @@ Print help messages.
 ```
 >>> %libyt exit
 ```
-Exit interactive mode, and continue iteration process in simulation.
+Exit interactive mode, and continue the iterative process in simulation.
 
 #### load
 ```
 >>> %libyt load <file name>
 ```
-Load and run file in [already loaded inline script](../libytAPI/Initialize.md#yt_param_libyt)'s namespace. This is like running every single line in these files line by line in IPython, so you can overwrite and update objects. Changes will maintain througout in situ analysis.
+Load and run file in inline script's namespace. This is like running statements in the file line by line in Python. We can overwrite and update Python functions and objects. Changes will maintain throughout in situ analysis.
 
-All new functions detected in this new loaded script will be set to idle, and will not run in the following in situ analysis, unless you switch it on using [`%libyt run`](#run-1).
+All new functions detected in this new loaded script will be set to idle, and will not run in the following in situ analysis, unless you switch it on using [`%libyt run`](#run).
 
 #### export
 ```
 >>> %libyt export <file name>
 ```
-Export successfully run libyt defined commands and python statement into file in current in situ analysis. History of interactive prompt will be cleared when leaving prompt. 
+Export successfully run libyt defined commands and Python statement into file in current in situ analysis. History of interactive prompt will be cleared when leaving prompt. 
 
 > :information_source: Will overwrite file if `<file name>` already exist. 
 
@@ -107,6 +111,7 @@ Print status board.
 Print function's definition and error messages if it has.
 
 ###### Example
+{: .no_toc }
 Print the status of the function, including its definition and error message in each rank if it has.
 ```
 >>> %libyt status func
@@ -130,9 +135,10 @@ func ... failed
 ```
 >>> %libyt idle <function name>
 ```
-Idle `<function name>` in next in situ analysis. You will see `X` at run column in status board. It will clear all the input arguments set through [`%libyt run`](#run-1).
+Idle `<function name>` in next in situ analysis. You will see `X` at run column in status board. It will clear all the input arguments set through [`%libyt run`](#run).
 
 ###### Example
+{: .no_toc }
 Idle `func` in next round.
 ```
 >>> %libyt idle func
@@ -150,6 +156,7 @@ Run `<function name>` in the following in situ analysis using `[args ...]` if gi
 > :warning: When using triple quotes in input arguments, use either `"""` or `'''`, but not both of them at the same time. If you really need triple quotes, stick to either one of them. For example, `%libyt run func """b""" """c"""` is good, but `%libyt run func """b""" '''c'''` leads to error.
 
 ###### Example
+{: .no_toc }
 This is equivalent of calling `func(a, 2, "3")` in Python in next round.
 ```
 >>> a = 1
@@ -159,3 +166,14 @@ This is equivalent of calling `func(a, 2, "3")` in Python in next round.
 Function func set to run ... done
 Run func(a,2,"3") in next iteration
 ```
+
+## FAQs
+### Why Can't I Find the Prompt `>>> ` After I have Activated Interactive Mode?
+`>>> `  is probably immersed inside the output. 
+We can hit enter again, which is to provide an empty statement, and it will come out. 
+
+We can make prompt more smoothly by setting [YT_VERBOSE]({% link libytAPI/Initialize.md %}#yt_param_libyt) to YT_VERBOSE_INFO.
+
+### Where Can I Use Interactive Mode?
+Currently, `libyt` interactive mode only works on local machine or submit the job to HPC platforms through interactive queue like `qsub -I`. 
+The reason is that the user interface is directly through the terminal. We will work on it to support Jupyter Notebook Interface, so that it is more flexible to HPC system.
