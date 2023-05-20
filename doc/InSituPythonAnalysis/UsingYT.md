@@ -103,9 +103,10 @@ Which means every MPI process should run `save()`, and we have to move `save()` 
           sz.save()
   ```
 
-## Frequently Asked Question
-### Why does my program hang and how do I solve it?
-This is probably due to only some MPI processes are accessing the data, and not all of them.
+## FAQs
+### Why Does my Program Hang and How Do I Solve It?
+Though `libyt` can execute any Python module, when it comes to reading simulation data, it requires every MPI process to participate
+The program hanging problem is due to only some MPI processes are accessing the data, but not all of them.
 
 Please do:
 1. Check if there is an if statements that makes MPI processes non-symmetric. For example, only root process runs the statement:
