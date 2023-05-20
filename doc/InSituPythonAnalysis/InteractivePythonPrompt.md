@@ -2,7 +2,7 @@
 layout: default
 title: Interactive Python Prompt
 parent: In Situ Python Analysis
-nav_order: 4
+nav_order: 3
 ---
 # Interactive Python Prompt
 {: .no_toc }

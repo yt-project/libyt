@@ -62,7 +62,8 @@ int yt_set_Parameters( yt_param_yt *param_yt )
     - `0`: No
     - `1`: Yes
 - `int dimensionality` (Default=`INT_UNDEFINED`)
-  - Usage: Dimensionality of the simulation. We only support 3 for now.
+  - Usage: Dimensionality of the simulation. 
+  > :warning: We only support 3 for now.
 - `int domain_dimensions[3]` (Default=`INT_UNDEFINED`)
   - Usage: Number of cells along each dimension on the root AMR level.
 - `int refine_by` (Default=`INT_UNDEFINED`)
