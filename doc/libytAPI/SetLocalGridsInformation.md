@@ -1,4 +1,21 @@
+---
+layout: default
+title: yt_get_GridsPtr -- Get local grids information array
+parent: libyt API
+nav_order: 6
+---
 # Set Local Grids Information
+{: .no_toc }
+<details open markdown="block">
+  <summary>
+    Table of contents
+  </summary>
+  {: .text-delta }
+- TOC
+{:toc}
+</details>
+---
+
 ## yt\_get\_GridsPtr
 ```cpp
 int yt_get_GridsPtr( yt_grid **grids_local );
@@ -13,14 +30,14 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
   - Usage: Grid left and right edge in code units.
 - `long id` (Default=`LNG_UNDEFINED`)
   - Usage: Grid global id.
-  - Valid Value: It should be contiguous starting from [`index_offset`](./SetYTParameter.md#ytparamyt) set in [`yt_set_Parameters`](./SetYTParameter.md#ytsetparameters).
+  - Valid Value: It should be contiguous starting from [`index_offset`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt).
 - `long parent_id` (Default=`LNG_UNDEFINED`)
   - Usage: Parent grid id.
   - Valide Value:
     - Should be in between `0` and `num_grids - 1`.
     - If the grid does not have parent grid, set to `-1`.
 - `int grid_dimensions[3]` (Default=`INT_UNDEFINED`)
-  - Usage: Number of cells along each direction in [x][y][z] order excluding ghost cells.
+  - Usage: Number of cells along each direction in [x][y][z] <--> [0][1][2] order excluding ghost cells.
 - `int level` (Default=`INT_UNDEFINED`)
   - Usage: AMR level of the grid.
   - Valid Value:
@@ -28,7 +45,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
 
 ### Particle Counts
 - `long* par_count_list` (initialized by `libyt`)
-  - Usage: Number of particles in each particle type located in this grid. This `long` array has length equals to number of particle types. The particle order should be the same as your input in `par_type_list` when [Set `yt` Parameter](./SetYTParameter.md#yt_param_yt).
+  - Usage: Number of particles in each particle type located in this grid. This `long` array has length equals to number of particle types. The particle order should be the same as the input in [`par_type_list`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt).
   - Valid Value: Should be greater than or equal to `0`.
 
 ### Field Data
@@ -37,7 +54,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
   - Data member in `yt_data`:
     - `void* data_ptr`: Data pointer to the field data of the grid.
     - `int data_dimensions[3]`: Dimension of `data_ptr`, which is the actual dimension of this pointer.
-    - `yt_dtype data_dtype`: Data type of `data_ptr`.
+    - `yt_dtype data_dtype`: Data type of `data_ptr`. We only need to set `data_dtype` when this grid's data type is different from the one set in fields'.
       - Valid value for `yt_dtype`:
         - `YT_FLOAT`: C type float.
         - `YT_DOUBLE`: C type double.
@@ -45,10 +62,9 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
         - `YT_INT`: C type int.
         - `YT_LONG`: C type long.
 
-> :information_source: If it is a cell-centered field, `libyt` will fill in `data_dimensions` according to `grid_dimensions` in [`yt_grid`](#yt_grid) and `field_ghost_cell` in [`yt_field`](./SetFieldsInformation.md#yt_field).
-> Otherwise, you should always fill in `data_dimensions`, if you wish to wrap an existing data in memory.
+> :information_source: We should always fill in `data_dimensions`, if we want to wrap a data in memory that is not cell-centered.
 
-> :information_source: You only need to set `data_dtype` when this grid's data type is different from the one set in fields'.
+> :lizard: I know this is a little bit inefficient, since we are creating a structure only for wrapping data. We will fix this.
 
 ## Example
 
