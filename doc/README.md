@@ -2,18 +2,18 @@
 This guide will walk you through how to implement `libyt` into your code. And how you can convert your everyday used `yt` script to do inline-analysis. 
 
 - Implement `libyt` to your code step by step
-  - [Initialize - `yt_initialize`](./Initialize.md#initialize)
-  - [Set `yt` Parameter - `yt_set_Parameters`](./SetYTParameter.md#set-yt-parameter)
-  - [Set Code Specific Parameter - `yt_set_UserParameter*`](./SetCodeSpecificParameter.md#set-code-or-user-specific-parameter)
-  - [Set Fields Information - `yt_get_FieldsPtr`](./SetFieldsInformation.md#set-fields-information)
-  - [Set Particles Information - `yt_get_ParticlesPtr`](./SetParticlesInformation.md#set-particles-information)
-  - [Set Local Grids Information - `yt_get_GridsPtr`](./SetLocalGridsInformation.md#set-local-grids-information)
-  - [Commit Your Settings - `yt_commit`](./CommitYourSettings.md#commit-your-settings)
-  - [Perform Inline-Analysis - `yt_run_Function` and `yt_run_FunctionArguments`](./PerformInlineAnalysis.md#perform-inline-analysis)
-  - [Activate Interactive Mode - `yt_run_InteractiveMode`](./ActivateInteractiveMode.md#activate-interactive-mode) (Only available in interactive mode)
-  - [Free Resource - `yt_free`](./FreeResource.md#free-resource)
-  - [Finalize - `yt_finalize`](./Finalize.md#finalize)
-- [Inline Python Script](./InlinePythonScript.md#inline-python-script)
+  - [Initialize - `yt_initialize`](libytAPI/Initialize.md#initialize)
+  - [Set `yt` Parameter - `yt_set_Parameters`](libytAPI/SetYTParameter.md#set-yt-parameter)
+  - [Set Code Specific Parameter - `yt_set_UserParameter*`](libytAPI/SetCodeSpecificParameter.md#set-code-or-user-specific-parameter)
+  - [Set Fields Information - `yt_get_FieldsPtr`](libytAPI/FieldInfo/SetFieldsInformation.md#set-fields-information)
+  - [Set Particles Information - `yt_get_ParticlesPtr`](libytAPI/SetParticlesInformation.md#set-particles-information)
+  - [Set Local Grids Information - `yt_get_GridsPtr`](libytAPI/SetLocalGridsInformation.md#set-local-grids-information)
+  - [Commit Your Settings - `yt_commit`](libytAPI/CommitYourSettings.md#commit-your-settings)
+  - [Perform Inline-Analysis - `yt_run_Function` and `yt_run_FunctionArguments`](libytAPI/PerformInlineAnalysis.md#perform-inline-analysis)
+  - [Activate Interactive Mode - `yt_run_InteractiveMode`](libytAPI/ActivateInteractiveMode.md#activate-interactive-mode) (Only available in interactive mode)
+  - [Free Resource - `yt_free`](libytAPI/FreeResource.md#free-resource)
+  - [Finalize - `yt_finalize`](libytAPI/Finalize.md#finalize)
+- [Inline Python Script](InSituPythonAnalysis/InlinePythonScript.md#inline-python-script)
 
 ## Example
 - [`libyt/example`](../example/example.cpp)

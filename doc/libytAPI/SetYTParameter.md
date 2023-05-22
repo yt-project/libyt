@@ -1,4 +1,21 @@
-# Set `yt` Parameter
+---
+layout: default
+title: yt_set_Parameters -- Set yt parameters
+parent: libyt API
+nav_order: 2
+---
+# Set `yt` Parameters
+{: .no_toc }
+<details open markdown="block">
+  <summary>
+    Table of contents
+  </summary>
+  {: .text-delta }
+- TOC
+{:toc}
+</details>
+---
+
 ## yt_set_Parameters
 ```cpp
 int yt_set_Parameters( yt_param_yt *param_yt )
@@ -8,10 +25,10 @@ int yt_set_Parameters( yt_param_yt *param_yt )
   - We will reset all cosmological parameters (e.g. `current_redshift`, `omega_lambda`, `omega_matter`, `hubble_constant`) to `0` if `cosmological_simulation` is `0`.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
-## yt_param_yt
+### yt_param_yt
 - `const char* frontend` (Default=`NULL`)
   - Usage: Field information of the yt `frontend` to borrow from. This should be `yt` supported frontend.
-  > :pencil2: Please make sure the lifetime of `frontend` covers [`yt_commit`](./CommitYourSettings.md#ytcommit) if you set [`check_data`](./Initialize.md#ytparamlibyt) to `true` when initializing `libyt`.
+  > :pencil2: Please make sure the lifetime of `frontend` covers [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit) if you set [`check_data`]({% link libytAPI/Initialize.md %}#yt_param_libyt) to `true` when initializing `libyt`.
 - `const char* fig_basename` (Default=`"Fig"`)
   - Usage: Base name of the output figures. Figure name will also be followed by counter number and `yt` functionality name.
 - `double domain_left_edge[3], domain_right_edge[3]` (Default=`DBL_UNDEFINED`)
@@ -45,7 +62,8 @@ int yt_set_Parameters( yt_param_yt *param_yt )
     - `0`: No
     - `1`: Yes
 - `int dimensionality` (Default=`INT_UNDEFINED`)
-  - Usage: Dimensionality of the simulation. We only support 3 for now.
+  - Usage: Dimensionality of the simulation. 
+  > :warning: We only support 3 for now.
 - `int domain_dimensions[3]` (Default=`INT_UNDEFINED`)
   - Usage: Number of cells along each dimension on the root AMR level.
 - `int refine_by` (Default=`INT_UNDEFINED`)

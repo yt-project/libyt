@@ -1,4 +1,21 @@
+---
+layout: default
+title: yt_initialize -- Initialize libyt
+parent: libyt API
+nav_order: 1
+---
 # Initialize
+{: .no_toc }
+<details open markdown="block">
+  <summary>
+    Table of contents
+  </summary>
+  {: .text-delta }
+- TOC
+{:toc}
+</details>
+---
+
 ## yt\_initialize
 ```cpp
 int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt)
@@ -6,7 +23,7 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt)
 - Usage: Initialize `libyt` and import your Python script. This API should only be called once.
 - Return: `YT_SUCCESS` or `YT_FAIL`.
 
-## yt_param_libyt
+### yt_param_libyt
 - `yt_verbose verbose` (Default=`YT_VERBOSE_WARNING`)
   - Usage: Set the log message level.
   - Valid Value for `yt_verbose`:
@@ -29,7 +46,7 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt)
 int main(int argc, char *argv[]){
     ...
     yt_param_libyt param_libyt;
-    param_libyt.verbose = YT_VERBOSE_DEBUG;
+    param_libyt.verbose = YT_VERBOSE_INFO;
     param_libyt.script  = "inline_script";
     param_libyt.check_data = false;
 	
