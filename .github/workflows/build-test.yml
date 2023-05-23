@@ -87,6 +87,7 @@ jobs:
           sed -i 's@$(YOUR_PYTHON_VERSION)@"${{ matrix.python-version }}"@' Makefile
           make clean
           make
+          make install
           echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
       - name: Prepare Test Script
