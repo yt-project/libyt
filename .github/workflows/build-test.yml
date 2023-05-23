@@ -52,7 +52,7 @@ jobs:
           pip install mpi4py yt
           cd $GITHUB_WORKSPACE
           cd ..
-          git clone https://github.com/data-exp-lab/yt_libyt.git
+          git clone --depth 1 -b libyt-dev --single-branch "https://github.com/cindytsai/yt_libyt.git" yt_libyt
           cd yt_libyt
           pip install .
           
@@ -74,6 +74,7 @@ jobs:
           sed -i 's@$(YOUR_PYTHON_VERSION)@"${{ matrix.python-version }}m"@' Makefile
           make clean
           make
+          make install
           echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
           
       - name: Build libyt

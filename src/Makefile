@@ -68,20 +68,32 @@ OBJ_PATH := ./obj
 OBJ := $(patsubst %.cpp, $(OBJ_PATH)/%.o, $(CC_FILE))
 
 $(OBJ_PATH)/%.o : %.cpp
-	 $(CXX) $(CXXFLAG) -o $@ -c $<
+	$(CXX) $(CXXFLAG) -o $@ -c $<
 
 
 # link
 #######################################################################################################
+UNAME_S := $(shell uname -s)
 $(LIB_REALNAME) : $(OBJ)
-	 $(CXX) -shared -Wl,-soname,$(LIB_SONAME) -o $@ $^ $(LIB)
-	 ln -s $(LIB_REALNAME) $(LIB_SONAME)
-	 ln -s $(LIB_SONAME)   libyt.so
-	 cp libyt.so* ../lib/.
+ifeq ($(UNAME_S),Linux)
+	$(CXX) -shared -Wl,-soname,$(LIB_SONAME) -o $@ $^ $(LIB)
+endif
+ifeq ($(UNAME_S),Darwin)
+	$(CXX) -shared -Wl,-install_name,$(LIB_SONAME) -o $@ $^ $(LIB)
+endif
+
+
+# install
+#######################################################################################################
+install : $(LIB_REALNAME)
+	cp $(LIB_REALNAME) ../lib/.
+	ln -sf ../lib/$(LIB_REALNAME) ../lib/$(LIB_SONAME)
+	ln -sf ../lib/$(LIB_SONAME)   ../lib/libyt.so
 
 
 # miscellaneous
 #######################################################################################################
 clean :
-	 rm -f $(OBJ)
-	 rm -f $(LIB_REALNAME) $(LIB_SONAME) libyt.so
+	rm -f $(OBJ)
+	rm -f $(LIB_REALNAME) $(LIB_SONAME) libyt.so
+
