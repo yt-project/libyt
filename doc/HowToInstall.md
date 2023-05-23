@@ -56,6 +56,7 @@ After updating `Makefile` in `libyt/src`, go to `libyt/src` folder
 ```bash
 make clean
 make
+make install    # this copies library to ../lib, will add feature of install to other path in the future.
 ```
 We use this cloned `libyt` folder as installation folder.
 - `libyt/include`: Contain `libyt.h`. This is the header file for `libyt` API.
