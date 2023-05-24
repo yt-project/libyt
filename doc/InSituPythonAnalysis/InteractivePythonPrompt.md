@@ -18,6 +18,8 @@ nav_order: 3
 
 > :information_source: We need `libyt` to be in [**interactive mode**]({% link HowToInstall.md %}#options).
 
+> :warning: Cannot use arrow keys or `Crtl+D` in interactive mode. 
+
 ## Status Board
 At the start of interactive mode, `libyt` prints the status board.
 Interactive Python prompt will list all the Python function it finds, either in imported script, or input from interactive Python prompt.
