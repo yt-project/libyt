@@ -48,12 +48,15 @@ CXX := $(MPI_PATH)/bin/mpicxx
 
 LIB := -L$(PYTHON_PATH)/lib -lpython$(PYTHON_VERSION)
 
+RPATH := -Wl,-rpath,$(PYTHON_PATH)/lib
+
 INCLUDE := -I../include -I$(PYTHON_PATH)/include/python$(PYTHON_VERSION) \
            -I$(NUMPY_PATH)/core/include \
            -I$(MPI_PATH)/include
 
 ifeq "$(filter -DINTERACTIVE_MODE, $(OPTIONS))" "-DINTERACTIVE_MODE"
 LIB     += -L$(READLINE_PATH)/lib -lreadline
+RPATH   += -Wl,-rpath,$(READLINE_PATH)/lib
 INCLUDE += -I$(READLINE_PATH)/include
 endif
 
@@ -76,10 +79,10 @@ $(OBJ_PATH)/%.o : %.cpp
 UNAME_S := $(shell uname -s)
 $(LIB_REALNAME) : $(OBJ)
 ifeq ($(UNAME_S),Linux)
-	$(CXX) -shared -Wl,-soname,$(LIB_SONAME) -o $@ $^ $(LIB)
+	$(CXX) -shared -Wl,-soname,$(LIB_SONAME) -o $@ $^ $(LIB) $(RPATH)
 endif
 ifeq ($(UNAME_S),Darwin)
-	$(CXX) -shared -Wl,-install_name,$(LIB_SONAME) -o $@ $^ $(LIB)
+	$(CXX) -shared -Wl,-install_name,$(LIB_SONAME) -o $@ $^ $(LIB) $(RPATH)
 endif
 
 
