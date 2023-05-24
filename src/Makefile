@@ -48,13 +48,19 @@ CXX := $(MPI_PATH)/bin/mpicxx
 
 LIB := -L$(PYTHON_PATH)/lib -lpython$(PYTHON_VERSION)
 
+RPATH := -Wl,-rpath,$(PYTHON_PATH)/lib
+
 INCLUDE := -I../include -I$(PYTHON_PATH)/include/python$(PYTHON_VERSION) \
            -I$(NUMPY_PATH)/core/include \
            -I$(MPI_PATH)/include
 
 ifeq "$(filter -DINTERACTIVE_MODE, $(OPTIONS))" "-DINTERACTIVE_MODE"
-LIB     += -L$(READLINE_PATH)/lib -lreadline
-INCLUDE += -I$(READLINE_PATH)/include
+	ifneq ($(READLINE_PATH),)
+		LIB     += -L$(READLINE_PATH)/lib
+		RPATH   += -Wl,-rpath,$(READLINE_PATH)/lib
+		INCLUDE += -I$(READLINE_PATH)/include
+	endif
+	LIB += -lreadline
 endif
 
 #CXXWARN_FLAG := -w1
@@ -68,20 +74,32 @@ OBJ_PATH := ./obj
 OBJ := $(patsubst %.cpp, $(OBJ_PATH)/%.o, $(CC_FILE))
 
 $(OBJ_PATH)/%.o : %.cpp
-	 $(CXX) $(CXXFLAG) -o $@ -c $<
+	$(CXX) $(CXXFLAG) -o $@ -c $<
 
 
 # link
 #######################################################################################################
+UNAME_S := $(shell uname -s)
 $(LIB_REALNAME) : $(OBJ)
-	 $(CXX) -shared -Wl,-soname,$(LIB_SONAME) -o $@ $^ $(LIB)
-	 ln -s $(LIB_REALNAME) $(LIB_SONAME)
-	 ln -s $(LIB_SONAME)   libyt.so
-	 cp libyt.so* ../lib/.
+ifeq ($(UNAME_S),Linux)
+	$(CXX) -shared -Wl,-soname,$(LIB_SONAME) -o $@ $^ $(LIB) $(RPATH)
+endif
+ifeq ($(UNAME_S),Darwin)
+	$(CXX) -shared -Wl,-install_name,$(LIB_SONAME) -o $@ $^ $(LIB) $(RPATH)
+endif
+
+
+# install
+#######################################################################################################
+install : $(LIB_REALNAME)
+	cp $(LIB_REALNAME) ../lib/.
+	ln -sf ../lib/$(LIB_REALNAME) ../lib/$(LIB_SONAME)
+	ln -sf ../lib/$(LIB_SONAME)   ../lib/libyt.so
 
 
 # miscellaneous
 #######################################################################################################
 clean :
-	 rm -f $(OBJ)
-	 rm -f $(LIB_REALNAME) $(LIB_SONAME) libyt.so
+	rm -f $(OBJ)
+	rm -f $(LIB_REALNAME) $(LIB_SONAME) libyt.so
+
