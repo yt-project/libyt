@@ -27,7 +27,7 @@
                               (Need to compile libyt with -DINTERACTIVE_MODE)
                           10. finish in-situ analysis, clean up libyt
     ----------------------------------------------------------------------------------
-    Finalization         11. finalize libyt
+    Finalization          11. finalize libyt
 
 [Compile and Run]
     1. Compile libyt and move libyt.so.* library to lib directory.

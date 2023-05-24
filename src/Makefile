@@ -55,9 +55,12 @@ INCLUDE := -I../include -I$(PYTHON_PATH)/include/python$(PYTHON_VERSION) \
            -I$(MPI_PATH)/include
 
 ifeq "$(filter -DINTERACTIVE_MODE, $(OPTIONS))" "-DINTERACTIVE_MODE"
-LIB     += -L$(READLINE_PATH)/lib -lreadline
-RPATH   += -Wl,-rpath,$(READLINE_PATH)/lib
-INCLUDE += -I$(READLINE_PATH)/include
+	ifneq ($(READLINE_PATH),)
+		LIB     += -L$(READLINE_PATH)/lib
+		RPATH   += -Wl,-rpath,$(READLINE_PATH)/lib
+		INCLUDE += -I$(READLINE_PATH)/include
+	endif
+	LIB += -lreadline
 endif
 
 #CXXWARN_FLAG := -w1
