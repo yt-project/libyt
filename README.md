@@ -6,6 +6,9 @@
 
 This is my personal repo. It is only for developing purpose.
 
-- **Documents (my version)**: https://cindytsai.github.io/libyt/
+- **Official Repo**: https://github.com/calab-ntu/libyt
+- **Official Doc**: https://calab-ntu.github.io/libyt/
 - **See `libyt` working progress**: [Project Board](https://github.com/calab-ntu/libyt/projects/1)
+- **Documents (my version)**: https://cindytsai.github.io/libyt/
+
 
