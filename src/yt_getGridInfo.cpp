@@ -203,7 +203,7 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
 //                3. User should cast to their own datatype after receiving the pointer.
 //                4. Returns an existing data pointer and data dimensions user passed in,
 //                   and does not make a copy of it!!
-//                5. Works only for 3-dim data. For 1-dim data, the higher dimensions is set to 0.
+//                5. For 1-dim data (like particles), the higher dimensions is set to 0.
 //
 // Parameter   :  const long   gid              : Target grid id.
 //                const char  *ptype            : Target particle type.
@@ -226,13 +226,15 @@ int yt_getGridInfo_ParticleData(const long gid, const char *ptype, const char *a
     PyObject *py_ptype   = PyUnicode_FromString(ptype);
     PyObject *py_attr    = PyUnicode_FromString(attr);
 
-    if (PyDict_Contains(g_py_particle_data, py_grid_id) != 1) {
-        YT_ABORT("Cannot find particle type [%s] attribute [%s] data in grid [%ld] on MPI rank [%d].\n",
-                 ptype, attr, gid, g_myrank);
-    }
-    if (PyDict_Contains(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype) != 1) {
-        YT_ABORT("Cannot find particle type [%s] attribute [%s] data in grid [%ld] on MPI rank [%d].\n",
-                 ptype, attr, gid, g_myrank);
+    if (PyDict_Contains(g_py_particle_data, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype) != 1 ||
+        PyDict_Contains(PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr) != 1) {
+        log_debug("Cannot find particle type [%s] attribute [%s] data in grid [%ld] on MPI rank [%d].\n",
+                  ptype, attr, gid, g_myrank);
+        Py_DECREF(py_grid_id);
+        Py_DECREF(py_ptype);
+        Py_DECREF(py_attr);
+        return YT_FAIL;
     }
     PyArrayObject *py_data = (PyArrayObject*) PyDict_GetItem(PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr);
 
