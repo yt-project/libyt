@@ -135,9 +135,10 @@ int yt_rma_particle::prepare_data(long& gid)
             YT_ABORT("yt_rma_particle: Particle type [%s] attribute [%s], unknown yt_dtype.\n", m_ParticleType, m_AttributeName);
         }
 
-        // get data_ptr
+        // get data_ptr: check if the data can be get in libyt.particle_data[g.id][ptype][attr] first,
+        // if not, generate data in get_par_attr
         yt_data par_array;
-        if (yt_getGridInfo_ParticleData(gid, m_ParticleType, m_AttributeName, &par_array) != YT_SUCCESS ) {
+        if (yt_getGridInfo_ParticleData(gid, m_ParticleType, m_AttributeName, &par_array) == YT_SUCCESS ) {
             data_ptr = par_array.data_ptr;
             to_free = false;
         }
