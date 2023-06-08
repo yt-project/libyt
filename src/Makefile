@@ -101,5 +101,5 @@ install : $(LIB_REALNAME)
 #######################################################################################################
 clean :
 	rm -f $(OBJ)
-	rm -f $(LIB_REALNAME) $(LIB_SONAME) libyt.so
+	rm -f $(LIB_REALNAME) ../lib/*
 

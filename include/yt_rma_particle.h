@@ -38,6 +38,7 @@ private:
 
     std::vector<yt_rma_particle_info> m_Prepare;
     std::vector<void*> m_PrepareData;
+    std::vector<bool> m_FreePrepareData;
 
     long  m_LenAllPrepare;
     long *m_SearchRange;
