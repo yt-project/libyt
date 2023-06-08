@@ -73,10 +73,10 @@ int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_co
 
 ## yt\_getGridInfo\_FieldData
 ```cpp
-int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *field_data);
+int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *field_data);
 ```
 - Usage: Get the field data `field_name` in grid id `gid`. The result will be stored in `field_data`.
-- Return: `YT_SUCCESS` or `YT_FAIL`
+- Return: `YT_SUCCESS` or `YT_FAIL` if it cannot get data.
 - `yt_data`
     - `data_ptr`: Data pointer.
     - `data_dimensions[3]`: Dimension of the `data_ptr` array, in the point of view of itself.
@@ -86,4 +86,19 @@ int yt_getGridInfo_FieldData( const long gid, const char *field_name, yt_data *f
 
 > :information_source: Do not mix grid dimensions get through [`yt_getGridInfo_Dimensions`](#yt_getgridinfo_dimensions) with data dimensions get through [`yt_getGridInfo_FieldData`](#yt_getgridinfo_fielddata). Grid dimensions are numbers of cells in [x][y][z] <--> [0][1][2], excluding ghost cells. Whereas data dimensions are just data length in data's point of view, which may consist of ghost cells.
 
-> :warning: You should not be modifying `data_ptr`, because they are actual simulation data passed in by user when setting grid information [`yt_get_GridsPtr`]({% link libytAPI/SetLocalGridsInformation.md %}#yt_get_gridsptr).
+> :warning: You should not modify `data_ptr`, because they are actual simulation data passed in by user when setting grid information [`yt_get_GridsPtr`]({% link libytAPI/SetLocalGridsInformation.md %}#yt_get_gridsptr).
+
+## yt\_getGridInfo\_ParticleData
+```cpp
+int yt_getGridInfo_ParticleData(const long gid, const char *ptype, const char *attr, yt_data *par_data);
+```
+- Usage: Get the particle data `ptype` attribute `attr` in grid id `gid`. The result will be stored in `par_data`.
+- Return: `YT_SUCCESS` or `YT_FAIL` if it cannot get data.
+- `yt_data`
+  - `data_ptr`: Data pointer.
+  - `data_dimensions[3]`: Dimension of the `data_ptr` array, in the point of view of itself.  If `data_ptr` is a 1-dim array, the last two elements will be 0.
+  - `data_dtype`: Data type of the array.
+
+> :information_source: Particle type `ptype` and attribute `attr` should be the same as what you passed in [`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}#yt_get_particlesptr).
+
+> :warning: You should not modify `data_ptr`, because they are actual simulation data passed in by user when setting grid information [`yt_get_GridsPtr`]({% link libytAPI/SetLocalGridsInformation.md %}#yt_get_gridsptr).
