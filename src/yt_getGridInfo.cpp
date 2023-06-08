@@ -77,6 +77,9 @@ GET_GRIDINFO_DIM1(Level, "grid_levels", int)
 // int yt_getGridInfo_ProcNum(const long, int *)
 GET_GRIDINFO_DIM1(ProcNum, "proc_num", int)
 
+#undef GET_GRIDINFO_DIM1
+#undef GET_GRIDINFO_DIM3
+#undef GET_ARRAY
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_getGridInfo_ParticleCount
