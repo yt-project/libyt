@@ -153,18 +153,21 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
                  __FUNCTION__);
     }
 
-    // get dictionary libyt.grid_data[gid]
+    // get dictionary libyt.grid_data[gid][field_name]
     PyObject *py_grid_id = PyLong_FromLong(gid);
-    PyObject *py_field_data_list = PyDict_GetItem(g_py_grid_data, py_grid_id);
-    if ( py_field_data_list == NULL ) {
-        YT_ABORT("Cannot find grid data [%ld] on MPI rank [%d].\n", gid, g_myrank);
-    }
+    PyObject *py_field = PyUnicode_FromString(field_name);
 
-    // read NumPy array libyt.grid_data[gid][field_name]
-    PyArrayObject *py_array_obj = (PyArrayObject*) PyDict_GetItemString(py_field_data_list, field_name);
-    if ( py_array_obj == NULL ) {
-        YT_ABORT("Cannot find grid [%ld] data [%s] on MPI rank [%d].\n", gid, field_name, g_myrank);
+    if (PyDict_Contains(g_py_grid_data, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(g_py_grid_data, py_grid_id), py_field) != 1) {
+        log_debug("Cannot find grid [%ld] data [%s] on MPI rank [%d].\n", gid, field_name, g_myrank);
+        Py_DECREF(py_grid_id);
+        Py_DECREF(py_field);
+        return YT_FAIL;
     }
+    PyArrayObject *py_array_obj = (PyArrayObject*) PyDict_GetItem(PyDict_GetItem(g_py_grid_data, py_grid_id), py_field);
+
+    Py_DECREF(py_grid_id);
+    Py_DECREF(py_field);
 
     // get NumPy array dimensions.
     npy_intp *py_array_dims = PyArray_DIMS(py_array_obj);
@@ -185,9 +188,6 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
     else {
         YT_ABORT("No matching yt_dtype for NumPy data type num [%d].\n", py_array_info->type_num);
     }
-
-    // dereference
-    Py_DECREF(py_grid_id);
 
     return YT_SUCCESS;
 }
