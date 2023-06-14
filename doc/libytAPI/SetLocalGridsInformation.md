@@ -48,12 +48,17 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
   - Usage: Number of particles in each particle type located in this grid. This `long` array has length equals to number of particle types. The particle order should be the same as the input in [`par_type_list`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt).
   - Valid Value: Should be greater than or equal to `0`.
 
-### Field Data
+### Field Data and Particle Data
 - `yt_data* field_data` (initialized by `libyt`)
   - Usage: Store all the field data under this grid. This is a `yt_data` array with length equals to number of fields.
-  - Data member in `yt_data`:
-    - `void* data_ptr`: Data pointer to the field data of the grid.
-    - `int data_dimensions[3]`: Dimension of `data_ptr`, which is the actual dimension of this pointer.
+- `yt_data** particle_data` (initialized by `libyt`)
+  - Usage: Store all the particle data under this grid. Namely, `particle_data[0][1]` contains particle type (`particle_list[0].par_type`) attribute (`particle_list[0].attr_list[1]`) data, where `particle_list` is [`yt_particle`]({% link libytAPI/SetParticlesInformation.md %}#yt_particle) array set through [`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}##yt_get_particlesptr).
+
+### yt_data
+  - Usage: a struct used for wrapping existing data pointers.
+  - Data member:
+    - `void* data_ptr`: Data pointer.
+    - `int data_dimensions[3]`: Dimension of `data_ptr`, which is the actual dimension of this pointer. If `data_ptr` is a 1-dim array, set the last two elements to 0. (This only happens in particle data, and we aren't rely on this value to wrap the data.)
     - `yt_dtype data_dtype`: Data type of `data_ptr`. We only need to set `data_dtype` when this grid's data type is different from the one set in fields'.
       - Valid value for `yt_dtype`:
         - `YT_FLOAT`: C type float.

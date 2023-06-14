@@ -5,5 +5,3 @@
 
 - **Documents**: https://calab-ntu.github.io/libyt/
 - **See `libyt` working progress**: [Project Board](https://github.com/calab-ntu/libyt/projects/1)
-
-
