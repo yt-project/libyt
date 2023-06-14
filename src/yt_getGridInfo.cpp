@@ -77,6 +77,9 @@ GET_GRIDINFO_DIM1(Level, "grid_levels", int)
 // int yt_getGridInfo_ProcNum(const long, int *)
 GET_GRIDINFO_DIM1(ProcNum, "proc_num", int)
 
+#undef GET_GRIDINFO_DIM1
+#undef GET_GRIDINFO_DIM3
+#undef GET_ARRAY
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_getGridInfo_ParticleCount
@@ -153,18 +156,21 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
                  __FUNCTION__);
     }
 
-    // get dictionary libyt.grid_data[gid]
+    // get dictionary libyt.grid_data[gid][field_name]
     PyObject *py_grid_id = PyLong_FromLong(gid);
-    PyObject *py_field_data_list = PyDict_GetItem(g_py_grid_data, py_grid_id);
-    if ( py_field_data_list == NULL ) {
-        YT_ABORT("Cannot find grid data [%ld] on MPI rank [%d].\n", gid, g_myrank);
-    }
+    PyObject *py_field = PyUnicode_FromString(field_name);
 
-    // read NumPy array libyt.grid_data[gid][field_name]
-    PyArrayObject *py_array_obj = (PyArrayObject*) PyDict_GetItemString(py_field_data_list, field_name);
-    if ( py_array_obj == NULL ) {
-        YT_ABORT("Cannot find grid [%ld] data [%s] on MPI rank [%d].\n", gid, field_name, g_myrank);
+    if (PyDict_Contains(g_py_grid_data, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(g_py_grid_data, py_grid_id), py_field) != 1) {
+        log_debug("Cannot find grid [%ld] data [%s] on MPI rank [%d].\n", gid, field_name, g_myrank);
+        Py_DECREF(py_grid_id);
+        Py_DECREF(py_field);
+        return YT_FAIL;
     }
+    PyArrayObject *py_array_obj = (PyArrayObject*) PyDict_GetItem(PyDict_GetItem(g_py_grid_data, py_grid_id), py_field);
+
+    Py_DECREF(py_grid_id);
+    Py_DECREF(py_field);
 
     // get NumPy array dimensions.
     npy_intp *py_array_dims = PyArray_DIMS(py_array_obj);
@@ -186,9 +192,6 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
         YT_ABORT("No matching yt_dtype for NumPy data type num [%d].\n", py_array_info->type_num);
     }
 
-    // dereference
-    Py_DECREF(py_grid_id);
-
     return YT_SUCCESS;
 }
 
@@ -203,7 +206,7 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
 //                3. User should cast to their own datatype after receiving the pointer.
 //                4. Returns an existing data pointer and data dimensions user passed in,
 //                   and does not make a copy of it!!
-//                5. Works only for 3-dim data. For 1-dim data, the higher dimensions is set to 0.
+//                5. For 1-dim data (like particles), the higher dimensions is set to 0.
 //
 // Parameter   :  const long   gid              : Target grid id.
 //                const char  *ptype            : Target particle type.
@@ -226,13 +229,15 @@ int yt_getGridInfo_ParticleData(const long gid, const char *ptype, const char *a
     PyObject *py_ptype   = PyUnicode_FromString(ptype);
     PyObject *py_attr    = PyUnicode_FromString(attr);
 
-    if (PyDict_Contains(g_py_particle_data, py_grid_id) != 1) {
-        YT_ABORT("Cannot find particle type [%s] attribute [%s] data in grid [%ld] on MPI rank [%d].\n",
-                 ptype, attr, gid, g_myrank);
-    }
-    if (PyDict_Contains(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype) != 1) {
-        YT_ABORT("Cannot find particle type [%s] attribute [%s] data in grid [%ld] on MPI rank [%d].\n",
-                 ptype, attr, gid, g_myrank);
+    if (PyDict_Contains(g_py_particle_data, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype) != 1 ||
+        PyDict_Contains(PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr) != 1) {
+        log_debug("Cannot find particle type [%s] attribute [%s] data in grid [%ld] on MPI rank [%d].\n",
+                  ptype, attr, gid, g_myrank);
+        Py_DECREF(py_grid_id);
+        Py_DECREF(py_ptype);
+        Py_DECREF(py_attr);
+        return YT_FAIL;
     }
     PyArrayObject *py_data = (PyArrayObject*) PyDict_GetItem(PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr);
 
