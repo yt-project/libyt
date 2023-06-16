@@ -2,11 +2,11 @@ title: libyt Documents
 description: libyt documents
 theme: just-the-docs
 
-url: https://calab-ntu.github.io/libyt/
+url: https://yt-project.github.io/libyt/
 
 # Aux links for the upper right navigation, create new tab once click
 aux_links:
-  libyt GitHub : https://github.com/calab-ntu/libyt
+  libyt GitHub : https://github.com/yt-project/libyt
 aux_links_new_tab: true
 
 # Heading anchor links appear on hover over h1-h6 tags in page content
