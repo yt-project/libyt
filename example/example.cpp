@@ -4,7 +4,7 @@
     We assign grids to MPI processes randomly to simulate the actual code of having grid
     data on different ranks.
 
-    libyt has two modes, normal and interactive mode. Normal mode will shutdown all the 
+    libyt has two modes, normal and interactive mode. Normal mode will shut down all the
     process if there are errors during in situ analysis, while in interactive mode will 
     not. Interactive mode also supports python prompt, where you can type in python 
     statement and get feedback instantly. To use interactive mode, you need to compile 
@@ -30,11 +30,11 @@
     Finalization          11. finalize libyt
 
 [Compile and Run]
-    1. Compile libyt and move libyt.so.* library to lib directory.
-    2. Run set_ld_path.sh to set LD_LIBRARY_PATH.
+    1. Compile libyt.
+    2. Install yt_libyt and yt.
     3. Update Makefile MPI_PATH. (Should use the same MPI library when compiling libyt)
-    4. make clean; make;
-    5. mpirun -np 4 --output-filename log ./example
+    4. $ make clean; make;
+    5. $ mpirun -np 4 --output-filename log ./example
  */
 
 #include <stdlib.h>
@@ -437,8 +437,8 @@ int main(int argc, char *argv[]) {
         // =======================================================================================================
         // libyt: 9. activate python prompt in interactive mode, should call it in situ function call using API
         // =======================================================================================================
-        // only supports when compile libyt using -DINTERACTIVE_MODE
-        // when detecting "LIBYT_STOP" file, or any inline function failed, interactive prompt will start
+        // Only supports when compile libyt in interactive mode (-DINTERACTIVE_MODE)
+        // Interactive prompt will start only if it detects "LIBYT_STOP" file, or an inline function failed.
         // if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
         //     fprintf(stderr, "ERROR: yt_run_InteractiveMode failed!\n");
         //     exit(EXIT_FAILURE);
