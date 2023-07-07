@@ -16,7 +16,90 @@ nav_order: 2
 </details>
 ---
 
+## How to Import
+
+`libyt` Python module is only importable in runtime.
+
+```python
+import libyt
+```
+
 ## Dictionaries
+
+### param_yt
+
+|                  Key                  |           Value           | Loaded by `libyt` API | Notes                                |
+|:-------------------------------------:|:-------------------------:|:---------------------:|--------------------------------------|
+|        `param_yt["frontend"]`         |        `frontend`         |  `yt_set_Parameters`  |                                      |
+|      `param_yt["fig_basename"]`       |      `fig_basename`       |  `yt_set_Parameters`  |                                      |
+|      `param_yt["current_time"]`       |      `current_time`       |  `yt_set_Parameters`  |                                      |
+|    `param_yt["current_redshift"]`     |    `current_redshift`     |  `yt_set_Parameters`  |                                      |
+|      `param_yt["omega_lambda"]`       |      `omega_lambda`       |  `yt_set_Parameters`  |                                      |
+|      `param_yt["omega_matter"]`       |      `omega_matter`       |  `yt_set_Parameters`  |                                      |
+|     `param_yt["hubble_constant"]`     |     `hubble_constant`     |  `yt_set_Parameters`  |                                      |
+|       `param_yt["length_unit"]`       |       `length_unit`       |  `yt_set_Parameters`  |                                      |
+|        `param_yt["mass_unit"]`        |        `mass_unit`        |  `yt_set_Parameters`  |                                      |
+|        `param_yt["time_unit"]`        |        `time_unit`        |  `yt_set_Parameters`  |                                      |
+|      `param_yt["magnetic_unit"]`      |      `magnetic_unit`      |  `yt_set_Parameters`  | - Will be set to 1, if it's not set. |
+| `param_yt["cosmological_simulation"]` | `cosmological_simulation` |  `yt_set_Parameters`  |                                      |
+|     `param_yt["dimensionality"]`      |     `dimensionality`      |  `yt_set_Parameters`  |                                      |
+|        `param_yt["refine_by"]`        |        `refine_by`        |  `yt_set_Parameters`  |                                      |
+|      `param_yt["index_offset"]`       |      `index_offset`       | `yt_set_Parameters`   | - Default value is 0.                |
+|        `param_yt["num_grids"]`        |        `num_grids`        |  `yt_set_Parameters`  |                                      |
+|    `param_yt["domain_left_edge"]`     |    `domain_left_edge`     |  `yt_set_Parameters`  |                                      |
+|    `param_yt["domain_right_edge"]`    |    `domain_right_edge`    |  `yt_set_Parameters`  |                                      |
+|       `param_yt["periodicity"]`       |       `periodicity`       |  `yt_set_Parameters`  |                                      |
+|    `param_yt["domain_dimensions"]`    |    `domain_dimensions`    |  `yt_set_Parameters`  |                                      |
+|       `param_yt["field_list"]`        |       `field_list`        |      `yt_commit`      | - Used by `libyt`.               |
+|      `param_yt["particle_list"]`      |     `particle_list`       |      `yt_commit`      | - Used by `libyt`.               |
+
+- Usage: Contain `yt` parameters and other `libyt` parameters. The values correspond to data members in  [`yt_param_yt`]({% link libytAPI/SetYTParameter.md%}#yt_param_yt). `field_list` and `particle_list` are [`yt_field`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_field) and [`yt_particle`]({% link libytAPI/SetParticlesInformation.md %}#yt_particle) arrays.
+
+> :warning: Do not alter `param_yt["field_list"]` and `param_yt["particle_list"]`, it is for internal `libyt` process.
+
+### param_user
+
+|        Key        | Value |           Loaded by `libyt` API            | Notes  |
+|:-----------------:|:-----:|:------------------------------------------:|--------|
+| `param_user[key]` | input |          `yt_set_UserParameter*`           |        |
+
+- Usage: A series of key-value pairs set through `yt_set_UserParameter*`. The pairs will also be added as new attributes if `yt_libyt` is imported.
+
+### hierarchy
+
+|                     Key                     |      Value        | Loaded by `libyt` API  | Notes                                                                    |
+|:-------------------------------------------:|:-----------------:|:----------------------:|--------------------------------------------------------------------------|
+|      `hierarchy["grid_left_edge"][id]`      |    `left_edge`    |      `yt_commit`       |                                                                          |
+|     `hierarchy["grid_right_edge"][id]`      |   `right_edge`    |      `yt_commit`       |                                                                          |
+|     `hierarchy["grid_dimensions"][id]`      | `grid_dimensions` |      `yt_commit`       |                                                                          |
+| `hierarchy["par_count_list"][id][par_idex]` | `par_count_list`  |      `yt_commit`       | `par_index` corresponds to particle type order in `yt_get_ParticlesPtr`. |
+|      `hierarchy["grid_parent_id"][id]`      |    `parent_id`    |      `yt_commit`       |                                                                          |
+|       `hierarchy["grid_levels"][id]`        |      `level`      |      `yt_commit`       |                                                                          |
+|         `hierarchy["proc_num"][id]`         |    `proc_num`     |      `yt_commit`       |                                                                          |
+
+- Usage: Contain AMR grid hierarchy. The values and `id` are corresponding to data members in [`yt_grid`]({% link libytAPI/SetLocalGridsInformation.md %}#yt_grid).
+
+### grid_data
+
+|          Key           |   Value    | Loaded by `libyt` API  | Notes  |
+|:----------------------:|:----------:|:----------------------:|--------|
+| `grid_data[id][fname]` | Field data |      `yt_commit`       |        |
+
+- Usage: It only contains data in local process. The value corresponds to data member [`field_data`]({% link libytAPI/SetLocalGridsInformation.md %}#field-data-and-particle-data) in `yt_grid`.
+
+### particle_data
+
+|               Key                |         Value          | Loaded by `libyt` API  | Notes  |
+|:--------------------------------:|:----------------------:|:----------------------:|--------|
+| `particle_data[id][ptype][attr]` |     Particle data      |      `yt_commit`       |        |
+
+- Usage: It only contains data in local process. The value corresponds to data member [`particle_data`]({% link libytAPI/SetLocalGridsInformation.md %}#field-data-and-particle-data) in `yt_grid`.
+
+> :information_source: `grid_data` and `particle_data` is read-only. They contain the actual simulation data.
+
+### interactive_mode
+
+> :warning: Do not touch, it is for internal `libyt` process, and it only exists in interactive mode.
 
 ## Methods
 
