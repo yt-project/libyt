@@ -57,9 +57,10 @@ When conducting in situ Python analysis, the simulation processes pause,
 and Python instances on each process run and execute the same piece of code. 
 Python instances use `libyt` Python module to probe and read ongoing simulation data, 
 or even request data from simulation, thus realize in situ Python analysis. 
-Python instances on different processes use `mpi4py` to communicate.
-Though `libyt` can call arbitrary Python modules, here, we focus on using `yt` as the core method, 
-since it already has supported parallelism feature under `mpi4py` platform.
+Python instances on different processes use [`mpi4py`](https://mpi4py.readthedocs.io/en/stable/)[^1] to communicate.
+Though `libyt` can call arbitrary Python modules, here, we focus on using [`yt`](https://yt-project.org/)[^2] as the core method, 
+since it already has supported parallelism feature under `mpi4py` platform and has full features of analyzing
+and visualizing volumetric data.
 Every Python statement is executed inside the imported script's namespace.
 The namespace holds Python functions and objects. Every change made will also be stored under this
 namespace and will be brought to the following round.
@@ -70,6 +71,10 @@ It takes user inputs through the terminal on the root process.
 Once the root process makes sure the input syntax is complete and is a valid Python statement, 
 it then broadcasts the statement to other MPI processes, and all the MPI processes run the Python statement together. 
 The changes made will be brought to the following round of analysis.
+
+[^1]: MPI for Python provides Python bindings for the Message Passing Interface (MPI) standard.
+
+[^2]: `yt` is an open-source, permissively-licensed python package for analyzing and visualizing volumetric data.
 
 ## Connecting Data in Simulation to Python
 todo
