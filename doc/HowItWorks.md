@@ -75,4 +75,20 @@ The changes made will be brought to the following round of analysis.
 todo
 
 ## Data Redistribution Process
-todo
+
+Each MPI process contains one simulation code and one Python instance.
+Each Python instance only has direct access to the data on local computing nodes.
+During in situ Python analysis, workloads may be decomposed and rebalanced according 
+to the algorithm in Python packages. 
+It is not necessary to align with how data is distributed in simulation.
+Furthermore, there is no way for `libyt` to know what kind of communication pattern a Python script needs for a much more general case. And it is difficult to schedule point-to-point communications that fit any kind of algorithms and any number of MPI processes. 
+
+`libyt` use one-sided communication in MPI, also known as Remote Memory Access (RMA), by which one no longer needs to explicitly specify senders and receivers.
+`libyt` first collects what data is needed in each process, and the processes prepare the data requested.
+Then it creates a RMA epoch, for which all MPI processes will enter, and each process can fetch the data
+located on different processes without explicitly waiting for the remote process to respond. 
+It only needs to know which MPI process should it go to get the data.
+The caveat in data redistribution process in `libyt` is that it is a collective operation, and requires every
+MPI process to participate, otherwise, the process will hang there and wait for the others. 
+
+![](./assets/svgs/RMA.svg)
