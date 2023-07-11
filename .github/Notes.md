@@ -12,5 +12,5 @@
 - **Workflows**: `.github/workflows/build-test.yml`
 - **Test File**: `.github/tests/DataIOTest.py`
 - **Description**:
-  - Check if `libyt/example` can successfully run in serial and in parallel using `mpirun`.
+  - Check if `libyt/example` can successfully run in fake serial (`mpirun -np 1`) and in parallel using `mpirun`.
   - Check if data read by `libyt` is the same as data original in C++ array.
