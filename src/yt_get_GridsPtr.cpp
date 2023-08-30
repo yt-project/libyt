@@ -1,4 +1,5 @@
 #include "yt_combo.h"
+#include "LibytProcessControl.h"
 #include "libyt.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -29,12 +30,12 @@ int yt_get_GridsPtr( yt_grid **grids_local )
 #endif
 
 	// check if libyt has been initialized
-   	if ( !g_param_libyt.libyt_initialized ){
+   	if ( !LibytProcessControl::Get().libyt_initialized ){
     	YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    	}
 
 	// check if yt_set_Parameters() have been called
-   	if ( !g_param_libyt.param_yt_set ) {
+   	if ( !LibytProcessControl::Get().param_yt_set ) {
     	YT_ABORT( "Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__ );
     }
 
@@ -47,7 +48,7 @@ int yt_get_GridsPtr( yt_grid **grids_local )
    	log_info( "Getting pointer to local grids information ...\n" );
 
    	// If user call for the first time.
-   	if ( !g_param_libyt.get_gridsPtr ){
+   	if ( !LibytProcessControl::Get().get_gridsPtr ){
 		// Initialize the grids_local array.
 		// Set the value if overlapped with g_param_yt,
 		// and each fields data are set to NULL, so that we can check if user input the data
@@ -95,7 +96,7 @@ int yt_get_GridsPtr( yt_grid **grids_local )
 
 
 	// Above all works like charm
-	g_param_libyt.get_gridsPtr = true;
+    LibytProcessControl::Get().get_gridsPtr = true;
 	log_info( "Getting pointer to local grids information  ... done.\n" );
 
 #ifdef SUPPORT_TIMER
