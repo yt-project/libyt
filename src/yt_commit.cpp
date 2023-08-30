@@ -1,4 +1,5 @@
 #include "yt_combo.h"
+#include "LibytProcessControl.h"
 #include "libyt.h"
 
 
@@ -31,29 +32,29 @@ int yt_commit()
 #endif
 
 // check if libyt has been initialized
-   if ( !g_param_libyt.libyt_initialized ){
+   if ( !LibytProcessControl::Get().libyt_initialized ){
       YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    }
 
 // check if YT parameters have been set
-   if ( !g_param_libyt.param_yt_set ){
+   if ( !LibytProcessControl::Get().param_yt_set ){
       YT_ABORT( "Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__ );
    }
 
 // check if user sets field_list
-   if ( !g_param_libyt.get_fieldsPtr ){
+   if ( !LibytProcessControl::Get().get_fieldsPtr ){
       YT_ABORT( "num_fields == %d, please invoke yt_get_FieldsPtr() before calling %s()!\n",
                  g_param_yt.num_fields, __FUNCTION__ );
    }
 
 // check if user sets particle_list
-   if ( !g_param_libyt.get_particlesPtr ){
+   if ( !LibytProcessControl::Get().get_particlesPtr ){
       YT_ABORT( "num_par_types == %d, please invoke yt_get_ParticlesPtr() before calling %s()!\n",
                  g_param_yt.num_par_types, __FUNCTION__ );
    }
 
 // check if user has call yt_get_GridsPtr()
-   if ( !g_param_libyt.get_gridsPtr ){
+   if ( !LibytProcessControl::Get().get_gridsPtr ){
       YT_ABORT( "Please invoke yt_get_GridsPtr() before calling %s()!\n", __FUNCTION__ );
    }
 
@@ -61,21 +62,21 @@ int yt_commit()
 
 
 // Check yt_field* field_list
-   if ( g_param_libyt.check_data == true && g_param_yt.num_fields > 0 ){
+   if (g_param_libyt.check_data && g_param_yt.num_fields > 0 ){
       if ( check_field_list() != YT_SUCCESS ){
          YT_ABORT("Check field_list failed in %s!\n", __FUNCTION__);
       }
    }
 
 // Check yt_particle* particle_list
-   if ( g_param_libyt.check_data == true && g_param_yt.num_par_types > 0 ){
+   if (g_param_libyt.check_data && g_param_yt.num_par_types > 0 ){
       if ( check_particle_list() != YT_SUCCESS ){
          YT_ABORT("Check particle_list failed in %s!\n", __FUNCTION__);
       }
    }
 
 // Check yt_grid* grids_local
-   if ( g_param_libyt.check_data == true && g_param_yt.num_grids_local > 0 ){
+   if (g_param_libyt.check_data && g_param_yt.num_grids_local > 0 ){
       if ( check_grid() != YT_SUCCESS ){
          YT_ABORT("Check grids_local failed in %s!\n", __FUNCTION__);
       }
@@ -141,7 +142,7 @@ int yt_commit()
    }
 
 // Check that the hierarchy are correct, do the test on RootRank only
-   if ( g_param_libyt.check_data == true && g_myrank == RootRank ){
+   if (g_param_libyt.check_data && g_myrank == RootRank ){
       if ( check_hierarchy( hierarchy_full ) == YT_SUCCESS ) {
          log_debug("Validating the parent-children relationship ... done!\n");
       }
@@ -230,7 +231,7 @@ int yt_commit()
     delete [] grid_combine.par_count_list;
 
     // Free grids_local
-    if ( g_param_libyt.get_gridsPtr && g_param_yt.num_grids_local > 0 ){
+    if ( LibytProcessControl::Get().get_gridsPtr && g_param_yt.num_grids_local > 0 ){
         for (int i = 0; i < g_param_yt.num_grids_local; i = i+1){
             if ( g_param_yt.num_fields > 0 ) {
                 delete[] g_param_yt.grids_local[i].field_data;
@@ -247,8 +248,8 @@ int yt_commit()
     }
 
    // Above all works like charm
-   g_param_libyt.commit_grids = true;
-   g_param_libyt.get_gridsPtr = false;
+   LibytProcessControl::Get().commit_grids = true;
+   LibytProcessControl::Get().get_gridsPtr = false;
    log_info("Loading grids to yt ... done.\n");
 
 #ifdef SUPPORT_TIMER

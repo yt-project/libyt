@@ -1,4 +1,5 @@
 #include "yt_combo.h"
+#include "LibytProcessControl.h"
 #include "libyt.h"
 
 
@@ -7,7 +8,7 @@
 // Description :  Refresh the python yt state after finish inline-analysis
 //
 // Note        :  1. Call and use by user, after they are done with all the inline-analysis in this 
-//                   round or they want to freed everything allocated by libyt.
+//                   round, or they want to freed everything allocated by libyt.
 //                2. We also freed grids_local here, in case user didn't call yt_commit and cause memory
 //                   leak.
 //
@@ -22,12 +23,12 @@ int yt_free() {
 #endif
 
     // check if libyt has been initialized
-    if (!g_param_libyt.libyt_initialized) {
+    if (!LibytProcessControl::Get().libyt_initialized) {
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 
     // check if user has run through all the routine.
-    if (!g_param_libyt.commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids) {
         log_warning("You are going to free every libyt initialized and allocated array, "
                     "even though the inline-analysis procedure has not finished yet!\n");
     }
@@ -37,7 +38,7 @@ int yt_free() {
 
     // Free resource allocated in yt_set_Parameters():
     //    field_list, particle_list, attr_list, num_grids_local_MPI
-    if (g_param_libyt.param_yt_set) {
+    if (LibytProcessControl::Get().param_yt_set) {
         if (g_param_yt.num_fields > 0) delete[] g_param_yt.field_list;
         if (g_param_yt.num_par_types > 0) {
             for (int i = 0; i < g_param_yt.num_par_types; i++) { delete[] g_param_yt.particle_list[i].attr_list; }
@@ -46,9 +47,9 @@ int yt_free() {
         delete[] g_param_yt.num_grids_local_MPI;
     }
 
-    // Free resource allocated in yt_get_GridsPtr() in case it hasn't get freed yet:
+    // Free resource allocated in yt_get_GridsPtr() in case it hasn't got freed yet:
     //    grids_local, field_data, particle_data, par_count_list
-    if (g_param_libyt.get_gridsPtr && g_param_yt.num_grids_local > 0) {
+    if (LibytProcessControl::Get().get_gridsPtr && g_param_yt.num_grids_local > 0) {
         for (int i = 0; i < g_param_yt.num_grids_local; i = i + 1) {
             if (g_param_yt.num_fields > 0) {
                 delete[] g_param_yt.grids_local[i].field_data;
@@ -83,14 +84,13 @@ int yt_free() {
     g_func_status_list.reset();
 #endif
     // Reset check points
-    g_param_libyt.param_yt_set = false;
-    g_param_libyt.get_fieldsPtr = false;
-    g_param_libyt.get_particlesPtr = false;
-    g_param_libyt.get_gridsPtr = false;
-    g_param_libyt.commit_grids = false;
+    LibytProcessControl::Get().param_yt_set = false;
+    LibytProcessControl::Get().get_fieldsPtr = false;
+    LibytProcessControl::Get().get_particlesPtr = false;
+    LibytProcessControl::Get().get_gridsPtr = false;
+    LibytProcessControl::Get().commit_grids = false;
+    LibytProcessControl::Get().free_gridsPtr = true;
     g_param_libyt.counter++;
-
-    g_param_libyt.free_gridsPtr = true;
 
 #ifdef SUPPORT_TIMER
     // end timer.

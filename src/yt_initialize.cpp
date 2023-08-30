@@ -5,6 +5,7 @@
 
 #undef DEFINE_GLOBAL
 
+#include "LibytProcessControl.h"
 #include "libyt.h"
 
 static void init_yt_long_mpi_type();
@@ -48,7 +49,7 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
     init_count++;
 
     // still need to check "init_count" since yt_finalize() will set "g_param_libyt.libyt_initialized = false"
-    if (g_param_libyt.libyt_initialized || init_count >= 2)
+    if (LibytProcessControl::Get().libyt_initialized || init_count >= 2)
         YT_ABORT("yt_initialize() should not be called more than once!\n");
 
 
@@ -89,7 +90,7 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
     if (func_status_list::init_not_done_err_msg() != YT_SUCCESS ) return YT_FAIL;
 #endif
 
-    g_param_libyt.libyt_initialized = true;
+    LibytProcessControl::Get().libyt_initialized = true;
 
 #ifdef SUPPORT_TIMER
     // end timer.

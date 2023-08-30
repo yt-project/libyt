@@ -1,7 +1,6 @@
 #include "yt_combo.h"
+#include "LibytProcessControl.h"
 #include "libyt.h"
-
-
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -32,12 +31,12 @@ int yt_set_Parameters( yt_param_yt *param_yt )
 #endif
 
 // check if libyt has been initialized
-   if ( !g_param_libyt.libyt_initialized ){
+   if ( !LibytProcessControl::Get().libyt_initialized ){
       YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    }
 
 // check if libyt has free all the resource in previous inline-analysis
-   if ( !g_param_libyt.free_gridsPtr ){
+   if ( !LibytProcessControl::Get().free_gridsPtr ){
       log_warning( "Please invoke yt_free() before calling %s() for next iteration!\n", __FUNCTION__ );
       YT_ABORT("Overwrite existing parameters may leads to memory leak, please called yt_free() first!\n");
    }
@@ -130,7 +129,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
    }
    else{
       g_param_yt.field_list       = NULL;
-      g_param_libyt.get_fieldsPtr = true;
+       LibytProcessControl::Get().get_fieldsPtr = true;
    }
 
 
@@ -149,13 +148,13 @@ int yt_set_Parameters( yt_param_yt *param_yt )
    else {
       // don't need to load particle, set as NULL.
       g_param_yt.particle_list       = NULL;
-      g_param_libyt.get_particlesPtr = true;
+       LibytProcessControl::Get().get_particlesPtr = true;
    }
 
 // if num_grids_local <= 0, which means this rank doesn't need to load in grids_local info.
    if ( g_param_yt.num_grids_local <= 0 ){
       g_param_yt.grids_local     = NULL;
-      g_param_libyt.get_gridsPtr = true;
+       LibytProcessControl::Get().get_gridsPtr = true;
    }
 
    // Make sure g_param_yt.num_grids_local is set, 
@@ -189,8 +188,8 @@ int yt_set_Parameters( yt_param_yt *param_yt )
    }
 
 // If the above all works like charm.
-   g_param_libyt.param_yt_set  = true;
-   g_param_libyt.free_gridsPtr = false;
+   LibytProcessControl::Get().param_yt_set  = true;
+   LibytProcessControl::Get().free_gridsPtr = false;
    log_info( "Setting YT parameters ... done.\n" );
 
 #ifdef SUPPORT_TIMER
