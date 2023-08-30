@@ -6,7 +6,7 @@ add_library(yt SHARED
         yt_commit.cpp yt_finalize.cpp yt_free.cpp yt_get_FieldsPtr.cpp yt_get_GridsPtr.cpp
         yt_get_ParticlesPtr.cpp yt_getGridInfo.cpp yt_initialize.cpp yt_rma_field.cpp
         yt_rma_particle.cpp yt_run.cpp yt_run_InteractiveMode.cpp yt_set_Parameters.cpp
-        yt_set_UserParameter.cpp
+        yt_set_UserParameter.cpp LibytProcessControl.cpp
         $<$<BOOL:${SUPPORT_TIMER}>:Timer.cpp>)
 
 # options
