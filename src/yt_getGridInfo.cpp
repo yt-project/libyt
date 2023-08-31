@@ -109,9 +109,10 @@ int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_co
     }
 
     // find index of ptype
+    yt_particle *particle_list = LibytProcessControl::Get().particle_list;
     int label = -1;
     for (int s=0; s<g_param_yt.num_par_types; s++) {
-        if (strcmp(g_param_yt.particle_list[s].par_type, ptype) == 0) {
+        if (strcmp(particle_list[s].par_type, ptype) == 0) {
             label = s;
             break;
         }

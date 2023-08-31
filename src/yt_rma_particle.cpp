@@ -1,5 +1,6 @@
 #include "yt_rma_particle.h"
 #include "yt_combo.h"
+#include "LibytProcessControl.h"
 #include "libyt.h"
 #include <string.h>
 
@@ -36,15 +37,16 @@ yt_rma_particle::yt_rma_particle(const char *ptype, const char *attribute, int l
         log_error("yt_rma_particle: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
     }
 
+    yt_particle *particle_list = LibytProcessControl::Get().particle_list;
     for(int v = 0; v < g_param_yt.num_par_types; v++){
-        if( strcmp(ptype, g_param_yt.particle_list[v].par_type) == 0 ){
-            m_ParticleType  = g_param_yt.particle_list[v].par_type;
+        if( strcmp(ptype, particle_list[v].par_type) == 0 ){
+            m_ParticleType  = particle_list[v].par_type;
             m_ParticleIndex = v;
-            for(int a = 0; a < g_param_yt.particle_list[v].num_attr; a++) {
-                if( strcmp(attribute, g_param_yt.particle_list[v].attr_list[a].attr_name) == 0 ){
-                    m_AttributeName     = g_param_yt.particle_list[v].attr_list[a].attr_name;
+            for(int a = 0; a < particle_list[v].num_attr; a++) {
+                if( strcmp(attribute, particle_list[v].attr_list[a].attr_name) == 0 ){
+                    m_AttributeName     = particle_list[v].attr_list[a].attr_name;
                     m_AttributeIndex    = a;
-                    m_AttributeDataType = g_param_yt.particle_list[v].attr_list[a].attr_dtype;
+                    m_AttributeDataType = particle_list[v].attr_list[a].attr_dtype;
                     break;
                 }
             }
@@ -145,7 +147,7 @@ int yt_rma_particle::prepare_data(long& gid)
         else {
             // Generate particle data through get_par_attr function pointer, if we cannot find it in libyt.particle_data
             void (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*);
-            get_par_attr = g_param_yt.particle_list[m_ParticleIndex].get_par_attr;
+            get_par_attr = LibytProcessControl::Get().particle_list[m_ParticleIndex].get_par_attr;
             if( get_par_attr == NULL ){
                 YT_ABORT("yt_rma_particle: Particle type [%s], get_par_attr not set!\n", m_ParticleType);
             }

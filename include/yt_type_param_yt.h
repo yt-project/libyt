@@ -50,24 +50,16 @@ void log_warning(const char *Format, ...);
 //                num_fields              : Number of fields
 //                num_par_types           : Number of particle types, initialized as 0.
 //                num_grids_local         : Number of local grids in each rank
-//                field_list              : field list, including {field_name, field_type, field_unit ,...}
-//                particle_list           : particle list, including {par_type, attr_list, ...}
 //                par_type_list           : particle type list, including only {par_type, num_attr},
 //                                          elements here will be copied into particle_list. This is because
 //                                          we want libyt to handle initialization of particle_list.
-//                grids_local             : Ptr to full information of local grids
 //
 // Method      :  yt_param_yt : Constructor
-//               ~yt_param_yt : Destructor
 //                validate    : Check if all data members have been set properly by users
 //                show        : Print out all data members
 //-------------------------------------------------------------------------------------------------------
 struct yt_param_yt
 {
-
-// data members
-// ===================================================================================
-// variables that will be passed to yt
    const char *frontend;
    const char *fig_basename;
 
@@ -82,8 +74,6 @@ struct yt_param_yt
    double mass_unit;
    double time_unit;
    double magnetic_unit;
-
-// declare all boolean variables as int so that we can check whether they have been set by users
    int    periodicity[3];
    int    cosmological_simulation;
    int    dimensionality;
@@ -91,20 +81,12 @@ struct yt_param_yt
    int    refine_by;
    int    index_offset;
    long   num_grids;
-
-// variable for later runtime usage
-// Loaded by user
    int           num_fields;
    int           num_par_types;
    yt_par_type  *par_type_list;
    int           num_grids_local;
 
-// Loaded and controlled by libyt
-   yt_field    *field_list;
-   yt_particle *particle_list;
-   yt_grid     *grids_local;
-   int         *num_grids_local_MPI;
-
+#ifdef __cplusplus
    //===================================================================================
    // Method      :  yt_param_yt
    // Description :  Constructor of the structure "yt_param_yt"
@@ -115,90 +97,49 @@ struct yt_param_yt
    //===================================================================================
    yt_param_yt()
    {
+       frontend      = NULL;
+       fig_basename  = NULL;
+       for (int d=0; d<3; d++)
+       {
+           domain_left_edge [d] = DBL_UNDEFINED;
+           domain_right_edge[d] = DBL_UNDEFINED;
+       }
+       current_time            = DBL_UNDEFINED;
+       current_redshift        = DBL_UNDEFINED;
+       omega_lambda            = DBL_UNDEFINED;
+       omega_matter            = DBL_UNDEFINED;
+       hubble_constant         = DBL_UNDEFINED;
+       length_unit             = DBL_UNDEFINED;
+       mass_unit               = DBL_UNDEFINED;
+       time_unit               = DBL_UNDEFINED;
+       magnetic_unit           = DBL_UNDEFINED;
 
-//    set default values for all data members
-      init();
+       for (int d=0; d<3; d++)
+       {
+           periodicity      [d] = INT_UNDEFINED;
+           domain_dimensions[d] = INT_UNDEFINED;
+       }
+       cosmological_simulation  = INT_UNDEFINED;
+       dimensionality           = INT_UNDEFINED;
+       refine_by                = INT_UNDEFINED;
+       index_offset             = 0;
+       num_grids                = LNG_UNDEFINED;
 
-   } // METHOD : yt_param_yt
+       num_fields              = 0;
+       num_par_types           = 0;
+       num_grids_local         = 0;
+       par_type_list           = NULL;
+   }
+#endif // #ifdef __cplusplus
 
-
-   //===================================================================================
-   // Method      :  ~yt_param_yt
-   // Description :  Destructor of the structure "yt_param_yt"
-   //
-   // Note        :  Free memory
-   //
-   // Parameter   :  None
-   //===================================================================================
-   ~yt_param_yt()
-   {
-
-   } // METHOD : ~yt_param_yt
-
-
-   //===================================================================================
-   // Method      :  init
-   // Description :  Initialize all data members
-   //
-   // Note        :  1. Called by the constructor.
-   //
-   // Parameter   :  None
-   //===================================================================================
-   int init()
-   {
-
-//    set defaults
-      frontend      = NULL;
-      fig_basename  = NULL;
-
-      for (int d=0; d<3; d++)
-      {
-         domain_left_edge [d] = DBL_UNDEFINED;
-         domain_right_edge[d] = DBL_UNDEFINED;
-      }
-      current_time            = DBL_UNDEFINED;
-      current_redshift        = DBL_UNDEFINED;
-      omega_lambda            = DBL_UNDEFINED;
-      omega_matter            = DBL_UNDEFINED;
-      hubble_constant         = DBL_UNDEFINED;
-      length_unit             = DBL_UNDEFINED;
-      mass_unit               = DBL_UNDEFINED;
-      time_unit               = DBL_UNDEFINED;
-      magnetic_unit           = DBL_UNDEFINED;
-
-      for (int d=0; d<3; d++)
-      {
-         periodicity      [d] = INT_UNDEFINED;
-         domain_dimensions[d] = INT_UNDEFINED;
-      }
-      cosmological_simulation = INT_UNDEFINED;
-      dimensionality          = INT_UNDEFINED;
-      refine_by               = INT_UNDEFINED;
-      index_offset            = 0;
-      num_grids               = LNG_UNDEFINED;
-
-      num_fields              = 0;
-      num_par_types           = 0;
-      num_grids_local         = 0;
-      par_type_list           = NULL;
-
-   // Loaded and controlled by libyt
-      field_list              = NULL;
-      particle_list           = NULL;
-      grids_local             = NULL;
-      num_grids_local_MPI     = NULL;
-
-      return YT_SUCCESS;
-
-   } // METHOD : init
-
-
+#ifdef __cplusplus
    //===================================================================================
    // Method      :  validate
    // Description :  Check if all data members have been set properly by users
    //
    // Note        :  1. Cosmological parameters are checked only if cosmological_simulation == 1
    //                2. Only check if data are used, does not alter them.
+   //                3. TODO: (C-library) This method should be moved to elsewhere.
    //
    // Parameter   :  None
    //
@@ -236,8 +177,7 @@ struct yt_param_yt
       }
 
       return YT_SUCCESS;
-   } // METHOD : validate
-
+   }
 
    //===================================================================================
    // Method      :  show
@@ -299,11 +239,9 @@ struct yt_param_yt
       log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids_local",         num_grids_local         );
 
       return YT_SUCCESS;
+   }
+#endif // #ifdef __cplusplus
 
-   } // METHOD : show
-
-}; // struct yt_param_yt
-
-
+};
 
 #endif // #ifndef __YT_TYPE_PARAM_YT_H__

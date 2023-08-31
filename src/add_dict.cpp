@@ -1,7 +1,6 @@
 #include "yt_combo.h"
+#include "LibytProcessControl.h"
 #include <typeinfo>
-
-
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -217,47 +216,49 @@ int add_dict_field_list(){
    PyObject  *field_list_dict = PyDict_New();
    PyObject  *key, *val;
 
+   yt_field *field_list = LibytProcessControl::Get().field_list;
+
    for (int i = 0; i < g_param_yt.num_fields; i++){
 
       PyObject *field_info_dict = PyDict_New( );
       PyObject *info_list       = PyList_New(0);
 
       // Append "field_unit" to "info_list"
-      val = PyUnicode_FromString((g_param_yt.field_list)[i].field_unit);
+      val = PyUnicode_FromString((field_list)[i].field_unit);
       if ( PyList_Append(info_list, val) != 0 ){
          YT_ABORT("In field_name == %s, field_unit == %s, failed to append %s to list!\n", 
-                   (g_param_yt.field_list)[i].field_name, (g_param_yt.field_list)[i].field_unit, "field_unit");
+                   (field_list)[i].field_name, (field_list)[i].field_unit, "field_unit");
       }
       Py_DECREF( val );
 
       // Create "name_alias_list" and append to "info_list"
       PyObject *name_alias_list = PyList_New(0);
-      for (int j = 0; j < (g_param_yt.field_list)[i].num_field_name_alias; j++){
-         val = PyUnicode_FromString( (g_param_yt.field_list)[i].field_name_alias[j] );
+      for (int j = 0; j < (field_list)[i].num_field_name_alias; j++){
+         val = PyUnicode_FromString( (field_list)[i].field_name_alias[j] );
          if ( PyList_Append(name_alias_list, val) != 0 ){
             YT_ABORT("In field_name == %s, field_name_alias == %s, failed to append %s to list!\n",
-                      (g_param_yt.field_list)[i].field_name, (g_param_yt.field_list)[i].field_name_alias[j], "field_name_alias");
+                      (field_list)[i].field_name, (field_list)[i].field_name_alias[j], "field_name_alias");
          }
          Py_DECREF( val );
       }
       if ( PyList_Append(info_list, name_alias_list) != 0 ){
-         YT_ABORT("In field_name == %s, failed to append name_alias_list to list!\n", (g_param_yt.field_list)[i].field_name);
+         YT_ABORT("In field_name == %s, failed to append name_alias_list to list!\n", (field_list)[i].field_name);
       }
       Py_DECREF( name_alias_list );
 
       // Load "field_display_name" to "info_list"
       // If field_display_name == NULL, load Py_None.
-      if ( (g_param_yt.field_list)[i].field_display_name == NULL ){
+      if ( (field_list)[i].field_display_name == NULL ){
          if ( PyList_Append( info_list, Py_None ) != 0 ){
             YT_ABORT("In field_name == %s, field_display_name == NULL, failed to append Py_None to list!\n", 
-                      (g_param_yt.field_list)[i].field_name);
+                      (field_list)[i].field_name);
          }
       }
       else {
-         val = PyUnicode_FromString( (g_param_yt.field_list)[i].field_display_name );
+         val = PyUnicode_FromString( (field_list)[i].field_display_name );
          if ( PyList_Append( info_list, val ) != 0 ){
             YT_ABORT("In field_name == %s, field_display_name == %s, failed to append %s to list!\n", 
-                      (g_param_yt.field_list)[i].field_name, (g_param_yt.field_list)[i].field_display_name, "field_display_name");
+                      (field_list)[i].field_name, (field_list)[i].field_display_name, "field_display_name");
          }
          Py_DECREF( val );
       }
@@ -265,52 +266,52 @@ int add_dict_field_list(){
       // Insert "info_list" to "field_info_dict" with key "attribute"
       if ( PyDict_SetItemString(field_info_dict, "attribute", info_list) != 0 ){
          YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair ['attribute']-[info_list] failed!\n", 
-                   (g_param_yt.field_list)[i].field_name);
+                   (field_list)[i].field_name);
       }
       Py_DECREF(info_list);
 
       // Load "field_type" to "field_info_dict".
-      val = PyUnicode_FromString((g_param_yt.field_list)[i].field_type);
+      val = PyUnicode_FromString((field_list)[i].field_type);
       if ( PyDict_SetItemString(field_info_dict, "field_type", val) != 0 ){
          YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n", 
-                   (g_param_yt.field_list)[i].field_name, "field_type", (g_param_yt.field_list)[i].field_type);
+                   (field_list)[i].field_name, "field_type", (field_list)[i].field_type);
       }
       Py_DECREF( val );
 
       // Load "contiguous_in_x" to "field_info_dict".
-      if ( (g_param_yt.field_list)[i].contiguous_in_x == true ){
+      if ( (field_list)[i].contiguous_in_x == true ){
          if ( PyDict_SetItemString( field_info_dict, "contiguous_in_x", Py_True) != 0 ){
             YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ true ] failed!\n", 
-                      (g_param_yt.field_list)[i].field_name, "contiguous_in_x");
+                      (field_list)[i].field_name, "contiguous_in_x");
          }
       } 
       else {
          if ( PyDict_SetItemString( field_info_dict, "contiguous_in_x", Py_False) != 0 ){
             YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ false ] failed!\n",
-                      (g_param_yt.field_list)[i].field_name, "contiguous_in_x");
+                      (field_list)[i].field_name, "contiguous_in_x");
          }
       }
 
       // Load "ghost_cell" to "field_info_dict"
       PyObject *ghost_cell_list = PyList_New(0);
       for(int d = 0; d < 6; d++){
-          val = PyLong_FromLong((long) (g_param_yt.field_list)[i].field_ghost_cell[d] );
+          val = PyLong_FromLong((long) (field_list)[i].field_ghost_cell[d] );
           if( PyList_Append( ghost_cell_list, val ) != 0 ){
               YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], failed to append ghost cell to list!\n",
-                       (g_param_yt.field_list)[i].field_name);
+                       (field_list)[i].field_name);
           }
           Py_DECREF(val);
       }
       if( PyDict_SetItemString( field_info_dict, "ghost_cell", ghost_cell_list ) != 0 ){
           YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ list obj ] failed!\n",
-                   (g_param_yt.field_list)[i].field_name, "ghost_cell");
+                   (field_list)[i].field_name, "ghost_cell");
       }
       Py_DECREF( ghost_cell_list );
 
       // Load "field_info_dict" to "field_list_dict", with key = field_name
-      key = PyUnicode_FromString( (g_param_yt.field_list)[i].field_name );
+      key = PyUnicode_FromString( (field_list)[i].field_name );
       if ( PyDict_SetItem( field_list_dict, key, field_info_dict) != 0 ){
-         YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s] failed to add dictionary!\n", (g_param_yt.field_list)[i].field_name);
+         YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s] failed to add dictionary!\n", (field_list)[i].field_name);
       }
       Py_DECREF( key );
 
@@ -367,22 +368,24 @@ int add_dict_particle_list(){
    PyObject  *particle_list_dict = PyDict_New();
    PyObject  *key, *val;
 
+   yt_particle *particle_list = LibytProcessControl::Get().particle_list;
+
    for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
       
       PyObject  *species_dict = PyDict_New();
       
       // Insert a series of attr_list to attr_dict with key <attr_name>
       PyObject  *attr_dict    = PyDict_New();
-      for ( int a = 0; a < g_param_yt.particle_list[s].num_attr; a++ ){
+      for ( int a = 0; a < particle_list[s].num_attr; a++ ){
 
          PyObject    *attr_list = PyList_New(0);
-         yt_attribute attr      = g_param_yt.particle_list[s].attr_list[a];
+         yt_attribute attr      = particle_list[s].attr_list[a];
 
          // Append attr_unit to attr_list
          val = PyUnicode_FromString( attr.attr_unit );
          if ( PyList_Append(attr_list, val) != 0 ){
             YT_ABORT("In par_type == %s, attr_unit == %s, failed to append %s to list.\n",
-                      g_param_yt.particle_list[s].par_type, attr.attr_unit, "attr_unit");
+                      particle_list[s].par_type, attr.attr_unit, "attr_unit");
          }
          Py_DECREF( val );
 
@@ -392,13 +395,13 @@ int add_dict_particle_list(){
             val = PyUnicode_FromString( attr.attr_name_alias[i] );
             if ( PyList_Append(name_alias_list, val) != 0 ){
                YT_ABORT("In par_type == %s, attr_name == %s, attr_name_alias == %s, failed to append %s to list.\n",
-                         g_param_yt.particle_list[s].par_type, attr.attr_name, attr.attr_name_alias[i], "attr_name_alias");
+                         particle_list[s].par_type, attr.attr_name, attr.attr_name_alias[i], "attr_name_alias");
             }
             Py_DECREF( val );
          }
          if ( PyList_Append(attr_list, name_alias_list) != 0 ){
             YT_ABORT("In par_type == %s, attr_name == %s, failed to append %s to list.\n",
-                      g_param_yt.particle_list[s].par_type, attr.attr_name, "name_alias_list");
+                      particle_list[s].par_type, attr.attr_name, "name_alias_list");
          }
          Py_DECREF( name_alias_list );
 
@@ -406,14 +409,14 @@ int add_dict_particle_list(){
          if ( attr.attr_display_name == NULL ){
             if ( PyList_Append(attr_list, Py_None) != 0 ){
                YT_ABORT("In par_type == %s, attr_name == %s, attr_display_name == NULL, failed to append %s to list.\n",
-                         g_param_yt.particle_list[s].par_type, attr.attr_name, "Py_None");
+                         particle_list[s].par_type, attr.attr_name, "Py_None");
             }
          }
          else {
             val = PyUnicode_FromString( attr.attr_display_name );
             if ( PyList_Append(attr_list, val) != 0 ){
                YT_ABORT("In par_type == %s, attr_name == %s, attr_display_name == %s, failed to append %s to list.\n",
-                         g_param_yt.particle_list[s].par_type, attr.attr_name, attr.attr_display_name, "attr_display_name");
+                         particle_list[s].par_type, attr.attr_name, attr.attr_display_name, "attr_display_name");
             }
             Py_DECREF( val );
          }
@@ -422,7 +425,7 @@ int add_dict_particle_list(){
          key = PyUnicode_FromString( attr.attr_name );
          if ( PyDict_SetItem(attr_dict, key, attr_list) != 0 ){
             YT_ABORT("In par_type == %s, attr_name == %s, failed to append %s to %s.\n",
-                      g_param_yt.particle_list[s].par_type, attr.attr_name, "attr_list", "attr_dict");
+                      particle_list[s].par_type, attr.attr_name, "attr_list", "attr_dict");
          }
          Py_DECREF( key );
 
@@ -432,7 +435,7 @@ int add_dict_particle_list(){
       // Insert attr_dict to species_dict with key = "attribute"
       if ( PyDict_SetItemString(species_dict, "attribute", attr_dict) != 0 ){
          YT_ABORT("In par_type == %s, failed to insert key-value pair attribute:attr_dict to species_dict.\n",
-                   g_param_yt.particle_list[s].par_type);
+                   particle_list[s].par_type);
       }
       Py_DECREF( attr_dict );
 
@@ -440,47 +443,47 @@ int add_dict_particle_list(){
       // Create coor_list and insert it to species_dict with key = "particle_coor_label"
       PyObject *coor_list = PyList_New(0);
 
-      if ( g_param_yt.particle_list[s].coor_x == NULL ){
+      if ( particle_list[s].coor_x == NULL ){
          if ( PyList_Append(coor_list, Py_None) != 0 ){
             YT_ABORT("In par_type == %s, coor_x == NULL, failed to append %s to coor_list.\n",
-                      g_param_yt.particle_list[s].par_type, "Py_None");
+                      particle_list[s].par_type, "Py_None");
          }
       }
       else{
-         val = PyUnicode_FromString( g_param_yt.particle_list[s].coor_x );
+         val = PyUnicode_FromString( particle_list[s].coor_x );
          if ( PyList_Append(coor_list, val) != 0 ){
             YT_ABORT("In par_type == %s, coor_x == %s, failed to append %s to list.\n",
-                      g_param_yt.particle_list[s].par_type, g_param_yt.particle_list[s].coor_x, "coor_x");
+                      particle_list[s].par_type, particle_list[s].coor_x, "coor_x");
          }
          Py_DECREF( val );
       }
 
-      if ( g_param_yt.particle_list[s].coor_y == NULL ){
+      if ( particle_list[s].coor_y == NULL ){
          if ( PyList_Append(coor_list, Py_None) != 0 ){
             YT_ABORT("In par_type == %s, coor_y == NULL, failed to append %s to coor_list.\n",
-                      g_param_yt.particle_list[s].par_type, "Py_None");
+                      particle_list[s].par_type, "Py_None");
          }
       }
       else{
-         val = PyUnicode_FromString( g_param_yt.particle_list[s].coor_y );
+         val = PyUnicode_FromString( particle_list[s].coor_y );
          if ( PyList_Append(coor_list, val) != 0 ){
             YT_ABORT("In par_type == %s, coor_y == %s, failed to append %s to list.\n",
-                      g_param_yt.particle_list[s].par_type, g_param_yt.particle_list[s].coor_y, "coor_y");
+                      particle_list[s].par_type, particle_list[s].coor_y, "coor_y");
          }
          Py_DECREF( val );
       }
 
-      if ( g_param_yt.particle_list[s].coor_z == NULL ){
+      if ( particle_list[s].coor_z == NULL ){
          if ( PyList_Append(coor_list, Py_None) != 0 ){
             YT_ABORT("In par_type == %s, coor_z == NULL, failed to append %s to coor_list.\n",
-                      g_param_yt.particle_list[s].par_type, "Py_None");
+                      particle_list[s].par_type, "Py_None");
          }
       }
       else{
-         val = PyUnicode_FromString( g_param_yt.particle_list[s].coor_z );
+         val = PyUnicode_FromString( particle_list[s].coor_z );
          if ( PyList_Append(coor_list, val) != 0 ){
             YT_ABORT("In par_type == %s, coor_z == %s, failed to append %s to list.\n",
-                      g_param_yt.particle_list[s].par_type, g_param_yt.particle_list[s].coor_z, "coor_z");
+                      particle_list[s].par_type, particle_list[s].coor_z, "coor_z");
          }
          Py_DECREF( val );
       }
@@ -488,7 +491,7 @@ int add_dict_particle_list(){
       // Insert coor_list to species_dict with key = "particle_coor_label"
       if ( PyDict_SetItemString(species_dict, "particle_coor_label", coor_list) != 0 ){
          YT_ABORT("In par_type == %s, failed to insert key-value pair particle_coor_label:coor_list to species_dict.\n",
-                   g_param_yt.particle_list[s].par_type);
+                   particle_list[s].par_type);
       }
       Py_DECREF( coor_list );
 
@@ -496,16 +499,16 @@ int add_dict_particle_list(){
       key = PyLong_FromLong( (long) s );
       if ( PyDict_SetItemString(species_dict, "label", key) != 0 ){
           YT_ABORT("In par_type == %s, failed to insert key-value pair label:%d to species_dict.\n",
-                   g_param_yt.particle_list[s].par_type, s);
+                   particle_list[s].par_type, s);
       }
       Py_DECREF( key );
 
 
       // Insert species_dict to particle_list_dict with key = <par_type>
-      key = PyUnicode_FromString( g_param_yt.particle_list[s].par_type );
+      key = PyUnicode_FromString( particle_list[s].par_type );
       if ( PyDict_SetItem(particle_list_dict, key, species_dict) != 0 ){
          YT_ABORT("In par_type == %s, failed to insert key-value pair %s:species_dict to particle_list_dict.\n",
-                   g_param_yt.particle_list[s].par_type, g_param_yt.particle_list[s].par_type);
+                   particle_list[s].par_type, particle_list[s].par_type);
       }
       Py_DECREF( key );
 

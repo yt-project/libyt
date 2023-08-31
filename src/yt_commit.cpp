@@ -119,8 +119,9 @@ int yt_commit()
    }
 
 // move user passed in data to hierarchy_local and particle_count_list_local for later MPI process
+   yt_grid *grids_local = LibytProcessControl::Get().grids_local;
    for (int i = 0; i < g_param_yt.num_grids_local; i = i+1) {
-      yt_grid grid = g_param_yt.grids_local[i];
+      yt_grid grid = grids_local[i];
       for (int d = 0; d < 3; d = d+1) {
          hierarchy_local[i].left_edge[d]  = grid.left_edge[d];
          hierarchy_local[i].right_edge[d] = grid.right_edge[d];
@@ -136,9 +137,10 @@ int yt_commit()
    }
 
    // Big MPI_Gatherv, this is just a workaround method.
-   big_MPI_Gatherv(RootRank, g_param_yt.num_grids_local_MPI, (void*)hierarchy_local, &yt_hierarchy_mpi_type, (void*)hierarchy_full, 0);
+   int *num_grids_local_MPI = LibytProcessControl::Get().num_grids_local_MPI;
+   big_MPI_Gatherv(RootRank, num_grids_local_MPI, (void*)hierarchy_local, &yt_hierarchy_mpi_type, (void*)hierarchy_full, 0);
    for (int s=0; s<g_param_yt.num_par_types; s++){
-       big_MPI_Gatherv(RootRank, g_param_yt.num_grids_local_MPI, (void*)particle_count_list_local[s], &yt_long_mpi_type, (void*)particle_count_list_full[s], 3);
+       big_MPI_Gatherv(RootRank, num_grids_local_MPI, (void*)particle_count_list_local[s], &yt_long_mpi_type, (void*)particle_count_list_full[s], 3);
    }
 
 // Check that the hierarchy are correct, do the test on RootRank only
@@ -170,7 +172,7 @@ int yt_commit()
    long start_block = 0;
    long end_block;
    for(int rank = 0; rank < g_myrank; rank++){
-       start_block += g_param_yt.num_grids_local_MPI[rank];
+       start_block += num_grids_local_MPI[rank];
    }
    end_block = start_block + g_param_yt.num_grids_local;
 
@@ -195,8 +197,8 @@ int yt_commit()
       // load from g_param_yt.grids_local
       if ( start_block <= i && i < end_block ) {
          // Get the pointer to data from grids_local
-         grid_combine.field_data    = g_param_yt.grids_local[i - start_block].field_data;
-         grid_combine.particle_data = g_param_yt.grids_local[i - start_block].particle_data;
+         grid_combine.field_data    = grids_local[i - start_block].field_data;
+         grid_combine.particle_data = grids_local[i - start_block].particle_data;
       }
       else {
          // Make it points to NULL
@@ -234,17 +236,17 @@ int yt_commit()
     if ( LibytProcessControl::Get().get_gridsPtr && g_param_yt.num_grids_local > 0 ){
         for (int i = 0; i < g_param_yt.num_grids_local; i = i+1){
             if ( g_param_yt.num_fields > 0 ) {
-                delete[] g_param_yt.grids_local[i].field_data;
+                delete[] grids_local[i].field_data;
             }
             if ( g_param_yt.num_par_types > 0 ) {
-                delete[] g_param_yt.grids_local[i].par_count_list;
+                delete[] grids_local[i].par_count_list;
                 for (int p = 0; p < g_param_yt.num_par_types; p++){
-                    delete[] g_param_yt.grids_local[i].particle_data[p];
+                    delete[] grids_local[i].particle_data[p];
                 }
-                delete[] g_param_yt.grids_local[i].particle_data;
+                delete[] grids_local[i].particle_data;
             }
         }
-        delete [] g_param_yt.grids_local;
+        delete [] grids_local;
     }
 
    // Above all works like charm

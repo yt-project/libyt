@@ -125,10 +125,10 @@ int yt_set_Parameters( yt_param_yt *param_yt )
 
 // if num_fields > 0, which means we want to load fields
    if ( g_param_yt.num_fields > 0 ){
-      g_param_yt.field_list = new yt_field [ g_param_yt.num_fields ];
+       LibytProcessControl::Get().field_list = new yt_field [ g_param_yt.num_fields ];
    }
    else{
-      g_param_yt.field_list       = NULL;
+       LibytProcessControl::Get().field_list = nullptr;
        LibytProcessControl::Get().get_fieldsPtr = true;
    }
 
@@ -143,18 +143,18 @@ int yt_set_Parameters( yt_param_yt *param_yt )
          particle_list[s].num_attr     = g_param_yt.par_type_list[s].num_attr;
          particle_list[s].attr_list    = new yt_attribute [ particle_list[s].num_attr ];
       }
-      g_param_yt.particle_list   = particle_list;
+      LibytProcessControl::Get().particle_list = particle_list;
    }
    else {
       // don't need to load particle, set as NULL.
-      g_param_yt.particle_list       = NULL;
-       LibytProcessControl::Get().get_particlesPtr = true;
+      LibytProcessControl::Get().particle_list = nullptr;
+      LibytProcessControl::Get().get_particlesPtr = true;
    }
 
 // if num_grids_local <= 0, which means this rank doesn't need to load in grids_local info.
    if ( g_param_yt.num_grids_local <= 0 ){
-      g_param_yt.grids_local     = NULL;
-       LibytProcessControl::Get().get_gridsPtr = true;
+      LibytProcessControl::Get().grids_local  = nullptr;
+      LibytProcessControl::Get().get_gridsPtr = true;
    }
 
    // Make sure g_param_yt.num_grids_local is set, 
@@ -175,13 +175,13 @@ int yt_set_Parameters( yt_param_yt *param_yt )
    int RootRank = 0;
    MPI_Comm_size(MPI_COMM_WORLD, &NRank);
    int *num_grids_local_MPI = new int [NRank];
-   g_param_yt.num_grids_local_MPI = num_grids_local_MPI;
+   LibytProcessControl::Get().num_grids_local_MPI = num_grids_local_MPI;
 
    MPI_Gather(&(g_param_yt.num_grids_local), 1, MPI_INT, num_grids_local_MPI, 1, MPI_INT, RootRank, MPI_COMM_WORLD);
    MPI_Bcast(num_grids_local_MPI, NRank, MPI_INT, RootRank, MPI_COMM_WORLD);
 
    // Check that sum of num_grids_local_MPI is equal to num_grids (total number of grids), abort if not.
-   if (g_param_libyt.check_data == true ){
+   if (g_param_libyt.check_data){
       if ( check_sum_num_grids_local_MPI( NRank, num_grids_local_MPI ) != YT_SUCCESS ){
          YT_ABORT("Check sum of local grids in each MPI rank failed in %s!\n", __FUNCTION__);
       }

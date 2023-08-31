@@ -38,7 +38,7 @@ int yt_get_ParticlesPtr( yt_particle **particle_list )
 
    	log_info( "Getting pointer to particle list information ...\n" );
 
-   	*particle_list = g_param_yt.particle_list;
+   	*particle_list = LibytProcessControl::Get().particle_list;
 
     LibytProcessControl::Get().get_particlesPtr = true;
 	log_info( "Getting pointer to particle list information  ... done.\n" );

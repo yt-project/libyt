@@ -38,35 +38,37 @@ int yt_free() {
 
     // Free resource allocated in yt_set_Parameters():
     //    field_list, particle_list, attr_list, num_grids_local_MPI
+    yt_field *field_list = LibytProcessControl::Get().field_list;
+    yt_particle *particle_list = LibytProcessControl::Get().particle_list;
     if (LibytProcessControl::Get().param_yt_set) {
-        if (g_param_yt.num_fields > 0) delete[] g_param_yt.field_list;
+        if (g_param_yt.num_fields > 0) delete[] field_list;
         if (g_param_yt.num_par_types > 0) {
-            for (int i = 0; i < g_param_yt.num_par_types; i++) { delete[] g_param_yt.particle_list[i].attr_list; }
-            delete[] g_param_yt.particle_list;
+            for (int i = 0; i < g_param_yt.num_par_types; i++) {
+                delete[] particle_list[i].attr_list;
+            }
+            delete[] particle_list;
         }
-        delete[] g_param_yt.num_grids_local_MPI;
+        delete[] LibytProcessControl::Get().num_grids_local_MPI;
     }
 
     // Free resource allocated in yt_get_GridsPtr() in case it hasn't got freed yet:
     //    grids_local, field_data, particle_data, par_count_list
+    yt_grid *grids_local = LibytProcessControl::Get().grids_local;
     if (LibytProcessControl::Get().get_gridsPtr && g_param_yt.num_grids_local > 0) {
         for (int i = 0; i < g_param_yt.num_grids_local; i = i + 1) {
             if (g_param_yt.num_fields > 0) {
-                delete[] g_param_yt.grids_local[i].field_data;
+                delete[] grids_local[i].field_data;
             }
             if (g_param_yt.num_par_types > 0) {
-                delete[] g_param_yt.grids_local[i].par_count_list;
+                delete[] grids_local[i].par_count_list;
                 for (int p = 0; p < g_param_yt.num_par_types; p++){
-                    delete[] g_param_yt.grids_local[i].particle_data[p];
+                    delete[] grids_local[i].particle_data[p];
                 }
-                delete[] g_param_yt.grids_local[i].particle_data;
+                delete[] grids_local[i].particle_data;
             }
         }
-        delete[] g_param_yt.grids_local;
+        delete[] grids_local;
     }
-
-    // Reset g_param_yt
-    g_param_yt.init();
 
     // Reset data in libyt module
     PyDict_Clear(g_py_grid_data);
