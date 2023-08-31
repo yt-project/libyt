@@ -50,12 +50,9 @@ import libyt
 |    `param_yt["domain_right_edge"]`    |    `domain_right_edge`    |  `yt_set_Parameters`  |                                      |
 |       `param_yt["periodicity"]`       |       `periodicity`       |  `yt_set_Parameters`  |                                      |
 |    `param_yt["domain_dimensions"]`    |    `domain_dimensions`    |  `yt_set_Parameters`  |                                      |
-|       `param_yt["field_list"]`        |       `field_list`        |      `yt_commit`      | - Used by `libyt`.               |
-|      `param_yt["particle_list"]`      |     `particle_list`       |      `yt_commit`      | - Used by `libyt`.               |
 
-- Usage: Contain `yt` parameters and other `libyt` parameters. The values correspond to data members in  [`yt_param_yt`]({% link libytAPI/SetYTParameter.md%}#yt_param_yt). `field_list` and `particle_list` are [`yt_field`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_field) and [`yt_particle`]({% link libytAPI/SetParticlesInformation.md %}#yt_particle) arrays.
 
-> :warning: Do not alter `param_yt["field_list"]` and `param_yt["particle_list"]`, it is for internal `libyt` process.
+- Usage: Contain `yt` parameters. The values correspond to data members in  [`yt_param_yt`]({% link libytAPI/SetYTParameter.md%}#yt_param_yt).
 
 ### param_user
 
