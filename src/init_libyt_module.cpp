@@ -4,6 +4,7 @@
 #include "yt_rma_field.h"
 #include "yt_rma_particle.h"
 #include "yt_type_array.h"
+#include "LibytProcessControl.h"
 #include "libyt.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -61,18 +62,18 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     bool have_FieldName = false;
 
     derived_func = NULL;
-
+    yt_field *field_list = LibytProcessControl::Get().field_list;
     for (int v = 0; v < g_param_yt.num_fields; v++){
-        if ( strcmp(g_param_yt.field_list[v].field_name, field_name) == 0 ){
+        if ( strcmp(field_list[v].field_name, field_name) == 0 ){
             have_FieldName = true;
             field_id = v;
-            field_dtype = g_param_yt.field_list[v].field_dtype;
-            if ( g_param_yt.field_list[v].derived_func != NULL ){
-                derived_func = g_param_yt.field_list[v].derived_func;
+            field_dtype = field_list[v].field_dtype;
+            if ( field_list[v].derived_func != NULL ){
+                derived_func = field_list[v].derived_func;
             }
             else {
                 PyErr_Format(PyExc_NotImplementedError, "In field_list, field_name [ %s ], derived_func did not set properly.\n",
-                             g_param_yt.field_list[v].field_name);
+                             field_list[v].field_name);
                 return NULL;
             }
             break;
@@ -158,7 +159,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    if ( g_param_yt.field_list[field_id].contiguous_in_x == true ){
+    if (field_list[field_id].contiguous_in_x){
         dims[0] = grid_dimensions[2];
         dims[1] = grid_dimensions[1];
         dims[2] = grid_dimensions[0];
@@ -214,25 +215,25 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
     void    (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*);
     yt_dtype attr_dtype = YT_DTYPE_UNKNOWN;
     int      species_index = -1;
-
+    yt_particle *particle_list = LibytProcessControl::Get().particle_list;
     for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
-        if ( strcmp(g_param_yt.particle_list[s].par_type, ptype) == 0 ){
+        if ( strcmp(particle_list[s].par_type, ptype) == 0 ){
             species_index = s;
 
             // Get get_par_attr
-            if ( g_param_yt.particle_list[s].get_par_attr != NULL ){
-                get_par_attr = g_param_yt.particle_list[s].get_par_attr;
+            if ( particle_list[s].get_par_attr != NULL ){
+                get_par_attr = particle_list[s].get_par_attr;
             }
             else {
                 PyErr_Format(PyExc_NotImplementedError, "In particle_list par_type [ %s ], get_par_attr does not set properly.\n",
-                             g_param_yt.particle_list[s].par_type);
+                             particle_list[s].par_type);
                 return NULL;
             }
 
             // Get attr_dtype
-            for ( int p = 0; p < g_param_yt.particle_list[s].num_attr; p++ ){
-                if ( strcmp(g_param_yt.particle_list[s].attr_list[p].attr_name, attr_name) == 0 ){
-                    attr_dtype = g_param_yt.particle_list[s].attr_list[p].attr_dtype;
+            for ( int p = 0; p < particle_list[s].num_attr; p++ ){
+                if ( strcmp(particle_list[s].attr_list[p].attr_name, attr_name) == 0 ){
+                    attr_dtype = particle_list[s].attr_list[p].attr_dtype;
                     break;
                 }
             }

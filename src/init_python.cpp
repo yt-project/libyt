@@ -5,9 +5,6 @@
 
 static int import_numpy();
 
-
-
-
 //-------------------------------------------------------------------------------------------------------
 // Function    :  init_python
 // Description :  Initialize Python interpreter

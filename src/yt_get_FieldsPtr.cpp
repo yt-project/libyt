@@ -40,7 +40,7 @@ int yt_get_FieldsPtr( yt_field **field_list )
    	log_info( "Getting pointer to field list information ...\n" );
 
 	// Store the field_list ptr to *field_list
-	*field_list =  g_param_yt.field_list;
+	*field_list =  LibytProcessControl::Get().field_list;
 
 	// Above all works like charm
     LibytProcessControl::Get().get_fieldsPtr = true;
