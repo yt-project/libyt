@@ -2,28 +2,19 @@
 #define __YT_TYPE_PARAM_LIBYT_H__
 
 
-
-/*******************************************************************************
-/
-/  yt_param_libyt structure
-/
-/  ==> included by yt_type.h
-/
-********************************************************************************/
-
-
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_param_libyt
 // Description :  Data structure of libyt runtime parameters
 //
 // Notes       :  1. The lifetime of script should cover the whole in situ process in libyt.
+//                2. Included by yt_type.h
 //
 // Data Member :  verbose : Verbose level
 //                script  : Name of the YT inline analysis script (without the .py extension)
 //                counter : Number of rounds doing inline-analysis
 //                check_data: Check the input data (ex: hierarchy, grid information...), if it is true.
 //-------------------------------------------------------------------------------------------------------
-struct yt_param_libyt
+typedef struct yt_param_libyt
 {
    yt_verbose verbose;
    const char *script;
@@ -48,6 +39,6 @@ struct yt_param_libyt
    }
 #endif // #ifdef __cplusplus
 
-};
+} yt_param_libyt;
 
 #endif // #ifndef __YT_TYPE_PARAM_LIBYT_H__
