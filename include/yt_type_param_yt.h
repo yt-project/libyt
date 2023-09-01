@@ -41,8 +41,6 @@
 //                                          we want libyt to handle initialization of particle_list.
 //
 // Method      :  yt_param_yt : Constructor
-//                validate    : Check if all data members have been set properly by users
-//                show        : Print out all data members
 //-------------------------------------------------------------------------------------------------------
 typedef struct yt_param_yt
 {
