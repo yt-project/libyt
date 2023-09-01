@@ -50,7 +50,7 @@ int check_field_list(){
 
     // (1) Validate each yt_field element in field_list.
     for ( int v = 0; v < g_param_yt.num_fields; v++ ){
-        yt_field field = field_list[v];
+        yt_field& field = field_list[v];
         if ( !(field.validate()) ){
             YT_ABORT("Validating input field list element [%d] ... failed\n", v);
         }
@@ -89,7 +89,7 @@ int check_particle_list(){
     // (1) Validate each yt_particle element in particle_list.
     // (2) Check particle type name (or ptype in YT-term) cannot be the same as g_param_yt.frontend.
     for ( int p = 0; p < g_param_yt.num_par_types; p++ ){
-        yt_particle particle = particle_list[p];
+        yt_particle& particle = particle_list[p];
         if ( !(particle.validate()) ){
             YT_ABORT("Validating input particle list element [%d] ... failed\n", p);
         }
