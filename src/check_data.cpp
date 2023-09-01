@@ -234,7 +234,7 @@ int check_grid(){
 // Note        :  1. Use inside yt_commit()
 // 			      2. Check that the hierarchy is correct, even though we didn't build a parent-children 
 //                   map.
-//                  (1) Check every grid id are unique.
+//                  (1) Check every grid id are unique. (Be careful that it can be non-0-indexing.)
 //                  (2) Check if all grids with level > 0, have a good parent id.
 //                  (3) Check if children grids' edge fall between parent's.
 //                  (4) Check parent's level = children level - 1.
@@ -252,13 +252,14 @@ int check_hierarchy(yt_hierarchy * &hierarchy) {
     }
 
     // Check every grid id are unique, and also filled in the search table
+    int index_offset = g_param_yt.index_offset;
     for (long i = 0; i < g_param_yt.num_grids; i = i+1) {
-        if (order[ hierarchy[i].id ] == -1) {
-            order[ hierarchy[i].id ] = i;
+        if (order[ hierarchy[i].id - index_offset ] == -1) {
+            order[ hierarchy[i].id - index_offset ] = i;
         }
         else {
             YT_ABORT("Grid ID [ %ld ] are not unique, both MPI rank %d and %d are using this grid id!\n",
-                     hierarchy[i].id, hierarchy[i].proc_num, hierarchy[ order[ hierarchy[i].id ] ].proc_num);
+                     hierarchy[i].id, hierarchy[i].proc_num, hierarchy[ order[ hierarchy[i].id - index_offset ] ].proc_num);
         }
     }
 
@@ -268,14 +269,14 @@ int check_hierarchy(yt_hierarchy * &hierarchy) {
         if ( hierarchy[i].level > 0 ) {
 
             // Check parent id
-            if ( (hierarchy[i].parent_id < 0) || hierarchy[i].parent_id >= g_param_yt.num_grids ){
-                YT_ABORT("Grid ID [%ld], Level %d, Parent ID [%ld], expect Parent ID to be 0 ~ %ld.\n",
-                         hierarchy[i].id, hierarchy[i].level, hierarchy[i].parent_id, g_param_yt.num_grids - 1);
+            if ( (hierarchy[i].parent_id - index_offset < 0) || hierarchy[i].parent_id - index_offset >= g_param_yt.num_grids ){
+                YT_ABORT("Grid ID [%ld], Level %d, Parent ID [%ld], ID is out of range, expect to be between %d ~ %ld.\n",
+                         hierarchy[i].id, hierarchy[i].level, hierarchy[i].parent_id, index_offset, g_param_yt.num_grids + index_offset - 1);
             }
             else {
                 // Check children's edges fall between parent's
-                double *parent_left_edge = hierarchy[order[hierarchy[i].parent_id]].left_edge;
-                double *parent_right_edge = hierarchy[order[hierarchy[i].parent_id]].right_edge;
+                double *parent_left_edge = hierarchy[order[hierarchy[i].parent_id - index_offset]].left_edge;
+                double *parent_right_edge = hierarchy[order[hierarchy[i].parent_id - index_offset]].right_edge;
                 for (int d = 0; d < 3; d = d+1){
                     if ( !(parent_left_edge[d] <= hierarchy[i].left_edge[d]) ) {
                         YT_ABORT("Grid ID [%ld], Parent ID [%ld], grid_left_edge[%d] < parent_left_edge[%d].\n",
@@ -288,7 +289,7 @@ int check_hierarchy(yt_hierarchy * &hierarchy) {
                 }
 
                 // Check parent's level = children level - 1
-                int parent_level = hierarchy[order[hierarchy[i].parent_id]].level;
+                int parent_level = hierarchy[order[hierarchy[i].parent_id - index_offset]].level;
                 if ( !(parent_level == hierarchy[i].level - 1) ){
                     YT_ABORT("Grid ID [%ld], Parent ID [%ld], parent level %d != children level %d - 1.\n",
                              hierarchy[i].id, hierarchy[i].parent_id, parent_level, hierarchy[i].level);
