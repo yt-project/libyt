@@ -1,6 +1,9 @@
 #ifndef __YT_TYPE_FIELD_H__
 #define __YT_TYPE_FIELD_H__
 
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
 #include "yt_type_array.h"
 
 //-------------------------------------------------------------------------------------------------------
