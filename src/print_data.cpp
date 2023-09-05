@@ -10,6 +10,10 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int print_yt_param_yt(const yt_param_yt &param_yt) {
+
+    if ( g_param_libyt.verbose < YT_VERBOSE_DEBUG )
+        return YT_SUCCESS;
+
     const int width_scalar = 25;
     const int width_vector = width_scalar - 3;
 
@@ -56,6 +60,34 @@ int print_yt_param_yt(const yt_param_yt &param_yt) {
             log_debug( "   %-*s[%d] = (type=\"%s\", num_attr=%d)\n", width_vector, "par_type_list", s, "NULL", param_yt.par_type_list[s].num_attr);
     }
     log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids_local",         param_yt.num_grids_local         );
+
+    return YT_SUCCESS;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  print_yt_field
+// Description :  Print yt_field struct if verbose level >= YT_VERBOSE_DEBUG
+//
+// Notes       :  1. TODO: Should also print field_dtype after updating the ugly yt_dtype system.
+//
+// Parameter   :  const yt_param_yt &param_yt
+//
+// Return      :  YT_SUCCESS
+//-------------------------------------------------------------------------------------------------------
+int print_yt_field(const yt_field &field) {
+
+    if ( g_param_libyt.verbose < YT_VERBOSE_DEBUG )
+        return YT_SUCCESS;
+
+    const int width_scalar = 25;
+
+    log_debug("   %-*s (%s):\n", width_scalar, field.field_name, field.field_type);
+    log_debug("   %-*s = \n", width_scalar + 2, "field_unit", field.field_unit);
+    log_debug("   %-*s = \n", width_scalar + 2, "contiguous_in_x", field.contiguous_in_x ? "True" : "False");
+    log_debug("   %-*s = (%d, %d, %d, %d, %d, %d)\n", width_scalar + 2, "field_ghost_cell",
+              field.field_ghost_cell[0], field.field_ghost_cell[1], field.field_ghost_cell[2],
+              field.field_ghost_cell[3], field.field_ghost_cell[4], field.field_ghost_cell[5]);
 
     return YT_SUCCESS;
 }
