@@ -41,6 +41,7 @@ typedef struct yt_data
 #endif // #ifdef __cplusplus
 } yt_data;
 
+
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_grid
 // Description :  Data structure to store a full single grid with data pointer

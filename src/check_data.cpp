@@ -51,7 +51,7 @@ int check_field_list(){
     // (1) Validate each yt_field element in field_list.
     for ( int v = 0; v < g_param_yt.num_fields; v++ ){
         yt_field& field = field_list[v];
-        if ( !(field.validate()) ){
+        if ( !(check_yt_field(field)) ){
             YT_ABORT("Validating input field list element [%d] ... failed\n", v);
         }
     }
@@ -381,6 +381,73 @@ int check_yt_grid(const yt_grid &grid) {
         if ( grid.grid_dimensions[d] <= 0 )   YT_ABORT( "\"%s[%d]\" == %d <= 0 for grid [%ld]!\n", "grid_dimensions", d, grid.grid_dimensions[d], grid.id );
     }
     if ( grid.level < 0 )                     YT_ABORT( "\"%s\" == %d < 0 for grid [%ld]!\n", "level", grid.level, grid.id );
+
+    return YT_SUCCESS;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  check_yt_field
+// Description :  Check yt_field struct
+//
+// Note        :  1. Validate data member value in one yt_field struct.
+//                  (1) field_name is set != NULL.
+//                  (2) field_type can only be : "cell-centered", "face-centered", "derived_func".
+//                  (3) Check if field_dtype is set.
+//                  (4) Raise warning if derived_func == NULL and field_type is set to "derived_func".
+//                  (5) field_ghost_cell cannot be smaller than 0.
+//               2. Used in check_field_list()
+//
+// Parameter   :  const yt_field &field
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int check_yt_field(const yt_field &field) {
+    // field name is set.
+    if ( field.field_name == nullptr ){
+        YT_ABORT("field_name is not set!\n");
+    }
+
+    // field_type can only be : "cell-centered", "face-centered", "derived_func".
+    bool  check1 = false;
+    int   num_type = 3;
+    const char *type[3]  = {"cell-centered", "face-centered", "derived_func"};
+    for ( int i = 0; i < num_type; i++ ){
+        if ( strcmp(field.field_type, type[i]) == 0 ) {
+            check1 = true;
+            break;
+        }
+    }
+    if (!check1){
+        YT_ABORT("In field [%s], unknown field_type [%s]!\n", field.field_name, field.field_type);
+    }
+
+    // if field_dtype is set.
+    bool check2 = false;
+    for ( int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++ ){
+        yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
+        if ( field.field_dtype == dtype ){
+            check2 = true;
+            break;
+        }
+    }
+    if (!check2){
+        YT_ABORT("In field [%s], field_dtype not set!\n", field.field_name);
+    }
+
+    // Raise warning if derived_func == NULL and field_type is set to "derived_func".
+    if ( strcmp(field.field_type, "derived_func") == 0 && field.derived_func == nullptr ){
+        YT_ABORT("In field [%s], field_type == %s, derived_func not set!\n",
+                 field.field_name, field.field_type);
+    }
+
+    // field_ghost_cell cannot be smaller than 0.
+    for ( int d = 0; d < 6; d++ ){
+        if( field.field_ghost_cell[d] < 0 ){
+            YT_ABORT("In field [%s], field_ghost_cell[%d] < 0. This parameter means number of cells to ignore and should be >= 0!\n",
+                     field.field_name, d);
+        }
+    }
 
     return YT_SUCCESS;
 }

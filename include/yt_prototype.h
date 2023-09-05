@@ -93,7 +93,9 @@ int  check_grid();
 int  check_hierarchy(yt_hierarchy * &hierarchy);
 int  check_yt_param_yt(const yt_param_yt &param_yt);
 int  check_yt_grid(const yt_grid &grid);
+int  check_yt_field(const yt_field &field);
 int  print_yt_param_yt(const yt_param_yt &param_yt);
+int  print_yt_field(const yt_field &field);
 #ifndef NO_PYTHON
 template <typename T>
 int  add_dict_scalar( PyObject *dict, const char *key, const T value );
