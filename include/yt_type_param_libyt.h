@@ -1,6 +1,9 @@
 #ifndef __YT_TYPE_PARAM_LIBYT_H__
 #define __YT_TYPE_PARAM_LIBYT_H__
 
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
 
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_param_libyt
