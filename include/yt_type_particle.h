@@ -1,18 +1,7 @@
 #ifndef __YT_TYPE_PARTICLE_H__
 #define __YT_TYPE_PARTICLE_H__
 
-/*******************************************************************************
-/
-/  yt_par_type, yt_attribute, and yt_particle structure
-/
-/  ==> included by yt_type.h
-/
-********************************************************************************/
-
-#include <string.h>
 #include "yt_type_array.h"
-void log_debug( const char *Format, ... );
-void log_warning(const char *Format, ...);
 
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_par_type
@@ -26,17 +15,20 @@ void log_warning(const char *Format, ...);
 // Data Member :  const char  *par_type  : Particle type name (ptype in yt-term).
 //                int          num_attr  : Number of attributes in this species.
 //-------------------------------------------------------------------------------------------------------
-struct yt_par_type
-{
+typedef struct yt_par_type {
 	const char *par_type;
 	int         num_attr;
 
+#ifdef __cplusplus
 	yt_par_type()
 	{
-		par_type = NULL;
+		par_type = nullptr;
 		num_attr = INT_UNDEFINED;
 	}
-};
+#endif // #ifdef __cplusplus
+
+} yt_par_type;
+
 
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_attribute
@@ -57,12 +49,8 @@ struct yt_par_type
 //                                                    use attr_name as display name.
 //
 // Method      :  yt_attribute  : Constructor
-//               ~yt_attribute  : Destructor
-//                show          : Print data member value
-//                validate      : Validate data member in struct
 //-------------------------------------------------------------------------------------------------------
-struct yt_attribute
-{
+typedef struct yt_attribute {
 	const char     *attr_name;
 	yt_dtype        attr_dtype;
 	const char     *attr_unit;
@@ -70,90 +58,30 @@ struct yt_attribute
 	const char    **attr_name_alias;
 	const char     *attr_display_name;
 
-
-//=======================================================================================================
-// Method      : yt_attribute
-// Description : Constructor of the structure "yt_attribute"
-// 
-// Note        : 1. Initialize attr_unit as "". If it is not set by user, then yt will use the particle 
-//                  unit set by the frontend in yt_set_Parameters(). If there still isn't one, then it
-//                  will use "". 
-//               2. Initialize attr_dtype as YT_DOUBLE.
-// 
-// Parameter   : None
-// ======================================================================================================
+#ifdef __cplusplus
+    //=======================================================================================================
+    // Method      : yt_attribute
+    // Description : Constructor of the structure "yt_attribute"
+    //
+    // Note        : 1. Initialize attr_unit as "". If it is not set by user, then yt will use the particle
+    //                  unit set by the frontend in yt_set_Parameters(). If there still isn't one, then it
+    //                  will use "".
+    //               2. Initialize attr_dtype as YT_DTYPE_UNKNOWN.
+    //
+    // Parameter   : None
+    // ======================================================================================================
 	yt_attribute()
 	{
-		attr_name = NULL;
-		attr_dtype = YT_DOUBLE;
+		attr_name = nullptr;
+		attr_dtype = YT_DTYPE_UNKNOWN;
 		attr_unit = "";
 		num_attr_name_alias = 0;
-		attr_name_alias = NULL;
-		attr_display_name = NULL;
-	} // METHOD : yt_attribute
+		attr_name_alias = nullptr;
+		attr_display_name = nullptr;
+	}
+#endif // #ifdef __cplusplus
 
-
-//=======================================================================================================
-// Method      : show
-// Description : Print out all data members
-// 
-// Note        : 1. Print out "NOT SET" if the pointers are NULL.
-// 
-// Parameter   : None
-// ======================================================================================================
-   	int show() const {
-    	// TODO: Pretty Print, show the yt_attribute
-      
-      	return YT_SUCCESS;
-   	}
-
-
-//=======================================================================================================
-// Method      : validate
-// Description : Validate data member in the struct.
-// 
-// Note        : 1. Validate data member value in one yt_attribute struct.
-//                  (1) attr_name is set, and != NULL.
-//                  (2) attr_dtype is one of yt_dtype.
-// 
-// Parameter   : None
-// ======================================================================================================
-   	int validate() const {
-   		// attr_name is set
-   		if ( attr_name == NULL ){
-   			YT_ABORT("attr_name is not set!\n");
-   		}
-
-   		// attr_dtype is one of yt_dtype
-   		bool valid = false;
-   		for ( int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++ ){
-   			yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
-   			if ( attr_dtype == dtype ){
-   				valid = true;
-   				break;
-   			}
-   		}
-   		if ( valid == false ){
-   			YT_ABORT("In attr [%s], unknown attr_dtype!\n", attr_name);
-   		}
-
-   		return YT_SUCCESS;
-   	}
-
-
-//=======================================================================================================
-// Method      : ~yt_attribute
-// Description : Destructor of the structure "yt_attribute"
-// 
-// Note        : 1. Not used currently
-// 
-// Parameter   : None
-//=======================================================================================================
-   	~yt_attribute()
-   	{
-
-   	}
-};
+} yt_attribute;
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -178,14 +106,9 @@ struct yt_attribute
 //                                          that gets particle attribute.
 //
 // Method      :  yt_particle  : Constructor
-//               ~yt_particle  : Destructor
-//                show         : Print data member value
-//                validate     : Validate data member in struct
 //-------------------------------------------------------------------------------------------------------
-struct yt_particle
+typedef struct yt_particle
 {
-// data members
-// ======================================================================================================
 	const char   *par_type;
 	int           num_attr;
 	yt_attribute *attr_list;
@@ -196,125 +119,29 @@ struct yt_particle
 
 	void        (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*);
 
-
-//=======================================================================================================
-// Method      : yt_particle
-// Description : Constructor of the structure "yt_particle"
-// 
-// Note        : 1. 
-// 
-// Parameter   : None
-// ======================================================================================================
+#ifdef __cplusplus
+    //=======================================================================================================
+    // Method      : yt_particle
+    // Description : Constructor of the structure "yt_particle"
+    //
+    // Note        : 1. Used in yt_set_Parameters.cpp
+    //
+    // Parameter   : None
+    // ======================================================================================================
 	yt_particle()
 	{
-		par_type = NULL;
+		par_type = nullptr;
 		num_attr = INT_UNDEFINED;
-		attr_list = NULL;
+		attr_list = nullptr;
 
-		coor_x = NULL;
-		coor_y = NULL;
-		coor_z = NULL;
+		coor_x = nullptr;
+		coor_y = nullptr;
+		coor_z = nullptr;
 
-		get_par_attr = NULL;
+		get_par_attr = nullptr;
 	}
+#endif // #ifdef __cplusplus
 
-
-//=======================================================================================================
-// Method      : show
-// Description : Print out all data members
-// 
-// Note        : 1. Print out "NOT SET" if the pointers are NULL.
-// 
-// Parameter   : None
-// ======================================================================================================
-   	int show() const {
-    	// TODO: Pretty Print, show the yt_particle
-      
-      	return YT_SUCCESS;
-   	}
-
-
-//=======================================================================================================
-// Method      : validate
-// Description : Validate data member in the struct.
-// 
-// Note        : 1. Validate data member value in one yt_particle struct.
-//                  (1) par_type is set != NULL
-//                  (2) attr_list is set != NULL
-//                  (3) num_attr should > 0
-//                  (4) attr_name in attr_list should be unique 
-//                  (5) call yt_attribute validate for each attr_list elements.
-//                  (6) raise log_warning if coor_x, coor_y, coor_z is not set.
-//                  (7) raise log_warning if get_par_attr not set.
-//               2. Used inside check_particle_list().
-// 
-// Parameter   : None
-// ======================================================================================================
-   	int validate() const {
-   		// par_type should be set
-   		if ( par_type == NULL ){
-   			YT_ABORT("par_type is not set!\n");
-   		}
-
-   		// attr_list != NULL
-   		if ( attr_list == NULL ){
-   			YT_ABORT("Particle type [ %s ], attr_list not set properly!\n", par_type);
-   		}
-		// num_attr should > 0
-   		if ( num_attr < 0 ){
-   			YT_ABORT("Particle type [ %s ], num_attr not set properly!\n", par_type);
-   		}
-   		
-   		// call yt_attribute validate for each attr_list elements.
-   		for ( int i = 0; i < num_attr; i++ ){
-   			if ( !(attr_list[i].validate()) ){
-   				YT_ABORT("Particle type [ %s ], attr_list element [ %d ] not set properly!\n", par_type, i);
-   			}
-   		}
-
-   		// attr_name in attr_list should be unique
-   		for ( int i = 0; i < num_attr; i++ ){
-   			for ( int j = i+1; j < num_attr; j++ ){
-   				if ( strcmp(attr_list[i].attr_name, attr_list[j].attr_name) == 0 ){
-   					YT_ABORT("Particle type [ %s ], attr_list element [ %d ] and [ %d ] have same attr_name, expect them to be unique!\n",
-   						      par_type, i, j);
-   				}
-   			}
-   		}
-
-   		// if didn't input coor_x/y/z, yt cannot function properly for this particle.
-   		if ( coor_x == NULL ){
-   			YT_ABORT("Particle type [ %s ], attribute name of coordinate x coor_x not set!\n", par_type);
-   		}
-   		if ( coor_y == NULL ){
-   			YT_ABORT("Particle type [ %s ], attribute name of coordinate y coor_y not set!\n", par_type);
-   		}
-   		if ( coor_z == NULL ){
-   			YT_ABORT("Particle type [ %s ], attribute name of coordinate z coor_z not set!\n", par_type);
-   		}
-
-   		// if didn't input get_par_attr, yt cannot function properly for this particle.
-   		if ( get_par_attr == NULL ){
-   			YT_ABORT("Particle type [ %s ], function that gets particle attribute get_par_attr not set!\n", par_type);
-   		}
-
-      	return YT_SUCCESS;
-   	}
-
-
-//=======================================================================================================
-// Method      : ~yt_particle
-// Description : Destructor of the structure "yt_particle"
-// 
-// Note        : 1. Not used currently
-// 
-// Parameter   : None
-//=======================================================================================================
-	~yt_particle()
-	{
-
-	} // METHOD : ~yt_particle
-
-};
+} yt_particle;
 
 #endif // #ifndef __YT_TYPE_PARTICLE_H__

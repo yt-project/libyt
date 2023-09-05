@@ -90,7 +90,7 @@ int check_particle_list(){
     // (2) Check particle type name (or ptype in YT-term) cannot be the same as g_param_yt.frontend.
     for ( int p = 0; p < g_param_yt.num_par_types; p++ ){
         yt_particle& particle = particle_list[p];
-        if ( !(particle.validate()) ){
+        if ( !(check_yt_particle(particle)) ){
             YT_ABORT("Validating input particle list element [%d] ... failed\n", p);
         }
         if ( strcmp(particle.par_type, g_param_yt.frontend) == 0 ){
@@ -447,6 +447,111 @@ int check_yt_field(const yt_field &field) {
             YT_ABORT("In field [%s], field_ghost_cell[%d] < 0. This parameter means number of cells to ignore and should be >= 0!\n",
                      field.field_name, d);
         }
+    }
+
+    return YT_SUCCESS;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  check_yt_attribute
+// Description :  Check yt_attribute struct
+//
+// Note        :  1. Validate data member value in one yt_attribute struct.
+//                  (1) attr_name is set, and != nullptr.
+//                  (2) attr_dtype is one of yt_dtype.
+//
+// Parameter   :  const yt_attribute &attr
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int check_yt_attribute(const yt_attribute &attr) {
+    // attr_name is set
+    if ( attr.attr_name == nullptr ){
+        YT_ABORT("attr_name is not set!\n");
+    }
+
+    // attr_dtype is one of yt_dtype
+    bool valid = false;
+    for ( int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++ ){
+        yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
+        if ( attr.attr_dtype == dtype ){
+            valid = true;
+            break;
+        }
+    }
+    if (!valid){
+        YT_ABORT("In attr [%s], unknown attr_dtype!\n", attr.attr_name);
+    }
+
+    return YT_SUCCESS;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  check_yt_particle
+// Description :  Check yt_particle struct
+//
+// Note        :  1. Validate data member value in one yt_particle struct.
+//                  (1) par_type is set != NULL
+//                  (2) attr_list is set != NULL
+//                  (3) num_attr should > 0
+//                  (4) attr_name in attr_list should be unique
+//                  (5) call yt_attribute validate for each attr_list elements.
+//                  (6) raise error if coor_x, coor_y, coor_z is not set.
+//                  (7) log_warning if get_par_attr not set.
+//               2. Used inside check_particle_list().
+//
+// Parameter   :  const yt_particle &particle
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int check_yt_particle(const yt_particle &particle) {
+    // par_type should be set
+    if ( particle.par_type == nullptr ){
+        YT_ABORT("par_type is not set!\n");
+    }
+
+    // attr_list != NULL
+    if ( particle.attr_list == nullptr ){
+        YT_ABORT("Particle type [ %s ], attr_list not set properly!\n", particle.par_type);
+    }
+    // num_attr should > 0
+    if ( particle.num_attr < 0 ){
+        YT_ABORT("Particle type [ %s ], num_attr not set properly!\n", particle.par_type);
+    }
+
+    // call yt_attribute validate for each attr_list elements.
+    for ( int i = 0; i < particle.num_attr; i++ ){
+        if ( !(check_yt_attribute(particle.attr_list[i])) ){
+            YT_ABORT("Particle type [ %s ], attr_list element [ %d ] not set properly!\n", particle.par_type, i);
+        }
+    }
+
+    // attr_name in attr_list should be unique
+    for ( int i = 0; i < particle.num_attr; i++ ){
+        for ( int j = i+1; j < particle.num_attr; j++ ){
+            if ( strcmp(particle.attr_list[i].attr_name, particle.attr_list[j].attr_name) == 0 ){
+                YT_ABORT("Particle type [ %s ], attr_list element [ %d ] and [ %d ] have same attr_name, expect them to be unique!\n",
+                         particle.par_type, i, j);
+            }
+        }
+    }
+
+    // if didn't input coor_x/y/z, yt cannot function properly for this particle.
+    if ( particle.coor_x == nullptr ){
+        YT_ABORT("Particle type [ %s ], attribute name of coordinate x coor_x not set!\n", particle.par_type);
+    }
+    if ( particle.coor_y == nullptr ){
+        YT_ABORT("Particle type [ %s ], attribute name of coordinate y coor_y not set!\n", particle.par_type);
+    }
+    if ( particle.coor_z == nullptr ){
+        YT_ABORT("Particle type [ %s ], attribute name of coordinate z coor_z not set!\n", particle.par_type);
+    }
+
+    // if didn't input get_par_attr, yt cannot function properly for this particle.
+    if ( particle.get_par_attr == nullptr ){
+        log_warning("Particle type [ %s ], function that gets particle attribute get_par_attr not set!\n", particle.par_type);
     }
 
     return YT_SUCCESS;

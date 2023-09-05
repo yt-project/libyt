@@ -94,6 +94,8 @@ int  check_hierarchy(yt_hierarchy * &hierarchy);
 int  check_yt_param_yt(const yt_param_yt &param_yt);
 int  check_yt_grid(const yt_grid &grid);
 int  check_yt_field(const yt_field &field);
+int  check_yt_attribute(const yt_attribute &attr);
+int  check_yt_particle(const yt_particle &particle);
 int  print_yt_param_yt(const yt_param_yt &param_yt);
 int  print_yt_field(const yt_field &field);
 #ifndef NO_PYTHON
