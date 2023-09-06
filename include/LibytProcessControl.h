@@ -1,7 +1,3 @@
-//
-// Created by cindytsai on 8/30/23.
-//
-
 #ifndef __LIBYTPROCESSCONTROL_H__
 #define __LIBYTPROCESSCONTROL_H__
 

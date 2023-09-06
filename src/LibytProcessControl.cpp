@@ -1,5 +1,3 @@
-#include "yt_macro.h"
-#include <stdio.h>
 #include "LibytProcessControl.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -17,10 +15,9 @@ LibytProcessControl LibytProcessControl::s_Instance;
 // Notes       :  1. The private constructor only get called once at the start of the libyt process.
 //                2. I didn't use member initialization list for readability.
 //                3. Allocating and freeing memories are manage by other function, this method only
-//                   only stores it.
+//                   stores it.
 //                4. This acts like a global.
-//                5. TODO: move all globals here to capsulize the initialization of internal process.
-//                   This is helpful when there are other initialization processes added to libyt.
+//                5. This is helpful when there are other initialization processes added to libyt.
 //                   (What I'm doing in this commit is trying to make libyt a C-library with minimal
 //                    change.)
 // Data Member : libyt_initialized : true ==> yt_initialize() has been called successfully

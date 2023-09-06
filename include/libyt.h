@@ -2,20 +2,15 @@
 #define __LIBYT_H__
 
 
-
 /*******************************************************************************
 /
 /  This is the API header to be included by simulation codes
 /
-/  All API files must include it as well to prevent name mangling
-/
 ********************************************************************************/
 
 
-// include relevant headers
-#include <stdio.h>
+// declare libyt data type
 #include "yt_type.h"
-
 
 // declare libyt API
 #ifdef __cplusplus
