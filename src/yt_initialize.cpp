@@ -52,6 +52,8 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
     if (LibytProcessControl::Get().libyt_initialized || init_count >= 2)
         YT_ABORT("yt_initialize() should not be called more than once!\n");
 
+    // Initialize general info: mpi size and rank ...
+    init_general_info();
 
     // store user-provided parameters to a libyt internal variable
     // --> better do it **before** calling any log function since they will query g_param_libyt.verbose
@@ -59,6 +61,10 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
     g_param_libyt.script = param_libyt->script;
     g_param_libyt.counter = param_libyt->counter;   // useful during restart, where the initial counter can be non-zero
     g_param_libyt.check_data = param_libyt->check_data;
+
+    log_info("******libyt version******\n");
+    log_info("         %d.%.1lf\n", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION);
+    log_info("*************************\n");
 
     log_info("Initializing libyt ...\n");
     log_info("   verbose = %d\n", g_param_libyt.verbose);
@@ -74,9 +80,6 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
 
     // import libyt and inline python script.
     if (init_libyt_module() == YT_FAIL) return YT_FAIL;
-
-    // Initialize general info: mpi size and rank ...
-    init_general_info();
 
     // Initialize user-defined MPI data type
     init_yt_long_mpi_type();
