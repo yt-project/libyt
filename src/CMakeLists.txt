@@ -6,8 +6,7 @@ add_library(yt SHARED
         yt_commit.cpp yt_finalize.cpp yt_free.cpp yt_get_FieldsPtr.cpp yt_get_GridsPtr.cpp
         yt_get_ParticlesPtr.cpp yt_getGridInfo.cpp yt_initialize.cpp yt_rma_field.cpp
         yt_rma_particle.cpp yt_run.cpp yt_run_InteractiveMode.cpp yt_set_Parameters.cpp
-        yt_set_UserParameter.cpp LibytProcessControl.cpp
-        $<$<BOOL:${SUPPORT_TIMER}>:Timer.cpp>)
+        yt_set_UserParameter.cpp LibytProcessControl.cpp Timer.cpp)
 
 # options
 function(print_option option_name)
@@ -51,7 +50,8 @@ target_link_libraries(yt PRIVATE
         $<$<BOOL:${INTERACTIVE_MODE}>:readline>)
 
 # set properties
-set(LIBYT_PUBLIC_HEADER "${PROJECT_SOURCE_DIR}/include/libyt.h;"
+set(LIBYT_PUBLIC_HEADER
+        "${PROJECT_SOURCE_DIR}/include/libyt.h;"
         "${PROJECT_SOURCE_DIR}/include/yt_type.h;"
         "${PROJECT_SOURCE_DIR}/include/yt_type_param_libyt.h;"
         "${PROJECT_SOURCE_DIR}/include/yt_type_param_yt.h;"
