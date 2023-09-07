@@ -1,12 +1,13 @@
 #ifndef __YT_MACRO_H__
 #define __YT_MACRO_H__
 
+#ifdef __cplusplus
+#include <climits>
+#include <cfloat>
+#else
 #include <limits.h>
 #include <float.h>
-
-// include relevant headers/prototypes
-void log_error( const char *format, ... );
-
+#endif // #ifdef __cplusplus
 
 #ifndef NULL
 #define NULL               0
@@ -20,14 +21,6 @@ void log_error( const char *format, ... );
 #define INT_UNDEFINED      INT_MIN
 #define LNG_UNDEFINED      LONG_MIN
 
-// convenient macro to deal with errors
-#define YT_ABORT( ... )                                              \
-{                                                                    \
-   log_error( __VA_ARGS__ );                                         \
-   fprintf( stderr, "%13s==> file <%s>, line <%d>, function <%s>\n", \
-            "", __FILE__, __LINE__, __FUNCTION__ );                  \
-   return YT_FAIL;                                                   \
-}
 
 
 
