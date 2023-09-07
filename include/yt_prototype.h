@@ -109,6 +109,13 @@ int  add_dict_field_list( );
 int  add_dict_particle_list( );
 #endif
 
-
+// convenient macro to deal with errors
+#define YT_ABORT( ... )                                              \
+{                                                                    \
+   log_error( __VA_ARGS__ );                                         \
+   fprintf( stderr, "%13s==> file <%s>, line <%d>, function <%s>\n", \
+            "", __FILE__, __LINE__, __FUNCTION__ );                  \
+   return YT_FAIL;                                                   \
+}
 
 #endif // #ifndef __YT_PROTOTYPE_H__
