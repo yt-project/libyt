@@ -31,6 +31,10 @@ if (INTERACTIVE_MODE)
     target_compile_definitions(yt PUBLIC INTERACTIVE_MODE)
 endif ()
 
+# compile option
+add_library(libyt_compiler_flags INTERFACE)
+target_compile_features(libyt_compiler_flags INTERFACE cxx_std_11)
+
 # include dir
 target_include_directories(yt PRIVATE
         ${PROJECT_SOURCE_DIR}/include
@@ -48,6 +52,8 @@ target_link_libraries(yt PRIVATE
         mpi
         python${PYTHON_VERSION}
         $<$<BOOL:${INTERACTIVE_MODE}>:readline>)
+target_link_libraries(yt PUBLIC
+        libyt_compiler_flags)
 
 # set properties
 set(LIBYT_PUBLIC_HEADER

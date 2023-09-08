@@ -17,7 +17,7 @@ set(NUMPY_PATH     "")
 set(READLINE_PATH  "")
 
 ### COMPILATION ###
-add_subdirectory(src)                      # for library
+add_subdirectory(src)                       # for library
 #add_subdirectory(example)                  # for example exe
 #configure_file(libyt.pc.in libyt.pc @ONLY) # for pkgconfig
 
