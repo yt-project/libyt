@@ -56,9 +56,9 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     }
 
     // create prompt interface
-    char *ps1 = ">>> ";
-    char *ps2 = "... ";
-    char *prompt = ps1;
+    const char *ps1 = ">>> ";
+    const char *ps2 = "... ";
+    const char *prompt = ps1;
     bool done = false;
     int root = 0;
 
