@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (7.0.4.3)
+    activesupport (7.0.7.1)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
@@ -20,7 +20,7 @@ GEM
     google-protobuf (3.22.3-x86_64-linux)
     html-pipeline (2.14.3)
       activesupport (>= 2)
-      nokogiri (>= 1.4)
+      nokogiri (>= 1.8.2)
     http_parser.rb (0.8.0)
     i18n (1.13.0)
       concurrent-ruby (~> 1.0)
