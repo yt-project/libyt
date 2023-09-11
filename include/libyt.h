@@ -9,7 +9,8 @@
 ********************************************************************************/
 
 #define LIBYT_MAJOR_VERSION 0
-#define LIBYT_MINOR_VERSION 1.0
+#define LIBYT_MINOR_VERSION 1
+#define LIBYT_MICRO_VERSION 0
 
 // declare libyt data type
 #include "yt_type.h"

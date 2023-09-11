@@ -76,6 +76,7 @@ SET_GLOBAL( PyObject,      *g_py_particle_data,    NULL  );   // Python dictiona
 SET_GLOBAL( PyObject,      *g_py_hierarchy,        NULL  );   // Python dictionary to store hierachy information
 SET_GLOBAL( PyObject,      *g_py_param_yt,         NULL  );   // Python dictionary to store YT parameters
 SET_GLOBAL( PyObject,      *g_py_param_user,       NULL  );   // Python dictionary to store code-specific parameters
+SET_GLOBAL( PyObject,      *g_py_libyt_info,       NULL  );   // Python dictionary to store libyt info, ex: version
 #ifdef INTERACTIVE_MODE
 SET_GLOBAL( PyObject,      *g_py_interactive_mode, NULL  );   // Python dictionary to store interactive_mode stuff
 #endif
