@@ -1,6 +1,6 @@
 # Your path
 ####################################################################
-MPI_PATH := $(YOUR_MPI_PATH)
+MPI_PATH   := $(YOUR_MPI_PATH)
 LIBYT_PATH := $(YOUR_LIBYT_PATH)
 
 # Compile example
