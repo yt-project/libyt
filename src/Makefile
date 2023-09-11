@@ -26,8 +26,9 @@ OPTIONS :=
 # library name and version
 #######################################################################################################
 LIBYT_MAJOR_VERSION := 0
-LIBYT_MINOR_VERSION := 1.0
-LIB_REALNAME := libyt.so.$(LIBYT_MAJOR_VERSION).$(LIBYT_MINOR_VERSION)
+LIBYT_MINOR_VERSION := 1
+LIBYT_MICRO_VERSION := 0
+LIB_REALNAME := libyt.so.$(LIBYT_MAJOR_VERSION).$(LIBYT_MINOR_VERSION).$(LIBYT_MICRO_VERSION)
 LIB_SONAME   := libyt.so.$(LIBYT_MAJOR_VERSION)
 
 
