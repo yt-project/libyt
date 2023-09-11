@@ -73,7 +73,7 @@ jobs:
           sed -i 's@$(YOUR_NUMPY_PATH)@"${{ env.NUMPY_PATH }}"@' Makefile
           sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
           sed -i 's@$(YOUR_PYTHON_VERSION)@"${{ matrix.python-version }}m"@' Makefile
-          sed -i 's@$(YOUR_INSTALL_PREFIX)@"${{ env.LIBYT_INSTALL_PATH }}m"@' Makefile
+          sed -i 's@$(YOUR_INSTALL_PREFIX)@"${{ env.LIBYT_INSTALL_PATH }}"@' Makefile
           make clean
           make
           make install
@@ -86,7 +86,7 @@ jobs:
           sed -i 's@$(YOUR_NUMPY_PATH)@"${{ env.NUMPY_PATH }}"@' Makefile
           sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
           sed -i 's@$(YOUR_PYTHON_VERSION)@"${{ matrix.python-version }}"@' Makefile
-          sed -i 's@$(YOUR_INSTALL_PREFIX)@"${{ env.LIBYT_INSTALL_PATH }}m"@' Makefile
+          sed -i 's@$(YOUR_INSTALL_PREFIX)@"${{ env.LIBYT_INSTALL_PATH }}"@' Makefile
           make clean
           make
           make install
