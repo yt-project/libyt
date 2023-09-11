@@ -4,7 +4,7 @@ title: Home
 nav_order: 1
 ---
 
-# libyt Documents (Dev)
+# libyt Documents
 Version 0.1.0
 {: .label }
 
@@ -19,6 +19,7 @@ It is an in situ analysis tool that allows researchers to analyze and visualize 
 - [**Example**]({% link Example.md %}#example): this demonstrates how to implement `libyt` in simulation step by step.
 - [**libyt API**]({% link libytAPI/index.md %}#libyt-api): this is for simulation developers that wish to implement `libyt`.
 - [**In Situ Python Analysis**]({% link InSituPythonAnalysis/index.md %}#in-situ-python-analysis): this is for users that are using `libyt` in simulations.
+
 
 ## Label Meanings
 
