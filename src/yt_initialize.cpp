@@ -63,7 +63,7 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
     g_param_libyt.check_data = param_libyt->check_data;
 
     log_info("******libyt version******\n");
-    log_info("         %d.%.1lf\n", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION);
+    log_info("         %d.%d.%d\n", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION, LIBYT_MICRO_VERSION);
     log_info("*************************\n");
 
     log_info("Initializing libyt ...\n");

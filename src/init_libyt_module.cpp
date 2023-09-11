@@ -686,22 +686,36 @@ static PyObject* PyInit_libyt(void)
   }
 
   // Add objects dictionary
-  g_py_grid_data     = PyDict_New();
-  g_py_particle_data = PyDict_New();
-  g_py_hierarchy     = PyDict_New();
-  g_py_param_yt      = PyDict_New();
-  g_py_param_user    = PyDict_New();
+  g_py_grid_data        = PyDict_New();
+  g_py_particle_data    = PyDict_New();
+  g_py_hierarchy        = PyDict_New();
+  g_py_param_yt         = PyDict_New();
+  g_py_param_user       = PyDict_New();
+  g_py_libyt_info       = PyDict_New();
+#ifdef INTERACTIVE_MODE
+  g_py_interactive_mode = PyDict_New();
+#endif
 
+  // set libyt info
+  PyObject *py_version = Py_BuildValue("(iii)", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION, LIBYT_MICRO_VERSION);
+  PyDict_SetItemString(g_py_libyt_info, "version", py_version);
+#ifdef INTERACTIVE_MODE
+  PyDict_SetItemString(g_py_libyt_info, "interactive_mode", Py_True);
+#else
+  PyDict_SetItemString(g_py_libyt_info, "interactive_mode", False);
+#endif
+  Py_DECREF(py_version);
+
+  // add dict object to libyt python module
   PyModule_AddObject(libyt_module, "grid_data",      g_py_grid_data     );
   PyModule_AddObject(libyt_module, "particle_data",  g_py_particle_data );
   PyModule_AddObject(libyt_module, "hierarchy",      g_py_hierarchy     );
   PyModule_AddObject(libyt_module, "param_yt",       g_py_param_yt      );
   PyModule_AddObject(libyt_module, "param_user",     g_py_param_user    );
-
+  PyModule_AddObject(libyt_module, "libyt_info",     g_py_libyt_info    );
 #ifdef INTERACTIVE_MODE
-  g_py_interactive_mode = PyDict_New();
   PyModule_AddObject(libyt_module, "interactive_mode", g_py_interactive_mode);
-#endif // #ifdef INTERACTIVE_MODE
+#endif
 
   log_debug( "Attaching empty dictionaries to libyt module ... done\n" );
 
