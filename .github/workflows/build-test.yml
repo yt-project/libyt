@@ -56,11 +56,12 @@ jobs:
           cd yt_libyt
           pip install .
           
-      - name: Set PYTHON_PATH, NUMPY_PATH, MPI_PATH 
+      - name: Set PYTHON_PATH, NUMPY_PATH, MPI_PATH, LIBYT_INSTALL_PATH
         run: |
           echo "PYTHON_PATH=${{ env.pythonLocation }}" >> $GITHUB_ENV
           echo "NUMPY_PATH=${{ env.pythonLocation }}/lib/python${{ matrix.python-version }}/site-packages/numpy" >> $GITHUB_ENV
           echo "MPI_PATH=/usr" >> $GITHUB_ENV
+          echo "LIBYT_INSTALL_PATH=$GITHUB_WORKSPACE/libyt_test" >> $GITHUB_ENV
       
       # setup-python has python3.7m only, idk why. 
       # So split building libyt into two.
@@ -72,10 +73,10 @@ jobs:
           sed -i 's@$(YOUR_NUMPY_PATH)@"${{ env.NUMPY_PATH }}"@' Makefile
           sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
           sed -i 's@$(YOUR_PYTHON_VERSION)@"${{ matrix.python-version }}m"@' Makefile
+          sed -i 's@$(YOUR_INSTALL_PREFIX)@"${{ env.LIBYT_INSTALL_PATH }}m"@' Makefile
           make clean
           make
           make install
-          echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
           
       - name: Build libyt
         if: ${{ matrix.python-version != '3.7' }}
@@ -85,16 +86,17 @@ jobs:
           sed -i 's@$(YOUR_NUMPY_PATH)@"${{ env.NUMPY_PATH }}"@' Makefile
           sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
           sed -i 's@$(YOUR_PYTHON_VERSION)@"${{ matrix.python-version }}"@' Makefile
+          sed -i 's@$(YOUR_INSTALL_PREFIX)@"${{ env.LIBYT_INSTALL_PATH }}m"@' Makefile
           make clean
           make
           make install
-          echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
-      - name: Prepare Test Script
+      - name: Prepare Test
         run: |
           cd $GITHUB_WORKSPACE/example
           cp $GITHUB_WORKSPACE/.github/tests/test-DataIO/DataIOTest.py .
           sed -i 's@$(YOUR_MPI_PATH)@"${{ env.MPI_PATH }}"@' Makefile
+          sed -i 's@$(YOUR_LIBYT_PATH)@"${{ env.LIBYT_INSTALL_PATH }}"@' Makefile
           sed -i 's/inline_script/DataIOTest/' example.cpp
 
       - name: Generate Density Data for Testing
