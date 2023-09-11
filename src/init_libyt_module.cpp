@@ -702,7 +702,7 @@ static PyObject* PyInit_libyt(void)
 #ifdef INTERACTIVE_MODE
   PyDict_SetItemString(g_py_libyt_info, "interactive_mode", Py_True);
 #else
-  PyDict_SetItemString(g_py_libyt_info, "interactive_mode", False);
+  PyDict_SetItemString(g_py_libyt_info, "interactive_mode", Py_False);
 #endif
   Py_DECREF(py_version);
 
