@@ -1,4 +1,5 @@
 #include "yt_combo.h"
+#include "LibytProcessControl.h"
 #include "libyt.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -29,12 +30,12 @@ int yt_get_GridsPtr( yt_grid **grids_local )
 #endif
 
 	// check if libyt has been initialized
-   	if ( !g_param_libyt.libyt_initialized ){
+   	if ( !LibytProcessControl::Get().libyt_initialized ){
     	YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    	}
 
 	// check if yt_set_Parameters() have been called
-   	if ( !g_param_libyt.param_yt_set ) {
+   	if ( !LibytProcessControl::Get().param_yt_set ) {
     	YT_ABORT( "Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__ );
     }
 
@@ -47,11 +48,12 @@ int yt_get_GridsPtr( yt_grid **grids_local )
    	log_info( "Getting pointer to local grids information ...\n" );
 
    	// If user call for the first time.
-   	if ( !g_param_libyt.get_gridsPtr ){
+   	if ( !LibytProcessControl::Get().get_gridsPtr ){
 		// Initialize the grids_local array.
 		// Set the value if overlapped with g_param_yt,
 		// and each fields data are set to NULL, so that we can check if user input the data
 		*grids_local = new yt_grid [g_param_yt.num_grids_local];
+        yt_particle *particle_list = LibytProcessControl::Get().particle_list;
 		for ( int id = 0; id < g_param_yt.num_grids_local; id = id+1 ){
 			
 			(*grids_local)[id].proc_num     = g_myrank;
@@ -69,7 +71,7 @@ int yt_get_GridsPtr( yt_grid **grids_local )
                 // Ex: particle_data[0][1] represents particle_list[0].attr_list[1] data
                 (*grids_local)[id].particle_data = new yt_data* [g_param_yt.num_par_types];
                 for (int p = 0; p < g_param_yt.num_par_types; p++){
-                    (*grids_local)[id].particle_data[p] = new yt_data [g_param_yt.particle_list[p].num_attr];
+                    (*grids_local)[id].particle_data[p] = new yt_data [particle_list[p].num_attr];
                 }
 
                 // Array for storing particle count in different particle type
@@ -84,18 +86,17 @@ int yt_get_GridsPtr( yt_grid **grids_local )
             }
 		}
 
-		// Store the grids_local to g_param_yt
-		g_param_yt.grids_local = *grids_local;
+		LibytProcessControl::Get().grids_local = *grids_local;
    	}
    	else{
    		// If user already called this function before, we just return the initialized grids_local,
    		// to avoid memory leak.
-   		*grids_local = g_param_yt.grids_local;
+   		*grids_local = LibytProcessControl::Get().grids_local;
    	}
 
 
 	// Above all works like charm
-	g_param_libyt.get_gridsPtr = true;
+    LibytProcessControl::Get().get_gridsPtr = true;
 	log_info( "Getting pointer to local grids information  ... done.\n" );
 
 #ifdef SUPPORT_TIMER

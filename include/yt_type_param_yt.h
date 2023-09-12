@@ -2,30 +2,16 @@
 #define __YT_TYPE_PARAM_YT_H__
 
 
-
-/*******************************************************************************
-/
-/  yt_param_yt structure
-/
-/  ==> included by yt_type.h
-/
-********************************************************************************/
-
-
-// include relevant headers/prototypes
 #include "yt_macro.h"
-#include "yt_type_grid.h"
-#include "yt_type_field.h"
 #include "yt_type_particle.h"
-void log_debug( const char *Format, ... );
-void log_warning(const char *Format, ...);
 
 
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_param_yt
-// Description :  Data structure to store YT-specific parameters (e.g., *Dataset.periodicity)
+// Description :  Data structure to store YT-specific parameters
 // 
 // Notes       :  1. We assume that each element in array_name[3] are all in use.
+//                2. Included by yt_type.h.
 //
 // Data Member :  frontend                : Name of the target simulation code
 //                fig_basename            : Base name of the output figures
@@ -50,24 +36,14 @@ void log_warning(const char *Format, ...);
 //                num_fields              : Number of fields
 //                num_par_types           : Number of particle types, initialized as 0.
 //                num_grids_local         : Number of local grids in each rank
-//                field_list              : field list, including {field_name, field_type, field_unit ,...}
-//                particle_list           : particle list, including {par_type, attr_list, ...}
 //                par_type_list           : particle type list, including only {par_type, num_attr},
 //                                          elements here will be copied into particle_list. This is because
 //                                          we want libyt to handle initialization of particle_list.
-//                grids_local             : Ptr to full information of local grids
 //
 // Method      :  yt_param_yt : Constructor
-//               ~yt_param_yt : Destructor
-//                validate    : Check if all data members have been set properly by users
-//                show        : Print out all data members
 //-------------------------------------------------------------------------------------------------------
-struct yt_param_yt
+typedef struct yt_param_yt
 {
-
-// data members
-// ===================================================================================
-// variables that will be passed to yt
    const char *frontend;
    const char *fig_basename;
 
@@ -82,8 +58,6 @@ struct yt_param_yt
    double mass_unit;
    double time_unit;
    double magnetic_unit;
-
-// declare all boolean variables as int so that we can check whether they have been set by users
    int    periodicity[3];
    int    cosmological_simulation;
    int    dimensionality;
@@ -91,20 +65,12 @@ struct yt_param_yt
    int    refine_by;
    int    index_offset;
    long   num_grids;
-
-// variable for later runtime usage
-// Loaded by user
    int           num_fields;
    int           num_par_types;
    yt_par_type  *par_type_list;
    int           num_grids_local;
 
-// Loaded and controlled by libyt
-   yt_field    *field_list;
-   yt_particle *particle_list;
-   yt_grid     *grids_local;
-   int         *num_grids_local_MPI;
-
+#ifdef __cplusplus
    //===================================================================================
    // Method      :  yt_param_yt
    // Description :  Constructor of the structure "yt_param_yt"
@@ -115,195 +81,41 @@ struct yt_param_yt
    //===================================================================================
    yt_param_yt()
    {
+       frontend      = nullptr;
+       fig_basename  = nullptr;
+       for (int d=0; d<3; d++)
+       {
+           domain_left_edge [d] = DBL_UNDEFINED;
+           domain_right_edge[d] = DBL_UNDEFINED;
+       }
+       current_time            = DBL_UNDEFINED;
+       current_redshift        = DBL_UNDEFINED;
+       omega_lambda            = DBL_UNDEFINED;
+       omega_matter            = DBL_UNDEFINED;
+       hubble_constant         = DBL_UNDEFINED;
+       length_unit             = DBL_UNDEFINED;
+       mass_unit               = DBL_UNDEFINED;
+       time_unit               = DBL_UNDEFINED;
+       magnetic_unit           = DBL_UNDEFINED;
 
-//    set default values for all data members
-      init();
+       for (int d=0; d<3; d++)
+       {
+           periodicity      [d] = INT_UNDEFINED;
+           domain_dimensions[d] = INT_UNDEFINED;
+       }
+       cosmological_simulation  = INT_UNDEFINED;
+       dimensionality           = INT_UNDEFINED;
+       refine_by                = INT_UNDEFINED;
+       index_offset             = 0;
+       num_grids                = LNG_UNDEFINED;
 
-   } // METHOD : yt_param_yt
+       num_fields              = 0;
+       num_par_types           = 0;
+       num_grids_local         = 0;
+       par_type_list           = nullptr;
+   }
+#endif // #ifdef __cplusplus
 
-
-   //===================================================================================
-   // Method      :  ~yt_param_yt
-   // Description :  Destructor of the structure "yt_param_yt"
-   //
-   // Note        :  Free memory
-   //
-   // Parameter   :  None
-   //===================================================================================
-   ~yt_param_yt()
-   {
-
-   } // METHOD : ~yt_param_yt
-
-
-   //===================================================================================
-   // Method      :  init
-   // Description :  Initialize all data members
-   //
-   // Note        :  1. Called by the constructor.
-   //
-   // Parameter   :  None
-   //===================================================================================
-   int init()
-   {
-
-//    set defaults
-      frontend      = NULL;
-      fig_basename  = NULL;
-
-      for (int d=0; d<3; d++)
-      {
-         domain_left_edge [d] = DBL_UNDEFINED;
-         domain_right_edge[d] = DBL_UNDEFINED;
-      }
-      current_time            = DBL_UNDEFINED;
-      current_redshift        = DBL_UNDEFINED;
-      omega_lambda            = DBL_UNDEFINED;
-      omega_matter            = DBL_UNDEFINED;
-      hubble_constant         = DBL_UNDEFINED;
-      length_unit             = DBL_UNDEFINED;
-      mass_unit               = DBL_UNDEFINED;
-      time_unit               = DBL_UNDEFINED;
-      magnetic_unit           = DBL_UNDEFINED;
-
-      for (int d=0; d<3; d++)
-      {
-         periodicity      [d] = INT_UNDEFINED;
-         domain_dimensions[d] = INT_UNDEFINED;
-      }
-      cosmological_simulation = INT_UNDEFINED;
-      dimensionality          = INT_UNDEFINED;
-      refine_by               = INT_UNDEFINED;
-      index_offset            = 0;
-      num_grids               = LNG_UNDEFINED;
-
-      num_fields              = 0;
-      num_par_types           = 0;
-      num_grids_local         = 0;
-      par_type_list           = NULL;
-
-   // Loaded and controlled by libyt
-      field_list              = NULL;
-      particle_list           = NULL;
-      grids_local             = NULL;
-      num_grids_local_MPI     = NULL;
-
-      return YT_SUCCESS;
-
-   } // METHOD : init
-
-
-   //===================================================================================
-   // Method      :  validate
-   // Description :  Check if all data members have been set properly by users
-   //
-   // Note        :  1. Cosmological parameters are checked only if cosmological_simulation == 1
-   //                2. Only check if data are used, does not alter them.
-   //
-   // Parameter   :  None
-   //
-   // Return      :  YT_SUCCESS or YT_FAIL
-   //===================================================================================
-   int validate() const
-   {
-
-      if ( frontend                == NULL          )   YT_ABORT( "\"%s\" has not been set!\n",     "frontend" );
-      for (int d=0; d<3; d++) {
-      if ( domain_left_edge [d]    == DBL_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_left_edge",  d );
-      if ( domain_right_edge[d]    == DBL_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_right_edge", d ); }
-      if ( current_time            == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "current_time" );
-      if ( cosmological_simulation == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "cosmological_simulation" );
-      if ( cosmological_simulation ) {
-      if ( current_redshift        == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "current_redshift" );
-      if ( omega_lambda            == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "omega_lambda" );
-      if ( omega_matter            == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "omega_matter" );
-      if ( hubble_constant         == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "hubble_constant" ); }
-      if ( length_unit             == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "length_unit" );
-      if ( mass_unit               == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "mass_unit" );
-      if ( time_unit               == DBL_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "time_unit" );
-      if ( magnetic_unit           == DBL_UNDEFINED )   log_warning( "\"%s\" has not been set!\n",  "magnetic_unit" );
-      
-      for (int d=0; d<3; d++) {
-      if ( periodicity      [d]    == INT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "periodicity", d );
-      if ( domain_dimensions[d]    == INT_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_dimensions", d ); }
-      if ( dimensionality          == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "dimensionality" );
-      if ( refine_by               == INT_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "refine_by" );
-      if ( num_grids               == LNG_UNDEFINED )   YT_ABORT( "\"%s\" has not been set!\n",     "num_grids" );
-      if ( num_par_types > 0 && par_type_list == NULL  )   YT_ABORT( "Particle species info par_type_list has not been set!\n");
-      if ( num_par_types < 0 && par_type_list != NULL  )   YT_ABORT( "Particle species info num_par_types has not been set!\n");
-      for (int s=0; s<num_par_types; s++) {
-      if ( par_type_list[s].par_type == NULL || par_type_list[s].num_attr < 0 ) YT_ABORT( "par_type_list element [ %d ] is not set properly!\n", s);
-      }
-
-      return YT_SUCCESS;
-   } // METHOD : validate
-
-
-   //===================================================================================
-   // Method      :  show
-   // Description :  Print out all data members if the verbose level >= YT_VERBOSE_DEBUG
-   //
-   // Note        :  None
-   //
-   // Parameter   :  None
-   //
-   // Return      :  always YT_SUCCESS
-   //===================================================================================
-   int show() const
-   {
-      if ( validate() != YT_SUCCESS ) {
-         YT_ABORT("yt_param_yt has not been set correctly.\n");
-      }
-
-      const int width_scalar = 25;
-      const int width_vector = width_scalar - 3;
-
-      log_debug( "   %-*s = %s\n",         width_scalar, "frontend",                frontend                );
-      log_debug( "   %-*s = %s\n",         width_scalar, "fig_basename",            fig_basename            );
-      for (int d=0; d<3; d++) {
-      log_debug( "   %-*s[%d] = %13.7e\n", width_vector, "domain_left_edge",  d,    domain_left_edge [d]    ); }
-      for (int d=0; d<3; d++) {
-      log_debug( "   %-*s[%d] = %13.7e\n", width_vector, "domain_right_edge", d,    domain_right_edge[d]    ); }
-      log_debug( "   %-*s = %13.7e\n",     width_scalar, "current_time",            current_time            );
-      log_debug( "   %-*s = %d\n",         width_scalar, "cosmological_simulation", cosmological_simulation );
-      if ( cosmological_simulation ) {
-      log_debug( "   %-*s = %13.7e\n",     width_scalar, "current_redshift",        current_redshift        );
-      log_debug( "   %-*s = %13.7e\n",     width_scalar, "omega_lambda",            omega_lambda            );
-      log_debug( "   %-*s = %13.7e\n",     width_scalar, "omega_matter",            omega_matter            );
-      log_debug( "   %-*s = %13.7e\n",     width_scalar, "hubble_constant",         hubble_constant         ); }
-
-      log_debug( "   %-*s = %13.7e\n",     width_scalar, "length_unit",             length_unit             );
-      log_debug( "   %-*s = %13.7e\n",     width_scalar, "mass_unit",               mass_unit               );
-      log_debug( "   %-*s = %13.7e\n",     width_scalar, "time_unit",               time_unit               );
-      if ( magnetic_unit == DBL_UNDEFINED ){
-         log_debug( "   %-*s = %s\n",      width_scalar, "magnetic_unit",           "NOT SET, and will be set to 1.");
-      }
-      else{
-         log_debug( "   %-*s = %13.7e\n",     width_scalar, "magnetic_unit",        magnetic_unit           );
-      }
-      
-      for (int d=0; d<3; d++) {
-      log_debug( "   %-*s[%d] = %d\n",     width_vector, "periodicity", d,          periodicity[d]          ); }
-      for (int d=0; d<3; d++) {
-      log_debug( "   %-*s[%d] = %d\n",     width_vector, "domain_dimensions", d,    domain_dimensions[d]    ); }
-      log_debug( "   %-*s = %d\n",         width_scalar, "dimensionality",          dimensionality          );
-      log_debug( "   %-*s = %d\n",         width_scalar, "refine_by",               refine_by               );
-      log_debug( "   %-*s = %d\n",         width_scalar, "index_offset",            index_offset            );
-      log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids",               num_grids               );
-      
-      log_debug( "   %-*s = %ld\n",        width_scalar, "num_fields",              num_fields              );
-      log_debug( "   %-*s = %ld\n",        width_scalar, "num_par_types",           num_par_types           );
-      for (int s=0; s<num_par_types; s++){
-      log_debug( "   %-*s[%d] = (type=\"%s\", num_attr=%d)\n", width_vector, "par_type_list", s, par_type_list[s].par_type, par_type_list[s].num_attr);
-      }
-      log_debug( "   %-*s = %ld\n",        width_scalar, "num_grids_local",         num_grids_local         );
-
-      return YT_SUCCESS;
-
-   } // METHOD : show
-
-}; // struct yt_param_yt
-
-
+} yt_param_yt;
 
 #endif // #ifndef __YT_TYPE_PARAM_YT_H__
