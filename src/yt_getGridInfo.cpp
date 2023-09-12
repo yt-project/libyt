@@ -1,5 +1,7 @@
 #include "yt_combo.h"
+#include "LibytProcessControl.h"
 #include "libyt.h"
+
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_getGridInfo_*
@@ -37,7 +39,7 @@
 #define GET_GRIDINFO_DIM3(NAME, KEY, TYPE)                                                                            \
     int yt_getGridInfo_##NAME(const long gid, TYPE (*NAME)[3])                                                        \
     {                                                                                                                 \
-        if (!g_param_libyt.commit_grids) {                                                                            \
+        if (!LibytProcessControl::Get().commit_grids) {                                                                            \
             YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",  \
                      __FUNCTION__);                                                                                   \
         }                                                                                                             \
@@ -49,7 +51,7 @@
 #define GET_GRIDINFO_DIM1(NAME, KEY, TYPE)                                                                            \
     int yt_getGridInfo_##NAME(const long gid, TYPE *NAME)                                                             \
     {                                                                                                                 \
-        if (!g_param_libyt.commit_grids) {                                                                            \
+        if (!LibytProcessControl::Get().commit_grids) {                                                                            \
             YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",  \
                      __FUNCTION__);                                                                                   \
         }                                                                                                             \
@@ -101,15 +103,16 @@ GET_GRIDINFO_DIM1(ProcNum, "proc_num", int)
 //-------------------------------------------------------------------------------------------------------
 int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_count) {
 
-    if (!g_param_libyt.commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }
 
     // find index of ptype
+    yt_particle *particle_list = LibytProcessControl::Get().particle_list;
     int label = -1;
     for (int s=0; s<g_param_yt.num_par_types; s++) {
-        if (strcmp(g_param_yt.particle_list[s].par_type, ptype) == 0) {
+        if (strcmp(particle_list[s].par_type, ptype) == 0) {
             label = s;
             break;
         }
@@ -151,7 +154,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_co
 //-------------------------------------------------------------------------------------------------------
 int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *field_data) {
 
-    if (!g_param_libyt.commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }
@@ -219,7 +222,7 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
 //-------------------------------------------------------------------------------------------------------
 int yt_getGridInfo_ParticleData(const long gid, const char *ptype, const char *attr, yt_data *par_data) {
 
-    if (!g_param_libyt.commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }

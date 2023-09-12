@@ -8,7 +8,7 @@ nav_order: 1
 Version 0.1.0
 {: .label }
 
-`libyt` is an open source C++ library for simulation. 
+`libyt` is an open source C library for simulation. 
 It is an in situ analysis tool that allows researchers to analyze and visualize data using [`yt`](https://yt-project.org/) or other Python packages in parallel during simulation runtime.
 {: .fs-6 .fw-300 }
 

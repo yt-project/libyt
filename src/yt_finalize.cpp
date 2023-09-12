@@ -1,7 +1,6 @@
 #include "yt_combo.h"
+#include "LibytProcessControl.h"
 #include "libyt.h"
-
-
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -25,15 +24,15 @@ int yt_finalize()
    log_info( "Exiting libyt ...\n" );
 
 // check whether libyt has been initialized
-   if ( !g_param_libyt.libyt_initialized )   YT_ABORT( "Calling yt_finalize() before yt_initialize()!\n" );
+   if ( !LibytProcessControl::Get().libyt_initialized )   YT_ABORT( "Calling yt_finalize() before yt_initialize()!\n" );
 
 // check if all the libyt allocated resource are freed
-   if ( !g_param_libyt.free_gridsPtr ) YT_ABORT("Please invoke yt_free() before calling yt_finalize().\n");
+   if ( !LibytProcessControl::Get().free_gridsPtr ) YT_ABORT("Please invoke yt_free() before calling yt_finalize().\n");
 
 // free all libyt resources
    Py_Finalize();
 
-   g_param_libyt.libyt_initialized = false;
+   LibytProcessControl::Get().libyt_initialized = false;
 
 #ifdef SUPPORT_TIMER
    // end timer and print.

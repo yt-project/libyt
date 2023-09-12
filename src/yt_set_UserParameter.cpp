@@ -1,4 +1,5 @@
 #include "yt_combo.h"
+#include "LibytProcessControl.h"
 #include "libyt.h"
 #include <typeinfo>
 
@@ -50,7 +51,7 @@ static int add_nonstring( const char *key, const int n, const T *input )
 {
 
 // check if libyt has been initialized
-   if ( !g_param_libyt.libyt_initialized )
+   if ( !LibytProcessControl::Get().libyt_initialized )
       YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
 
 
@@ -89,7 +90,7 @@ static int add_string( const char *key, const char *input )
 {
 
 // check if libyt has been initialized
-   if ( !g_param_libyt.libyt_initialized )
+   if ( !LibytProcessControl::Get().libyt_initialized )
       YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
 
 
