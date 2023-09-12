@@ -1,4 +1,5 @@
 #include "yt_combo.h"
+#include "LibytProcessControl.h"
 #include "libyt.h"
 
 static int set_field_data( yt_grid *grid );
@@ -74,8 +75,9 @@ int append_grid( yt_grid *grid ){
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 static int set_field_data( yt_grid *grid ) {
-    PyObject *py_grid_id, *py_field_labels, *py_field_data;
+    yt_field *field_list = LibytProcessControl::Get().field_list;
 
+    PyObject *py_grid_id, *py_field_labels, *py_field_data;
     py_grid_id = PyLong_FromLong( grid->id );
     py_field_labels = PyDict_New();
     for (int v=0; v<g_param_yt.num_fields; v++) {
@@ -92,23 +94,23 @@ static int set_field_data( yt_grid *grid ) {
         int grid_dtype;
         if ( get_npy_dtype((grid->field_data)[v].data_dtype, &grid_dtype) == YT_SUCCESS ){
             log_debug("Grid ID [ %ld ], field data [ %s ], grab NumPy enumerate type from data_dtype.\n",
-                      grid->id, g_param_yt.field_list[v].field_name);
+                      grid->id, field_list[v].field_name);
         }
-        else if ( get_npy_dtype(g_param_yt.field_list[v].field_dtype, &grid_dtype) == YT_SUCCESS ){
-            (grid->field_data)[v].data_dtype = g_param_yt.field_list[v].field_dtype;
+        else if ( get_npy_dtype(field_list[v].field_dtype, &grid_dtype) == YT_SUCCESS ){
+            (grid->field_data)[v].data_dtype = field_list[v].field_dtype;
             log_debug("Grid ID [ %ld ], field data [ %s ], grab NumPy enumerate type from field_dtype.\n",
-                      grid->id, g_param_yt.field_list[v].field_name);
+                      grid->id, field_list[v].field_name);
         }
         else{
             YT_ABORT("Grid ID [ %ld ], field data [ %s ], cannot get the NumPy enumerate type properly.\n",
-                     grid->id, g_param_yt.field_list[v].field_name);
+                     grid->id, field_list[v].field_name);
         }
 
         // (2) Get the dimension of the input array
         // Only "cell-centered" will be set to grid_dimensions + ghost cell, else should be set in data_dimensions.
-        if ( strcmp(g_param_yt.field_list[v].field_type, "cell-centered") == 0 ){
+        if ( strcmp(field_list[v].field_type, "cell-centered") == 0 ){
             // Get grid_dimensions and consider contiguous_in_x or not, since grid_dimensions is defined as [x][y][z].
-            if ( g_param_yt.field_list[v].contiguous_in_x ){
+            if ( field_list[v].contiguous_in_x ){
                 for ( int d=0; d<3; d++ ) { (grid->field_data)[v].data_dimensions[d] = (grid->grid_dimensions)[2-d]; }
             }
             else{
@@ -116,14 +118,14 @@ static int set_field_data( yt_grid *grid ) {
             }
             // Plus the ghost cell to get the actual array dimensions.
             for(int d = 0; d < 6; d++) {
-                (grid->field_data)[v].data_dimensions[ d / 2 ] += g_param_yt.field_list[v].field_ghost_cell[d];
+                (grid->field_data)[v].data_dimensions[ d / 2 ] += field_list[v].field_ghost_cell[d];
             }
         }
         // See if all data_dimensions > 0, abort if not.
         for (int d = 0; d < 3; d++){
             if ( (grid->field_data)[v].data_dimensions[d] <= 0 ){
                 YT_ABORT("Grid ID [ %ld ], field data [ %s ], data_dimensions[%d] = %d <= 0.\n",
-                         grid->id, g_param_yt.field_list[v].field_name, d, (grid->field_data)[v].data_dimensions[d]);
+                         grid->id, field_list[v].field_name, d, (grid->field_data)[v].data_dimensions[d]);
             }
         }
 
@@ -139,13 +141,13 @@ static int set_field_data( yt_grid *grid ) {
         PyArray_CLEARFLAGS( (PyArrayObject*) py_field_data, NPY_ARRAY_WRITEABLE);
 
         // add the field data to dict "libyt.grid_data[grid_id][field_list.field_name]"
-        PyDict_SetItemString( py_field_labels, g_param_yt.field_list[v].field_name, py_field_data );
+        PyDict_SetItemString( py_field_labels, field_list[v].field_name, py_field_data );
 
         // call decref since PyDict_SetItemString() returns a new reference
         Py_DECREF( py_field_data );
 
         log_debug( "Inserting grid [%ld] field data [%s] to libyt.grid_data ... done\n",
-                   grid->id, g_param_yt.field_list[v].field_name );
+                   grid->id, field_list[v].field_name );
 
     }
 
@@ -172,22 +174,23 @@ static int set_field_data( yt_grid *grid ) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 static int set_particle_data( yt_grid* grid ) {
-    PyObject *py_grid_id, *py_ptype_labels, *py_attributes, *py_data;
+    yt_particle *particle_list = LibytProcessControl::Get().particle_list;
 
+    PyObject *py_grid_id, *py_ptype_labels, *py_attributes, *py_data;
     py_grid_id = PyLong_FromLong( grid->id );
     py_ptype_labels = PyDict_New();
     for (int p = 0; p < g_param_yt.num_par_types; p++) {
         py_attributes = PyDict_New();
-        for (int a = 0; a < g_param_yt.particle_list[p].num_attr; a++) {
+        for (int a = 0; a < particle_list[p].num_attr; a++) {
 
             // skip if particle attribute pointer is NULL
             if ((grid->particle_data)[p][a].data_ptr == NULL) continue;
 
             // Wrap the data array if pointer exist
             int data_dtype;
-            if ( get_npy_dtype(g_param_yt.particle_list[p].attr_list[a].attr_dtype, &data_dtype) != YT_SUCCESS ) {
+            if ( get_npy_dtype(particle_list[p].attr_list[a].attr_dtype, &data_dtype) != YT_SUCCESS ) {
                 log_error("Cannot get particle type [%s] attribute [%s] data type. Unable to wrap particle array\n",
-                          g_param_yt.particle_list[p].par_type, g_param_yt.particle_list[p].attr_list[a].attr_name);
+                          particle_list[p].par_type, particle_list[p].attr_list[a].attr_name);
                 continue;
             }
             if ((grid->par_count_list)[p] <= 0) {
@@ -202,22 +205,22 @@ static int set_particle_data( yt_grid* grid ) {
             if (PyDict_Contains(g_py_particle_data, py_grid_id) != 1) {
                 // 1st time append, nothing exist under libyt.particle_data[gid]
                 PyDict_SetItem( g_py_particle_data, py_grid_id, py_ptype_labels ); // libyt.particle_data[gid] = dict()
-                PyDict_SetItemString( py_ptype_labels, g_param_yt.particle_list[p].par_type, py_attributes);
+                PyDict_SetItemString( py_ptype_labels, particle_list[p].par_type, py_attributes);
             }
             else {
                 // libyt.particle_data[gid] exist, check if libyt.particle_data[gid][ptype] exist
-                PyObject *py_ptype_name = PyUnicode_FromString(g_param_yt.particle_list[p].par_type);
+                PyObject *py_ptype_name = PyUnicode_FromString(particle_list[p].par_type);
                 if (PyDict_Contains(py_ptype_labels, py_ptype_name) != 1) {
-                    PyDict_SetItemString( py_ptype_labels, g_param_yt.particle_list[p].par_type, py_attributes);
+                    PyDict_SetItemString( py_ptype_labels, particle_list[p].par_type, py_attributes);
                 }
                 Py_DECREF( py_ptype_name );
             }
-            PyDict_SetItemString(py_attributes, g_param_yt.particle_list[p].attr_list[a].attr_name, py_data);
+            PyDict_SetItemString(py_attributes, particle_list[p].attr_list[a].attr_name, py_data);
             Py_DECREF( py_data );
 
             // debug message
             log_debug("Inserting grid [%ld] particle [%s] attribute [%s] data to libyt.particle_data ... done\n",
-                      grid->id, g_param_yt.particle_list[p].par_type, g_param_yt.particle_list[p].attr_list[a].attr_name);
+                      grid->id, particle_list[p].par_type, particle_list[p].attr_list[a].attr_name);
         }
         Py_DECREF( py_attributes );
     }

@@ -37,7 +37,9 @@
     5. $ mpirun -np 4 --output-filename log ./example
  */
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <typeinfo>
 #include <mpi.h>

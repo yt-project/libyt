@@ -1,5 +1,6 @@
 #include "yt_rma_field.h"
 #include "yt_combo.h"
+#include "LibytProcessControl.h"
 #include "libyt.h"
 #include <string.h>
 
@@ -35,12 +36,13 @@ yt_rma_field::yt_rma_field(const char* fname, int len_prepare, long len_get_grid
         log_error("yt_rma_field: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
     }
 
+    yt_field *field_list = LibytProcessControl::Get().field_list;
     for(int v=0; v < g_param_yt.num_fields; v++){
-        if( strcmp(fname, g_param_yt.field_list[v].field_name) == 0){
-            m_FieldName       = g_param_yt.field_list[v].field_name;
-            m_FieldDefineType = g_param_yt.field_list[v].field_type;
+        if( strcmp(fname, field_list[v].field_name) == 0){
+            m_FieldName       = field_list[v].field_name;
+            m_FieldDefineType = field_list[v].field_type;
             m_FieldIndex      = v;
-            m_FieldSwapAxes   = g_param_yt.field_list[v].contiguous_in_x;
+            m_FieldSwapAxes   = field_list[v].contiguous_in_x;
             break;
         }
     }
@@ -122,7 +124,7 @@ int yt_rma_field::prepare_data(long& gid)
         }
 
         // get data type
-        grid_info.data_dtype = g_param_yt.field_list[m_FieldIndex].field_dtype;
+        grid_info.data_dtype = LibytProcessControl::Get().field_list[m_FieldIndex].field_dtype;
 
         // allocate data_ptr
         long gridLength = grid_info.data_dim[0] * grid_info.data_dim[1] * grid_info.data_dim[2];
@@ -156,9 +158,9 @@ int yt_rma_field::prepare_data(long& gid)
         yt_array data_array[1];
         data_array[0].gid = gid; data_array[0].data_length = gridLength; data_array[0].data_ptr = data_ptr;
 
-        if ( g_param_yt.field_list[m_FieldIndex].derived_func != NULL ){
+        if ( LibytProcessControl::Get().field_list[m_FieldIndex].derived_func != NULL ){
             void (*derived_func) (const int, const long*, const char*, yt_array*);
-            derived_func = g_param_yt.field_list[m_FieldIndex].derived_func;
+            derived_func = LibytProcessControl::Get().field_list[m_FieldIndex].derived_func;
             (*derived_func) (list_length, list_gid, m_FieldName, data_array);
         }
         else{

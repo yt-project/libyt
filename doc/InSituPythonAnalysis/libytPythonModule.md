@@ -26,6 +26,13 @@ import libyt
 
 ## Dictionaries
 
+### libyt_info
+
+|               Key                |          Value          | Loaded by `libyt` API | Notes                               |
+|:--------------------------------:|:-----------------------:|:---------------------:|-------------------------------------|
+|     `libyt_info["version"]`      | `(major, minor, micro)` |    `yt_initialize`    | - `libyt` version.                  |
+| `libyt_info["interactive_mode"]` |      `True/False`       |    `yt_initialize`    | - Is it in interactive mode or not. |
+
 ### param_yt
 
 |                  Key                  |           Value           | Loaded by `libyt` API | Notes                                |
@@ -50,12 +57,9 @@ import libyt
 |    `param_yt["domain_right_edge"]`    |    `domain_right_edge`    |  `yt_set_Parameters`  |                                      |
 |       `param_yt["periodicity"]`       |       `periodicity`       |  `yt_set_Parameters`  |                                      |
 |    `param_yt["domain_dimensions"]`    |    `domain_dimensions`    |  `yt_set_Parameters`  |                                      |
-|       `param_yt["field_list"]`        |       `field_list`        |      `yt_commit`      | - Used by `libyt`.               |
-|      `param_yt["particle_list"]`      |     `particle_list`       |      `yt_commit`      | - Used by `libyt`.               |
 
-- Usage: Contain `yt` parameters and other `libyt` parameters. The values correspond to data members in  [`yt_param_yt`]({% link libytAPI/SetYTParameter.md%}#yt_param_yt). `field_list` and `particle_list` are [`yt_field`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_field) and [`yt_particle`]({% link libytAPI/SetParticlesInformation.md %}#yt_particle) arrays.
 
-> :warning: Do not alter `param_yt["field_list"]` and `param_yt["particle_list"]`, it is for internal `libyt` process.
+- Usage: Contain `yt` parameters. The values correspond to data members in  [`yt_param_yt`]({% link libytAPI/SetYTParameter.md%}#yt_param_yt).
 
 ### param_user
 
@@ -112,7 +116,7 @@ import libyt
 ### get_field_remote(fname_list : list, fname_list_len : int, prepare_list : list, prepare_list_len : int, fetch_gid_list : list, fetch_process_list : list, fetch_gid_list_len : int) -> dict
 - Usage: Return a dictionary that contains requested field data from remote rank.
 
-### get_particle_remote(par_dict : dict, par_dict : dict_keys, prepare_list : list, prepare_list_len : int, fetch_gid_list : list, fetch_process_list : list, fetch_gid_list_len : int) -> dict)
+### get_particle_remote(par_dict : dict, par_dict : dict_keys, prepare_list : list, prepare_list_len : int, fetch_gid_list : list, fetch_process_list : list, fetch_gid_list_len : int) -> dict
 - Usage: Return a dictionary that contains requested particle data from remote rank.
 
 > :lizard: `get_field_remote` and `get_particle_remote` may be hard to use in general case, since we have to prepare those list by ourselves. We will improve this and make it general in the future.
