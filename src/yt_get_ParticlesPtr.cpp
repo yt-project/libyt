@@ -1,4 +1,5 @@
 #include "yt_combo.h"
+#include "LibytProcessControl.h"
 #include "libyt.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -20,12 +21,12 @@ int yt_get_ParticlesPtr( yt_particle **particle_list )
 #endif
 
 	// check if libyt has been initialized
-   	if ( !g_param_libyt.libyt_initialized ){
+   	if ( !LibytProcessControl::Get().libyt_initialized ){
     	YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    	}
 
 	// check if yt_set_Parameters() have been called
-   	if ( !g_param_libyt.param_yt_set ) {
+   	if ( !LibytProcessControl::Get().param_yt_set ) {
     	YT_ABORT( "Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__ );
     }
 
@@ -37,9 +38,9 @@ int yt_get_ParticlesPtr( yt_particle **particle_list )
 
    	log_info( "Getting pointer to particle list information ...\n" );
 
-   	*particle_list = g_param_yt.particle_list;
+   	*particle_list = LibytProcessControl::Get().particle_list;
 
-   	g_param_libyt.get_particlesPtr = true;
+    LibytProcessControl::Get().get_particlesPtr = true;
 	log_info( "Getting pointer to particle list information  ... done.\n" );
 
 #ifdef SUPPORT_TIMER

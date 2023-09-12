@@ -24,11 +24,11 @@ nav_order: 2
   - Interactive mode will not terminate the processes if errors occur while using Python for in situ analysis.
   - It supports interactive Python prompt. This is like normal Python prompt with access to simulation data.
 
-### Set Paths
+### Set Dependency Paths
 In `libyt/src/Makefile`, update `PYTHON_PATH`, `PYTHON_VERSION`, `NUMPY_PATH` and `MPI_PATH`:
 ```makefile
-# Your paths
-############################################################
+# Dependency Paths: other required dependencies
+#######################################################################################################
 PYTHON_PATH    := $(YOUR_PYTHON_PATH)
 PYTHON_VERSION := $(YOUR_PYTHON_VERSION)
 NUMPY_PATH     := $(YOUR_NUMPY_PATH)
@@ -50,17 +50,24 @@ READLINE_PATH  := $(YOUR_READLINE_PATH)
   > :warning: Make sure you are using the same MPI to compile `libyt` and your simulation code.
 - **READLINE_PATH**: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) path, under this folder, there should contain `include`, `lib` etc. This is only needed in [Interactive Mode](#options).
 
+### Set Installation Prefix and Install
+If you wish to install `libyt` to other location besides this repository, set `INSTALL_PREFIX` in `libyt/src/Makefile`:
+```makefile
+# Installation Paths: if not set, it will install to current directory
+#######################################################################################################
+INSTALL_PREFIX := $(YOUR_INSTALL_PREFIX)
+```
 
-### Install
-After updating `Makefile` in `libyt/src`, go to `libyt/src` folder
+Go to `libyt/src` folder:
 ```bash
 make clean
 make
-make install    # this copies library to ../lib, will add feature of install to other path in the future.
+make install
 ```
-We use this cloned `libyt` folder as installation folder.
-- `libyt/include`: Contain `libyt.h`. This is the header file for `libyt` API.
-- `libyt/lib`: Contain the shared library for simulation to link to.
+
+`libyt` is now installed in `$(INSTALL_PREFIX)` if it is set, otherwise, it will install under this repository: 
+- `include`: Contain `libyt.h`. This is the header file for `libyt` API.
+- `lib`: Contain the shared library for simulation to link to.
 
 ## yt_libyt
 To use `yt` as the core analytic tool, we need to install `yt_libyt`, a `yt` frontend for `libyt`. 

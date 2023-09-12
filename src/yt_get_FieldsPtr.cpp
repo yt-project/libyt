@@ -1,4 +1,5 @@
 #include "yt_combo.h"
+#include "LibytProcessControl.h"
 #include "libyt.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -21,12 +22,12 @@ int yt_get_FieldsPtr( yt_field **field_list )
 #endif
 
 	// check if libyt has been initialized
-   	if ( !g_param_libyt.libyt_initialized ){
+   	if ( !LibytProcessControl::Get().libyt_initialized ){
     	YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
    	}
 
 	// check if yt_set_Parameters() have been called
-   	if ( !g_param_libyt.param_yt_set ) {
+   	if ( !LibytProcessControl::Get().param_yt_set ) {
     	YT_ABORT( "Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__ );
     }
 
@@ -39,10 +40,10 @@ int yt_get_FieldsPtr( yt_field **field_list )
    	log_info( "Getting pointer to field list information ...\n" );
 
 	// Store the field_list ptr to *field_list
-	*field_list =  g_param_yt.field_list;
+	*field_list =  LibytProcessControl::Get().field_list;
 
 	// Above all works like charm
-	g_param_libyt.get_fieldsPtr = true;
+    LibytProcessControl::Get().get_fieldsPtr = true;
 	log_info( "Getting pointer to field list information  ... done.\n" );
 
 #ifdef SUPPORT_TIMER
