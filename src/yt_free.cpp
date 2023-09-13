@@ -18,9 +18,7 @@
 //-------------------------------------------------------------------------------------------------------
 //
 int yt_free() {
-#ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_free", 0);
-#endif
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
     if (!LibytProcessControl::Get().libyt_initialized) {
@@ -93,13 +91,6 @@ int yt_free() {
     LibytProcessControl::Get().commit_grids = false;
     LibytProcessControl::Get().free_gridsPtr = true;
     g_param_libyt.counter++;
-
-#ifdef SUPPORT_TIMER
-    // end timer.
-    g_timer->record_time("yt_free", 1);
-    // print out record time in this iteration.
-    g_timer->print_all_time();
-#endif
 
     return YT_SUCCESS;
 } // FUNCTION: yt_free()

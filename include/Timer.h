@@ -1,29 +1,34 @@
 #ifndef __TIMER_H__
 #define __TIMER_H__
 
-#include <vector>
-#include <string>
+#ifdef SUPPORT_TIMER
+#include <chrono>
+#include <thread>
 
 class Timer
 {
-private:
-    char  m_FileName[50];
-    char  m_TempFileName[60];
-    bool  m_PrintHeader;
-
-    std::vector<double> m_RecordTime;
-    std::vector<bool>   m_CheckRecordTime;
-    std::vector<std::string> m_Column;
-
-    void print_header();
-
 public:
-    Timer(char *filename);
+    Timer(const char* func_name);
     ~Timer();
-
-    void record_time(char *Column, int tag);
-    void print_all_time();
+    void Stop();
+private:
+    const char* m_FuncName;
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTime;
+    bool m_Stopped;
 };
 
+//class TimerControl {
+//public:
+//
+//private:
+//
+//};
+#endif // #ifdef SUPPORT_TIMER
+
+#ifdef SUPPORT_TIMER
+#define SET_TIMER(x) Timer Timer(x)
+#else
+#define SET_TIMER(x)
+#endif // #ifdef SUPPORT_TIMER
 
 #endif //__TIMER_H__

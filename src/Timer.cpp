@@ -1,119 +1,34 @@
 #ifdef SUPPORT_TIMER
 
-#include "Timer.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <mpi.h>
+#include <iostream>
+#include "Timer.h"
 
-Timer::Timer(char *filename)
-: m_PrintHeader(false)
-{
-    // Save write-to filename and path.
-    strcpy(m_FileName, filename);
-    sprintf(m_TempFileName, "%s_temp", filename);
+Timer::Timer(const char *func_name)
+: m_FuncName(func_name), m_Stopped(false) {
+    m_StartTime = std::chrono::high_resolution_clock::now();
 }
 
-Timer::~Timer()
-{
-    // Clear vector.
-    m_RecordTime.clear();
-    m_CheckRecordTime.clear();
-    m_Column.clear();
+Timer::~Timer() {
+    if (!m_Stopped)
+        Stop();
 }
 
-void Timer::print_header()
-{
-    // Read original file, and create a temporary new file.
-    FILE *original, *output;
-    original = fopen(m_FileName, "r");
-    output   = fopen(m_TempFileName, "w");
+void Timer::Stop() {
+    std::chrono::time_point<std::chrono::high_resolution_clock> endTime = std::chrono::high_resolution_clock::now();
 
-    for(int i = 0; i < (int)m_Column.size(); i++){
-        fprintf(output, "%s,", m_Column[i].c_str());
-    }
-    fprintf(output, "\n");
+    long long start = std::chrono::time_point_cast<std::chrono::microseconds>(m_StartTime).time_since_epoch().count();
+    long long end = std::chrono::time_point_cast<std::chrono::microseconds>(endTime).time_since_epoch().count();
+    uint32_t threadID = std::hash<std::thread::id>{}(std::this_thread::get_id());
+    int myrank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 
-    // Move original record time to temp.
-    // If original exists, then it must have contain headers. So we skip first line.
-    if( original ){
-        char ch;
-        bool first_line = true;
-        while( (ch = fgetc(original)) != EOF ){
-            if( !first_line ){
-                fputc(ch, output);
-            }
-            else if( ch == '\n' ){
-                first_line = false;
-            }
-        }
-        fclose(original);
-    }
-    fclose(output);
+    // TODO: Make it print in TimerControl
+    std::cout << "[MPI " << myrank << ", threadID " << threadID << "] ";
+    std::cout << "T( " << m_FuncName << ") = " << end - start;
 
-    // Remove original file and rename temp file to replace origin.
-    char cmd[200];
-    sprintf(cmd, "rm -f %s; mv %s %s", m_FileName, m_TempFileName, m_FileName);
-    system(cmd);
-}
-
-void Timer::record_time(char *Column, int tag)
-{
-    // Get wall time.
-    double time = MPI_Wtime();
-
-    // Search column index.
-    int column_index = -1;
-    for(int i = 0; i < (int)m_Column.size(); i++){
-        if( strcmp(m_Column[i].c_str(), Column) == 0){
-            column_index = i;
-            break;
-        }
-    }
-
-    // If no such column, add a new column.
-    if( column_index < 0 ){
-        column_index = m_Column.size();
-        std::string s(Column);
-        m_Column.push_back(s);
-        m_RecordTime.push_back(0);
-        m_CheckRecordTime.push_back(false);
-        m_PrintHeader = true;
-    }
-
-    // Record time, if tag = 0. Calculate time pass, if tag = 1.
-    if( tag == 0 ){
-        m_RecordTime[column_index] = time;
-        m_CheckRecordTime[column_index] = true;
-    }
-    else if( tag == 1 && m_CheckRecordTime[column_index]){
-        m_RecordTime[column_index] = time - m_RecordTime[column_index];
-    }
-}
-
-void Timer::print_all_time()
-{
-    if( m_PrintHeader ){
-        print_header();
-        m_PrintHeader = false;
-    }
-
-    // Open file
-    FILE *output;
-    output = fopen(m_FileName, "a");
-
-    // Flush all saved time, and reset check m_CheckRecordTime.
-    for(int i = 0; i < (int)m_Column.size(); i++){
-        if(m_CheckRecordTime[i]){
-            fprintf(output, "%lf,", m_RecordTime[i]);
-        }
-        else{
-            fprintf(output, "NaN,");
-        }
-        m_CheckRecordTime[i] = false;
-    }
-    fprintf(output, "\n");
-    fclose(output);
+    m_Stopped = true;
 }
 
 #endif // #ifdef SUPPORT_TIMER
+

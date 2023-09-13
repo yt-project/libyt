@@ -208,10 +208,7 @@ template int add_dict_vector_n <ulong    > ( PyObject *dict, const char *key, co
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int add_dict_field_list(){
-
-#ifdef SUPPORT_TIMER
-    g_timer->record_time("add_dict_field_list", 0);
-#endif
+   SET_TIMER(__PRETTY_FUNCTION__);
 
    PyObject  *field_list_dict = PyDict_New();
    PyObject  *key, *val;
@@ -325,10 +322,6 @@ int add_dict_field_list(){
 
    Py_DECREF( field_list_dict );
 
-#ifdef SUPPORT_TIMER
-    g_timer->record_time("add_dict_field_list", 1);
-#endif
-
    return YT_SUCCESS;
 }
 
@@ -360,10 +353,7 @@ int add_dict_field_list(){
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int add_dict_particle_list(){
-
-#ifdef SUPPORT_TIMER
-    g_timer->record_time("add_dict_particle_list", 0);
-#endif
+   SET_TIMER(__PRETTY_FUNCTION__);
 
    PyObject  *particle_list_dict = PyDict_New();
    PyObject  *key, *val;
@@ -521,10 +511,6 @@ int add_dict_particle_list(){
       YT_ABORT( "Inserting dictionary [particle_list] item to libyt ... failed!\n");
    }
    Py_DECREF( particle_list_dict );
-
-#ifdef SUPPORT_TIMER
-    g_timer->record_time("add_dict_particle_list", 1);
-#endif
 
    return YT_SUCCESS;
 }

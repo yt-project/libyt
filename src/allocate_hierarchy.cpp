@@ -14,10 +14,7 @@
 //-------------------------------------------------------------------------------------------------------
 int allocate_hierarchy()
 {
-
-#ifdef SUPPORT_TIMER
-    g_timer->record_time("allocate_hierarchy", 0);
-#endif
+   SET_TIMER(__PRETTY_FUNCTION__);
 
 // remove all key-value pairs if one wants to overwrite the existing dictionary
 // ==> it should happen only if one calls yt_set_Parameters() more than once
@@ -57,10 +54,6 @@ int allocate_hierarchy()
    }
 
 #  undef ADD_DICT
-
-#ifdef SUPPORT_TIMER
-    g_timer->record_time("allocate_hierarchy", 1);
-#endif
 
    return YT_SUCCESS;
 
