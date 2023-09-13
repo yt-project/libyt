@@ -20,6 +20,8 @@ LibytProcessControl LibytProcessControl::s_Instance;
 //                5. This is helpful when there are other initialization processes added to libyt.
 //                   (What I'm doing in this commit is trying to make libyt a C-library with minimal
 //                    change.)
+//                6. This is not thread-safe.
+//
 // Data Member : libyt_initialized : true ==> yt_initialize() has been called successfully
 //               param_yt_set      : true ==> yt_set_Parameters() has been called successfully
 //               get_fieldsPtr     : true ==> yt_get_FieldsPtr() has been called successfully

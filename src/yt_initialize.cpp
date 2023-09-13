@@ -35,14 +35,7 @@ static void init_general_info();
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
-#ifdef SUPPORT_TIMER
-    // initialize timer
-    char filename[50];
-    sprintf(filename, "RecordTime_%d", g_myrank);
-    g_timer = new Timer(filename);
-    // start timer.
-    g_timer->record_time("yt_initialize", 0);
-#endif
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     // yt_initialize should only be called once
     static int init_count = 0;
@@ -94,11 +87,6 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
 #endif
 
     LibytProcessControl::Get().libyt_initialized = true;
-
-#ifdef SUPPORT_TIMER
-    // end timer.
-    g_timer->record_time("yt_initialize", 1);
-#endif
 
     return YT_SUCCESS;
 
