@@ -35,6 +35,9 @@ static void init_general_info();
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
+
+    LibytProcessControl::Get().Initialize();
+
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // yt_initialize should only be called once
