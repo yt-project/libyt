@@ -44,7 +44,7 @@ CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  al
 
 # for testing and performance measuring
 ifeq "$(filter -DSUPPORT_TIMER, $(OPTIONS))" "-DSUPPORT_TIMER"
-CC_FILE += Timer.cpp
+CC_FILE += Timer.cpp TimerControl.cpp
 endif
 
 

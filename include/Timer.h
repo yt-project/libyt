@@ -3,7 +3,6 @@
 
 #ifdef SUPPORT_TIMER
 #include <chrono>
-#include <thread>
 
 class Timer
 {
@@ -17,12 +16,6 @@ private:
     bool m_Stopped;
 };
 
-//class TimerControl {
-//public:
-//
-//private:
-//
-//};
 #endif // #ifdef SUPPORT_TIMER
 
 #ifdef SUPPORT_TIMER
