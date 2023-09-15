@@ -2,6 +2,7 @@
 #define __TIMERCONTROL_H__
 
 #include <string>
+#include <mutex>
 
 class TimerControl {
 public:
@@ -12,6 +13,7 @@ private:
     std::string m_FileName;
     int m_MPIRank;
     bool m_FirstLine;
+    std::mutex m_Lock;
 };
 
 #endif // #ifndef __TIMERCONTROL_H__
