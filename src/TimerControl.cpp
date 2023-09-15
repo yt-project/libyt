@@ -44,6 +44,7 @@ void TimerControl::CreateFile(const char *filename, int rank) {
 //
 // Notes       :  1. Please refer to chrome tracing format
 //                   (https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview#heading=h.uxpopqvbjezh)
+//                2. This is thread-safe.
 //
 // Parameters  :  func_name : function name
 //                start     : start time
@@ -51,6 +52,8 @@ void TimerControl::CreateFile(const char *filename, int rank) {
 //                thread_id : thread id
 //-------------------------------------------------------------------------------------------------------
 void TimerControl::WriteProfile(const char *func_name, long long start, long long end, uint32_t thread_id) {
+    std::lock_guard<std::mutex> lock(m_Lock);
+
     // Set profile string, write to file
     char profile[1000];
     sprintf(profile, "%s{\"name\":\"%s\","
