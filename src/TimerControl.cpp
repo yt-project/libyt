@@ -45,6 +45,7 @@ void TimerControl::CreateFile(const char *filename, int rank) {
 // Notes       :  1. Please refer to chrome tracing format
 //                   (https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview#heading=h.uxpopqvbjezh)
 //                2. This is thread-safe.
+//                3. Function name cannot contain " double-quote.
 //
 // Parameters  :  func_name : function name
 //                start     : start time
