@@ -20,4 +20,4 @@ clean:
 	rm -f $(BIN)
 	rm -rf log
 	rm -rf __pycache__
-	rm -f *.png *.gif RecordTime_*
+	rm -f *.png *.gif libytTimeProfile_MPI*.json
