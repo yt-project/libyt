@@ -44,10 +44,6 @@
 #include "yt_type.h"
 #include "yt_prototype.h"
 #include "yt_global.h"
-
-// for performance measuring
-#ifdef SUPPORT_TIMER
 #include "Timer.h"
-#endif // #ifdef SUPPORT_TIMER
 
 #endif // #ifndef __YT_COMBO_H__

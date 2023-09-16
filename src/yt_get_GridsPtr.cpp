@@ -25,9 +25,7 @@
 //
 int yt_get_GridsPtr( yt_grid **grids_local )
 {
-#ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_get_GridsPtr", 0);
-#endif
+    SET_TIMER(__PRETTY_FUNCTION__);
 
 	// check if libyt has been initialized
    	if ( !LibytProcessControl::Get().libyt_initialized ){
@@ -94,14 +92,9 @@ int yt_get_GridsPtr( yt_grid **grids_local )
    		*grids_local = LibytProcessControl::Get().grids_local;
    	}
 
-
 	// Above all works like charm
     LibytProcessControl::Get().get_gridsPtr = true;
 	log_info( "Getting pointer to local grids information  ... done.\n" );
-
-#ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_get_GridsPtr", 1);
-#endif
 
 	return YT_SUCCESS;
 }
