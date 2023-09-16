@@ -39,8 +39,7 @@ LibytProcessControl LibytProcessControl::s_Instance;
 //                                     mapping temporary.
 //               num_grids_local_MPI : for gathering different MPI processes hierarchy.
 //-------------------------------------------------------------------------------------------------------
-LibytProcessControl::LibytProcessControl()
-: timer_control() {
+LibytProcessControl::LibytProcessControl() {
     // Check points for libyt process
     libyt_initialized   = false;
     param_yt_set        = false;
