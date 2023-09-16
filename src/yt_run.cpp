@@ -27,9 +27,7 @@
 //-------------------------------------------------------------------------------------------------------
 int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
 
-#ifdef SUPPORT_TIMER
-    g_timer->record_time(function_name, 0);
-#endif
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
     if (!LibytProcessControl::Get().libyt_initialized) {
@@ -143,10 +141,6 @@ int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
 
     log_info("Performing YT inline analysis %s ... done.\n", str_function.c_str());
 
-#ifdef SUPPORT_TIMER
-    g_timer->record_time(function_name, 1);
-#endif
-
     return YT_SUCCESS;
 }
 
@@ -166,9 +160,7 @@ int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
 //-------------------------------------------------------------------------------------------------------
 int yt_run_Function(const char *function_name) {
 
-#ifdef SUPPORT_TIMER
-    g_timer->record_time(function_name, 0);
-#endif
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
     if (!LibytProcessControl::Get().libyt_initialized) {
@@ -230,10 +222,6 @@ int yt_run_Function(const char *function_name) {
 #endif
 
     log_info("Performing YT inline analysis %s ... done.\n", str_function.c_str());
-
-#ifdef SUPPORT_TIMER
-    g_timer->record_time(function_name, 1);
-#endif
 
     return YT_SUCCESS;
 }

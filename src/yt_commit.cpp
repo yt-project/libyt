@@ -27,9 +27,7 @@
 //-------------------------------------------------------------------------------------------------------
 int yt_commit()
 {
-#ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_commit", 0);
-#endif
+   SET_TIMER(__PRETTY_FUNCTION__);
 
 // check if libyt has been initialized
    if ( !LibytProcessControl::Get().libyt_initialized ){
@@ -162,10 +160,6 @@ int yt_commit()
        big_MPI_Bcast(RootRank, g_param_yt.num_grids, (void*) particle_count_list_full[s], &yt_long_mpi_type, 3);
    }
 
-#ifdef SUPPORT_TIMER
-   g_timer->record_time("append_grids", 0);
-#endif
-
 // append grid to YT
 // We pass hierarchy to each rank as well.
 // Combine full hierarchy and the grid data that one rank has, otherwise fill in NULL in grid data.
@@ -212,10 +206,6 @@ int yt_commit()
       }
    }
 
-#ifdef SUPPORT_TIMER
-    g_timer->record_time("append_grids", 1);
-#endif
-
    log_debug( "Append grids to libyt.grid_data ... done!\n" );
    MPI_Barrier( MPI_COMM_WORLD );
 
@@ -253,10 +243,6 @@ int yt_commit()
    LibytProcessControl::Get().commit_grids = true;
    LibytProcessControl::Get().get_gridsPtr = false;
    log_info("Loading grids to yt ... done.\n");
-
-#ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_commit", 1);
-#endif
 
    return YT_SUCCESS;
 
