@@ -4,7 +4,7 @@ title: Home
 nav_order: 1
 ---
 
-# libyt Documents (Dev)
+# libyt Documents
 Version 0.1.0
 {: .label }
 
@@ -20,6 +20,7 @@ It is an in situ analysis tool that allows researchers to analyze and visualize 
 - [**libyt API**]({% link libytAPI/index.md %}#libyt-api): this is for simulation developers that wish to implement `libyt`.
 - [**In Situ Python Analysis**]({% link InSituPythonAnalysis/index.md %}#in-situ-python-analysis): this is for users that are using `libyt` in simulations.
 - [**Debug and Time Profiling**]({% link DebugAndTimeProfiling/index.md %}#debug-and-time-profiling): how to check inputs and run time profiling in `libyt`.
+
 
 ## Label Meanings
 

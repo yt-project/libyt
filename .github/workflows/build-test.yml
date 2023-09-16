@@ -52,7 +52,7 @@ jobs:
           pip install mpi4py yt
           cd $GITHUB_WORKSPACE
           cd ..
-          git clone --depth 1 -b libyt-dev --single-branch "https://github.com/cindytsai/yt_libyt.git" yt_libyt
+          git clone https://github.com/data-exp-lab/yt_libyt.git
           cd yt_libyt
           pip install .
           
