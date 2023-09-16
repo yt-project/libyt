@@ -23,15 +23,18 @@ void TimerControl::CreateFile(const char *filename, int rank) {
     file_out.open(m_FileName.c_str(), std::ofstream::out);
 
     // Write heading and basic info
-    file_out << "{\"otherData\": {"
-             << "\"version\": \"" << LIBYT_MAJOR_VERSION << "." << LIBYT_MINOR_VERSION << "." << LIBYT_MICRO_VERSION << "\","
-#ifdef INTERACTIVE_MODE
-             << "\"mode\": " << "\"interactive_mode\""
-#else
-             << "\"mode\": " << "\"normal_mode\""
-#endif
-             << "},";
-    file_out << "\"traceEvents\":[";
+    if (m_MPIRank == 0) {
+        file_out << "{\"otherData\": {"
+                 << "\"version\": \"" << LIBYT_MAJOR_VERSION << "." << LIBYT_MINOR_VERSION << "." << LIBYT_MICRO_VERSION
+                 << "\","
+                 #ifdef INTERACTIVE_MODE
+                 << "\"mode\": " << "\"interactive_mode\""
+                 #else
+                 << "\"mode\": " << "\"normal_mode\""
+                 #endif
+                 << "},";
+        file_out << "\"traceEvents\":[";
+    }
 
     file_out.close();
 }

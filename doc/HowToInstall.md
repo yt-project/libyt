@@ -26,7 +26,7 @@ OPTIONS += -DSUPPORT_TIMER
   - **Normal Mode (OFF)**: shut down and terminate all the processes including simulation, if there are errors during in situ analysis using Python.
   - **Interactive Mode (ON)**: will not terminate the processes if errors occur while using Python for in situ analysis. It supports interactive Python prompt. This is like normal Python prompt with access to simulation data.
 - **`OPTIONS += -DSUPPORT_TIMER` (OFF/ON)**
-  - **(ON)**: support time profiling.
+  - **(ON)**: support time profiling. (See [Time Profiling]({% link DebugAndTimeProfiling/TimeProfiling.md %}#time-profiling))
 
 ### Set Dependency Paths
 In `libyt/src/Makefile`, update `PYTHON_PATH`, `PYTHON_VERSION`, `NUMPY_PATH` and `MPI_PATH`:
