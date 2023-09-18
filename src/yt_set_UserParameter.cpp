@@ -49,6 +49,7 @@ int yt_set_UserParameterString  ( const char *key,              const char      
 template <typename T>
 static int add_nonstring( const char *key, const int n, const T *input )
 {
+   SET_TIMER(__PRETTY_FUNCTION__);
 
 // check if libyt has been initialized
    if ( !LibytProcessControl::Get().libyt_initialized )
@@ -88,6 +89,7 @@ static int add_nonstring( const char *key, const int n, const T *input )
 //***********************************************
 static int add_string( const char *key, const char *input )
 {
+   SET_TIMER(__PRETTY_FUNCTION__);
 
 // check if libyt has been initialized
    if ( !LibytProcessControl::Get().libyt_initialized )

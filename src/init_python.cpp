@@ -99,6 +99,7 @@ int init_python( int argc, char *argv[] )
 //-------------------------------------------------------------------------------------------------------
 int import_numpy()
 {
+   SET_TIMER(__PRETTY_FUNCTION__);
 
 // TODO: Cannot find import_array1, but compile success
 // import_array1() is a macro which calls _import_array() and returns the given value (YT_FAIL here) on error

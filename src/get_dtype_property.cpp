@@ -23,6 +23,7 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int get_npy_dtype( yt_dtype data_type, int *npy_dtype ){
+    SET_TIMER(__PRETTY_FUNCTION__);
 	
 	if ( data_type == YT_FLOAT ){
 		*npy_dtype = NPY_FLOAT;
@@ -83,6 +84,7 @@ int get_npy_dtype( yt_dtype data_type, int *npy_dtype ){
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype ){
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     if ( data_type == YT_FLOAT ){
         *mpi_dtype = MPI_FLOAT;
@@ -142,6 +144,7 @@ int get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype ){
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int get_dtype_size( yt_dtype data_type, int *dtype_size ){
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     if ( data_type == YT_FLOAT ){
         *dtype_size = sizeof(float);

@@ -20,6 +20,7 @@
 template <typename T>
 int add_dict_scalar( PyObject *dict, const char *key, const T value )
 {
+   SET_TIMER(__PRETTY_FUNCTION__);
 
 // check if "dict" is indeeed a dict object
    if ( !PyDict_Check(dict) )
@@ -77,6 +78,7 @@ int add_dict_scalar( PyObject *dict, const char *key, const T value )
 template <typename T>
 int add_dict_vector_n( PyObject *dict, const char *key, const int len, const T *vector )
 {
+   SET_TIMER(__PRETTY_FUNCTION__);
 
 // check if "dict" is indeeed a dict object
    if ( !PyDict_Check(dict) )
@@ -140,7 +142,7 @@ int add_dict_vector_n( PyObject *dict, const char *key, const int len, const T *
 //-------------------------------------------------------------------------------------------------------
 int add_dict_string( PyObject *dict, const char *key, const char *string )
 {
-
+   SET_TIMER(__PRETTY_FUNCTION__);
 // check if "dict" is indeeed a dict object
    if ( !PyDict_Check(dict) )
       YT_ABORT( "This is not a dict object (key = \"%s\", string = \"%s\")!\n",

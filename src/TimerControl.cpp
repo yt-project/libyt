@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string.h>
 #include <iostream>
+#include <algorithm>
 #include "TimerControl.h"
 #include "libyt.h"
 
@@ -48,7 +49,7 @@ void TimerControl::CreateFile(const char *filename, int rank) {
 // Notes       :  1. Please refer to chrome tracing format
 //                   (https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview#heading=h.uxpopqvbjezh)
 //                2. This is thread-safe.
-//                3. Function name cannot contain " double-quote.
+//                3. Function name cannot contain " double-quote, it will be replaced to '.
 //
 // Parameters  :  func_name : function name
 //                start     : start time
@@ -57,6 +58,10 @@ void TimerControl::CreateFile(const char *filename, int rank) {
 //-------------------------------------------------------------------------------------------------------
 void TimerControl::WriteProfile(const char *func_name, long long start, long long end, uint32_t thread_id) {
     std::lock_guard<std::mutex> lock(m_Lock);
+
+    // replace " to ' in func_name;
+    std::string func_name_str = std::string(func_name);
+    std::replace(func_name_str.begin(), func_name_str.end(), '"', '\'');
 
     // Set profile string, write to file
     char profile[1000];
@@ -68,7 +73,7 @@ void TimerControl::WriteProfile(const char *func_name, long long start, long lon
                        "\"tid\":%llu,"
                        "\"ts\":%lld"
                        "}",
-                       m_FirstLine ? "" : ",", func_name, end - start, m_MPIRank, (long long int)thread_id, start);
+                       m_FirstLine ? "" : ",", func_name_str.c_str(), end - start, m_MPIRank, (long long int)thread_id, start);
 
     std::ofstream  file_out;
     file_out.open(m_FileName.c_str(), std::ofstream::out | std::ofstream::app);

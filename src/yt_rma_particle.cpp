@@ -25,6 +25,8 @@
 yt_rma_particle::yt_rma_particle(const char *ptype, const char *attribute, int len_prepare, long len_get)
  : m_ParticleIndex(-1), m_AttributeIndex(-1), m_LenAllPrepare(0)
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Initialize m_Window and set info to "no_locks".
     MPI_Info windowInfo;
     MPI_Info_create( &windowInfo );
@@ -76,6 +78,8 @@ yt_rma_particle::yt_rma_particle(const char *ptype, const char *attribute, int l
 //-------------------------------------------------------------------------------------------------------
 yt_rma_particle::~yt_rma_particle()
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     MPI_Win_free(&m_Window);
     m_Fetched.clear();
     m_FetchedData.clear();
@@ -102,6 +106,8 @@ yt_rma_particle::~yt_rma_particle()
 //-------------------------------------------------------------------------------------------------------
 int yt_rma_particle::prepare_data(long& gid)
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Make sure particle type and its attribute name exist.
     if( m_ParticleIndex == -1 ){
         YT_ABORT("yt_rma_particle: Cannot find particle type [ %s ] in particle_list on MPI rank [ %d ].\n", m_ParticleType, g_myrank);
@@ -203,6 +209,8 @@ int yt_rma_particle::prepare_data(long& gid)
 //-------------------------------------------------------------------------------------------------------
 int yt_rma_particle::gather_all_prepare_data(int root)
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     int NRank;
     MPI_Comm_size(MPI_COMM_WORLD, &NRank);
 
@@ -256,6 +264,8 @@ int yt_rma_particle::gather_all_prepare_data(int root)
 //-------------------------------------------------------------------------------------------------------
 int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Look for gid in m_AllPrepare.
     bool get_remote_gid = false;
     yt_rma_particle_info fetched;
@@ -310,6 +320,8 @@ int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
 //-------------------------------------------------------------------------------------------------------
 int yt_rma_particle::clean_up()
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Close the window epoch
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOSUCCEED, m_Window);
 
@@ -356,6 +368,8 @@ int yt_rma_particle::clean_up()
 //-------------------------------------------------------------------------------------------------------
 int yt_rma_particle::get_fetched_data(long *gid, const char **ptype, const char **attribute, yt_dtype *data_dtype, long *data_len, void **data_ptr)
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Check if there are left fetched data to get.
     if( m_Fetched.size() == 0 ){
         return YT_FAIL;
