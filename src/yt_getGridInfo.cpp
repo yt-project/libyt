@@ -39,8 +39,9 @@
 #define GET_GRIDINFO_DIM3(NAME, KEY, TYPE)                                                                            \
     int yt_getGridInfo_##NAME(const long gid, TYPE (*NAME)[3])                                                        \
     {                                                                                                                 \
-        if (!LibytProcessControl::Get().commit_grids) {                                                                            \
-            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",  \
+        SET_TIMER(__PRETTY_FUNCTION__);                                                                                                             \
+        if (!LibytProcessControl::Get().commit_grids) {                                                               \
+            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",        \
                      __FUNCTION__);                                                                                   \
         }                                                                                                             \
         GET_ARRAY(KEY, *NAME, 3, TYPE, gid)                                                                           \
@@ -51,8 +52,9 @@
 #define GET_GRIDINFO_DIM1(NAME, KEY, TYPE)                                                                            \
     int yt_getGridInfo_##NAME(const long gid, TYPE *NAME)                                                             \
     {                                                                                                                 \
+        SET_TIMER(__PRETTY_FUNCTION__);                                                                               \
         if (!LibytProcessControl::Get().commit_grids) {                                                                            \
-            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",  \
+            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",        \
                      __FUNCTION__);                                                                                   \
         }                                                                                                             \
         TYPE temp[1];                                                                                                 \
@@ -102,6 +104,7 @@ GET_GRIDINFO_DIM1(ProcNum, "proc_num", int)
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_count) {
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     if (!LibytProcessControl::Get().commit_grids) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
@@ -153,6 +156,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_co
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *field_data) {
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     if (!LibytProcessControl::Get().commit_grids) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
@@ -221,6 +225,7 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_getGridInfo_ParticleData(const long gid, const char *ptype, const char *attr, yt_data *par_data) {
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     if (!LibytProcessControl::Get().commit_grids) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",

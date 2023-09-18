@@ -24,6 +24,8 @@
 yt_rma_field::yt_rma_field(const char* fname, int len_prepare, long len_get_grid)
 : m_FieldIndex(-1), m_LenAllPrepare(0)
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Initialize m_Window and set info to "no_locks".
     MPI_Info windowInfo;
     MPI_Info_create( &windowInfo );
@@ -69,6 +71,8 @@ yt_rma_field::yt_rma_field(const char* fname, int len_prepare, long len_get_grid
 //-------------------------------------------------------------------------------------------------------
 yt_rma_field::~yt_rma_field()
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     MPI_Win_free(&m_Window);
     m_Fetched.clear();
     m_FetchedData.clear();
@@ -95,6 +99,8 @@ yt_rma_field::~yt_rma_field()
 //-------------------------------------------------------------------------------------------------------
 int yt_rma_field::prepare_data(long& gid)
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Make sure that the field exist.
     if( m_FieldIndex == -1 ){
         YT_ABORT("yt_rma_field: Cannot find field name [ %s ] in field_list on MPI rank [ %d ].\n", m_FieldName, g_myrank);
@@ -227,6 +233,8 @@ int yt_rma_field::prepare_data(long& gid)
 //-------------------------------------------------------------------------------------------------------
 int yt_rma_field::gather_all_prepare_data(int root)
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     int NRank;
     MPI_Comm_size(MPI_COMM_WORLD, &NRank);
 
@@ -279,6 +287,8 @@ int yt_rma_field::gather_all_prepare_data(int root)
 //-------------------------------------------------------------------------------------------------------
 int yt_rma_field::fetch_remote_data(long& gid, int& rank)
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Look for gid in m_AllPrepare, and allocate memory.
     bool get_remote_grid = false;
     long  gridLength;
@@ -333,6 +343,8 @@ int yt_rma_field::fetch_remote_data(long& gid, int& rank)
 //-------------------------------------------------------------------------------------------------------
 int yt_rma_field::clean_up()
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Close the window epoch
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOSUCCEED, m_Window);
 
@@ -376,6 +388,8 @@ int yt_rma_field::clean_up()
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_rma_field::get_fetched_data(long *gid, const char **fname, yt_dtype *data_dtype, int (*data_dim)[3], void **data_ptr){
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Check if there are left fetched data to get.
     if( m_Fetched.size() == 0 ){
         return YT_FAIL;
