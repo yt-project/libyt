@@ -27,6 +27,8 @@
 //-------------------------------------------------------------------------------------------------------
 int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatype *mpi_datatype, void *recvbuffer, int cast_type)
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Count recv_counts, offsets, and split the buffer, if too large.
     int *recv_counts = new int [g_mysize];
     int *offsets = new int [g_mysize];
@@ -193,6 +195,8 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
 //-------------------------------------------------------------------------------------------------------
 int big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_datatype, int cast_type)
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // The maximum MPI_Bcast sendcount is INT_MAX.
     // If num_grids > INT_MAX chop it to chunks, then broadcast.
     long stride   = INT_MAX;
@@ -275,6 +279,8 @@ int big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_
 int big_MPI_Get(void *recv_buff, long data_len, yt_dtype *data_dtype, MPI_Datatype *mpi_dtype, int get_rank,
                 MPI_Aint base_address, MPI_Win *window)
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // The maximum sendcount of MPI_Get is INT_MAX.
     long stride   = INT_MAX;
     int  part     = (int) (data_len / stride) + 1;

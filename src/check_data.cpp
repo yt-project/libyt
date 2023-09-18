@@ -16,6 +16,8 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int check_sum_num_grids_local_MPI( int NRank, int * &num_grids_local_MPI ) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     long num_grids = 0;
     for (int rid = 0; rid < NRank; rid = rid+1){
         num_grids = num_grids + (long)num_grids_local_MPI[rid];
@@ -46,6 +48,8 @@ int check_sum_num_grids_local_MPI( int NRank, int * &num_grids_local_MPI ) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int check_field_list(){
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     yt_field *field_list = LibytProcessControl::Get().field_list;
 
     // (1) Validate each yt_field element in field_list.
@@ -84,6 +88,8 @@ int check_field_list(){
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int check_particle_list(){
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     yt_particle *particle_list = LibytProcessControl::Get().particle_list;
 
     // (1) Validate each yt_particle element in particle_list.
@@ -134,6 +140,8 @@ int check_particle_list(){
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int check_grid(){
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     yt_grid *grids_local = LibytProcessControl::Get().grids_local;
     yt_field *field_list = LibytProcessControl::Get().field_list;
 
@@ -244,6 +252,7 @@ int check_grid(){
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int check_hierarchy(yt_hierarchy * &hierarchy) {
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     // Create a search table for matching gid to hierarchy array index
     long *order = new long [g_param_yt.num_grids];
@@ -317,6 +326,8 @@ int check_hierarchy(yt_hierarchy * &hierarchy) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int check_yt_param_yt(const yt_param_yt &param_yt) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     if ( param_yt.frontend                 == NULL ) YT_ABORT( "\"%s\" has not been set!\n", "frontend" );
     for (int d=0; d<3; d++) {
         if ( param_yt.domain_left_edge [d] == DBL_UNDEFINED )   YT_ABORT( "\"%s[%d]\" has not been set!\n", "domain_left_edge",  d );
@@ -366,6 +377,8 @@ int check_yt_param_yt(const yt_param_yt &param_yt) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int check_yt_grid(const yt_grid &grid) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     for (int d=0; d<3; d++) {
         if ( grid.left_edge [d]  == DBL_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "left_edge",  d, grid.id );
         if ( grid.right_edge[d]  == DBL_UNDEFINED    )   YT_ABORT( "\"%s[%d]\" has not been set for grid id [%ld]!\n", "right_edge", d, grid.id );
@@ -403,6 +416,8 @@ int check_yt_grid(const yt_grid &grid) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int check_yt_field(const yt_field &field) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // field name is set.
     if ( field.field_name == nullptr ){
         YT_ABORT("field_name is not set!\n");
@@ -466,6 +481,8 @@ int check_yt_field(const yt_field &field) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int check_yt_attribute(const yt_attribute &attr) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // attr_name is set
     if ( attr.attr_name == nullptr ){
         YT_ABORT("attr_name is not set!\n");
@@ -507,6 +524,8 @@ int check_yt_attribute(const yt_attribute &attr) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int check_yt_particle(const yt_particle &particle) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // par_type should be set
     if ( particle.par_type == nullptr ){
         YT_ABORT("par_type is not set!\n");

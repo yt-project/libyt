@@ -10,6 +10,7 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int print_yt_param_yt(const yt_param_yt &param_yt) {
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     if ( g_param_libyt.verbose < YT_VERBOSE_DEBUG )
         return YT_SUCCESS;
@@ -76,6 +77,7 @@ int print_yt_param_yt(const yt_param_yt &param_yt) {
 // Return      :  YT_SUCCESS
 //-------------------------------------------------------------------------------------------------------
 int print_yt_field(const yt_field &field) {
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     if ( g_param_libyt.verbose < YT_VERBOSE_DEBUG )
         return YT_SUCCESS;

@@ -24,6 +24,7 @@ int define_command::s_Root = 0;
 // Return      : true / false   : whether or not to exit interactive loop.
 //-------------------------------------------------------------------------------------------------------
 bool define_command::run() {
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     std::stringstream ss(m_Command);
     std::string arg;
@@ -89,6 +90,8 @@ bool define_command::run() {
 // Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int define_command::print_status() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     m_Undefine = false;
     g_func_status_list.print_summary();
     return YT_SUCCESS;
@@ -106,6 +109,8 @@ int define_command::print_status() {
 // Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int define_command::print_help_msg() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     m_Undefine = false;
     if (g_myrank == s_Root) {
         printf("Usage:  %%libyt COMMAND\n");
@@ -142,6 +147,8 @@ int define_command::print_help_msg() {
 // Return     : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int define_command::load_script(const char *filename) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     m_Undefine = false;
 
     // root rank reads script and broadcast to other ranks if compile successfully
@@ -237,6 +244,8 @@ int define_command::load_script(const char *filename) {
 // Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int define_command::export_script(const char *filename) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     m_Undefine = false;
 
     if (g_myrank == s_Root) {
@@ -266,6 +275,8 @@ int define_command::export_script(const char *filename) {
 // Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int define_command::set_func_run(const char *funcname, bool run) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     m_Undefine = false;
 
     int index = g_func_status_list.get_func_index(funcname);
@@ -289,6 +300,8 @@ int define_command::set_func_run(const char *funcname, bool run) {
 }
 
 int define_command::set_func_run(const char *funcname, bool run, std::vector<std::string>& arg_list) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     m_Undefine = false;
 
     // get function index
@@ -358,6 +371,8 @@ int define_command::set_func_run(const char *funcname, bool run, std::vector<std
 // Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int define_command::get_func_status(const char *funcname) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     m_Undefine = false;
 
     // check if function exist
