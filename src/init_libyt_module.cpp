@@ -41,6 +41,7 @@
 // Return      :  numpy.3darray
 //-------------------------------------------------------------------------------------------------------
 static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     // Parse the input arguments input by python.
     // If not in the format libyt.derived_func( int , str ), raise an error
@@ -196,6 +197,8 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
 // Return      :  numpy.1darray
 //-------------------------------------------------------------------------------------------------------
 static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Parse the input arguments input by python.
     // If not in the format libyt.get_particle( int , str , str ), raise an error
     long  gid;
@@ -345,6 +348,8 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
 // Return      :  dict obj data[grid id][field_name][:,:,:]
 //-------------------------------------------------------------------------------------------------------
 static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Parse the input list arguments by python
     PyObject *arg1; // fname_list, we will make it an iterable object.
     PyObject *py_prepare_grid_id_list;
@@ -483,6 +488,8 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
 // Return      :  dict obj data[grid id][ptype][attribute]
 //-------------------------------------------------------------------------------------------------------
 static PyObject* libyt_particle_get_particle_remote(PyObject *self, PyObject *args){
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Parse the input list arguments by Python
     PyObject *py_ptf_dict;
     PyObject *arg2, *py_ptf_keys;
@@ -676,6 +683,8 @@ static struct PyModuleDef libyt_module_definition =
 // Create libyt python module
 static PyObject* PyInit_libyt(void)
 {
+  SET_TIMER(__PRETTY_FUNCTION__);
+
   // Create libyt module
   PyObject *libyt_module = PyModule_Create( &libyt_module_definition );
   if ( libyt_module != NULL ){
@@ -758,7 +767,7 @@ int create_libyt_module()
 //-------------------------------------------------------------------------------------------------------
 int init_libyt_module()
 {
-    SET_TIMER(__PRETTY_FUNCTION__);
+   SET_TIMER(__PRETTY_FUNCTION__);
 
 // import newly created libyt module
    if ( PyRun_SimpleString("import libyt\n") == 0 )
