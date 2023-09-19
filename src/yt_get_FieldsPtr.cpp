@@ -17,9 +17,7 @@
 //
 int yt_get_FieldsPtr( yt_field **field_list )
 {
-#ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_get_FieldsPtr", 0);
-#endif
+    SET_TIMER(__PRETTY_FUNCTION__);
 
 	// check if libyt has been initialized
    	if ( !LibytProcessControl::Get().libyt_initialized ){
@@ -45,10 +43,6 @@ int yt_get_FieldsPtr( yt_field **field_list )
 	// Above all works like charm
     LibytProcessControl::Get().get_fieldsPtr = true;
 	log_info( "Getting pointer to field list information  ... done.\n" );
-
-#ifdef SUPPORT_TIMER
-    g_timer->record_time("yt_get_FieldsPtr", 1);
-#endif
 
 	return YT_SUCCESS;
 }

@@ -22,11 +22,12 @@ The program hanging problem is due to only some MPI processes are accessing the 
 
 Please do:
 1. Check if there is an if statements that makes MPI processes non-symmetric. For example, only root process runs the statement:
-  ```python
-  def func():
-    if yt.is_root():
-        ...  # <-- This statement only executes in MPI root rank
-  ```
+    ```python
+    def func():
+        if yt.is_root():
+            ...  # <-- This statement only executes in MPI root rank
+    ```
+   
 2. Move the statement out of `if yt.is_root()` (for the case here).
 
 > :lizard: When accessing simulation data, `libyt` requires every process to participate in this.

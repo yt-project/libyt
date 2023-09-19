@@ -36,9 +36,7 @@
 #include "func_status_list.h"
 #endif
 
-#ifdef SUPPORT_TIMER
 #include "Timer.h"
-#endif
 
 // add the prefix "g_" for all global C variables
 SET_GLOBAL( yt_param_libyt, g_param_libyt           );   // libyt runtime parameters
@@ -65,9 +63,6 @@ SET_GLOBAL( MPI_Datatype,   yt_rma_grid_info_mpi_type     );
 
 SET_GLOBAL( MPI_Datatype,   yt_rma_particle_info_mpi_type );
 
-#ifdef SUPPORT_TIMER
-SET_GLOBAL( Timer,         *g_timer,          NULL  );   // Timer for recording performance.
-#endif // #ifdef SUPPORT_TIMER
 
 // add the prefix "g_py_" for all global Python objects
 #ifndef NO_PYTHON

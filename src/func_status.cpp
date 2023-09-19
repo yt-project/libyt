@@ -35,6 +35,8 @@
 func_status::func_status(const char *func_name, int run)
 : m_Args(""), m_Wrapper(true), m_Run(run), m_Status(-1)
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // copy func_name to m_FuncName
     int len = strlen(func_name);
     m_FuncName = new char [len + 1];
@@ -56,6 +58,8 @@ func_status::func_status(const char *func_name, int run)
 func_status::func_status(const func_status& other)
 : m_Args(other.m_Args), m_Wrapper(other.m_Wrapper), m_Run(other.m_Run), m_Status(-1)
 {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // copy m_FuncName;
     int len = strlen(other.m_FuncName);
     m_FuncName = new char [len + 1];
@@ -89,6 +93,8 @@ func_status::~func_status()
 // Return      :  m_Status
 //-------------------------------------------------------------------------------------------------------
 int func_status::get_status() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // if it is not running (-2), we don't need to check if there is error msg.
     if (m_Status != -2) return m_Status;
 
@@ -123,6 +129,8 @@ int func_status::get_status() {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int func_status::serial_print_error(int indent_size, int indent_level) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // get my err msg at current rank
     PyObject *py_func_name = PyUnicode_FromString(m_FuncName);
     PyObject *py_err_msg = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name);
@@ -207,6 +215,8 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int func_status::print_func_body(int indent_size, int indent_level) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     int root = 0;
     if (g_myrank == root) {
         // get function body
