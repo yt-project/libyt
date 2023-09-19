@@ -19,6 +19,8 @@ std::array<PyObject*, func_status_list::s_NotDone_Num>   func_status_list::s_Not
 // Return      : YT_SUCCESS
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::reset() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     for (int i=0; i<size(); i++) {
         m_FuncStatusList[i].set_status(-1);
     }
@@ -43,6 +45,8 @@ int func_status_list::reset() {
 // Return      : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::print_summary() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // make sure every rank has reach here, so that printing in other ranks are done
     fflush(stdout);
     fflush(stderr);
@@ -101,6 +105,8 @@ int func_status_list::print_summary() {
 // Return      :  index : index of func_name in list, return -1 if doesn't exist.
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::get_func_index(const char *func_name) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     int index = -1;
     for (int i=0; i<size(); i++) {
         if (strcmp(m_FuncStatusList[i].get_func_name(), func_name) == 0) {
@@ -125,6 +131,8 @@ int func_status_list::get_func_index(const char *func_name) {
 // Return      : Function index in list.
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::add_new_func(const char *func_name, int run) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // Check if func_name exist, return YT_SUCCESS if exist
     int index = get_func_index(func_name);
     if (index >= 0) return index;
@@ -156,6 +164,8 @@ int func_status_list::add_new_func(const char *func_name, int run) {
 // Return      :  YT_SUCCESS
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::run_func() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     for (int i=0; i<size(); i++) {
         int run = m_FuncStatusList[i].get_run();
         int status = m_FuncStatusList[i].get_status();
@@ -205,6 +215,8 @@ int func_status_list::run_func() {
 // Return      :  YT_SUCCESS
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::update_prompt_history(const std::string& cmd_prompt) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     m_PromptHistory = m_PromptHistory + std::string("#In[") + std::to_string(m_PromptHistoryCount) + std::string("]\n");
     m_PromptHistory = m_PromptHistory + cmd_prompt + std::string("\n\n");
     m_PromptHistoryCount += 1;
@@ -212,6 +224,8 @@ int func_status_list::update_prompt_history(const std::string& cmd_prompt) {
 }
 
 int func_status_list::clear_prompt_history() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     m_PromptHistory = std::string("");
     m_PromptHistoryCount = 0;
     return YT_SUCCESS;
@@ -233,6 +247,8 @@ int func_status_list::clear_prompt_history() {
 // Return        : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::load_file_func_body(const char *filename) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     int command_len = 500 + strlen(filename);
     char *command = (char*) malloc(command_len * sizeof(char));
     sprintf(command, "for key in libyt.interactive_mode[\"script_globals\"].keys():\n"
@@ -278,6 +294,8 @@ int func_status_list::load_file_func_body(const char *filename) {
 // Return        : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::load_input_func_body(char *code) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // prepare subspace to silent printing from python
     PyObject *py_new_dict = PyDict_New();
     PyDict_SetItemString(py_new_dict, "__builtins__", PyEval_GetBuiltins());
@@ -347,6 +365,8 @@ int func_status_list::load_input_func_body(char *code) {
 // Return        : std::vector<std::string> contains a list of function name defined in filename.
 //-------------------------------------------------------------------------------------------------------
 std::vector<std::string> func_status_list::get_funcname_defined(const char *filename) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     int command_len = 400 + strlen(filename);
     char *command = (char*) malloc(command_len * sizeof(char));
     sprintf(command, "libyt.interactive_mode[\"temp\"] = []\n"
@@ -389,6 +409,8 @@ std::vector<std::string> func_status_list::get_funcname_defined(const char *file
 // Return        :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::set_exception_hook() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     char command[600];
     sprintf(command, "import sys\n"
                      "def mpi_libyt_interactive_mode_excepthook(exception_type, exception_value, tb):\n"
@@ -417,6 +439,8 @@ int func_status_list::set_exception_hook() {
 // Return        :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::init_not_done_err_msg() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     // error msg from not done yet statement to grab
     std::array<std::string, s_NotDone_Num> not_done_statement = { std::string("if 1==1:\n"),
                                                                   std::string("tri = \"\"\"\n"),
@@ -464,6 +488,7 @@ int func_status_list::init_not_done_err_msg() {
 // Return        :  true / false : true for user hasn't done inputting yet.
 //-------------------------------------------------------------------------------------------------------
 bool func_status_list::is_not_done_err_msg() {
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     bool user_not_done = false;
 

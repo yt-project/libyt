@@ -25,10 +25,7 @@
 //-------------------------------------------------------------------------------------------------------
 int yt_set_Parameters( yt_param_yt *param_yt )
 {
-#ifdef SUPPORT_TIMER
-   // start timer.
-   g_timer->record_time("yt_set_Parameters", 0);
-#endif
+   SET_TIMER(__PRETTY_FUNCTION__);
 
 // check if libyt has been initialized
    if ( !LibytProcessControl::Get().libyt_initialized ){
@@ -191,11 +188,6 @@ int yt_set_Parameters( yt_param_yt *param_yt )
    LibytProcessControl::Get().param_yt_set  = true;
    LibytProcessControl::Get().free_gridsPtr = false;
    log_info( "Setting YT parameters ... done.\n" );
-
-#ifdef SUPPORT_TIMER
-   // end timer.
-   g_timer->record_time("yt_set_Parameters", 1);
-#endif
 
    return YT_SUCCESS;
 

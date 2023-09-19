@@ -35,14 +35,10 @@ static void init_general_info();
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
-#ifdef SUPPORT_TIMER
-    // initialize timer
-    char filename[50];
-    sprintf(filename, "RecordTime_%d", g_myrank);
-    g_timer = new Timer(filename);
-    // start timer.
-    g_timer->record_time("yt_initialize", 0);
-#endif
+
+    LibytProcessControl::Get().Initialize();
+
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     // yt_initialize should only be called once
     static int init_count = 0;
@@ -95,22 +91,21 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
 
     LibytProcessControl::Get().libyt_initialized = true;
 
-#ifdef SUPPORT_TIMER
-    // end timer.
-    g_timer->record_time("yt_initialize", 1);
-#endif
-
     return YT_SUCCESS;
 
 } // FUNCTION : yt_initialize
 
 
 static void init_general_info() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     MPI_Comm_size(MPI_COMM_WORLD, &g_mysize);
     MPI_Comm_rank(MPI_COMM_WORLD, &g_myrank);
 }
 
 static void init_yt_long_mpi_type() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     int length[1] = {1};
     const MPI_Aint displacements[1] = {0};
     MPI_Datatype types[1] = {MPI_LONG};
@@ -119,6 +114,8 @@ static void init_yt_long_mpi_type() {
 }
 
 static void init_yt_hierarchy_mpi_type() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     int lengths[7] = {3, 3, 1, 1, 3, 1, 1};
     const MPI_Aint displacements[7] = {0,
                                        3 * sizeof(double),
@@ -133,6 +130,8 @@ static void init_yt_hierarchy_mpi_type() {
 }
 
 static void init_yt_rma_grid_info_mpi_type() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     int lengths[5] = {1, 1, 1, 1, 3};
     const MPI_Aint displacements[5] = {0,
                                        1 * sizeof(long),
@@ -145,6 +144,8 @@ static void init_yt_rma_grid_info_mpi_type() {
 }
 
 static void init_yt_rma_particle_info_mpi_type() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     int lengths[4] = {1, 1, 1, 1};
     const MPI_Aint displacements[4] = {0,
                                        1 * sizeof(long),

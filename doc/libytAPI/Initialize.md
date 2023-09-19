@@ -37,7 +37,7 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt)
 - `long counter` (Default=`0`)
   - Usage: Number of rounds doing inline-analysis, may be useful in restart. We also append this number at the end of the figure name.
 - `bool check_data` (Default=`true`)
-  - Usage: Check the input data (ex: hierarchy, grid information…), if it is true. You should set this to `false` after you have successfully implemented libyt.
+  - Usage: Check the input data (see [Checking Input Data]({% link DebugAndTimeProfiling/CheckingInputData.md%}#checking-input-data)), if it is true. Set this to `false` after you have successfully implemented libyt.
 
 
 

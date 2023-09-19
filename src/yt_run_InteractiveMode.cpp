@@ -26,6 +26,9 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_run_InteractiveMode(const char* flag_file_name) {
+
+    SET_TIMER(__PRETTY_FUNCTION__);
+
 #ifndef INTERACTIVE_MODE
     log_error("Cannot enter interactive prompt. "
               "Please compile libyt with -DINTERACTIVE_MODE\n");
