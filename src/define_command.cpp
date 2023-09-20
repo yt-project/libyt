@@ -140,7 +140,7 @@ int define_command::print_help_msg() {
 //               3. Parse functions in script and add to g_func_status_list. If function name already
 //                  exists in the list, the source code in libyt.interactive_mode["func_body"] will
 //                  be rewritten.
-//               4. Charactar in the file loaded cannot exceed INT_MAX.
+//               4. Character in the file loaded cannot exceed INT_MAX.
 //
 // Arguments  :  const char *filename : file name to reload
 //
@@ -158,10 +158,12 @@ int define_command::load_script(const char *filename) {
         std::ifstream stream;
         stream.open(filename);
         if (!stream) {
+#ifndef SERIAL_MODE
             int temp = -1;
             MPI_Bcast(&temp, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
             printf("File %s doesn't exist.\n", filename);
             printf("Loading script %s ... failed\n", filename);
+#endif
             return YT_FAIL;
         }
         std::string line;
@@ -174,17 +176,22 @@ int define_command::load_script(const char *filename) {
         if (src == NULL) {
             PyErr_Print();
             PyRun_SimpleString("sys.stderr.flush()");
+#ifndef SERIAL_MODE
             int temp = -1;
             MPI_Bcast(&temp, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+#endif
             printf("Loading script %s ... failed\n", filename);
             return YT_FAIL;
         }
 
+#ifndef SERIAL_MODE
         // broadcast when compile successfully
         int script_len = (int) ss.str().length();
         MPI_Bcast(&script_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
         MPI_Bcast(const_cast<char*>(ss.str().c_str()), script_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
+#endif
     }
+#ifndef SERIAL_MODE
     else {
         // get script from file read by root rank, return YT_FAIL if script_len < 0
         int script_len;
@@ -201,6 +208,7 @@ int define_command::load_script(const char *filename) {
 
         free(script);
     }
+#endif
 
     // execute src in script's namespace
     PyObject *global_var = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
