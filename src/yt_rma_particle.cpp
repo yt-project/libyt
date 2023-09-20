@@ -1,3 +1,5 @@
+#ifndef SERIAL_MODE
+
 #include "yt_rma_particle.h"
 #include "yt_combo.h"
 #include "LibytProcessControl.h"
@@ -390,3 +392,5 @@ int yt_rma_particle::get_fetched_data(long *gid, const char **ptype, const char 
 
     return YT_SUCCESS;
 }
+
+#endif

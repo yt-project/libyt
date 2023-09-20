@@ -1,3 +1,5 @@
+#ifndef SERIAL_MODE
+
 #include "yt_rma_field.h"
 #include "yt_combo.h"
 #include "LibytProcessControl.h"
@@ -411,3 +413,5 @@ int yt_rma_field::get_fetched_data(long *gid, const char **fname, yt_dtype *data
 
     return YT_SUCCESS;
 }
+
+#endif

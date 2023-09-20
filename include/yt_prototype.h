@@ -6,6 +6,7 @@
 // include relevant headers
 #include "yt_type.h"
 
+#ifndef SERIAL_MODE
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_hierarchy
 // Description :  Data structure for pass hierarchy of the grid in MPI process, it is meant to be temporary.
@@ -71,6 +72,16 @@ struct yt_rma_particle_info
     int      rank;
 };
 
+int  big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatype *mpi_datatype, void *buffer, int cast_type);
+int  big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_datatype, int cast_type);
+int  big_MPI_Get(void *recv_buff, long data_len, yt_dtype *data_dtype, MPI_Datatype *mpi_dtype, int get_rank, MPI_Aint base_address, MPI_Win *window);
+int  get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype );
+int  check_hierarchy(yt_hierarchy * &hierarchy);
+int  check_sum_num_grids_local_MPI( int NRank, int * &num_grids_local_MPI );
+#else
+int check_hierarchy(yt_grid * &hierarchy);
+#endif
+
 void log_info   ( const char *Format, ... );
 void log_warning( const char *format, ... );
 void log_debug  ( const char *Format, ... );
@@ -79,18 +90,12 @@ int  create_libyt_module();
 int  init_python( int argc, char *argv[] );
 int  init_libyt_module();
 int  allocate_hierarchy();
-int  big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatype *mpi_datatype, void *buffer, int cast_type);
-int  big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_datatype, int cast_type);
-int  big_MPI_Get(void *recv_buff, long data_len, yt_dtype *data_dtype, MPI_Datatype *mpi_dtype, int get_rank, MPI_Aint base_address, MPI_Win *window);
 int  get_npy_dtype( yt_dtype data_type, int *npy_dtype );
-int  get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype );
 int  get_dtype_size( yt_dtype data_type, int *dtype_size );
 int  append_grid( yt_grid *grid );
-int  check_sum_num_grids_local_MPI( int NRank, int * &num_grids_local_MPI );
 int  check_field_list();
 int  check_particle_list();
 int  check_grid();
-int  check_hierarchy(yt_hierarchy * &hierarchy);
 int  check_yt_param_yt(const yt_param_yt &param_yt);
 int  check_yt_grid(const yt_grid &grid);
 int  check_yt_field(const yt_field &field);

@@ -339,6 +339,7 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
 //                2. We return in dictionary objects.
 //                3. We assume that the fname_list passed in has the same fname order in each rank.
 //                4. This function will get all the desired fields and grids.
+//                5. Directly return None if it is in SERIAL_MODE.
 //                
 // Parameter   :  list obj : fname_list   : list of field name to get.
 //                list obj : to_prepare   : list of grid ids you need to prepare.
@@ -350,6 +351,7 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
 static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
     SET_TIMER(__PRETTY_FUNCTION__);
 
+#ifndef SERIAL_MODE
     // Parse the input list arguments by python
     PyObject *arg1; // fname_list, we will make it an iterable object.
     PyObject *py_prepare_grid_id_list;
@@ -468,6 +470,9 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
 
     // Return to Python
     return py_output;
+#else // #ifndef SERIAL_MODE
+    Py_RETURN_NONE;
+#endif // #ifndef SERIAL_MODE
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -478,6 +483,7 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
 //                2. We assume that the list of to-get attribute has the same ptype and attr order in each
 //                   rank.
 //                3. If there are no particles in one grid, then we write Py_None to it.
+//                4. Directly return None if it is in SERIAL_MODE
 //
 // Parameter   :  dict obj : ptf          : {<ptype>: [<attr1>, <attr2>, ...]} particle type and attributes
 //                                          to read.
@@ -490,6 +496,7 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
 static PyObject* libyt_particle_get_particle_remote(PyObject *self, PyObject *args){
     SET_TIMER(__PRETTY_FUNCTION__);
 
+#ifndef SERIAL_MODE
     // Parse the input list arguments by Python
     PyObject *py_ptf_dict;
     PyObject *arg2, *py_ptf_keys;
@@ -641,6 +648,9 @@ static PyObject* libyt_particle_get_particle_remote(PyObject *self, PyObject *ar
 
     // Return.
     return py_output;
+#else // #ifndef SERIAL_MODE
+    Py_RETURN_NONE;
+#endif // #ifndef SERIAL_MODE
 }
 
 //-------------------------------------------------------------------------------------------------------
