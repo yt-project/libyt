@@ -36,7 +36,9 @@
 // standard headers
 #include <stdio.h>
 #include <stdlib.h>
+#ifndef SERIAL_MODE
 #include <mpi.h>
+#endif
 
 
 // libyt headers

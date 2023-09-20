@@ -66,7 +66,6 @@ else
 		CXX     := $(GCC_PATH)/bin/g++
 		LIB     += -L$(GCC_PATH)/lib -L$(GCC_PATH)/lib64
 		RPATH   += -Wl,-rpath,$(GCC_PATH)/lib -Wl,-rpath,$(GCC_PATH)/lib64
-		INCLUDE += -I$(GCC_PATH)/include
 	else
 		CXX := g++
 	endif

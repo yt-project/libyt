@@ -1,3 +1,5 @@
+#ifndef SERIAL_MODE
+
 #include "yt_combo.h"
 #include "libyt.h"
 
@@ -380,3 +382,5 @@ int big_MPI_Get(void *recv_buff, long data_len, yt_dtype *data_dtype, MPI_Dataty
 
     return YT_SUCCESS;
 }
+
+#endif // #ifndef SERIAL_MODE

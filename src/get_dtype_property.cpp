@@ -62,6 +62,8 @@ int get_npy_dtype( yt_dtype data_type, int *npy_dtype ){
 	return YT_SUCCESS;
 }
 
+
+#ifndef SERIAL_MODE
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get_mpi_dtype
 // Description :  Match from yt_dtype YT_* to MPI_Datatype.
@@ -122,6 +124,7 @@ int get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype ){
 
     return YT_SUCCESS;
 }
+#endif
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get_dtype_size
