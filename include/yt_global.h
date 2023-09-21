@@ -54,6 +54,7 @@ SET_GLOBAL( func_status_list,  g_func_status_list, func_status_list(10) );   // 
 
 #endif
 
+#ifndef SERIAL_MODE
 // user-defined MPI data type
 SET_GLOBAL( MPI_Datatype,   yt_long_mpi_type              );
 
@@ -62,7 +63,7 @@ SET_GLOBAL( MPI_Datatype,   yt_hierarchy_mpi_type         );
 SET_GLOBAL( MPI_Datatype,   yt_rma_grid_info_mpi_type     );
 
 SET_GLOBAL( MPI_Datatype,   yt_rma_particle_info_mpi_type );
-
+#endif
 
 // add the prefix "g_py_" for all global Python objects
 #ifndef NO_PYTHON

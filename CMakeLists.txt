@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.15)
 project(LIBYT_PROJECT VERSION 0.1 DESCRIPTION "In situ Python analysis tool using yt")
 
 # set option
-option(SERIAL            "Compile library for serial process" OFF)
+option(SERIAL_MODE       "Compile library for serial process" OFF)
 option(INTERACTIVE_MODE  "Use interactive mode"               OFF)
 option(SUPPORT_TIMER     "Support timer"                      OFF)
 option(BUILD_SHARED_LIBS "Building using shared libraries"    ON )

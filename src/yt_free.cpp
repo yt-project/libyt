@@ -31,8 +31,10 @@ int yt_free() {
                     "even though the inline-analysis procedure has not finished yet!\n");
     }
 
+#ifndef SERIAL_MODE
     // Make sure every rank has reach to this point
     MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
     // Free resource allocated in yt_set_Parameters():
     //    field_list, particle_list, attr_list, num_grids_local_MPI

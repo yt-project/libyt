@@ -95,9 +95,9 @@ int yt_commit()
       }
    }
 
-// Prepare to gather full hierarchy from different rank to root rank.
    int RootRank = 0;
 
+#ifndef SERIAL_MODE
 // initialize hierarchy array, prepare for collecting hierarchy in different ranks.
    yt_hierarchy *hierarchy_full, *hierarchy_local;
 
@@ -115,9 +115,12 @@ int yt_commit()
            if ( g_param_yt.num_grids_local > 0 ) particle_count_list_local[s] = new long [g_param_yt.num_grids_local];
        }
    }
+#endif
 
+    yt_grid *grids_local = LibytProcessControl::Get().grids_local;
+
+#ifndef SERIAL_MODE
 // move user passed in data to hierarchy_local and particle_count_list_local for later MPI process
-   yt_grid *grids_local = LibytProcessControl::Get().grids_local;
    for (int i = 0; i < g_param_yt.num_grids_local; i = i+1) {
       yt_grid grid = grids_local[i];
       for (int d = 0; d < 3; d = d+1) {
@@ -140,10 +143,15 @@ int yt_commit()
    for (int s=0; s<g_param_yt.num_par_types; s++){
        big_MPI_Gatherv(RootRank, num_grids_local_MPI, (void*)particle_count_list_local[s], &yt_long_mpi_type, (void*)particle_count_list_full[s], 3);
    }
+#endif
 
 // Check that the hierarchy are correct, do the test on RootRank only
    if (g_param_libyt.check_data && g_myrank == RootRank ){
+#ifndef SERIAL_MODE
       if ( check_hierarchy( hierarchy_full ) == YT_SUCCESS ) {
+#else
+      if ( check_hierarchy( grids_local ) == YT_SUCCESS ) {
+#endif
          log_debug("Validating the parent-children relationship ... done!\n");
       }
       else{
@@ -151,6 +159,7 @@ int yt_commit()
       }
    }
 
+#ifndef SERIAL_MODE
 // Not sure if we need this MPI_Barrier
    MPI_Barrier(MPI_COMM_WORLD);
 
@@ -159,7 +168,9 @@ int yt_commit()
    for (int s=0; s<g_param_yt.num_par_types; s++){
        big_MPI_Bcast(RootRank, g_param_yt.num_grids, (void*) particle_count_list_full[s], &yt_long_mpi_type, 3);
    }
+#endif
 
+#ifndef SERIAL_MODE
 // append grid to YT
 // We pass hierarchy to each rank as well.
 // Combine full hierarchy and the grid data that one rank has, otherwise fill in NULL in grid data.
@@ -205,11 +216,22 @@ int yt_commit()
          YT_ABORT("Failed to append grid [ %ld ]!\n", grid_combine.id);
       }
    }
+#else
+   for (long i = 0; i < g_param_yt.num_grids; i = i+1) {
+       if (append_grid( &(grids_local[i]) ) != YT_SUCCESS ) {
+           YT_ABORT("Failed to append grid [%ld]!\n", grids_local[i].id);
+       }
+   }
+#endif
 
    log_debug( "Append grids to libyt.grid_data ... done!\n" );
-   MPI_Barrier( MPI_COMM_WORLD );
 
-   // Freed resource 
+#ifndef SERIAL_MODE
+   MPI_Barrier( MPI_COMM_WORLD );
+#endif
+
+#ifndef SERIAL_MODE
+   // Freed resource
    if ( g_param_yt.num_grids_local > 0 ) delete [] hierarchy_local;
    if ( g_param_yt.num_grids > 0 ) delete [] hierarchy_full;
     if ( g_param_yt.num_par_types > 0 ) {
@@ -221,6 +243,7 @@ int yt_commit()
         delete [] particle_count_list_local;
     }
     delete [] grid_combine.par_count_list;
+#endif
 
     // Free grids_local
     if ( LibytProcessControl::Get().get_gridsPtr && g_param_yt.num_grids_local > 0 ){

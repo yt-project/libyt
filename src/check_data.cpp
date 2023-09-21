@@ -251,7 +251,11 @@ int check_grid(){
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
+#ifndef SERIAL_MODE
 int check_hierarchy(yt_hierarchy * &hierarchy) {
+#else
+int check_hierarchy(yt_grid * &hierarchy) {
+#endif
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Create a search table for matching gid to hierarchy array index

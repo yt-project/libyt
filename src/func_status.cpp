@@ -104,11 +104,13 @@ int func_status::get_status() {
     else m_Status = 1;
     Py_DECREF(py_func_name);
 
+#ifndef SERIAL_MODE
     // mpi reduce, if sum(m_Status) != g_mysize, then some rank must have failed. Now m_Status is global status
     int tot_status = 0;
     MPI_Allreduce(&m_Status, &tot_status, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     if (tot_status != g_mysize) m_Status = 0;
     else m_Status = 1;
+#endif
 
     return m_Status;
 }
@@ -145,7 +147,11 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
         for (int rank=0; rank<g_mysize; rank++) {
             printf("\033[1;36m");                               // set to bold cyan
             printf("%*s", indent_size * indent_level, "");      // indent
+#ifndef SERIAL_MODE
             printf("[ MPI %d ]\n", rank);
+#else
+            printf("[ Process %d ]\n", rank);
+#endif
             printf("\033[0;37m");                               // set to white
 
             // get and print error msg, convert to string
@@ -153,6 +159,7 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
             if (rank == g_myrank) {
                 str_err_msg = std::string(err_msg);
             }
+#ifndef SERIAL_MODE
             else {
                 int tag = rank;
                 int err_msg_len;
@@ -165,6 +172,7 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
                 str_err_msg = std::string(err_msg_remote);
                 free(err_msg_remote);
             }
+#endif
 
             // print out error msg with indent
             std::size_t start_pos = 0;
@@ -190,6 +198,7 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
             fflush(stdout);
         }
     }
+#ifndef SERIAL_MODE
     else {
         int tag = g_myrank;
         int err_msg_len = strlen(err_msg);
@@ -198,6 +207,7 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
     return YT_SUCCESS;
 }
