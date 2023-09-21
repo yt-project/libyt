@@ -16,7 +16,7 @@ INSTALL_PREFIX := $(YOUR_INSTALL_PREFIX)
 OPTIONS :=
 
 # Serial Mode: compile and run libyt without using MPI.
-#OPTIONS := -DSERIAL_MODE
+#OPTIONS += -DSERIAL_MODE
 
 # Interactive Mode: supports reloading inline script, active python prompt and does not halt when
 # error occurs. Require readline library, add READLINE_PATH if it is not inside include search path.
