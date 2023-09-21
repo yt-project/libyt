@@ -17,7 +17,7 @@ function(print_option option_name)
     endif ()
 endfunction()
 
-print_option(SERIAL)
+print_option(SERIAL_MODE)
 print_option(INTERACTIVE_MODE)
 print_option(SUPPORT_TIMER)
 print_option(BUILD_SHARED_LIBS)
@@ -31,6 +31,10 @@ if (INTERACTIVE_MODE)
     target_compile_definitions(yt PUBLIC INTERACTIVE_MODE)
 endif ()
 
+if (SERIAL_MODE)
+    target_compile_definitions(yt PUBLIC SERIAL_MODE)
+endif ()
+
 # compile option
 add_library(libyt_compiler_flags INTERFACE)
 target_compile_features(libyt_compiler_flags INTERFACE cxx_std_11)
@@ -38,18 +42,18 @@ target_compile_features(libyt_compiler_flags INTERFACE cxx_std_11)
 # include dir
 target_include_directories(yt PRIVATE
         ${PROJECT_SOURCE_DIR}/include
-        ${MPI_PATH}/include
+        $<$<NOT:$<BOOL:${SERIAL_MODE}>>:${MPI_PATH}/include>
         ${PYTHON_PATH}/include/python${PYTHON_VERSION}
         ${NUMPY_PATH}/core/include
         $<$<AND:$<BOOL:${INTERACTIVE_MODE}>,$<NOT:$<STREQUAL:${READLINE_PATH},>>>:${READLINE_PATH}/include>)
 
 # link lib
 target_link_directories(yt PRIVATE
-        ${MPI_PATH}/lib              # might not need this
+        $<$<NOT:$<BOOL:${SERIAL_MODE}>>:${MPI_PATH}/lib>
         ${PYTHON_PATH}/lib
         $<$<AND:$<BOOL:${INTERACTIVE_MODE}>,$<NOT:$<STREQUAL:${READLINE_PATH},>>>:${READLINE_PATH}/lib>) # if INTERACTIVE_MODE && READLINE_PATH is set
 target_link_libraries(yt PRIVATE
-        mpi
+        $<$<NOT:$<BOOL:${SERIAL_MODE}>>:mpi>
         python${PYTHON_VERSION}
         $<$<BOOL:${INTERACTIVE_MODE}>:readline>)
 target_link_libraries(yt PUBLIC

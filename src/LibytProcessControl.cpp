@@ -1,4 +1,6 @@
+#ifndef SERIAL_MODE
 #include <mpi.h>
+#endif
 #include <string>
 #include "LibytProcessControl.h"
 
@@ -61,12 +63,17 @@ LibytProcessControl::LibytProcessControl() {
 // Method      :  Public method
 // Description :  Initialize stuff that rely on other stuff
 //
-// Notes       :  1. Initialize MPI rank, MPI size.
+// Notes       :  1. Initialize MPI rank, MPI size. (if not in SERIAL_MODE)
 //                2. Initialize and create libyt profile file. (if SUPPORT_TIMER is set)
 //-------------------------------------------------------------------------------------------------------
 void LibytProcessControl::Initialize() {
+#ifndef SERIAL_MODE
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &my_size);
+#else
+    my_rank = 0;
+    my_size = 1;
+#endif
 
 #ifdef SUPPORT_TIMER
     // Set time profile controller

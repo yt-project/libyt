@@ -9,6 +9,8 @@
 /
 ********************************************************************************/
 
+#ifndef SERIAL_MODE
+
 #include <vector>
 #include "yt_combo.h"
 
@@ -58,6 +60,8 @@ public:
     int clean_up();
     int get_fetched_data(long *gid, const char **ptype, const char **attribute, yt_dtype *data_dtype, long *data_len, void **data_ptr);
 };
+
+#endif
 
 #endif // #ifndef __YT_RMA_PARTICLE_H__
 

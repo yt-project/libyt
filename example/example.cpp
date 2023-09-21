@@ -42,8 +42,10 @@
 #include <string.h>
 #include <math.h>
 #include <typeinfo>
-#include <mpi.h>
 #include <time.h>
+#ifndef SERIAL_MODE
+#include <mpi.h>
+#endif
 
 // ==========================================
 // libyt: 0. include libyt header
@@ -85,9 +87,14 @@ int main(int argc, char *argv[]) {
     int myrank;
     int nrank;
     int RootRank = 0;
+#ifndef SERIAL_MODE
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
     MPI_Comm_size(MPI_COMM_WORLD, &nrank);
+#else
+    myrank = 0;
+    nrank = 1;
+#endif
 
 
     // ==========================================
@@ -129,7 +136,9 @@ int main(int argc, char *argv[]) {
     if (myrank == RootRank) {
         get_randArray(grids_MPI, num_grids);
     }
+#ifndef SERIAL_MODE
     MPI_Bcast(grids_MPI, num_grids, MPI_INT, RootRank, MPI_COMM_WORLD);
+#endif
 
     // count how many local grids are there on this MPI process.
     num_grids_local = 0;
@@ -477,7 +486,9 @@ int main(int argc, char *argv[]) {
     delete[] sim_grids;
     delete[] field_data;
 
+#ifndef SERIAL_MODE
     MPI_Finalize();
+#endif
 
     return EXIT_SUCCESS;
 
@@ -505,12 +516,18 @@ real set_density(const double x, const double y, const double z, const double t,
 // Description :  Assign grids to MPI ranks, value of array[gid] holds MPI process it belongs to
 //-------------------------------------------------------------------------------------------------------
 void get_randArray(int *array, int length) {
+#ifndef SERIAL_MODE
     int NRank;
     MPI_Comm_size(MPI_COMM_WORLD, &NRank);
     srand((unsigned) time(0));
     for (int i = 0; i < length; i = i + 1) {
         array[i] = rand() % NRank;
     }
+#else
+    for (int i = 0; i < length; i = i + 1) {
+        array[i] = 0;
+    }
+#endif
 } // FUNCTION : get_randArray
 
 
