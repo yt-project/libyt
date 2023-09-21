@@ -87,14 +87,14 @@ jobs:
           cd $GITHUB_WORKSPACE/src
           make clean
           make MPI_PATH="${{ env.MPI_PATH }}"
-          make INSTALL_PREFIX="${{ env.LIBYT_PARALLEL_INSTALL_PREFIX }}" install
+          make INSTALL_PREFIX="${{ env.LIBYT_PARALLEL_INSTALL_PATH }}" install
 
       - name: Build libyt -- Serial (GCC)
         run: |
           cd $GITHUB_WORKSPACE/src
           make clean
           make OPTIONS="-DSERIAL_MODE"
-          make INSTALL_PREFIX="${{ env.LIBYT_SERIAL_INSTALL_PREFIX }}" install
+          make INSTALL_PREFIX="${{ env.LIBYT_SERIAL_INSTALL_PATH }}" install
 
       - name: Prepare Test
         run: |
@@ -113,12 +113,12 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/example
           make clean
-          make OPTIONS=-DSERIAL_MODE LIBYT_PATH="${{ env.LIBYT_SERIAL_INSTALL_PREFIX }}"
+          make OPTIONS=-DSERIAL_MODE LIBYT_PATH="${{ env.LIBYT_SERIAL_INSTALL_PATH }}"
           ./example
           
       - name: Test Run and DataIO Test - example - Parallel (MPI 3)
         run: |
           cd $GITHUB_WORKSPACE/example
           make clean
-          make LIBYT_PATH="${{ env.LIBYT_PARALLEL_INSTALL_PREFIX }}" MPI_PATH="${{ env.MPI_PATH }}"
+          make LIBYT_PATH="${{ env.LIBYT_PARALLEL_INSTALL_PATH }}" MPI_PATH="${{ env.MPI_PATH }}"
           OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./example
