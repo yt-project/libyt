@@ -4,6 +4,7 @@ PYTHON_PATH    := $(YOUR_PYTHON_PATH)
 PYTHON_VERSION := $(YOUR_PYTHON_VERSION)
 NUMPY_PATH     := $(YOUR_NUMPY_PATH)
 MPI_PATH       := $(YOUR_MPI_PATH)
+GCC_PATH       := $(YOUR_GCC_PATH)
 READLINE_PATH  := $(YOUR_READLINE_PATH)
 
 # Installation Paths: if not set, it will install to current directory
@@ -13,6 +14,9 @@ INSTALL_PREFIX := $(YOUR_INSTALL_PREFIX)
 # Options
 #######################################################################################################
 OPTIONS :=
+
+# Serial Mode: compile and run libyt without using MPI.
+#OPTIONS += -DSERIAL_MODE
 
 # Interactive Mode: supports reloading inline script, active python prompt and does not halt when
 # error occurs. Require readline library, add READLINE_PATH if it is not inside include search path.
@@ -40,26 +44,39 @@ CC_FILE := yt_initialize.cpp  yt_finalize.cpp  yt_set_Parameters.cpp  yt_run.cpp
            yt_getGridInfo.cpp yt_rma_field.cpp yt_rma_particle.cpp yt_run_InteractiveMode.cpp
 CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp       \
 		   check_data.cpp append_grid.cpp get_dtype_property.cpp big_mpi.cpp func_status.cpp               \
-		   func_status_list.cpp define_command.cpp LibytProcessControl.cpp print_data.cpp
-
-# for testing and performance measuring
-ifeq "$(filter -DSUPPORT_TIMER, $(OPTIONS))" "-DSUPPORT_TIMER"
-CC_FILE += Timer.cpp TimerControl.cpp
-endif
+		   func_status_list.cpp define_command.cpp LibytProcessControl.cpp print_data.cpp                  \
+		   Timer.cpp TimerControl.cpp
 
 
 # flags
 #######################################################################################################
-CXX := $(MPI_PATH)/bin/mpicxx
+LIB     :=
+RPATH   :=
+INCLUDE :=
 
-LIB := -L$(PYTHON_PATH)/lib -lpython$(PYTHON_VERSION)
+# GCC/MPI compiler
+ifneq "$(filter -DSERIAL_MODE, $(OPTIONS))" "-DSERIAL_MODE"
+	CXX := $(MPI_PATH)/bin/mpicxx
+else
+	ifneq ($(GCC_PATH),)
+		CXX     := $(GCC_PATH)/bin/g++
+		LIB     += -L$(GCC_PATH)/lib -L$(GCC_PATH)/lib64
+		RPATH   += -Wl,-rpath,$(GCC_PATH)/lib -Wl,-rpath,$(GCC_PATH)/lib64
+	else
+		CXX := g++
+	endif
+endif
 
-RPATH := -Wl,-rpath,$(PYTHON_PATH)/lib
+# libyt include
+INCLUDE += -I../include
 
-INCLUDE := -I../include -I$(PYTHON_PATH)/include/python$(PYTHON_VERSION) \
-           -I$(NUMPY_PATH)/core/include \
-           -I$(MPI_PATH)/include
+# Python, NumPy
+LIB     += -L$(PYTHON_PATH)/lib -lpython$(PYTHON_VERSION)
+RPATH   += -Wl,-rpath,$(PYTHON_PATH)/lib
+INCLUDE += -I$(PYTHON_PATH)/include/python$(PYTHON_VERSION) \
+           -I$(NUMPY_PATH)/core/include
 
+# readline
 ifeq "$(filter -DINTERACTIVE_MODE, $(OPTIONS))" "-DINTERACTIVE_MODE"
 	ifneq ($(READLINE_PATH),)
 		LIB     += -L$(READLINE_PATH)/lib

@@ -166,6 +166,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
       g_param_yt.num_grids_local = 0;
    }
 
+#ifndef SERIAL_MODE
    // Gather num_grids_local in every rank and store at num_grids_local_MPI, with "MPI_Gather"
    // We need num_grids_local_MPI in MPI_Gatherv in yt_commit()
    int NRank;
@@ -183,6 +184,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
          YT_ABORT("Check sum of local grids in each MPI rank failed in %s!\n", __FUNCTION__);
       }
    }
+#endif
 
 // If the above all works like charm.
    LibytProcessControl::Get().param_yt_set  = true;

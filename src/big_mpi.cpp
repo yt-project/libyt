@@ -1,3 +1,5 @@
+#ifndef SERIAL_MODE
+
 #include "yt_combo.h"
 #include "libyt.h"
 
@@ -14,7 +16,9 @@
 //                       1          yt_rma_grid_info
 //                       2          yt_rma_particle_info
 //                       3          long
-//                TODO: Using function templates
+//                3. TODO: Though this looks stupid, we need this cast_type to bind with mpi.
+//                         We can use template, but eventually we still need if ... to determine what to cast to.
+//                         I will update this once I update that stupid dtype system
 //
 // Parameter   :  int            RootRank     : Root rank.
 //                int           *sendcounts   : Send counts in each rank.
@@ -380,3 +384,5 @@ int big_MPI_Get(void *recv_buff, long data_len, yt_dtype *data_dtype, MPI_Dataty
 
     return YT_SUCCESS;
 }
+
+#endif // #ifndef SERIAL_MODE
