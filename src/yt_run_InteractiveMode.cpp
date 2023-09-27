@@ -79,7 +79,9 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     // make sure every rank has reach here
     fflush(stdout);
     fflush(stderr);
+#ifndef SERIAL_MODE
     MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
     // enter interactive loop
     while (!done) {
@@ -90,7 +92,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
             if (input_line == NULL) continue;
 
             if (prompt == ps1) {
-                // check if it contains spaces only or null line if prompt >>>, otherwise python will counted as
+                // check if it contains spaces only or null line if prompt >>>, otherwise python will count as
                 // not finished yet.
                 long first_char = -1;
                 for (long i=0; i<(long)strlen(input_line); i++) {
@@ -106,15 +108,19 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
 
                 // assume it was libyt defined command if the first char is '%'
                 if (input_line[first_char] == '%') {
+#ifndef SERIAL_MODE
                     // tell other ranks no matter if it is valid, even though not all libyt command are collective
                     input_len = (int) strlen(input_line) - first_char;
                     MPI_Bcast(&input_len, 1, MPI_INT, root, MPI_COMM_WORLD);
                     MPI_Bcast(&(input_line[first_char]), input_len, MPI_CHAR, root, MPI_COMM_WORLD);
+#endif
 
                     // run libyt command
                     define_command command(&(input_line[first_char]));
                     done = command.run();
+#ifndef SERIAL_MODE
                     MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
                     // clean up
                     free(input_line);
@@ -139,10 +145,12 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
             // case 1: it works fine, ready to run
             if (src != NULL) {
                 if (prompt == ps1 || code[code_len + input_len - 1] == '\n') {
+#ifndef SERIAL_MODE
                     // broadcast to other ranks, code character num no longer than INT_MAX
                     int temp = (int) strlen(code);
                     MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
                     MPI_Bcast(code, strlen(code), MPI_CHAR, root, MPI_COMM_WORLD);
+#endif
 
                     // run code
                     dum = PyEval_EvalCode(src, global_var, global_var);
@@ -168,7 +176,9 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                     // wait till every rank is done
                     fflush(stdout);
                     fflush(stderr);
+#ifndef SERIAL_MODE
                     MPI_Barrier(MPI_COMM_WORLD);
+#endif
                 }
             }
             // case 2: not finish yet
@@ -191,6 +201,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
             Py_XDECREF(src);
             free(input_line);
         }
+#ifndef SERIAL_MODE
         // other ranks: get and execute python line from root
         else {
             // get code; additional 1 for '\0'
@@ -226,7 +237,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
             fflush(stderr);
             MPI_Barrier(MPI_COMM_WORLD);
         }
-
+#endif // #ifndef SERIAL_MODE
     }
 
     return YT_SUCCESS;

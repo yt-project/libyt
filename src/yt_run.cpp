@@ -52,8 +52,10 @@ int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
     g_func_status_list[func_index].set_status(-2);
 #endif
 
+#ifndef SERIAL_MODE
     // start running inline function when every rank come to this stage.
     MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
     // join function name and input arguments and
     // detect whether to use ''' or """ to wrap the function with arguments (default uses """ to wrap)
@@ -185,8 +187,10 @@ int yt_run_Function(const char *function_name) {
     g_func_status_list[func_index].set_status(-2);
 #endif
 
+#ifndef SERIAL_MODE
     // start running inline function when every rank come to this stage.
     MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
     // join function into string wrapped by exec()
     std::string str_function(std::string(function_name) + std::string("()"));

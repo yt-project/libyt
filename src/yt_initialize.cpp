@@ -8,16 +8,13 @@
 #include "LibytProcessControl.h"
 #include "libyt.h"
 
-static void init_yt_long_mpi_type();
-
-static void init_yt_hierarchy_mpi_type();
-
-static void init_yt_rma_grid_info_mpi_type();
-
-static void init_yt_rma_particle_info_mpi_type();
-
 static void init_general_info();
-
+#ifndef SERIAL_MODE
+static void init_yt_long_mpi_type();
+static void init_yt_hierarchy_mpi_type();
+static void init_yt_rma_grid_info_mpi_type();
+static void init_yt_rma_particle_info_mpi_type();
+#endif
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_initialize
@@ -26,7 +23,7 @@ static void init_general_info();
 // Note        :  1. Input "param_libyt" will be backed up to a libyt global variable
 //                2. This function should not be called more than once (even if yt_finalize has been called)
 //                   since some extensions (e.g., NumPy) may not work properly.
-//                3. Initialize general info and user-defined MPI data type.
+//                3. Initialize general info, user-defined MPI data type, and LibytProcessControl
 //
 // Parameter   :  argc        : Argument count
 //                argv        : Argument vector
@@ -77,11 +74,13 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
     // import libyt and inline python script.
     if (init_libyt_module() == YT_FAIL) return YT_FAIL;
 
+#ifndef SERIAL_MODE
     // Initialize user-defined MPI data type
     init_yt_long_mpi_type();
     init_yt_hierarchy_mpi_type();
     init_yt_rma_grid_info_mpi_type();
     init_yt_rma_particle_info_mpi_type();
+#endif
 
     // set python exception hook and set not-yet-done error msg
 #ifdef INTERACTIVE_MODE
@@ -95,14 +94,19 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
 
 } // FUNCTION : yt_initialize
 
-
 static void init_general_info() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
+#ifndef SERIAL_MODE
     MPI_Comm_size(MPI_COMM_WORLD, &g_mysize);
     MPI_Comm_rank(MPI_COMM_WORLD, &g_myrank);
+#else
+    g_mysize = 1;
+    g_myrank = 0;
+#endif
 }
 
+#ifndef SERIAL_MODE
 static void init_yt_long_mpi_type() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -155,3 +159,4 @@ static void init_yt_rma_particle_info_mpi_type() {
     MPI_Type_create_struct(4, lengths, displacements, types, &yt_rma_particle_info_mpi_type);
     MPI_Type_commit(&yt_rma_particle_info_mpi_type);
 }
+#endif
