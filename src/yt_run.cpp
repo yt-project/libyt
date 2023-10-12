@@ -141,7 +141,13 @@ int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
     g_func_status_list[func_index].get_status();
 #endif
 
+#ifdef INTERACTIVE_MODE
+    log_info("Performing YT inline analysis %s ... %s.\n",
+             str_function.c_str(),
+             (g_func_status_list[func_index].get_status() == 1) ? "done" : "failed");
+#else
     log_info("Performing YT inline analysis %s ... done.\n", str_function.c_str());
+#endif
 
     return YT_SUCCESS;
 }
@@ -225,7 +231,13 @@ int yt_run_Function(const char *function_name) {
     g_func_status_list[func_index].get_status();
 #endif
 
+#ifdef INTERACTIVE_MODE
+    log_info("Performing YT inline analysis %s ... %s.\n",
+             str_function.c_str(),
+             (g_func_status_list[func_index].get_status() == 1) ? "done" : "failed");
+#else
     log_info("Performing YT inline analysis %s ... done.\n", str_function.c_str());
+#endif
 
     return YT_SUCCESS;
 }
