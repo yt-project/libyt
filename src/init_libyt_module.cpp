@@ -1,6 +1,8 @@
-#include "yt_combo.h"
-#include <string.h>
+#include <sys/stat.h>
+#include <fstream>
+#include <cstring>
 #include <string>
+#include "yt_combo.h"
 #include "yt_rma_field.h"
 #include "yt_rma_particle.h"
 #include "yt_type_array.h"
@@ -785,13 +787,32 @@ int init_libyt_module()
    else
       YT_ABORT(  "Import libyt module ... failed!\n" );
 
+// check if script exist
+   if (g_myrank == 0) {
+       struct stat buffer;
+       std::string script_fullname = std::string(g_param_libyt.script) + std::string(".py");
+       if (stat(script_fullname.c_str(), &buffer) == 0) {
+           log_debug("Finding user script %s ... done\n", script_fullname.c_str());
+       }
+       else {
+           log_info("Unable to find user script %s, creating one ...\n", script_fullname.c_str());
+           std::ofstream python_script(script_fullname.c_str());
+           python_script.close();
+           log_info("Creating empty user script %s ... done\n", script_fullname.c_str());
+       }
+   }
+
+#ifndef SERIAL_MODE
+   MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
 // import YT inline analysis script
    int command_width = 8 + strlen( g_param_libyt.script );   // 8 = "import " + '\0'
    char *command = (char*) malloc( command_width * sizeof(char) );
    sprintf( command, "import %s", g_param_libyt.script );
 
    if ( PyRun_SimpleString( command ) == 0 )
-      log_debug( "Importing YT inline analysis script \"%s\" ... done\n", g_param_libyt.script );
+      log_info( "Importing YT inline analysis script \"%s\" ... done\n", g_param_libyt.script );
    else
       YT_ABORT(  "Importing YT inline analysis script \"%s\" ... failed (please do not include the \".py\" extension)!\n",
                 g_param_libyt.script );
