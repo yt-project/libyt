@@ -2,6 +2,7 @@
 
 #include "yt_combo.h"
 #include <string.h>
+#include <iostream>
 #include "func_status_list.h"
 
 
@@ -482,12 +483,13 @@ int func_status_list::init_not_done_err_msg() {
 //                  4. s_NotDone_ErrMsg's and s_NotDone_PyErr's elements are one-to-one relationship. Make
 //                     sure to go through every element, since some of them might have error of same type
 //                     but with different err msg.
+//                  5. IndentationError needs extra care, because it is sometimes caused by real error.
 //
 // Arguments     :  None
 //
 // Return        :  true / false : true for user hasn't done inputting yet.
 //-------------------------------------------------------------------------------------------------------
-bool func_status_list::is_not_done_err_msg() {
+bool func_status_list::is_not_done_err_msg(const char *code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     bool user_not_done = false;

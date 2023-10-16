@@ -182,7 +182,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                 }
             }
             // case 2: not finish yet
-            else if (func_status_list::is_not_done_err_msg()) {
+            else if (func_status_list::is_not_done_err_msg(code)) {
                 // code not complete yet, switch prompt to ps2
                 prompt = ps2;
             }
