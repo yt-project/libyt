@@ -34,7 +34,7 @@ public:
     std::string& get_prompt_history() { return m_PromptHistory; };
 
     static int load_file_func_body(const char *filename);
-    static int load_input_func_body(char *code);
+    static int load_input_func_body(const char *code);
     static std::vector<std::string> get_funcname_defined(const char *filename);
     static int set_exception_hook();
     static int init_not_done_err_msg();

@@ -293,7 +293,7 @@ int func_status_list::load_file_func_body(const char *filename) {
 //
 // Return        : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int func_status_list::load_input_func_body(char *code) {
+int func_status_list::load_input_func_body(const char *code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // prepare subspace to silent printing from python
