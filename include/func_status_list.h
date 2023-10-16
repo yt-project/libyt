@@ -38,7 +38,7 @@ public:
     static std::vector<std::string> get_funcname_defined(const char *filename);
     static int set_exception_hook();
     static int init_not_done_err_msg();
-    static bool is_not_done_err_msg();
+    static bool is_not_done_err_msg(const char *code);
 };
 
 
