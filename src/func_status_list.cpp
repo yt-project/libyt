@@ -189,6 +189,7 @@ int func_status_list::run_func() {
             m_FuncStatusList[i].set_status(-2);
             if (PyRun_SimpleString(command) != 0) {
                 m_FuncStatusList[i].set_status(0);
+                free(command);
                 YT_ABORT("Unexpected error occurred while executing %s(%s) in script's namespace.\n",
                          funcname, m_FuncStatusList[i].get_args().c_str());
             }
