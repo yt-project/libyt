@@ -813,9 +813,12 @@ int init_libyt_module()
 
    if ( PyRun_SimpleString( command ) == 0 )
       log_info( "Importing YT inline analysis script \"%s\" ... done\n", g_param_libyt.script );
-   else
-      YT_ABORT(  "Importing YT inline analysis script \"%s\" ... failed (please do not include the \".py\" extension)!\n",
-                g_param_libyt.script );
+   else {
+       free(command);
+       YT_ABORT(
+               "Importing YT inline analysis script \"%s\" ... failed (please do not include the \".py\" extension)!\n",
+               g_param_libyt.script);
+   }
 
    free( command );
 
