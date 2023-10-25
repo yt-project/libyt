@@ -225,6 +225,10 @@ int add_dict_field_list(){
       // Append "field_unit" to "info_list"
       val = PyUnicode_FromString((field_list)[i].field_unit);
       if ( PyList_Append(info_list, val) != 0 ){
+         Py_DECREF(field_list_dict);
+         Py_DECREF(field_info_dict);
+         Py_DECREF(info_list);
+         Py_XDECREF(val);
          YT_ABORT("In field_name == %s, field_unit == %s, failed to append %s to list!\n", 
                    (field_list)[i].field_name, (field_list)[i].field_unit, "field_unit");
       }
@@ -235,20 +239,32 @@ int add_dict_field_list(){
       for (int j = 0; j < (field_list)[i].num_field_name_alias; j++){
          val = PyUnicode_FromString( (field_list)[i].field_name_alias[j] );
          if ( PyList_Append(name_alias_list, val) != 0 ){
+            Py_DECREF(field_list_dict);
+            Py_DECREF(field_info_dict);
+            Py_DECREF(info_list);
+            Py_DECREF(name_alias_list);
+            Py_XDECREF(val);
             YT_ABORT("In field_name == %s, field_name_alias == %s, failed to append %s to list!\n",
                       (field_list)[i].field_name, (field_list)[i].field_name_alias[j], "field_name_alias");
          }
          Py_DECREF( val );
       }
       if ( PyList_Append(info_list, name_alias_list) != 0 ){
+         Py_DECREF(field_list_dict);
+         Py_DECREF(field_info_dict);
+         Py_DECREF(info_list);
+         Py_DECREF(name_alias_list);
          YT_ABORT("In field_name == %s, failed to append name_alias_list to list!\n", (field_list)[i].field_name);
       }
       Py_DECREF( name_alias_list );
 
       // Load "field_display_name" to "info_list"
       // If field_display_name == NULL, load Py_None.
-      if ( (field_list)[i].field_display_name == NULL ){
+      if ( (field_list)[i].field_display_name == nullptr ){
          if ( PyList_Append( info_list, Py_None ) != 0 ){
+            Py_DECREF(field_list_dict);
+            Py_DECREF(field_info_dict);
+            Py_DECREF(info_list);
             YT_ABORT("In field_name == %s, field_display_name == NULL, failed to append Py_None to list!\n", 
                       (field_list)[i].field_name);
          }
@@ -256,6 +272,10 @@ int add_dict_field_list(){
       else {
          val = PyUnicode_FromString( (field_list)[i].field_display_name );
          if ( PyList_Append( info_list, val ) != 0 ){
+            Py_DECREF(field_list_dict);
+            Py_DECREF(field_info_dict);
+            Py_DECREF(info_list);
+            Py_XDECREF(val);
             YT_ABORT("In field_name == %s, field_display_name == %s, failed to append %s to list!\n", 
                       (field_list)[i].field_name, (field_list)[i].field_display_name, "field_display_name");
          }
@@ -264,6 +284,9 @@ int add_dict_field_list(){
 
       // Insert "info_list" to "field_info_dict" with key "attribute"
       if ( PyDict_SetItemString(field_info_dict, "attribute", info_list) != 0 ){
+         Py_DECREF(field_list_dict);
+         Py_DECREF(field_info_dict);
+         Py_DECREF(info_list);
          YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair ['attribute']-[info_list] failed!\n", 
                    (field_list)[i].field_name);
       }
@@ -272,20 +295,27 @@ int add_dict_field_list(){
       // Load "field_type" to "field_info_dict".
       val = PyUnicode_FromString((field_list)[i].field_type);
       if ( PyDict_SetItemString(field_info_dict, "field_type", val) != 0 ){
+         Py_DECREF(field_list_dict);
+         Py_DECREF(field_info_dict);
+         Py_XDECREF(val);
          YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n", 
                    (field_list)[i].field_name, "field_type", (field_list)[i].field_type);
       }
       Py_DECREF( val );
 
       // Load "contiguous_in_x" to "field_info_dict".
-      if ( (field_list)[i].contiguous_in_x == true ){
+      if ((field_list)[i].contiguous_in_x){
          if ( PyDict_SetItemString( field_info_dict, "contiguous_in_x", Py_True) != 0 ){
+            Py_DECREF(field_list_dict);
+            Py_DECREF(field_info_dict);
             YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ true ] failed!\n", 
                       (field_list)[i].field_name, "contiguous_in_x");
          }
       } 
       else {
          if ( PyDict_SetItemString( field_info_dict, "contiguous_in_x", Py_False) != 0 ){
+            Py_DECREF(field_list_dict);
+            Py_DECREF(field_info_dict);
             YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ false ] failed!\n",
                       (field_list)[i].field_name, "contiguous_in_x");
          }
@@ -293,15 +323,22 @@ int add_dict_field_list(){
 
       // Load "ghost_cell" to "field_info_dict"
       PyObject *ghost_cell_list = PyList_New(0);
-      for(int d = 0; d < 6; d++){
+      for (int d = 0; d < 6; d++){
           val = PyLong_FromLong((long) (field_list)[i].field_ghost_cell[d] );
           if( PyList_Append( ghost_cell_list, val ) != 0 ){
+              Py_DECREF(field_list_dict);
+              Py_DECREF(field_info_dict);
+              Py_DECREF(ghost_cell_list);
+              Py_XDECREF(val);
               YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], failed to append ghost cell to list!\n",
                        (field_list)[i].field_name);
           }
           Py_DECREF(val);
       }
       if( PyDict_SetItemString( field_info_dict, "ghost_cell", ghost_cell_list ) != 0 ){
+          Py_DECREF(field_list_dict);
+          Py_DECREF(field_info_dict);
+          Py_DECREF(ghost_cell_list);
           YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ list obj ] failed!\n",
                    (field_list)[i].field_name, "ghost_cell");
       }
@@ -310,6 +347,9 @@ int add_dict_field_list(){
       // Load "field_info_dict" to "field_list_dict", with key = field_name
       key = PyUnicode_FromString( (field_list)[i].field_name );
       if ( PyDict_SetItem( field_list_dict, key, field_info_dict) != 0 ){
+         Py_DECREF(field_list_dict);
+         Py_DECREF(field_info_dict);
+         Py_XDECREF(key);
          YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s] failed to add dictionary!\n", (field_list)[i].field_name);
       }
       Py_DECREF( key );
@@ -319,6 +359,7 @@ int add_dict_field_list(){
    }
 
    if ( PyDict_SetItemString( g_py_param_yt, "field_list", field_list_dict ) != 0 ){
+      Py_DECREF(field_list_dict);
       YT_ABORT( "Inserting dictionary [field_list] to libyt.param_yt ... failed!\n");
    }
 
