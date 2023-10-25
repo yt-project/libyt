@@ -105,6 +105,8 @@ static int set_field_data( yt_grid *grid ) {
                       grid->id, field_list[v].field_name);
         }
         else{
+            Py_DECREF(py_grid_id);
+            Py_DECREF(py_field_labels);
             YT_ABORT("Grid ID [ %ld ], field data [ %s ], cannot get the NumPy enumerate type properly.\n",
                      grid->id, field_list[v].field_name);
         }
@@ -127,6 +129,8 @@ static int set_field_data( yt_grid *grid ) {
         // See if all data_dimensions > 0, abort if not.
         for (int d = 0; d < 3; d++){
             if ( (grid->field_data)[v].data_dimensions[d] <= 0 ){
+                Py_DECREF(py_grid_id);
+                Py_DECREF(py_field_labels);
                 YT_ABORT("Grid ID [ %ld ], field data [ %s ], data_dimensions[%d] = %d <= 0.\n",
                          grid->id, field_list[v].field_name, d, (grid->field_data)[v].data_dimensions[d]);
             }

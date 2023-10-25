@@ -37,8 +37,10 @@ int allocate_hierarchy()
       np_dim[1] = (npy_intp)DIM1;                                                      \
       py_obj    = PyArray_SimpleNew( 2, np_dim, TYPE );                                \
                                                                                        \
-      if ( PyDict_SetItemString( g_py_hierarchy, KEY, py_obj ) != 0 )                  \
+      if ( PyDict_SetItemString( g_py_hierarchy, KEY, py_obj ) != 0 ) {                 \
+         Py_XDECREF(py_obj);                                                           \
          YT_ABORT( "Inserting the key \"%s\" to libyt.hierarchy ... failed!\n", KEY ); \
+      }                                                                                \
                                                                                        \
       Py_DECREF( py_obj );                                                             \
    }
