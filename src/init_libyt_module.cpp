@@ -699,7 +699,7 @@ static PyObject* PyInit_libyt(void)
 
   // Create libyt module
   PyObject *libyt_module = PyModule_Create( &libyt_module_definition );
-  if ( libyt_module != NULL ){
+  if ( libyt_module != nullptr ){
     log_debug( "Creating libyt module ... done\n" );
   }
   else {
