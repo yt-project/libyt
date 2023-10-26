@@ -117,7 +117,7 @@ int yt_rma_field::prepare_data(long& gid)
     }
 
     // Get data dimensions, data type, and data pointer
-    void *data_ptr = NULL;
+    void *data_ptr = nullptr;
     if ( strcmp(m_FieldDefineType, "derived_func") == 0 ) {
         // get data dimensions
         int grid_dimensions[3];
@@ -166,12 +166,13 @@ int yt_rma_field::prepare_data(long& gid)
         yt_array data_array[1];
         data_array[0].gid = gid; data_array[0].data_length = gridLength; data_array[0].data_ptr = data_ptr;
 
-        if ( LibytProcessControl::Get().field_list[m_FieldIndex].derived_func != NULL ){
+        if ( LibytProcessControl::Get().field_list[m_FieldIndex].derived_func != nullptr ){
             void (*derived_func) (const int, const long*, const char*, yt_array*);
             derived_func = LibytProcessControl::Get().field_list[m_FieldIndex].derived_func;
             (*derived_func) (list_length, list_gid, m_FieldName, data_array);
         }
         else{
+            free(data_ptr);
             YT_ABORT("yt_rma_field: In field [%s], field_type == %s, but derived_func not set!\n",
                      m_FieldName, m_FieldDefineType);
         }
@@ -193,9 +194,10 @@ int yt_rma_field::prepare_data(long& gid)
     // Attach buffer to window.
     int size;
     if( get_dtype_size( grid_info.data_dtype, &size ) != YT_SUCCESS ){
+        if ( strcmp(m_FieldDefineType, "derived_func") == 0 ) free(data_ptr);
         YT_ABORT("yt_rma_field: Unknown data type.\n");
     }
-    if( data_ptr == NULL ){
+    if( data_ptr == nullptr ){
         YT_ABORT("yt_rma_field: Unable to get GID [%ld] field [%s] data.\n", gid, m_FieldName);
     }
 
@@ -203,11 +205,13 @@ int yt_rma_field::prepare_data(long& gid)
     if( mpi_return_code != MPI_SUCCESS ){
         log_error("yt_rma_field: attach data buffer to one-sided MPI (RMA) window failed!\n");
         log_error("yt_rma_field: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
+        if ( strcmp(m_FieldDefineType, "derived_func") == 0 ) free(data_ptr);
         YT_ABORT("yt_rma_field: Attach buffer to window failed.\n");
     }
 
     // Get the address of the attached buffer.
     if( MPI_Get_address(data_ptr, &(grid_info.address)) != MPI_SUCCESS ){
+        if ( strcmp(m_FieldDefineType, "derived_func") == 0 ) free(data_ptr);
         YT_ABORT("yt_rma_field: Get attached buffer address failed.\n");
     }
 
@@ -313,7 +317,7 @@ int yt_rma_field::fetch_remote_data(long& gid, int& rank)
             break;
         }
     }
-    if( get_remote_grid != true ){
+    if(!get_remote_grid){
         YT_ABORT("yt_rma_field: Cannot get remote grid id [ %ld ] located in rank [ %d ] on MPI rank [ %d ].\n",
                  gid, rank, g_myrank);
     }
