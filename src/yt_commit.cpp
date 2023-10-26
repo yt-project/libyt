@@ -155,6 +155,18 @@ int yt_commit()
          log_debug("Validating the parent-children relationship ... done!\n");
       }
       else{
+#ifndef SERIAL_MODE
+         if ( g_param_yt.num_grids > 0 ) delete [] hierarchy_full;
+         if ( g_param_yt.num_grids_local > 0 ) delete [] hierarchy_local;
+         if ( g_param_yt.num_par_types > 0 ) {
+             delete [] particle_count_list_full;
+             delete [] particle_count_list_local;
+             for (int s=0; s<g_param_yt.num_par_types; s++){
+                 if ( g_param_yt.num_grids > 0 ) delete [] particle_count_list_full[s];
+                 if ( g_param_yt.num_grids_local > 0 ) delete [] particle_count_list_local[s];
+             }
+         }
+#endif
          YT_ABORT("Validating the parent-children relationship ... failed!\n")
       }
    }
@@ -207,12 +219,23 @@ int yt_commit()
       }
       else {
          // Make it points to NULL
-         grid_combine.field_data = NULL;
-         grid_combine.particle_data = NULL;
+         grid_combine.field_data = nullptr;
+         grid_combine.particle_data = nullptr;
       }
 
       // Append grid to YT
       if ( append_grid( &grid_combine ) != YT_SUCCESS ){
+         if ( g_param_yt.num_grids > 0 ) delete [] hierarchy_full;
+         if ( g_param_yt.num_grids_local > 0 ) delete [] hierarchy_local;
+         if ( g_param_yt.num_par_types > 0 ) {
+             delete [] particle_count_list_full;
+             delete [] particle_count_list_local;
+             for (int s=0; s<g_param_yt.num_par_types; s++){
+                 if ( g_param_yt.num_grids > 0 ) delete [] particle_count_list_full[s];
+                 if ( g_param_yt.num_grids_local > 0 ) delete [] particle_count_list_local[s];
+             }
+         }
+         delete [] grid_combine.par_count_list;
          YT_ABORT("Failed to append grid [ %ld ]!\n", grid_combine.id);
       }
    }
