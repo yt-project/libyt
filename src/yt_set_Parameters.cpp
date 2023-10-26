@@ -114,7 +114,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
 
 
 // fill libyt.hierarchy with NumPy arrays allocated but uninitialized
-   if ( allocate_hierarchy() )
+   if ( allocate_hierarchy() == YT_SUCCESS )
       log_debug( "Allocating libyt.hierarchy ... done\n" );
    else
       YT_ABORT(  "Allocating libyt.hierarchy ... failed!\n" );
