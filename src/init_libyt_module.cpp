@@ -620,7 +620,7 @@ static PyObject* libyt_particle_get_particle_remote(PyObject *self, PyObject *ar
                 if( get_data_len == 0 ){
                     PyDict_SetItemString(py_attribute_dict, get_attr, Py_None);
                 }
-                else if ( get_data_len > 0 && get_data_ptr != NULL ) {
+                else if ( get_data_len > 0 && get_data_ptr != nullptr ) {
                     int nd = 1;
                     int npy_type;
                     npy_intp dims[1] = { get_data_len };
