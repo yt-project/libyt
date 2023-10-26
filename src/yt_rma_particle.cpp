@@ -135,7 +135,7 @@ int yt_rma_particle::prepare_data(long& gid)
     }
 
     // Get particle data
-    void *data_ptr = NULL;
+    void *data_ptr = nullptr;
     par_info.address = NULL;
     int dtype_size;
     bool to_free = false;
@@ -156,7 +156,7 @@ int yt_rma_particle::prepare_data(long& gid)
             // Generate particle data through get_par_attr function pointer, if we cannot find it in libyt.particle_data
             void (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*);
             get_par_attr = LibytProcessControl::Get().particle_list[m_ParticleIndex].get_par_attr;
-            if( get_par_attr == NULL ){
+            if( get_par_attr == nullptr ){
                 YT_ABORT("yt_rma_particle: Particle type [%s], get_par_attr not set!\n", m_ParticleType);
             }
 
@@ -175,12 +175,14 @@ int yt_rma_particle::prepare_data(long& gid)
         if (mpi_return_code != MPI_SUCCESS) {
             log_error("yt_rma_particle: attach data buffer to one-sided MPI (RMA) window failed!\n");
             log_error("yt_rma_particle: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\"\n");
+            if (to_free) free(data_ptr);
             YT_ABORT("yt_rma_particle: Attach particle [%s] attribute [%s] to window failed!\n",
                      m_ParticleType, m_AttributeName);
         }
 
         // Get the address of the attached buffer.
         if( MPI_Get_address(data_ptr, &(par_info.address)) != MPI_SUCCESS ){
+            if (to_free) free(data_ptr);
             YT_ABORT("yt_rma_particle: Get attached particle [%s] attribute [%s] buffer address failed!\n",
                      m_ParticleType, m_AttributeName);
         }
@@ -298,7 +300,7 @@ int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
         }
     }
     else{
-        fetchedData = NULL;
+        fetchedData = nullptr;
     }
 
     // Push back to m_Fetched, m_FetchedData.
