@@ -190,12 +190,7 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
 
     // get NumPy data dtype, and convert to YT_DTYPE.
     PyArray_Descr *py_array_info = PyArray_DESCR(py_array_obj);
-    if ((py_array_info->type_num) == NPY_FLOAT)           (*field_data).data_dtype = YT_FLOAT;
-    else if ((py_array_info->type_num) == NPY_DOUBLE)     (*field_data).data_dtype = YT_DOUBLE;
-    else if ((py_array_info->type_num) == NPY_LONGDOUBLE) (*field_data).data_dtype = YT_LONGDOUBLE;
-    else if ((py_array_info->type_num) == NPY_INT)        (*field_data).data_dtype = YT_INT;
-    else if ((py_array_info->type_num) == NPY_LONG)       (*field_data).data_dtype = YT_LONG;
-    else {
+    if (get_yt_dtype_from_npy(py_array_info->type_num, &(*field_data).data_dtype) != YT_SUCCESS) {
         YT_ABORT("No matching yt_dtype for NumPy data type num [%d].\n", py_array_info->type_num);
     }
 
@@ -262,12 +257,7 @@ int yt_getGridInfo_ParticleData(const long gid, const char *ptype, const char *a
     (*par_data).data_ptr = PyArray_DATA(py_data);
 
     PyArray_Descr *py_data_info = PyArray_DESCR(py_data);
-    if ((py_data_info->type_num) == NPY_FLOAT)           (*par_data).data_dtype = YT_FLOAT;
-    else if ((py_data_info->type_num) == NPY_DOUBLE)     (*par_data).data_dtype = YT_DOUBLE;
-    else if ((py_data_info->type_num) == NPY_LONGDOUBLE) (*par_data).data_dtype = YT_LONGDOUBLE;
-    else if ((py_data_info->type_num) == NPY_INT)        (*par_data).data_dtype = YT_INT;
-    else if ((py_data_info->type_num) == NPY_LONG)       (*par_data).data_dtype = YT_LONG;
-    else {
+    if (get_yt_dtype_from_npy(py_data_info->type_num, &(*par_data).data_dtype) != YT_SUCCESS ) {
         YT_ABORT("No matching yt_dtype for NumPy data type num [%d].\n", py_data_info->type_num);
     }
 

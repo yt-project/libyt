@@ -114,27 +114,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     // TODO: Hybrid OpenMP/MPI, need to allocate for a list of gid.
     long gridTotalSize = grid_dimensions[0] * grid_dimensions[1] * grid_dimensions[2];
     void *output;
-    if ( field_dtype == YT_FLOAT ){
-        output = malloc( gridTotalSize * sizeof(float) );
-        for (long i = 0; i < gridTotalSize; i++) { ((float *) output)[i] = 0.0; }
-    }
-    else if ( field_dtype == YT_DOUBLE ){
-        output = malloc( gridTotalSize * sizeof(double) );
-        for (long i = 0; i < gridTotalSize; i++) { ((double *) output)[i] = 0.0; }
-    }
-    else if ( field_dtype == YT_LONGDOUBLE ){
-        output = malloc( gridTotalSize * sizeof(long double) );
-        for (long i = 0; i < gridTotalSize; i++) { ((long double *) output)[i] = 0.0; }
-    }
-    else if ( field_dtype == YT_INT ){
-        output = malloc( gridTotalSize * sizeof(int) );
-        for (long i = 0; i < gridTotalSize; i++) { ((int *) output)[i] = 0; }
-    }
-    else if ( field_dtype == YT_LONG ){
-        output = malloc( gridTotalSize * sizeof(long) );
-        for (long i = 0; i < gridTotalSize; i++) { ((long *) output)[i] = 0; }
-    }
-    else{
+    if (get_dtype_allocation(field_dtype, gridTotalSize, &output) != YT_SUCCESS) {
         PyErr_Format(PyExc_ValueError, "Unknown field_dtype in field [%s]\n", field_name);
         return NULL;
     }
@@ -293,28 +273,7 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    // Initialize output array
-    if ( attr_dtype == YT_INT ){
-        output = malloc( array_length * sizeof(int) );
-        for ( long i = 0; i < array_length; i++ ){ ((int *)output)[i] = 0; }
-    }
-    else if ( attr_dtype == YT_FLOAT ){
-        output = malloc( array_length * sizeof(float) );
-        for ( long i = 0; i < array_length; i++ ){ ((float *)output)[i] = 0.0; }
-    }
-    else if ( attr_dtype == YT_DOUBLE ){
-        output = malloc( array_length * sizeof(double) );
-        for ( long i = 0; i < array_length; i++ ){ ((double *)output)[i] = 0.0; }
-    }
-    else if ( attr_dtype == YT_LONGDOUBLE ){
-        output = malloc( array_length * sizeof(long double) );
-        for ( long i = 0; i < array_length; i++ ){ ((long double *)output)[i] = 0.0; }
-    }
-    else if ( attr_dtype == YT_LONG ){
-        output = malloc( array_length * sizeof(long) );
-        for ( long i = 0; i < array_length; i++ ){ ((long *)output)[i] = 0; }
-    }
-    else{
+    if (get_dtype_allocation(attr_dtype, array_length, &output) != YT_SUCCESS) {
         PyErr_Format(PyExc_ValueError, "Particle [ %s ] attribute [ %s ], unknown yt_dtype.\n", ptype, attr_name);
         return NULL;
     }
