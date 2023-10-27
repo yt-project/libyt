@@ -160,8 +160,10 @@ int yt_rma_particle::prepare_data(long& gid)
                 YT_ABORT("yt_rma_particle: Particle type [%s], get_par_attr not set!\n", m_ParticleType);
             }
 
-            // Generate buffer.
-            data_ptr = malloc( par_info.data_len * dtype_size );
+            // Generate buffer
+            if (get_dtype_allocation(m_AttributeDataType, par_info.data_len, &data_ptr) != YT_SUCCESS) {
+                YT_ABORT("yt_rma_particle: Cannot allocate memory, unknown attr_dtype.\n");
+            }
             to_free = true;
             int list_len = 1;
             long list_gid[1] = { gid };
