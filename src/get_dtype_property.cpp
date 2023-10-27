@@ -1,5 +1,6 @@
 #include "yt_combo.h"
 #include "libyt.h"
+#include <cstring>
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get_npy_dtype
@@ -191,6 +192,78 @@ int get_dtype_size( yt_dtype data_type, int *dtype_size ){
             }
 
             *dtype_size = -1;
+            return YT_FAIL;
+    }
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  get_dtype_allocation
+// Description :  Allocate memory with base unit yt_dtype (YT_*) in C
+//
+// Note        :  1. This function allocates yt_dtype with base C data type unit, and will store
+//                   initialized memory at data_ptr.
+//                2. It only initializes 1D array and set array to zeros.
+//                3.   yt_dtype            C Type
+//                  ========================================
+//                     YT_FLOAT            float
+//                     YT_DOUBLE           double
+//                     YT_LONGDOUBLE       long double
+//                     YT_INT              int
+//                     YT_LONG             long
+//
+// Parameter   :  data_type : yt_dtype, YT_*.
+//                length    : length of the 1d array
+//                data_ptr  : data pointer to allocated buffer
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int get_dtype_allocation(yt_dtype data_type, unsigned long length, void ** data_ptr ) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    switch (data_type) {
+        case YT_FLOAT:
+            *data_ptr = malloc(length * sizeof(float));
+            memset(*data_ptr, 0, length * sizeof(float));
+            return YT_SUCCESS;
+        case YT_DOUBLE:
+            *data_ptr = malloc(length * sizeof(double));
+            memset(*data_ptr, 0, length * sizeof(double));
+            return YT_SUCCESS;
+        case YT_LONGDOUBLE:
+            *data_ptr = malloc(length * sizeof(long double));
+            memset(*data_ptr, 0, length * sizeof(long double));
+            return YT_SUCCESS;
+        case YT_INT:
+            *data_ptr = malloc(length * sizeof(int));
+            memset(*data_ptr, 0, length * sizeof(int));
+            return YT_SUCCESS;
+        case YT_LONG:
+            *data_ptr = malloc(length * sizeof(long));
+            memset(*data_ptr, 0, length * sizeof(long));
+            return YT_SUCCESS;
+        case YT_DTYPE_UNKNOWN:
+            log_warning("Forget to set yt_dtype, yt_dtype is YT_DTYPE_UNKNOWN.\n");
+            return YT_FAIL;
+        default:
+            // Safety check that data_type is one of yt_dtype,
+            // so that if we cannot match a NumPy Enum Type, then it must be user forgot to implement here.
+            bool valid = false;
+            for (int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++) {
+                yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
+                if (data_type == dtype) {
+                    valid = true;
+                    break;
+                }
+            }
+            if (valid) {
+                log_error("Forget to match new yt_dtype to allocation in get_dtype_allocation function.\n");
+            }
+            else {
+                log_error("No such yt_dtype.\n");
+            }
+
+            *data_ptr = nullptr;
             return YT_FAIL;
     }
 }

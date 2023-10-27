@@ -92,6 +92,7 @@ int  init_libyt_module();
 int  allocate_hierarchy();
 int  get_npy_dtype( yt_dtype data_type, int *npy_dtype );
 int  get_dtype_size( yt_dtype data_type, int *dtype_size );
+int  get_dtype_allocation(yt_dtype data_type, unsigned long length, void **data_ptr);
 int  append_grid( yt_grid *grid );
 int  check_field_list();
 int  check_particle_list();
