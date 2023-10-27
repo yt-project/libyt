@@ -67,6 +67,45 @@ int get_npy_dtype( yt_dtype data_type, int *npy_dtype ){
 }
 
 
+//-------------------------------------------------------------------------------------------------------
+// Function    :  get_yt_dtype_from_npy
+// Description :  Match from NumPy enumerate type to yt_dtype
+//
+// Note        :  1. This function matches NumPy enumerate type to yt_dtype, and will write result in
+//                   data_dtype.
+//
+// Parameter   :  npy_dtype : NumPy enumerate data type.
+//                data_type : yt_dtype, YT_*.
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int  get_yt_dtype_from_npy(int npy_dtype, yt_dtype *data_dtype ) {
+    SET_TIMER(__PRETTY_FUNCTION__ );
+
+    switch (npy_dtype) {
+        case NPY_FLOAT:
+            *data_dtype = YT_FLOAT;
+            return YT_SUCCESS;
+        case NPY_DOUBLE:
+            *data_dtype = YT_DOUBLE;
+            return YT_SUCCESS;
+        case NPY_LONGDOUBLE:
+            *data_dtype = YT_LONGDOUBLE;
+            return YT_SUCCESS;
+        case NPY_INT:
+            *data_dtype = YT_INT;
+            return YT_SUCCESS;
+        case NPY_LONG:
+            *data_dtype = YT_LONG;
+            return YT_SUCCESS;
+        default:
+            log_error("No matching yt_dtype for NumPy data type num [%d] in get_yt_dtype_from_npy function.\n",
+                      npy_dtype);
+            return YT_FAIL;
+    }
+}
+
+
 #ifndef SERIAL_MODE
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get_mpi_dtype
