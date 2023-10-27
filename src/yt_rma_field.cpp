@@ -136,28 +136,8 @@ int yt_rma_field::prepare_data(long& gid)
 
         // allocate data_ptr
         long gridLength = grid_info.data_dim[0] * grid_info.data_dim[1] * grid_info.data_dim[2];
-        if ( grid_info.data_dtype == YT_FLOAT ){
-            data_ptr = malloc( gridLength * sizeof(float) );
-            for(long i = 0; i < gridLength; i++){ ((float *) data_ptr)[i] = 0.0; }
-        }
-        else if ( grid_info.data_dtype == YT_DOUBLE ){
-            data_ptr = malloc( gridLength * sizeof(double) );
-            for(long i = 0; i < gridLength; i++){ ((double *) data_ptr)[i] = 0.0; }
-        }
-        else if ( grid_info.data_dtype == YT_LONGDOUBLE ){
-            data_ptr = malloc( gridLength * sizeof(long double) );
-            for(long i = 0; i < gridLength; i++){ ((long double *) data_ptr)[i] = 0.0; }
-        }
-        else if ( grid_info.data_dtype == YT_INT ){
-            data_ptr = malloc( gridLength * sizeof(int) );
-            for(long i = 0; i < gridLength; i++){ ((int *) data_ptr)[i] = 0; }
-        }
-        else if ( grid_info.data_dtype == YT_LONG ){
-            data_ptr = malloc( gridLength * sizeof(long) );
-            for(long i = 0; i < gridLength; i++){ ((long *) data_ptr)[i] = 0; }
-        }
-        else{
-            YT_ABORT("yt_rma_field: Unknown field_dtype.\n");
+        if (get_dtype_allocation(grid_info.data_dtype, gridLength, &data_ptr) != YT_SUCCESS){
+            YT_ABORT("yt_rma_field: Cannot allocate memory, unknown field_dtype.\n");
         }
 
         // get derived function and generate data
