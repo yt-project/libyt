@@ -1,4 +1,5 @@
 #include "yt_combo.h"
+#include "big_mpi.h"
 #include "LibytProcessControl.h"
 #include "libyt.h"
 
@@ -139,9 +140,9 @@ int yt_commit()
 
    // Big MPI_Gatherv, this is just a workaround method.
    int *num_grids_local_MPI = LibytProcessControl::Get().num_grids_local_MPI;
-   big_MPI_Gatherv(RootRank, num_grids_local_MPI, (void*)hierarchy_local, &yt_hierarchy_mpi_type, (void*)hierarchy_full, 0);
+   big_MPI_Gatherv<yt_hierarchy>(RootRank, num_grids_local_MPI, (void*)hierarchy_local, &yt_hierarchy_mpi_type, (void*)hierarchy_full);
    for (int s=0; s<g_param_yt.num_par_types; s++){
-       big_MPI_Gatherv(RootRank, num_grids_local_MPI, (void*)particle_count_list_local[s], &yt_long_mpi_type, (void*)particle_count_list_full[s], 3);
+       big_MPI_Gatherv<long>(RootRank, num_grids_local_MPI, (void*)particle_count_list_local[s], &yt_long_mpi_type, (void*)particle_count_list_full[s]);
    }
 #endif
 
