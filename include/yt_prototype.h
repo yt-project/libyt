@@ -72,7 +72,6 @@ struct yt_rma_particle_info
     int      rank;
 };
 
-int  big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_datatype, int cast_type);
 int  big_MPI_Get(void *recv_buff, long data_len, yt_dtype *data_dtype, MPI_Datatype *mpi_dtype, int get_rank, MPI_Aint base_address, MPI_Win *window);
 int  get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype );
 int  check_hierarchy(yt_hierarchy * &hierarchy);
