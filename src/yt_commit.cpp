@@ -177,9 +177,9 @@ int yt_commit()
    MPI_Barrier(MPI_COMM_WORLD);
 
 // broadcast hierarchy_full, particle_count_list_full to each rank as well.
-   big_MPI_Bcast(RootRank, g_param_yt.num_grids, (void*) hierarchy_full, &yt_hierarchy_mpi_type, 0);
+   big_MPI_Bcast<yt_hierarchy>(RootRank, g_param_yt.num_grids, (void*) hierarchy_full, &yt_hierarchy_mpi_type);
    for (int s=0; s<g_param_yt.num_par_types; s++){
-       big_MPI_Bcast(RootRank, g_param_yt.num_grids, (void*) particle_count_list_full[s], &yt_long_mpi_type, 3);
+       big_MPI_Bcast<long>(RootRank, g_param_yt.num_grids, (void*) particle_count_list_full[s], &yt_long_mpi_type);
    }
 #endif
 
