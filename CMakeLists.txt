@@ -10,11 +10,21 @@ option(SUPPORT_TIMER     "Support timer"                      OFF)
 option(BUILD_SHARED_LIBS "Building using shared libraries"    ON )
 
 # set path
-set(MPI_PATH       "")
 set(PYTHON_PATH    "")
-set(PYTHON_VERSION "")
-set(NUMPY_PATH     "")
+set(MPI_PATH       "")
+set(GCC_PATH       "")
 set(READLINE_PATH  "")
+
+### FIND DEPENDENCIES ###
+if (NOT SERIAL_MODE)
+    set(MPI_HOME ${MPI_PATH})
+    find_package(MPI REQUIRED)
+else ()
+    # TODO: Find GCC Package if GCC_PATH is empty
+endif ()
+
+set(Python_ROOT_DIR ${PYTHON_PATH})
+find_package(Python COMPONENTS Development NumPy REQUIRED)
 
 ### COMPILATION ###
 add_subdirectory(src)                       # for library

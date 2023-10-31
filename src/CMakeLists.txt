@@ -8,7 +8,7 @@ add_library(yt SHARED
         yt_rma_particle.cpp yt_run.cpp yt_run_InteractiveMode.cpp yt_set_Parameters.cpp
         yt_set_UserParameter.cpp LibytProcessControl.cpp Timer.cpp TimerControl.cpp)
 
-# options
+# print options
 function(print_option option_name)
     if (${option_name})
         message(STATUS "${option_name} is ON")
@@ -42,19 +42,17 @@ target_compile_features(libyt_compiler_flags INTERFACE cxx_std_11)
 # include dir
 target_include_directories(yt PRIVATE
         ${PROJECT_SOURCE_DIR}/include
-        $<$<NOT:$<BOOL:${SERIAL_MODE}>>:${MPI_PATH}/include>
-        ${PYTHON_PATH}/include/python${PYTHON_VERSION}
-        ${NUMPY_PATH}/core/include
+        $<$<NOT:$<BOOL:${SERIAL_MODE}>>:${MPI_INCLUDE_PATH}>
+        ${Python_INCLUDE_DIRS}
         $<$<AND:$<BOOL:${INTERACTIVE_MODE}>,$<NOT:$<STREQUAL:${READLINE_PATH},>>>:${READLINE_PATH}/include>)
 
 # link lib
 target_link_directories(yt PRIVATE
-        $<$<NOT:$<BOOL:${SERIAL_MODE}>>:${MPI_PATH}/lib>
-        ${PYTHON_PATH}/lib
-        $<$<AND:$<BOOL:${INTERACTIVE_MODE}>,$<NOT:$<STREQUAL:${READLINE_PATH},>>>:${READLINE_PATH}/lib>) # if INTERACTIVE_MODE && READLINE_PATH is set
+        $<$<AND:$<BOOL:${INTERACTIVE_MODE}>,$<NOT:$<STREQUAL:${READLINE_PATH},>>>:${READLINE_PATH}/lib>)
 target_link_libraries(yt PRIVATE
-        $<$<NOT:$<BOOL:${SERIAL_MODE}>>:mpi>
-        python${PYTHON_VERSION}
+        $<$<NOT:$<BOOL:${SERIAL_MODE}>>:MPI::MPI_CXX>
+        ${Python_LIBRARIES}
+        Python::NumPy
         $<$<BOOL:${INTERACTIVE_MODE}>:readline>)
 target_link_libraries(yt PUBLIC
         libyt_compiler_flags)
