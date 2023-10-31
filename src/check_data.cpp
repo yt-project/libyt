@@ -271,8 +271,10 @@ int check_hierarchy(yt_grid * &hierarchy) {
             order[ hierarchy[i].id - index_offset ] = i;
         }
         else {
+            int other_proc_num = hierarchy[ order[ hierarchy[i].id - index_offset ] ].proc_num;
+            delete[] order;
             YT_ABORT("Grid ID [ %ld ] are not unique, both MPI rank %d and %d are using this grid id!\n",
-                     hierarchy[i].id, hierarchy[i].proc_num, hierarchy[ order[ hierarchy[i].id - index_offset ] ].proc_num);
+                     hierarchy[i].id, hierarchy[i].proc_num, other_proc_num);
         }
     }
 

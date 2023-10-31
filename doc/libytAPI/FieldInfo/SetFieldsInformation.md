@@ -29,7 +29,7 @@ int yt_get_FieldsPtr( yt_field **field_list )
 
 ### yt_field
 - `const char* field_name` (Default=`NULL`)
-  - Usage: Field name. Please set the field name that matches your field information in [`frontend`]({% link libytAPI/SetYTParameter.md%}#yt_param_yt), because `libyt` borrows the frontend's `class XXXFieldInfo`.
+  - Usage: Field name. Refer to [Naming and Field Information]({% link InSituPythonAnalysis/UsingYT.md %}#naming-and-field-information) for how field names and yt fields are linked and reused.
   > :pencil2: Please make sure the lifetime of `field_name` covers the whole in situ analysis process. `libyt` only borrows this name and does not make a copy.
 - `const char* field_type` (Default=`"cell-centered"`)
   - Usage: Define type of the field.
@@ -49,12 +49,7 @@ int yt_get_FieldsPtr( yt_field **field_list )
   - Valid Value: Must be greater than or equal to `0`.
 - `yt_dtype field_dtype` (Default=`YT_DTYPE_UNKNOWN`)
   - Usage: Data type of the field.
-  - Valid Value for `yt_dtype`: 
-    - `YT_FLOAT`: C type float.
-    - `YT_DOUBLE`: C type double.
-    - `YT_LONGDOUBLE`: C type long double.
-    - `YT_INT`: C type int.
-    - `YT_LONG`: C type long.
+  - Valid Value:  [`yt_dtype`]({% link libytAPI/DataType.md %}#yt_dtype)
 - `bool contiguous_in_x` (Default=`true`)
   - Usage: Is the 3D data array define as [z][y][x], which is x address alters first.
   - Valid Value:
