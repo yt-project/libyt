@@ -139,6 +139,51 @@ int big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_
     return YT_SUCCESS;
 }
 
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  big_MPI_Get
+// Description :  This is a workaround method for passing big send count of MPI_Get.
+//
+// Note        :  1. big_MPI_Get_dtype delegates calls to here.
+//
+// Parameter   :  void         *recv_buff   : Store received buffer.
+//                long          data_len    : Total length of the data.
+//                MPI_Datatype *mpi_dtype   : MPI_Datatype.
+//                int           get_rank    : Rank to get.
+//                MPI_Aint      base_address: Address of the first element of the target buffer.
+//                MPI_Win      *window      : Window.
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+template<typename T>
+int big_MPI_Get(void *recv_buff, long data_len, MPI_Datatype *mpi_dtype, int get_rank, MPI_Aint base_address, MPI_Win *window) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    // The maximum sendcount of MPI_Get is INT_MAX.
+    long stride   = INT_MAX;
+    int  part     = (int) (data_len / stride) + 1;
+    int  remain   = (int) (data_len % stride);
+    long index;
+
+    // Get size of the data, and get the displacement address.
+    int size = sizeof(T);
+    MPI_Aint address = base_address;
+
+    // Split to many time if data_len > INT_MAX
+    for (int i = 0; i < part; i++){
+        index = i * stride;
+        if ( i == part - 1 ){
+            MPI_Get(&(((T*)recv_buff)[index]), remain, *mpi_dtype, get_rank, address, remain, *mpi_dtype, *window);
+        }
+        else {
+            MPI_Get(&(((T*)recv_buff)[index]), stride, *mpi_dtype, get_rank, address, stride, *mpi_dtype, *window);
+        }
+        address += stride * size;
+    }
+
+    return YT_SUCCESS;
+}
+
 #endif // #ifndef SERIAL_MODE
 
 #endif // __BIG_MPI_H__

@@ -305,8 +305,8 @@ int yt_rma_field::fetch_remote_data(long& gid, int& rank)
     void *fetchedData = malloc( gridLength * dtype_size );
 
     // Fetch data and info
-    if( big_MPI_Get(fetchedData, gridLength, &(fetched.data_dtype), &mpi_dtype, rank, fetched.address, &m_Window) != YT_SUCCESS ){
-        YT_ABORT("yt_rma_field: big_MPI_Get fetch remote grid [ %ld ] located on rank [ %d ] failed!\n", gid, rank);
+    if( big_MPI_Get_dtype(fetchedData, gridLength, &(fetched.data_dtype), &mpi_dtype, rank, fetched.address, &m_Window) != YT_SUCCESS ){
+        YT_ABORT("yt_rma_field: big_MPI_Get_dtype fetch remote grid [ %ld ] located on rank [ %d ] failed!\n", gid, rank);
     }
 
     // Push back to m_Fetched and m_FetchedData
