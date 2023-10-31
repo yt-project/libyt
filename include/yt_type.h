@@ -21,8 +21,16 @@ typedef enum yt_dtype {
     YT_FLOAT=0,           // float
     YT_DOUBLE,            // double
     YT_LONGDOUBLE,        // long double
+    YT_CHAR,              // char
+    YT_UCHAR,             // unsigned char
+    YT_SHORT,             // short
+    YT_USHORT,            // unsigned short
     YT_INT,               // int
+    YT_UINT,              // unsigned int
     YT_LONG,              // long
+    YT_ULONG,             // unsigned long
+    YT_LONGLONG,          // long long
+    YT_ULONGLONG,         // unsigned long long
     YT_DTYPE_UNKNOWN
 } yt_dtype;
 
