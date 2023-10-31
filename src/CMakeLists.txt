@@ -1,6 +1,6 @@
 ### libyt COMPILATION ###
 add_library(yt SHARED
-        add_dict.cpp allocate_hierarchy.cpp append_grid.cpp big_mpi.cpp check_data.cpp
+        add_dict.cpp allocate_hierarchy.cpp append_grid.cpp check_data.cpp
         define_command.cpp func_status.cpp func_status_list.cpp get_dtype_property.cpp
         init_libyt_module.cpp init_python.cpp logging.cpp print_data.cpp
         yt_commit.cpp yt_finalize.cpp yt_free.cpp yt_get_FieldsPtr.cpp yt_get_GridsPtr.cpp

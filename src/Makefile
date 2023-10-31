@@ -43,7 +43,7 @@ CC_FILE := yt_initialize.cpp  yt_finalize.cpp  yt_set_Parameters.cpp  yt_run.cpp
            yt_commit.cpp yt_get_GridsPtr.cpp yt_get_FieldsPtr.cpp yt_get_ParticlesPtr.cpp yt_free.cpp      \
            yt_getGridInfo.cpp yt_rma_field.cpp yt_rma_particle.cpp yt_run_InteractiveMode.cpp
 CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp       \
-		   check_data.cpp append_grid.cpp get_dtype_property.cpp big_mpi.cpp func_status.cpp               \
+		   check_data.cpp append_grid.cpp get_dtype_property.cpp func_status.cpp                           \
 		   func_status_list.cpp define_command.cpp LibytProcessControl.cpp print_data.cpp                  \
 		   Timer.cpp TimerControl.cpp
 

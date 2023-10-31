@@ -60,12 +60,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
     - `void* data_ptr`: Data pointer.
     - `int data_dimensions[3]`: Dimension of `data_ptr`, which is the actual dimension of this pointer. If `data_ptr` is a 1-dim array, set the last two elements to 0. (This only happens in particle data, and we aren't rely on this value to wrap the data.)
     - `yt_dtype data_dtype`: Data type of `data_ptr`. We only need to set `data_dtype` when this grid's data type is different from the one set in fields'.
-      - Valid value for `yt_dtype`:
-        - `YT_FLOAT`: C type float.
-        - `YT_DOUBLE`: C type double.
-        - `YT_LONGDOUBLE`: C type long double.
-        - `YT_INT`: C type int.
-        - `YT_LONG`: C type long.
+      - Valid Value: [`yt_dtype`]({% link libytAPI/DataType.md %}#yt_dtype)
 
 > :information_source: We should always fill in `data_dimensions`, if we want to wrap a data in memory that is not cell-centered.
 

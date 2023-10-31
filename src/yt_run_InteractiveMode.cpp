@@ -13,15 +13,15 @@
 // Description :  Enter libyt interactive mode.
 //
 // Note        :  1. Only enter this mode when executed inline functions have errors or flag_file_name
-//                   is detacted.
-//                2. Display inline script execute result success/failed, and show errors if have.
+//                   is detected.
+//                2. Display inline script execute result success/failed, and show errors if had.
 //                3. Enter interactive mode, user will be operating in inline script's name space.
 //                   (1) Python scripting
 //                   (2) libyt command
-//                   (3) Execute charactars should be less than INT_MAX.
+//                   (3) Execute characters should be less than INT_MAX.
 //                4. Let user add and decide what inline function to run in the follow process.
 //
-// Parameter   :  const char *flag_file_name : once this file is detacted, it enters interactive mode
+// Parameter   :  const char *flag_file_name : once this file is detected, it enters interactive mode
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
@@ -182,7 +182,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                 }
             }
             // case 2: not finish yet
-            else if (func_status_list::is_not_done_err_msg()) {
+            else if (func_status_list::is_not_done_err_msg(code)) {
                 // code not complete yet, switch prompt to ps2
                 prompt = ps2;
             }
