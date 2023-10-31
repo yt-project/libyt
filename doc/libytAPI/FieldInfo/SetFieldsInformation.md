@@ -49,12 +49,7 @@ int yt_get_FieldsPtr( yt_field **field_list )
   - Valid Value: Must be greater than or equal to `0`.
 - `yt_dtype field_dtype` (Default=`YT_DTYPE_UNKNOWN`)
   - Usage: Data type of the field.
-  - Valid Value for `yt_dtype`: 
-    - `YT_FLOAT`: C type float.
-    - `YT_DOUBLE`: C type double.
-    - `YT_LONGDOUBLE`: C type long double.
-    - `YT_INT`: C type int.
-    - `YT_LONG`: C type long.
+  - Valid Value:  [`yt_dtype`]({% link libytAPI/DataType.md %}#yt_dtype)
 - `bool contiguous_in_x` (Default=`true`)
   - Usage: Is the 3D data array define as [z][y][x], which is x address alters first.
   - Valid Value:

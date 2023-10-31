@@ -40,12 +40,7 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
       > :pencil2: The lifetime of `attr_name` should cover in situ analysis process. `libyt` only borrows this variable and does not make a copy.
     - `yt_dtype attr_dtype` (Default=`YT_DOUBLE`)
       - Usage: Attribute’s data type.
-      - Valid Value for `yt_dtype`: 
-        - `YT_FLOAT`: C type float.
-        - `YT_DOUBLE`: C type double.
-        - `YT_LONGDOUBLE`: C type long double.
-        - `YT_INT`: C type int. 
-        - `YT_LONG`: C type long.
+      - Valid Value:  [`yt_dtype`]({% link libytAPI/DataType.md %}#yt_dtype)
     - `const char* attr_unit` (Default=`""`)
       - Usage: Unit of the attribute, using `yt` unit system.
       > :pencil2: The lifetime of `attr_unit` should cover [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit).
