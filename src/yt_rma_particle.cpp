@@ -2,6 +2,7 @@
 
 #include "yt_rma_particle.h"
 #include "yt_combo.h"
+#include "big_mpi.h"
 #include "LibytProcessControl.h"
 #include "libyt.h"
 #include <string.h>
@@ -241,8 +242,8 @@ int yt_rma_particle::gather_all_prepare_data(int root)
 
     // Gather PreparedInfoList, which is m_Prepare in each rank, perform big_MPI_Gatherv and big_MPI_Bcast
     m_AllPrepare = new yt_rma_particle_info [m_LenAllPrepare];
-    big_MPI_Gatherv(root, SendCount, (void*)PreparedInfoList, &yt_rma_particle_info_mpi_type, (void*)m_AllPrepare, 2);
-    big_MPI_Bcast(root, m_LenAllPrepare, (void*)m_AllPrepare, &yt_rma_particle_info_mpi_type, 2);
+    big_MPI_Gatherv<yt_rma_particle_info>(root, SendCount, (void*)PreparedInfoList, &yt_rma_particle_info_mpi_type, (void*)m_AllPrepare);
+    big_MPI_Bcast<yt_rma_particle_info>(root, m_LenAllPrepare, (void*)m_AllPrepare, &yt_rma_particle_info_mpi_type);
 
     // Open window epoch.
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOPRECEDE, m_Window);
@@ -296,8 +297,8 @@ int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
         get_mpi_dtype( m_AttributeDataType, &mpi_dtype );
         fetchedData = malloc( fetched.data_len * dtype_size );
 
-        if( big_MPI_Get(fetchedData, fetched.data_len, &m_AttributeDataType, &mpi_dtype, rank, fetched.address, &m_Window) != YT_SUCCESS ){
-            YT_ABORT("yt_rma_particle: big_MPI_Get fetch particle [%s] attribute [%s] in grid [%ld] failed!\n",
+        if( big_MPI_Get_dtype(fetchedData, fetched.data_len, &m_AttributeDataType, &mpi_dtype, rank, fetched.address, &m_Window) != YT_SUCCESS ){
+            YT_ABORT("yt_rma_particle: big_MPI_Get_dtype fetch particle [%s] attribute [%s] in grid [%ld] failed!\n",
                      m_ParticleType, m_AttributeName, gid);
         }
     }
