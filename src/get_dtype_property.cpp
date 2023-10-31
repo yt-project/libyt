@@ -36,11 +36,35 @@ int get_npy_dtype( yt_dtype data_type, int *npy_dtype ){
         case YT_LONGDOUBLE:
             *npy_dtype = NPY_LONGDOUBLE;
             return YT_SUCCESS;
+        case YT_CHAR:
+            *npy_dtype = NPY_BYTE;
+            return YT_SUCCESS;
+        case YT_UCHAR:
+            *npy_dtype = NPY_UBYTE;
+            return YT_SUCCESS;
+        case YT_SHORT:
+            *npy_dtype = NPY_SHORT;
+            return YT_SUCCESS;
+        case YT_USHORT:
+            *npy_dtype = NPY_USHORT;
+            return YT_SUCCESS;
         case YT_INT:
             *npy_dtype = NPY_INT;
             return YT_SUCCESS;
+        case YT_UINT:
+            *npy_dtype = NPY_UINT;
+            return YT_SUCCESS;
         case YT_LONG:
             *npy_dtype = NPY_LONG;
+            return YT_SUCCESS;
+        case YT_ULONG:
+            *npy_dtype = NPY_ULONG;
+            return YT_SUCCESS;
+        case YT_LONGLONG:
+            *npy_dtype = NPY_LONGLONG;
+            return YT_SUCCESS;
+        case YT_ULONGLONG:
+            *npy_dtype = NPY_ULONGLONG;
             return YT_SUCCESS;
         case YT_DTYPE_UNKNOWN:
             log_warning("Forget to set yt_dtype, yt_dtype is YT_DTYPE_UNKNOWN.\n");
@@ -92,11 +116,35 @@ int  get_yt_dtype_from_npy(int npy_dtype, yt_dtype *data_dtype ) {
         case NPY_LONGDOUBLE:
             *data_dtype = YT_LONGDOUBLE;
             return YT_SUCCESS;
+        case NPY_BYTE:
+            *data_dtype = YT_CHAR;
+            return YT_SUCCESS;
+        case NPY_UBYTE:
+            *data_dtype = YT_UCHAR;
+            return YT_SUCCESS;
+        case NPY_SHORT:
+            *data_dtype = YT_SHORT;
+            return YT_SUCCESS;
+        case NPY_USHORT:
+            *data_dtype = YT_USHORT;
+            return YT_SUCCESS;
         case NPY_INT:
             *data_dtype = YT_INT;
             return YT_SUCCESS;
+        case NPY_UINT:
+            *data_dtype = YT_UINT;
+            return YT_SUCCESS;
         case NPY_LONG:
             *data_dtype = YT_LONG;
+            return YT_SUCCESS;
+        case NPY_ULONG:
+            *data_dtype = YT_ULONG;
+            return YT_SUCCESS;
+        case NPY_LONGLONG:
+            *data_dtype = YT_LONGLONG;
+            return YT_SUCCESS;
+        case NPY_ULONGLONG:
+            *data_dtype = YT_ULONGLONG;
             return YT_SUCCESS;
         default:
             log_error("No matching yt_dtype for NumPy data type num [%d] in get_yt_dtype_from_npy function.\n",
@@ -139,11 +187,35 @@ int get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype ){
         case YT_LONGDOUBLE:
             *mpi_dtype = MPI_LONG_DOUBLE;
             return YT_SUCCESS;
+        case YT_CHAR:
+            *mpi_dtype = MPI_SIGNED_CHAR;
+            return YT_SUCCESS;
+        case YT_UCHAR:
+            *mpi_dtype = MPI_UNSIGNED_CHAR;
+            return YT_SUCCESS;
+        case YT_SHORT:
+            *mpi_dtype = MPI_SHORT;
+            return YT_SUCCESS;
+        case YT_USHORT:
+            *mpi_dtype = MPI_UNSIGNED_SHORT;
+            return YT_SUCCESS;
         case YT_INT:
             *mpi_dtype = MPI_INT;
             return YT_SUCCESS;
+        case YT_UINT:
+            *mpi_dtype = MPI_UNSIGNED;
+            return YT_SUCCESS;
         case YT_LONG:
             *mpi_dtype = MPI_LONG;
+            return YT_SUCCESS;
+        case YT_ULONG:
+            *mpi_dtype = MPI_UNSIGNED_LONG;
+            return YT_SUCCESS;
+        case YT_LONGLONG:
+            *mpi_dtype = MPI_LONG_LONG;
+            return YT_SUCCESS;
+        case YT_ULONGLONG:
+            *mpi_dtype = MPI_UNSIGNED_LONG_LONG;
             return YT_SUCCESS;
         case YT_DTYPE_UNKNOWN:
             log_warning("Forget to set yt_dtype, yt_dtype is YT_DTYPE_UNKNOWN.\n");
@@ -202,11 +274,35 @@ int get_dtype_size( yt_dtype data_type, int *dtype_size ){
         case YT_LONGDOUBLE:
             *dtype_size = sizeof(long double);
             return YT_SUCCESS;
+        case YT_CHAR:
+            *dtype_size = sizeof(char);
+            return YT_SUCCESS;
+        case YT_UCHAR:
+            *dtype_size = sizeof(unsigned char);
+            return YT_SUCCESS;
+        case YT_SHORT:
+            *dtype_size = sizeof(short);
+            return YT_SUCCESS;
+        case YT_USHORT:
+            *dtype_size = sizeof(unsigned short);
+            return YT_SUCCESS;
         case YT_INT:
             *dtype_size = sizeof(int);
             return YT_SUCCESS;
+        case YT_UINT:
+            *dtype_size = sizeof(unsigned int);
+            return YT_SUCCESS;
         case YT_LONG:
             *dtype_size = sizeof(long);
+            return YT_SUCCESS;
+        case YT_ULONG:
+            *dtype_size = sizeof(unsigned long);
+            return YT_SUCCESS;
+        case YT_LONGLONG:
+            *dtype_size = sizeof(long long);
+            return YT_SUCCESS;
+        case YT_ULONGLONG:
+            *dtype_size = sizeof(unsigned long long);
             return YT_SUCCESS;
         case YT_DTYPE_UNKNOWN:
             log_warning("Forget to set yt_dtype, yt_dtype is YT_DTYPE_UNKNOWN.\n");
@@ -265,11 +361,35 @@ int get_dtype_typeid(yt_dtype data_type, const std::type_info **dtype_id ) {
         case YT_LONGDOUBLE:
             *dtype_id = &typeid(long double);
             return YT_SUCCESS;
+        case YT_CHAR:
+            *dtype_id = &typeid(char);
+            return YT_SUCCESS;
+        case YT_UCHAR:
+            *dtype_id = &typeid(unsigned char);
+            return YT_SUCCESS;
+        case YT_SHORT:
+            *dtype_id = &typeid(short);
+            return YT_SUCCESS;
+        case YT_USHORT:
+            *dtype_id = &typeid(unsigned short);
+            return YT_SUCCESS;
         case YT_INT:
             *dtype_id = &typeid(int);
             return YT_SUCCESS;
+        case YT_UINT:
+            *dtype_id = &typeid(unsigned int);
+            return YT_SUCCESS;
         case YT_LONG:
             *dtype_id = &typeid(long);
+            return YT_SUCCESS;
+        case YT_ULONG:
+            *dtype_id = &typeid(unsigned long);
+            return YT_SUCCESS;
+        case YT_LONGLONG:
+            *dtype_id = &typeid(long long);
+            return YT_SUCCESS;
+        case YT_ULONGLONG:
+            *dtype_id = &typeid(unsigned long long);
             return YT_SUCCESS;
         case YT_DTYPE_UNKNOWN:
             log_warning("Forget to set yt_dtype, yt_dtype is YT_DTYPE_UNKNOWN.\n");
@@ -332,13 +452,45 @@ int get_dtype_allocation(yt_dtype data_type, unsigned long length, void ** data_
             *data_ptr = malloc(length * sizeof(long double));
             memset(*data_ptr, 0, length * sizeof(long double));
             return YT_SUCCESS;
+        case YT_CHAR:
+            *data_ptr = malloc(length * sizeof(char));
+            memset(*data_ptr, 0, length * sizeof(char));
+            return YT_SUCCESS;
+        case YT_UCHAR:
+            *data_ptr = malloc(length * sizeof(unsigned char));
+            memset(*data_ptr, 0, length * sizeof(unsigned char));
+            return YT_SUCCESS;
+        case YT_SHORT:
+            *data_ptr = malloc(length * sizeof(short));
+            memset(*data_ptr, 0, length * sizeof(short));
+            return YT_SUCCESS;
+        case YT_USHORT:
+            *data_ptr = malloc(length * sizeof(unsigned short));
+            memset(*data_ptr, 0, length * sizeof(unsigned short));
+            return YT_SUCCESS;
         case YT_INT:
             *data_ptr = malloc(length * sizeof(int));
             memset(*data_ptr, 0, length * sizeof(int));
             return YT_SUCCESS;
+        case YT_UINT:
+            *data_ptr = malloc(length * sizeof(unsigned int));
+            memset(*data_ptr, 0, length * sizeof(unsigned int));
+            return YT_SUCCESS;
         case YT_LONG:
             *data_ptr = malloc(length * sizeof(long));
             memset(*data_ptr, 0, length * sizeof(long));
+            return YT_SUCCESS;
+        case YT_ULONG:
+            *data_ptr = malloc(length * sizeof(unsigned long));
+            memset(*data_ptr, 0, length * sizeof(unsigned long));
+            return YT_SUCCESS;
+        case YT_LONGLONG:
+            *data_ptr = malloc(length * sizeof(long long));
+            memset(*data_ptr, 0, length * sizeof(long long));
+            return YT_SUCCESS;
+        case YT_ULONGLONG:
+            *data_ptr = malloc(length * sizeof(unsigned long long));
+            memset(*data_ptr, 0, length * sizeof(unsigned long long));
             return YT_SUCCESS;
         case YT_DTYPE_UNKNOWN:
             log_warning("Forget to set yt_dtype, yt_dtype is YT_DTYPE_UNKNOWN.\n");
@@ -397,10 +549,26 @@ int big_MPI_Get_dtype(void *recv_buff, long data_len, yt_dtype *data_dtype, MPI_
             return big_MPI_Get<double>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
         case YT_LONGDOUBLE:
             return big_MPI_Get<long double>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_CHAR:
+            return big_MPI_Get<char>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_UCHAR:
+            return big_MPI_Get<unsigned char>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_SHORT:
+            return big_MPI_Get<short>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_USHORT:
+            return big_MPI_Get<unsigned short>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
         case YT_INT:
             return big_MPI_Get<int>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_UINT:
+            return big_MPI_Get<unsigned int>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
         case YT_LONG:
             return big_MPI_Get<long>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_ULONG:
+            return big_MPI_Get<unsigned long>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_LONGLONG:
+            return big_MPI_Get<long long>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_ULONGLONG:
+            return big_MPI_Get<unsigned long long>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
         case YT_DTYPE_UNKNOWN:
             log_warning("Forget to set yt_dtype, yt_dtype is YT_DTYPE_UNKNOWN.\n");
             return YT_FAIL;
