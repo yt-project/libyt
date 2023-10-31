@@ -1,6 +1,8 @@
 #include "yt_combo.h"
+#include "big_mpi.h"
 #include "libyt.h"
 #include <cstring>
+#include <typeinfo>
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get_npy_dtype
@@ -44,8 +46,6 @@ int get_npy_dtype( yt_dtype data_type, int *npy_dtype ){
             log_warning("Forget to set yt_dtype, yt_dtype is YT_DTYPE_UNKNOWN.\n");
             return YT_FAIL;
         default:
-            // Safety check that data_type is one of yt_dtype,
-            // so that if we cannot match a NumPy Enum Type, then it must be user forgot to implement here.
             bool valid = false;
             for (int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++) {
                 yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
@@ -149,8 +149,6 @@ int get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype ){
             log_warning("Forget to set yt_dtype, yt_dtype is YT_DTYPE_UNKNOWN.\n");
             return YT_FAIL;
         default:
-            // Safety check that data_type is one of yt_dtype,
-            // so that if we cannot match a NumPy Enum Type, then it must be user forgot to implement here.
             bool valid = false;
             for (int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++) {
                 yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
@@ -171,6 +169,7 @@ int get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype ){
     }
 }
 #endif
+
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get_dtype_size
@@ -213,8 +212,6 @@ int get_dtype_size( yt_dtype data_type, int *dtype_size ){
             log_warning("Forget to set yt_dtype, yt_dtype is YT_DTYPE_UNKNOWN.\n");
             return YT_FAIL;
         default:
-            // Safety check that data_type is one of yt_dtype,
-            // so that if we cannot match a NumPy Enum Type, then it must be user forgot to implement here.
             bool valid = false;
             for (int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++) {
                 yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
@@ -231,6 +228,68 @@ int get_dtype_size( yt_dtype data_type, int *dtype_size ){
             }
 
             *dtype_size = -1;
+            return YT_FAIL;
+    }
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  get_dtype_typeid
+// Description :  Match from yt_dtype (YT_*) to type id (C type).
+//
+// Note        :  1. This function matches yt_dtype to C type id, and will write result as a pointer
+//                   in dtype_id.
+//                2.   yt_dtype            C Type
+//                  ========================================
+//                     YT_FLOAT            float
+//                     YT_DOUBLE           double
+//                     YT_LONGDOUBLE       long double
+//                     YT_INT              int
+//                     YT_LONG             long
+//
+// Parameter   :  data_type : yt_dtype, YT_*.
+//                dtype_id  : address of a pointer to type info.
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int get_dtype_typeid(yt_dtype data_type, const std::type_info **dtype_id ) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    switch (data_type) {
+        case YT_FLOAT:
+            *dtype_id = &typeid(float);
+            return YT_SUCCESS;
+        case YT_DOUBLE:
+            *dtype_id = &typeid(double);
+            return YT_SUCCESS;
+        case YT_LONGDOUBLE:
+            *dtype_id = &typeid(long double);
+            return YT_SUCCESS;
+        case YT_INT:
+            *dtype_id = &typeid(int);
+            return YT_SUCCESS;
+        case YT_LONG:
+            *dtype_id = &typeid(long);
+            return YT_SUCCESS;
+        case YT_DTYPE_UNKNOWN:
+            log_warning("Forget to set yt_dtype, yt_dtype is YT_DTYPE_UNKNOWN.\n");
+            return YT_FAIL;
+        default:
+            bool valid = false;
+            for (int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++) {
+                yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
+                if (data_type == dtype) {
+                    valid = true;
+                    break;
+                }
+            }
+            if (valid) {
+                log_error("Forget to match new yt_dtype to C type in get_dtype_typeid function.\n");
+            } else {
+                log_error("No such yt_dtype.\n");
+            }
+
+            *dtype_id = nullptr;
             return YT_FAIL;
     }
 }
@@ -285,8 +344,6 @@ int get_dtype_allocation(yt_dtype data_type, unsigned long length, void ** data_
             log_warning("Forget to set yt_dtype, yt_dtype is YT_DTYPE_UNKNOWN.\n");
             return YT_FAIL;
         default:
-            // Safety check that data_type is one of yt_dtype,
-            // so that if we cannot match a NumPy Enum Type, then it must be user forgot to implement here.
             bool valid = false;
             for (int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++) {
                 yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
@@ -306,3 +363,63 @@ int get_dtype_allocation(yt_dtype data_type, unsigned long length, void ** data_
             return YT_FAIL;
     }
 }
+
+
+#ifndef SERIAL_MODE
+//-------------------------------------------------------------------------------------------------------
+// Function    :  big_MPI_Get_dtype
+// Description :  wrapper of big_MPI_Get
+//
+// Note        :  1. This function delegates calling big_MPI_Get.
+//                2. This function looks totally irrelevant to yt_dtype, but in order to put all yt_dtype
+//                   relevant stuff in a file only, I choose to put it here.
+//                3.   yt_dtype            C Type
+//                  ========================================
+//                     YT_FLOAT            float
+//                     YT_DOUBLE           double
+//                     YT_LONGDOUBLE       long double
+//                     YT_INT              int
+//                     YT_LONG             long
+//
+// Parameter   :  data_type : yt_dtype, YT_*.
+//                length    : length of the 1d array
+//                data_ptr  : data pointer to allocated buffer
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int big_MPI_Get_dtype(void *recv_buff, long data_len, yt_dtype *data_dtype, MPI_Datatype *mpi_dtype, int get_rank, MPI_Aint base_address, MPI_Win *window) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    switch (*data_dtype) {
+        case YT_FLOAT:
+            return big_MPI_Get<float>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_DOUBLE:
+            return big_MPI_Get<double>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_LONGDOUBLE:
+            return big_MPI_Get<long double>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_INT:
+            return big_MPI_Get<int>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_LONG:
+            return big_MPI_Get<long>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_DTYPE_UNKNOWN:
+            log_warning("Forget to set yt_dtype, yt_dtype is YT_DTYPE_UNKNOWN.\n");
+            return YT_FAIL;
+        default:
+            bool valid = false;
+            for (int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++) {
+                yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
+                if (*data_dtype == dtype) {
+                    valid = true;
+                    break;
+                }
+            }
+            if (valid) {
+                log_error("Forget to delegate new yt_dtype to big_MPI_Get in big_MPI_Get_dtype function.\n");
+            }
+            else {
+                log_error("No such yt_dtype.\n");
+            }
+            return YT_FAIL;
+    }
+}
+#endif

@@ -5,6 +5,7 @@
 
 // include relevant headers
 #include "yt_type.h"
+#include <typeinfo>
 
 #ifndef SERIAL_MODE
 //-------------------------------------------------------------------------------------------------------
@@ -72,9 +73,7 @@ struct yt_rma_particle_info
     int      rank;
 };
 
-int  big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatype *mpi_datatype, void *buffer, int cast_type);
-int  big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_datatype, int cast_type);
-int  big_MPI_Get(void *recv_buff, long data_len, yt_dtype *data_dtype, MPI_Datatype *mpi_dtype, int get_rank, MPI_Aint base_address, MPI_Win *window);
+int  big_MPI_Get_dtype(void *recv_buff, long data_len, yt_dtype *data_dtype, MPI_Datatype *mpi_dtype, int get_rank, MPI_Aint base_address, MPI_Win *window);
 int  get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype );
 int  check_hierarchy(yt_hierarchy * &hierarchy);
 int  check_sum_num_grids_local_MPI( int NRank, int * &num_grids_local_MPI );
@@ -92,6 +91,7 @@ int  init_libyt_module();
 int  allocate_hierarchy();
 int  get_npy_dtype( yt_dtype data_type, int *npy_dtype );
 int  get_dtype_size( yt_dtype data_type, int *dtype_size );
+int  get_dtype_typeid(yt_dtype data_type, const std::type_info **dtype_id );
 int  get_dtype_allocation(yt_dtype data_type, unsigned long length, void **data_ptr);
 int  get_yt_dtype_from_npy(int npy_dtype, yt_dtype *data_dtype );
 int  append_grid( yt_grid *grid );
