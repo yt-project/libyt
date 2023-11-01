@@ -1,8 +1,8 @@
 #ifndef __LIBYTPROCESSCONTROL_H__
 #define __LIBYTPROCESSCONTROL_H__
 
-#include "yt_type.h"
 #include "TimerControl.h"
+#include "yt_type.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytProcessControl
@@ -20,19 +20,19 @@ public:
 #endif
 
     // Process control check point and data management for libyt
-    bool  libyt_initialized;
-    bool  param_yt_set;
-    bool  get_fieldsPtr;
-    bool  get_particlesPtr;
-    bool  get_gridsPtr;
-    bool  commit_grids;
-    bool  free_gridsPtr;
+    bool libyt_initialized;
+    bool param_yt_set;
+    bool get_fieldsPtr;
+    bool get_particlesPtr;
+    bool get_gridsPtr;
+    bool commit_grids;
+    bool free_gridsPtr;
 
     // Internal libyt data
-    yt_field    *field_list;
-    yt_particle *particle_list;
-    yt_grid     *grids_local;
-    int         *num_grids_local_MPI;
+    yt_field* field_list;
+    yt_particle* particle_list;
+    yt_grid* grids_local;
+    int* num_grids_local_MPI;
 
     // Singleton Methods
     LibytProcessControl(const LibytProcessControl& other) = delete;
@@ -47,4 +47,4 @@ private:
     static LibytProcessControl s_Instance;
 };
 
-#endif // __LIBYTPROCESSCONTROL_H__
+#endif  // __LIBYTPROCESSCONTROL_H__

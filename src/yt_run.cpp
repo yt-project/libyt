@@ -1,10 +1,11 @@
-#include "yt_combo.h"
 #include <stdarg.h>
+
 #include <iostream>
 #include <string>
+
 #include "LibytProcessControl.h"
 #include "libyt.h"
-
+#include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_run_FunctionArguments
@@ -19,14 +20,13 @@
 //                5. Under INTERACTIVE_MODE, function will be wrapped inside try/except. If there is error
 //                   it will store under libyt.interactive_mode["func_err_msg"]["func_name"].
 //
-// Parameter   :  const char *function_name : function name in python script 
+// Parameter   :  const char *function_name : function name in python script
 //                int  argc                 : input arguments count
 //                ...                       : list of arguments, should be input as (char*)
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
-
+int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
@@ -42,10 +42,9 @@ int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
         if (g_func_status_list[func_index].get_run() == 0) {
             log_info("YT inline function \"%s\" was set to idle ... idle\n", function_name);
             return YT_SUCCESS;
-        }
-        else if (g_func_status_list[func_index].get_run() == -1) g_func_status_list[func_index].set_run(1);
-    }
-    else {
+        } else if (g_func_status_list[func_index].get_run() == -1)
+            g_func_status_list[func_index].set_run(1);
+    } else {
         g_func_status_list.add_new_func(function_name, 1);
         func_index = g_func_status_list.get_func_index(function_name);
     }
@@ -74,13 +73,11 @@ int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
             if (str_va_arg.find("\"\"\"") != std::string::npos) {
                 wrapper_detected = true;
                 str_wrapper = std::string("'''");
-            }
-            else if (str_va_arg.find("'''") != std::string::npos) {
+            } else if (str_va_arg.find("'''") != std::string::npos) {
                 wrapper_detected = true;
                 str_wrapper = std::string("\"\"\"");
             }
-        }
-        else {
+        } else {
             // using both """ and ''' for triple quotes, unable to wrap
             if (str_va_arg.find(str_wrapper.c_str()) != std::string::npos) {
                 unable_to_wrapped = true;
@@ -96,9 +93,9 @@ int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
     if (unable_to_wrapped) {
 #ifdef INTERACTIVE_MODE
         // set error msg in interactive mode before returning YT_FAIL.
-        std::string str_set_error = std::string("libyt.interactive_mode[\"func_err_msg\"][\"")
-                                    + std::string(function_name)
-                                    + std::string("\"] = \"LIBYT Error: Please avoid using both \\\"\\\"\\\" and \'\'\' for triple quotes.\\n\"");
+        std::string str_set_error =
+            std::string("libyt.interactive_mode[\"func_err_msg\"][\"") + std::string(function_name) +
+            std::string("\"] = \"LIBYT Error: Please avoid using both \\\"\\\"\\\" and \'\'\' for triple quotes.\\n\"");
         g_func_status_list[func_index].set_status(0);
         if (PyRun_SimpleString(str_set_error.c_str()) != 0) {
             log_error("Unexpected error occurred when setting unable to wrap error message in interactive mode.\n");
@@ -110,25 +107,25 @@ int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
     }
 
     // join function and input arguments into string wrapped by exec()
-    std::string str_CallYT(std::string("exec(") + str_wrapper + str_function + str_wrapper
-                           + std::string(", sys.modules[\"") + std::string(g_param_libyt.script) + std::string("\"].__dict__)"));
+    std::string str_CallYT(std::string("exec(") + str_wrapper + str_function + str_wrapper +
+                           std::string(", sys.modules[\"") + std::string(g_param_libyt.script) +
+                           std::string("\"].__dict__)"));
 
     log_info("Performing YT inline analysis %s ...\n", str_function.c_str());
 
 #ifdef INTERACTIVE_MODE
     std::string str_CallYT_TryExcept;
-    str_CallYT_TryExcept = std::string("try:\n") +
-                           std::string("    ") + str_CallYT + std::string("\n") +
+    str_CallYT_TryExcept = std::string("try:\n") + std::string("    ") + str_CallYT + std::string("\n") +
                            std::string("except Exception as e:\n"
-                                       "    libyt.interactive_mode[\"func_err_msg\"][\"") + 
+                                       "    libyt.interactive_mode[\"func_err_msg\"][\"") +
                            std::string(function_name) + std::string("\"] = traceback.format_exc()\n");
-#endif // #ifdef INTERACTIVE_MODE
+#endif  // #ifdef INTERACTIVE_MODE
 
 #ifdef INTERACTIVE_MODE
     if (PyRun_SimpleString(str_CallYT_TryExcept.c_str()) != 0)
 #else
     if (PyRun_SimpleString(str_CallYT.c_str()) != 0)
-#endif // #ifdef INTERACTIVE_MODE
+#endif  // #ifdef INTERACTIVE_MODE
     {
 #ifdef INTERACTIVE_MODE
         g_func_status_list[func_index].set_status(0);
@@ -142,8 +139,7 @@ int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
 #endif
 
 #ifdef INTERACTIVE_MODE
-    log_info("Performing YT inline analysis %s ... %s.\n",
-             str_function.c_str(),
+    log_info("Performing YT inline analysis %s ... %s.\n", str_function.c_str(),
              (g_func_status_list[func_index].get_status() == 1) ? "done" : "failed");
 #else
     log_info("Performing YT inline analysis %s ... done.\n", str_function.c_str());
@@ -166,8 +162,7 @@ int yt_run_FunctionArguments(const char *function_name, int argc, ...) {
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_run_Function(const char *function_name) {
-
+int yt_run_Function(const char* function_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
@@ -183,10 +178,9 @@ int yt_run_Function(const char *function_name) {
         if (g_func_status_list[func_index].get_run() == 0) {
             log_info("YT inline function \"%s\" was set to idle ... idle\n", function_name);
             return YT_SUCCESS;
-        }
-        else if (g_func_status_list[func_index].get_run() == -1) g_func_status_list[func_index].set_run(1);
-    }
-    else {
+        } else if (g_func_status_list[func_index].get_run() == -1)
+            g_func_status_list[func_index].set_run(1);
+    } else {
         g_func_status_list.add_new_func(function_name, 1);
         func_index = g_func_status_list.get_func_index(function_name);
     }
@@ -200,25 +194,24 @@ int yt_run_Function(const char *function_name) {
 
     // join function into string wrapped by exec()
     std::string str_function(std::string(function_name) + std::string("()"));
-    std::string str_CallYT(std::string("exec(\"") + str_function + std::string("\", sys.modules[\"") 
-                           + std::string(g_param_libyt.script) + std::string("\"].__dict__)"));
+    std::string str_CallYT(std::string("exec(\"") + str_function + std::string("\", sys.modules[\"") +
+                           std::string(g_param_libyt.script) + std::string("\"].__dict__)"));
 
     log_info("Performing YT inline analysis %s ...\n", str_function.c_str());
 
 #ifdef INTERACTIVE_MODE
     std::string str_CallYT_TryExcept;
-    str_CallYT_TryExcept = std::string("try:\n") +
-                           std::string("    ") + str_CallYT + std::string("\n") +
+    str_CallYT_TryExcept = std::string("try:\n") + std::string("    ") + str_CallYT + std::string("\n") +
                            std::string("except Exception as e:\n"
-                                       "    libyt.interactive_mode[\"func_err_msg\"][\"") + 
+                                       "    libyt.interactive_mode[\"func_err_msg\"][\"") +
                            std::string(function_name) + std::string("\"] = traceback.format_exc()\n");
-#endif // #ifdef INTERACTIVE_MODE
+#endif  // #ifdef INTERACTIVE_MODE
 
 #ifdef INTERACTIVE_MODE
     if (PyRun_SimpleString(str_CallYT_TryExcept.c_str()) != 0)
 #else
     if (PyRun_SimpleString(str_CallYT.c_str()) != 0)
-#endif // #ifdef INTERACTIVE_MODE
+#endif  // #ifdef INTERACTIVE_MODE
     {
 #ifdef INTERACTIVE_MODE
         g_func_status_list[func_index].set_status(0);
@@ -232,8 +225,7 @@ int yt_run_Function(const char *function_name) {
 #endif
 
 #ifdef INTERACTIVE_MODE
-    log_info("Performing YT inline analysis %s ... %s.\n",
-             str_function.c_str(),
+    log_info("Performing YT inline analysis %s ... %s.\n", str_function.c_str(),
              (g_func_status_list[func_index].get_status() == 1) ? "done" : "failed");
 #else
     log_info("Performing YT inline analysis %s ... done.\n", str_function.c_str());

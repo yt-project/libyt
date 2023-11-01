@@ -1,12 +1,14 @@
 #ifdef INTERACTIVE_MODE
 
 #include "define_command.h"
-#include "func_status_list.h"
-#include "yt_combo.h"
+
+#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <fstream>
 #include <vector>
+
+#include "func_status_list.h"
+#include "yt_combo.h"
 
 int define_command::s_Root = 0;
 
@@ -42,29 +44,34 @@ bool define_command::run() {
 
         // call corresponding method
         if (arg_list.size() == 1) {
-            if      (arg_list[0].compare("exit") == 0) {
+            if (arg_list[0].compare("exit") == 0) {
                 g_func_status_list.clear_prompt_history();
                 return true;
-            }
-            else if (arg_list[0].compare("status") == 0)  run_success = print_status();
-            else if (arg_list[0].compare("help") == 0)    run_success = print_help_msg();
-        }
-        else if (arg_list.size() == 2) {
-            if      (arg_list[0].compare("load") == 0)    run_success = load_script(arg_list[1].c_str());
-            else if (arg_list[0].compare("export") == 0)  run_success = export_script(arg_list[1].c_str());
-            else if (arg_list[0].compare("run") == 0)     run_success = set_func_run(arg_list[1].c_str(), true);
-            else if (arg_list[0].compare("idle") == 0)    run_success = set_func_run(arg_list[1].c_str(), false);
-            else if (arg_list[0].compare("status") == 0)  run_success = get_func_status(arg_list[1].c_str());
-        }
-        else if (arg_list.size() > 2) {
-            if      (arg_list[0].compare("run") == 0)     run_success = set_func_run(arg_list[1].c_str(), true, arg_list);
+            } else if (arg_list[0].compare("status") == 0)
+                run_success = print_status();
+            else if (arg_list[0].compare("help") == 0)
+                run_success = print_help_msg();
+        } else if (arg_list.size() == 2) {
+            if (arg_list[0].compare("load") == 0)
+                run_success = load_script(arg_list[1].c_str());
+            else if (arg_list[0].compare("export") == 0)
+                run_success = export_script(arg_list[1].c_str());
+            else if (arg_list[0].compare("run") == 0)
+                run_success = set_func_run(arg_list[1].c_str(), true);
+            else if (arg_list[0].compare("idle") == 0)
+                run_success = set_func_run(arg_list[1].c_str(), false);
+            else if (arg_list[0].compare("status") == 0)
+                run_success = get_func_status(arg_list[1].c_str());
+        } else if (arg_list.size() > 2) {
+            if (arg_list[0].compare("run") == 0) run_success = set_func_run(arg_list[1].c_str(), true, arg_list);
         }
     }
 
     if (g_myrank == s_Root) {
         if (m_Undefine) {
             printf("[YT_ERROR  ] Unkown libyt command : %s\n"
-                   "(Type %%libyt help for help ...)\n", m_Command.c_str());
+                   "(Type %%libyt help for help ...)\n",
+                   m_Command.c_str());
         }
         if (run_success) {
             g_func_status_list.update_prompt_history(std::string("# ") + m_Command + std::string("\n"));
@@ -76,7 +83,6 @@ bool define_command::run() {
 
     return false;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class      :  define_command
@@ -97,7 +103,6 @@ int define_command::print_status() {
     return YT_SUCCESS;
 }
 
-
 //-------------------------------------------------------------------------------------------------------
 // Class      :  define_command
 // Method     :  print_help_msg
@@ -115,20 +120,19 @@ int define_command::print_help_msg() {
     if (g_myrank == s_Root) {
         printf("Usage:  %%libyt COMMAND\n");
         printf("Commands:\n");
-        printf("  %-6s  %-11s  %-8s  %s\n", "help",   "",            "",         "print help message");
-        printf("  %-6s  %-11s  %-8s  %s\n", "exit",   "",            "",         "exit and continue simulation");
-        printf("  %-6s  %-11s  %-8s  %s\n", "load",   "<file name>", "",         "load file to original script's");
-        printf("  %-6s  %-11s  %-8s  %s\n", "",       "",            "",         "namespace");
-        printf("  %-6s  %-11s  %-8s  %s\n", "export", "<file name>", "",         "export input in prompt to file");
-        printf("  %-6s  %-11s  %-8s  %s\n", "status", "",            "",         "get overall function status");
-        printf("  %-6s  %-11s  %-8s  %s\n", "status", "<func name>", "",         "get function status");
-        printf("  %-6s  %-11s  %-8s  %s\n", "run",    "<func name>", "[arg1 ]", "function will run in next iteration");
-        printf("  %-6s  %-11s  %-8s  %s\n", "",       "",            "",         "using args, ex: func(arg1, arg2)");
-        printf("  %-6s  %-11s  %-8s  %s\n", "idle",   "<func name>", "",         "function will idle in next iteration");
+        printf("  %-6s  %-11s  %-8s  %s\n", "help", "", "", "print help message");
+        printf("  %-6s  %-11s  %-8s  %s\n", "exit", "", "", "exit and continue simulation");
+        printf("  %-6s  %-11s  %-8s  %s\n", "load", "<file name>", "", "load file to original script's");
+        printf("  %-6s  %-11s  %-8s  %s\n", "", "", "", "namespace");
+        printf("  %-6s  %-11s  %-8s  %s\n", "export", "<file name>", "", "export input in prompt to file");
+        printf("  %-6s  %-11s  %-8s  %s\n", "status", "", "", "get overall function status");
+        printf("  %-6s  %-11s  %-8s  %s\n", "status", "<func name>", "", "get function status");
+        printf("  %-6s  %-11s  %-8s  %s\n", "run", "<func name>", "[arg1 ]", "function will run in next iteration");
+        printf("  %-6s  %-11s  %-8s  %s\n", "", "", "", "using args, ex: func(arg1, arg2)");
+        printf("  %-6s  %-11s  %-8s  %s\n", "idle", "<func name>", "", "function will idle in next iteration");
     }
     return YT_SUCCESS;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class      :  define_command
@@ -146,13 +150,13 @@ int define_command::print_help_msg() {
 //
 // Return     : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int define_command::load_script(const char *filename) {
+int define_command::load_script(const char* filename) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
 
     // root rank reads script and broadcast to other ranks if compile successfully
-    PyObject *src;
+    PyObject* src;
     if (g_myrank == s_Root) {
         // read file
         std::ifstream stream;
@@ -168,7 +172,9 @@ int define_command::load_script(const char *filename) {
         }
         std::string line;
         std::stringstream ss;
-        while (getline(stream, line)) { ss << line << "\n"; }
+        while (getline(stream, line)) {
+            ss << line << "\n";
+        }
         stream.close();
 
         // check compilation, if failed return directly, so no need to allocate script.
@@ -186,7 +192,7 @@ int define_command::load_script(const char *filename) {
 
 #ifndef SERIAL_MODE
         // broadcast when compile successfully
-        int script_len = (int) ss.str().length();
+        int script_len = (int)ss.str().length();
         MPI_Bcast(&script_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
         MPI_Bcast(const_cast<char*>(ss.str().c_str()), script_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
 #endif
@@ -198,8 +204,8 @@ int define_command::load_script(const char *filename) {
         MPI_Bcast(&script_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
         if (script_len < 0) return YT_FAIL;
 
-        char *script;
-        script = (char*) malloc((script_len + 1) * sizeof(char));
+        char* script;
+        script = (char*)malloc((script_len + 1) * sizeof(char));
         MPI_Bcast(script, script_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
         script[script_len] = '\0';
 
@@ -211,8 +217,8 @@ int define_command::load_script(const char *filename) {
 #endif
 
     // execute src in script's namespace
-    PyObject *global_var = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
-    PyObject *dum = PyEval_EvalCode(src, global_var, global_var);
+    PyObject* global_var = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
+    PyObject* dum = PyEval_EvalCode(src, global_var, global_var);
     PyRun_SimpleString("sys.stdout.flush()");
     if (PyErr_Occurred()) {
         PyErr_Print();
@@ -225,7 +231,7 @@ int define_command::load_script(const char *filename) {
     // get function list defined inside the script, add the function name to list if it doesn't exist
     // and set to idle
     std::vector<std::string> func_list = func_status_list::get_funcname_defined(filename);
-    for (int i=0; i<(int)func_list.size(); i++) {
+    for (int i = 0; i < (int)func_list.size(); i++) {
         g_func_status_list.add_new_func(func_list[i].c_str(), 0);
     }
 
@@ -237,7 +243,6 @@ int define_command::load_script(const char *filename) {
 
     return YT_SUCCESS;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class      :  define_command
@@ -251,7 +256,7 @@ int define_command::load_script(const char *filename) {
 //
 // Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int define_command::export_script(const char *filename) {
+int define_command::export_script(const char* filename) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
@@ -267,7 +272,6 @@ int define_command::export_script(const char *filename) {
     return YT_SUCCESS;
 }
 
-
 //-------------------------------------------------------------------------------------------------------
 // Class      :  define_command
 // Method     :  set_func_run
@@ -282,7 +286,7 @@ int define_command::export_script(const char *filename) {
 //
 // Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int define_command::set_func_run(const char *funcname, bool run) {
+int define_command::set_func_run(const char* funcname, bool run) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
@@ -291,8 +295,7 @@ int define_command::set_func_run(const char *funcname, bool run) {
     if (index == -1) {
         if (g_myrank == s_Root) printf("Function %s not found\n", funcname);
         return YT_FAIL;
-    }
-    else {
+    } else {
         g_func_status_list[index].set_run(run);
         if (g_myrank == s_Root) printf("Function %s set to %s ... done\n", funcname, run ? "run" : "idle");
 
@@ -301,13 +304,14 @@ int define_command::set_func_run(const char *funcname, bool run) {
         g_func_status_list[index].set_args(args);
 
         // print args if function is set to run
-        if (g_myrank == s_Root && run) printf("Run %s(%s) in next iteration\n", funcname, g_func_status_list[index].get_args().c_str());
+        if (g_myrank == s_Root && run)
+            printf("Run %s(%s) in next iteration\n", funcname, g_func_status_list[index].get_args().c_str());
 
         return YT_SUCCESS;
     }
 }
 
-int define_command::set_func_run(const char *funcname, bool run, std::vector<std::string>& arg_list) {
+int define_command::set_func_run(const char* funcname, bool run, std::vector<std::string>& arg_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
@@ -324,20 +328,18 @@ int define_command::set_func_run(const char *funcname, bool run, std::vector<std
     std::string args("");
 
     // input parameters starts at index 2
-    for (int i=2; i<(int)arg_list.size(); i++) {
+    for (int i = 2; i < (int)arg_list.size(); i++) {
         // determining wrapper
         if (!wrapper_detected) {
             if (arg_list[i].find("\"\"\"") != std::string::npos) {
                 wrapper_detected = true;
                 g_func_status_list[index].set_wrapper(false);
-            }
-            else if (arg_list[i].find("'''") != std::string::npos) {
+            } else if (arg_list[i].find("'''") != std::string::npos) {
                 wrapper_detected = true;
                 g_func_status_list[index].set_wrapper(true);
             }
-        }
-        else {
-            const char *wrapper = g_func_status_list[index].get_wrapper() ? "\"\"\"" : "'''";
+        } else {
+            const char* wrapper = g_func_status_list[index].get_wrapper() ? "\"\"\"" : "'''";
             if (arg_list[i].find(wrapper) != std::string::npos) {
                 unable_to_wrapped = true;
             }
@@ -352,8 +354,7 @@ int define_command::set_func_run(const char *funcname, bool run, std::vector<std
     if (unable_to_wrapped) {
         if (g_myrank == s_Root) printf("[YT_ERROR  ] Please avoid using both \"\"\" and ''' for triple quotes\n");
         return YT_FAIL;
-    }
-    else {
+    } else {
         g_func_status_list[index].set_args(args);
         g_func_status_list[index].set_run(run);
         if (g_myrank == s_Root) {
@@ -363,7 +364,6 @@ int define_command::set_func_run(const char *funcname, bool run, std::vector<std
         return YT_SUCCESS;
     }
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class      :  define_command
@@ -378,7 +378,7 @@ int define_command::set_func_run(const char *funcname, bool run, std::vector<std
 //
 // Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int define_command::get_func_status(const char *funcname) {
+int define_command::get_func_status(const char* funcname) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
@@ -394,11 +394,14 @@ int define_command::get_func_status(const char *funcname) {
     int status = g_func_status_list[index].get_status();
     if (g_myrank == s_Root) {
         printf("%s ... ", g_func_status_list[index].get_func_name());
-        if      (status == 1)  printf("success\n");
-        else if (status == 0)  printf("failed\n");
-        else if (status == -1) printf("idle\n");
+        if (status == 1)
+            printf("success\n");
+        else if (status == 0)
+            printf("failed\n");
+        else if (status == -1)
+            printf("idle\n");
 
-        printf("\033[1;35m"); // bold purple
+        printf("\033[1;35m");  // bold purple
         printf("[Function Def]\n");
         g_func_status_list[index].print_func_body(2, 0);
     }
@@ -406,7 +409,7 @@ int define_command::get_func_status(const char *funcname) {
     // print error msg if it failed when running in yt_run_Function/yt_run_FunctionArguments. (collective call)
     if (status == 0) {
         if (g_myrank == s_Root) {
-            printf("\033[1;35m"); // bold purple
+            printf("\033[1;35m");  // bold purple
             printf("[Error Msg]\n");
         }
         g_func_status_list[index].serial_print_error(2, 1);
@@ -416,4 +419,4 @@ int define_command::get_func_status(const char *funcname) {
     return YT_SUCCESS;
 }
 
-#endif // #ifdef INTERACTIVE_MODE
+#endif  // #ifdef INTERACTIVE_MODE

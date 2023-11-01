@@ -6,7 +6,7 @@
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_par_type
 // Description :  Data structure to store each species names and their number of attributes.
-// 
+//
 // Notes       :  1. Some data are overlap with yt_particle. We need this first be input by user through
 //                   yt_set_Parameters(), so that we can set up and initialize particle_list properly.
 //                2. For now, libyt only borrows the particle type par_type from simulation. The lifetime
@@ -16,24 +16,22 @@
 //                int          num_attr  : Number of attributes in this species.
 //-------------------------------------------------------------------------------------------------------
 typedef struct yt_par_type {
-	const char *par_type;
-	int         num_attr;
+    const char* par_type;
+    int num_attr;
 
 #ifdef __cplusplus
-	yt_par_type()
-	{
-		par_type = nullptr;
-		num_attr = INT_UNDEFINED;
-	}
-#endif // #ifdef __cplusplus
+    yt_par_type() {
+        par_type = nullptr;
+        num_attr = INT_UNDEFINED;
+    }
+#endif  // #ifdef __cplusplus
 
 } yt_par_type;
-
 
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_attribute
 // Description :  Data structure to store particle attributes.
-// 
+//
 // Notes       :  1. The lifetime of attr_name should cover the whole in situ analysis process.
 //                2. The lifetime of attr_unit, attr_name_alias, attr_display_name should cover yt_commit
 //                3. "attr_unit", "attr_name_alias", "attr_display_name", are set corresponding to yt
@@ -51,12 +49,12 @@ typedef struct yt_par_type {
 // Method      :  yt_attribute  : Constructor
 //-------------------------------------------------------------------------------------------------------
 typedef struct yt_attribute {
-	const char     *attr_name;
-	yt_dtype        attr_dtype;
-	const char     *attr_unit;
-	int             num_attr_name_alias;
-	const char    **attr_name_alias;
-	const char     *attr_display_name;
+    const char* attr_name;
+    yt_dtype attr_dtype;
+    const char* attr_unit;
+    int num_attr_name_alias;
+    const char** attr_name_alias;
+    const char* attr_display_name;
 
 #ifdef __cplusplus
     //=======================================================================================================
@@ -70,24 +68,22 @@ typedef struct yt_attribute {
     //
     // Parameter   : None
     // ======================================================================================================
-	yt_attribute()
-	{
-		attr_name = nullptr;
-		attr_dtype = YT_DTYPE_UNKNOWN;
-		attr_unit = "";
-		num_attr_name_alias = 0;
-		attr_name_alias = nullptr;
-		attr_display_name = nullptr;
-	}
-#endif // #ifdef __cplusplus
+    yt_attribute() {
+        attr_name = nullptr;
+        attr_dtype = YT_DTYPE_UNKNOWN;
+        attr_unit = "";
+        num_attr_name_alias = 0;
+        attr_name_alias = nullptr;
+        attr_display_name = nullptr;
+    }
+#endif  // #ifdef __cplusplus
 
 } yt_attribute;
-
 
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_particle
 // Description :  Data structure to store particle info and function to get them.
-// 
+//
 // Notes       :  1. Particle type is "par_type", which is "ptype" in YT-term.
 //                2. For now, libyt only borrows the particle type par_type from simulation. The lifetime
 //                   of par_type should cover the whole in situ process.
@@ -100,24 +96,23 @@ typedef struct yt_attribute {
 //                const char   *coor_x    : Attribute name of coordinate x.
 //                const char   *coor_y    : Attribute name of coordinate y.
 //                const char   *coor_z    : Attribute name of coordinate z.
-//                
+//
 //                (func ptr) get_par_attr : pointer to function with input arguments
 //                                          (const int, const long*, const char*, const char*, yt_array*)
 //                                          that gets particle attribute.
 //
 // Method      :  yt_particle  : Constructor
 //-------------------------------------------------------------------------------------------------------
-typedef struct yt_particle
-{
-	const char   *par_type;
-	int           num_attr;
-	yt_attribute *attr_list;
+typedef struct yt_particle {
+    const char* par_type;
+    int num_attr;
+    yt_attribute* attr_list;
 
-	const char   *coor_x;
-	const char   *coor_y;
-	const char   *coor_z;
+    const char* coor_x;
+    const char* coor_y;
+    const char* coor_z;
 
-	void        (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*);
+    void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*);
 
 #ifdef __cplusplus
     //=======================================================================================================
@@ -128,20 +123,19 @@ typedef struct yt_particle
     //
     // Parameter   : None
     // ======================================================================================================
-	yt_particle()
-	{
-		par_type = nullptr;
-		num_attr = INT_UNDEFINED;
-		attr_list = nullptr;
+    yt_particle() {
+        par_type = nullptr;
+        num_attr = INT_UNDEFINED;
+        attr_list = nullptr;
 
-		coor_x = nullptr;
-		coor_y = nullptr;
-		coor_z = nullptr;
+        coor_x = nullptr;
+        coor_y = nullptr;
+        coor_z = nullptr;
 
-		get_par_attr = nullptr;
-	}
-#endif // #ifdef __cplusplus
+        get_par_attr = nullptr;
+    }
+#endif  // #ifdef __cplusplus
 
 } yt_particle;
 
-#endif // #ifndef __YT_TYPE_PARTICLE_H__
+#endif  // #ifndef __YT_TYPE_PARTICLE_H__

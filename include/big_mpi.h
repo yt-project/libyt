@@ -3,8 +3,8 @@
 
 #ifndef SERIAL_MODE
 
-#include <yt_combo.h>
 #include <mpi.h>
+#include <yt_combo.h>
 
 //-------------------------------------------------------------------------------------------------------
 // Template    :  big_MPI_Gatherv
@@ -21,87 +21,82 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 template<typename T>
-int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatype *mpi_datatype, void *recvbuffer) {
+int big_MPI_Gatherv(int RootRank, int* sendcounts, void* sendbuffer, MPI_Datatype* mpi_datatype, void* recvbuffer) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Count recv_counts, offsets, and split the buffer, if too large.
-    int *recv_counts = new int [g_mysize];
-    int *offsets = new int [g_mysize];
+    int* recv_counts = new int[g_mysize];
+    int* offsets = new int[g_mysize];
     int mpi_start = 0;
     long index_start = 0;
     long accumulate = 0;
 
     // Workaround method for passing big sendcount.
-    for (int i = 0; i < g_mysize; i++){
+    for (int i = 0; i < g_mysize; i++) {
         offsets[i] = 0;
         accumulate = 0;
-        for (int j = mpi_start; j < i; j++){
+        for (int j = mpi_start; j < i; j++) {
             offsets[i] += sendcounts[j];
             accumulate += sendcounts[j];
         }
         // exceeding INT_MAX, start MPI_Gatherv
-        if ( accumulate > INT_MAX ){
+        if (accumulate > INT_MAX) {
             // Set recv_counts and offsets.
-            for (int k = 0; k < g_mysize; k++){
-                if ( mpi_start <= k && k < i ){
+            for (int k = 0; k < g_mysize; k++) {
+                if (mpi_start <= k && k < i) {
                     recv_counts[k] = sendcounts[k];
-                }
-                else{
+                } else {
                     offsets[k] = 0;
                     recv_counts[k] = 0;
                 }
             }
             // MPI_Gatherv
-            if ( mpi_start <= g_myrank && g_myrank < i ){
-                MPI_Gatherv(sendbuffer, sendcounts[g_myrank], *mpi_datatype,
-                            &(((T*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
-            }
-            else{
-                MPI_Gatherv(sendbuffer, 0, *mpi_datatype,
-                            &(((T*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+            if (mpi_start <= g_myrank && g_myrank < i) {
+                MPI_Gatherv(sendbuffer, sendcounts[g_myrank], *mpi_datatype, &(((T*)recvbuffer)[index_start]),
+                            recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+            } else {
+                MPI_Gatherv(sendbuffer, 0, *mpi_datatype, &(((T*)recvbuffer)[index_start]), recv_counts, offsets,
+                            *mpi_datatype, RootRank, MPI_COMM_WORLD);
             }
 
             // New start point.
             mpi_start = i;
             offsets[mpi_start] = 0;
             index_start = 0;
-            for (int k = 0; k < i; k++){
+            for (int k = 0; k < i; k++) {
                 index_start += sendcounts[k];
             }
         }
-            // Reach last mpi rank, MPI_Gatherv
-            // We can ignore the case when there is only one rank left and its offsets exceeds INT_MAX simultaneously.
-            // Because one is type int, the other is type long.
-        else if ( i == g_mysize - 1 ){
+        // Reach last mpi rank, MPI_Gatherv
+        // We can ignore the case when there is only one rank left and its offsets exceeds INT_MAX simultaneously.
+        // Because one is type int, the other is type long.
+        else if (i == g_mysize - 1) {
             // Set recv_counts and offsets.
-            for (int k = 0; k < g_mysize; k++){
-                if ( mpi_start <= k && k <= i ){
+            for (int k = 0; k < g_mysize; k++) {
+                if (mpi_start <= k && k <= i) {
                     recv_counts[k] = sendcounts[k];
-                }
-                else{
+                } else {
                     offsets[k] = 0;
                     recv_counts[k] = 0;
                 }
             }
             // MPI_Gatherv
-            if ( mpi_start <= g_myrank && g_myrank <= i ){
-                MPI_Gatherv(sendbuffer, sendcounts[g_myrank], *mpi_datatype,
-                            &(((T*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
-            }
-            else{
-                MPI_Gatherv(sendbuffer, 0, *mpi_datatype,
-                            &(((T*)recvbuffer)[index_start]), recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+            if (mpi_start <= g_myrank && g_myrank <= i) {
+                MPI_Gatherv(sendbuffer, sendcounts[g_myrank], *mpi_datatype, &(((T*)recvbuffer)[index_start]),
+                            recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+            } else {
+                MPI_Gatherv(sendbuffer, 0, *mpi_datatype, &(((T*)recvbuffer)[index_start]), recv_counts, offsets,
+                            *mpi_datatype, RootRank, MPI_COMM_WORLD);
             }
         }
     }
 
     // Free resource
-    delete [] recv_counts;
-    delete [] offsets;
+    delete[] recv_counts;
+    delete[] offsets;
 
     return YT_SUCCESS;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  big_MPI_Bcast
@@ -117,28 +112,26 @@ int big_MPI_Gatherv(int RootRank, int *sendcounts, void *sendbuffer, MPI_Datatyp
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 template<typename T>
-int big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_datatype) {
+int big_MPI_Bcast(int RootRank, long sendcount, void* buffer, MPI_Datatype* mpi_datatype) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // The maximum MPI_Bcast sendcount is INT_MAX.
     // If num_grids > INT_MAX chop it to chunks, then broadcast.
-    long stride   = INT_MAX;
-    int  part     = (int) (sendcount / stride) + 1;
-    int  remain   = (int) (sendcount % stride);
+    long stride = INT_MAX;
+    int part = (int)(sendcount / stride) + 1;
+    int remain = (int)(sendcount % stride);
     long index;
-    for (int i=0; i < part; i++){
+    for (int i = 0; i < part; i++) {
         index = i * stride;
-        if ( i == part - 1 ){
+        if (i == part - 1) {
             MPI_Bcast(&(((T*)buffer)[index]), remain, *mpi_datatype, RootRank, MPI_COMM_WORLD);
-        }
-        else {
+        } else {
             MPI_Bcast(&(((T*)buffer)[index]), (int)stride, *mpi_datatype, RootRank, MPI_COMM_WORLD);
         }
     }
 
     return YT_SUCCESS;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  big_MPI_Get
@@ -156,13 +149,14 @@ int big_MPI_Bcast(int RootRank, long sendcount, void *buffer, MPI_Datatype *mpi_
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 template<typename T>
-int big_MPI_Get(void *recv_buff, long data_len, MPI_Datatype *mpi_dtype, int get_rank, MPI_Aint base_address, MPI_Win *window) {
+int big_MPI_Get(void* recv_buff, long data_len, MPI_Datatype* mpi_dtype, int get_rank, MPI_Aint base_address,
+                MPI_Win* window) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // The maximum sendcount of MPI_Get is INT_MAX.
-    long stride   = INT_MAX;
-    int  part     = (int) (data_len / stride) + 1;
-    int  remain   = (int) (data_len % stride);
+    long stride = INT_MAX;
+    int part = (int)(data_len / stride) + 1;
+    int remain = (int)(data_len % stride);
     long index;
 
     // Get size of the data, and get the displacement address.
@@ -170,12 +164,11 @@ int big_MPI_Get(void *recv_buff, long data_len, MPI_Datatype *mpi_dtype, int get
     MPI_Aint address = base_address;
 
     // Split to many time if data_len > INT_MAX
-    for (int i = 0; i < part; i++){
+    for (int i = 0; i < part; i++) {
         index = i * stride;
-        if ( i == part - 1 ){
+        if (i == part - 1) {
             MPI_Get(&(((T*)recv_buff)[index]), remain, *mpi_dtype, get_rank, address, remain, *mpi_dtype, *window);
-        }
-        else {
+        } else {
             MPI_Get(&(((T*)recv_buff)[index]), stride, *mpi_dtype, get_rank, address, stride, *mpi_dtype, *window);
         }
         address += stride * size;
@@ -184,6 +177,6 @@ int big_MPI_Get(void *recv_buff, long data_len, MPI_Datatype *mpi_dtype, int get
     return YT_SUCCESS;
 }
 
-#endif // #ifndef SERIAL_MODE
+#endif  // #ifndef SERIAL_MODE
 
-#endif // __BIG_MPI_H__
+#endif  // __BIG_MPI_H__
