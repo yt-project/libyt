@@ -1,14 +1,17 @@
 #ifdef INTERACTIVE_MODE
 
-#include "yt_combo.h"
-#include <string.h>
-#include <iostream>
 #include "func_status_list.h"
 
-static bool check_colon_exist(const char *code);
+#include <string.h>
+
+#include <iostream>
+
+#include "yt_combo.h"
+
+static bool check_colon_exist(const char* code);
 
 std::array<std::string, func_status_list::s_NotDone_Num> func_status_list::s_NotDone_ErrMsg;
-std::array<PyObject*, func_status_list::s_NotDone_Num>   func_status_list::s_NotDone_PyErr;
+std::array<PyObject*, func_status_list::s_NotDone_Num> func_status_list::s_NotDone_PyErr;
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status_list
@@ -23,12 +26,11 @@ std::array<PyObject*, func_status_list::s_NotDone_Num>   func_status_list::s_Not
 int func_status_list::reset() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    for (int i=0; i<size(); i++) {
+    for (int i = 0; i < size(); i++) {
         m_FuncStatusList[i].set_status(-1);
     }
     return YT_SUCCESS;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status_list
@@ -58,43 +60,41 @@ int func_status_list::print_summary() {
         printf("=====================================================================\n");
         printf("  %-40s     %-12s   %s\n", "Inline Function", "Status", "Run");
         printf("---------------------------------------------------------------------\n");
-        for (int i=0; i<size(); i++) {
-            printf("\033[1;37m"); // change to bold white
+        for (int i = 0; i < size(); i++) {
+            printf("\033[1;37m");  // change to bold white
             printf("  * %-43s", m_FuncStatusList[i].get_func_name());
             int run = m_FuncStatusList[i].get_run();
             int status = m_FuncStatusList[i].get_status();
 
             if (status == 0) {
-                printf("\033[1;31m"); // bold red: failed
+                printf("\033[1;31m");  // bold red: failed
                 printf("%-12s", "failed");
-            }
-            else if (status == 1) {
-                printf("\033[1;32m"); // bold green: success
+            } else if (status == 1) {
+                printf("\033[1;32m");  // bold green: success
                 printf("%-12s", "success");
-            }
-            else if (status == -1 ) {
-                printf("\033[1;34m"); // bold blue: idle
+            } else if (status == -1) {
+                printf("\033[1;34m");  // bold blue: idle
                 printf("%-12s", "idle");
-            }
-            else {
-                printf("\033[0;37m"); // change to white
+            } else {
+                printf("\033[0;37m");  // change to white
                 printf("%-12s (%d)", "unkown status", status);
             }
 
-            printf("\033[1;33m"); // bold yellow
-            if (run == 1) printf("%5s\n", "V");
-            else          printf("%5s\n", "X");
+            printf("\033[1;33m");  // bold yellow
+            if (run == 1)
+                printf("%5s\n", "V");
+            else
+                printf("%5s\n", "X");
 
             fflush(stdout);
         }
         printf("\033[1;37m");
         printf("=====================================================================\n");
-        printf("\033[0;37m"); // change to white
+        printf("\033[0;37m");  // change to white
     }
 
     return YT_SUCCESS;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status_list
@@ -106,11 +106,11 @@ int func_status_list::print_summary() {
 //
 // Return      :  index : index of func_name in list, return -1 if doesn't exist.
 //-------------------------------------------------------------------------------------------------------
-int func_status_list::get_func_index(const char *func_name) {
+int func_status_list::get_func_index(const char* func_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int index = -1;
-    for (int i=0; i<size(); i++) {
+    for (int i = 0; i < size(); i++) {
         if (strcmp(m_FuncStatusList[i].get_func_name(), func_name) == 0) {
             index = i;
             break;
@@ -118,7 +118,6 @@ int func_status_list::get_func_index(const char *func_name) {
     }
     return index;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status_list
@@ -132,7 +131,7 @@ int func_status_list::get_func_index(const char *func_name) {
 //
 // Return      : Function index in list.
 //-------------------------------------------------------------------------------------------------------
-int func_status_list::add_new_func(const char *func_name, int run) {
+int func_status_list::add_new_func(const char* func_name, int run) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Check if func_name exist, return YT_SUCCESS if exist
@@ -145,7 +144,6 @@ int func_status_list::add_new_func(const char *func_name, int run) {
 
     return index;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status_list
@@ -168,21 +166,21 @@ int func_status_list::add_new_func(const char *func_name, int run) {
 int func_status_list::run_func() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    for (int i=0; i<size(); i++) {
+    for (int i = 0; i < size(); i++) {
         int run = m_FuncStatusList[i].get_run();
         int status = m_FuncStatusList[i].get_status();
         if (run == 1 && status == -1) {
             // command
-            const char *funcname = m_FuncStatusList[i].get_func_name();
+            const char* funcname = m_FuncStatusList[i].get_func_name();
             int command_width = 350 + strlen(g_param_libyt.script) + strlen(funcname) * 2;
-            char *command = (char*) malloc(command_width * sizeof(char));
-            const char *wrapped = m_FuncStatusList[i].get_wrapper() ? "\"\"\"" : "'''";
-            sprintf(command, "try:\n"
-                             "    exec(%s%s(%s)%s, sys.modules[\"%s\"].__dict__)\n"
-                             "except Exception as e:\n"
-                             "    libyt.interactive_mode[\"func_err_msg\"][\"%s\"] = traceback.format_exc()\n",
-                             wrapped, funcname, m_FuncStatusList[i].get_args().c_str(), wrapped,
-                             g_param_libyt.script, funcname);
+            char* command = (char*)malloc(command_width * sizeof(char));
+            const char* wrapped = m_FuncStatusList[i].get_wrapper() ? "\"\"\"" : "'''";
+            sprintf(command,
+                    "try:\n"
+                    "    exec(%s%s(%s)%s, sys.modules[\"%s\"].__dict__)\n"
+                    "except Exception as e:\n"
+                    "    libyt.interactive_mode[\"func_err_msg\"][\"%s\"] = traceback.format_exc()\n",
+                    wrapped, funcname, m_FuncStatusList[i].get_args().c_str(), wrapped, g_param_libyt.script, funcname);
 
             // run and update status
             log_info("Performing YT inline analysis %s(%s) ...\n", funcname, m_FuncStatusList[i].get_args().c_str());
@@ -190,11 +188,12 @@ int func_status_list::run_func() {
             if (PyRun_SimpleString(command) != 0) {
                 m_FuncStatusList[i].set_status(0);
                 free(command);
-                YT_ABORT("Unexpected error occurred while executing %s(%s) in script's namespace.\n",
-                         funcname, m_FuncStatusList[i].get_args().c_str());
+                YT_ABORT("Unexpected error occurred while executing %s(%s) in script's namespace.\n", funcname,
+                         m_FuncStatusList[i].get_args().c_str());
             }
             m_FuncStatusList[i].get_status();
-            log_info("Performing YT inline analysis %s(%s) ... done\n", funcname, m_FuncStatusList[i].get_args().c_str());
+            log_info("Performing YT inline analysis %s(%s) ... done\n", funcname,
+                     m_FuncStatusList[i].get_args().c_str());
 
             // clean up
             free(command);
@@ -203,14 +202,13 @@ int func_status_list::run_func() {
     return YT_SUCCESS;
 }
 
-
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status_list
 // Method      :  update_prompt_history / clear_prompt_history
 //
 // Notes       :  1. Only root rank will record all the successful inputs from interactive prompt.
 //                2. Input that failed will not be recorded.
-//                3. Inputs will not accumulate from iterations to iterations, which means input will be 
+//                3. Inputs will not accumulate from iterations to iterations, which means input will be
 //                   cleared after stepping out interactive mode (%libyt exit).
 //
 // Arguments   :  const std::string& cmd_prompt : input prompt from user.
@@ -234,7 +232,6 @@ int func_status_list::clear_prompt_history() {
     return YT_SUCCESS;
 }
 
-
 //-------------------------------------------------------------------------------------------------------
 // Class         :  func_status_list
 // Static Method :  load_file_func_body
@@ -249,34 +246,34 @@ int func_status_list::clear_prompt_history() {
 //
 // Return        : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int func_status_list::load_file_func_body(const char *filename) {
+int func_status_list::load_file_func_body(const char* filename) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int command_len = 500 + strlen(filename);
-    char *command = (char*) malloc(command_len * sizeof(char));
-    sprintf(command, "for key in libyt.interactive_mode[\"script_globals\"].keys():\n"
-                     "    if key.startswith(\"__\") and key.endswith(\"__\"):\n"
-                     "        continue\n"
-                     "    else:\n"
-                     "        var = libyt.interactive_mode[\"script_globals\"][key]\n"
-                     "        try:\n"
-                     "            if callable(var) and inspect.getsourcefile(var).split(\"/\")[-1] == \"%s\":\n"
-                     "                libyt.interactive_mode[\"func_body\"][key] = inspect.getsource(var)\n"
-                     "        except:\n"
-                     "            pass\n", filename);
+    char* command = (char*)malloc(command_len * sizeof(char));
+    sprintf(command,
+            "for key in libyt.interactive_mode[\"script_globals\"].keys():\n"
+            "    if key.startswith(\"__\") and key.endswith(\"__\"):\n"
+            "        continue\n"
+            "    else:\n"
+            "        var = libyt.interactive_mode[\"script_globals\"][key]\n"
+            "        try:\n"
+            "            if callable(var) and inspect.getsourcefile(var).split(\"/\")[-1] == \"%s\":\n"
+            "                libyt.interactive_mode[\"func_body\"][key] = inspect.getsource(var)\n"
+            "        except:\n"
+            "            pass\n",
+            filename);
 
     if (PyRun_SimpleString(command) == 0) {
         log_debug("Loading function body in script %s ... done\n", filename);
         free(command);
         return YT_SUCCESS;
-    }
-    else {
+    } else {
         log_debug("Loading function body in script %s ... failed\n", filename);
         free(command);
         return YT_FAIL;
     }
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  func_status_list
@@ -296,11 +293,11 @@ int func_status_list::load_file_func_body(const char *filename) {
 //
 // Return        : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int func_status_list::load_input_func_body(const char *code) {
+int func_status_list::load_input_func_body(const char* code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // prepare subspace to silent printing from python
-    PyObject *py_new_dict = PyDict_New();
+    PyObject* py_new_dict = PyDict_New();
     PyDict_SetItemString(py_new_dict, "__builtins__", PyEval_GetBuiltins());
     std::string command_str("import os, contextlib\n"
                             "with open(os.devnull, 'w') as f, contextlib.redirect_stdout(f):\n");
@@ -310,12 +307,11 @@ int func_status_list::load_input_func_body(const char *code) {
         std::size_t found = code_str.find('\n', start_pos);
         if (found != std::string::npos) {
             command_str += "    ";
-            for (std::size_t c=start_pos; c<found; c++) {
+            for (std::size_t c = start_pos; c < found; c++) {
                 command_str += code_str[c];
             }
             command_str += "\n";
-        }
-        else {
+        } else {
             break;
         }
         start_pos = found + 1;
@@ -323,20 +319,20 @@ int func_status_list::load_input_func_body(const char *code) {
 
     // detecting callables
     // detecting callables: loop over keys in new dict, and check if it is callable
-    PyObject *py_src = Py_CompileString(command_str.c_str(), "<libyt-stdin>", Py_file_input);
+    PyObject* py_src = Py_CompileString(command_str.c_str(), "<libyt-stdin>", Py_file_input);
     if (py_src != NULL) {
-        PyObject *py_dum_detect = PyEval_EvalCode(py_src, py_new_dict, py_new_dict);
-        PyObject *py_new_dict_keys = PyDict_Keys(py_new_dict);
+        PyObject* py_dum_detect = PyEval_EvalCode(py_src, py_new_dict, py_new_dict);
+        PyObject* py_new_dict_keys = PyDict_Keys(py_new_dict);
         Py_ssize_t py_size = PyList_GET_SIZE(py_new_dict_keys);
-        for (Py_ssize_t i=0; i<py_size; i++) {
+        for (Py_ssize_t i = 0; i < py_size; i++) {
             if (PyCallable_Check(PyDict_GetItem(py_new_dict, PyList_GET_ITEM(py_new_dict_keys, i)))) {
                 // add new function to g_func_status_list and set to idle. if function exists already, get its index
-                const char *func_name = PyUnicode_AsUTF8(PyList_GET_ITEM(py_new_dict_keys, i));
+                const char* func_name = PyUnicode_AsUTF8(PyList_GET_ITEM(py_new_dict_keys, i));
                 g_func_status_list.add_new_func(func_name, 0);
 
                 // update function body
-                PyObject *py_func_body_dict = PyDict_GetItemString(g_py_interactive_mode, "func_body");
-                PyObject *py_func_body = PyUnicode_FromString((const char*) code);
+                PyObject* py_func_body_dict = PyDict_GetItemString(g_py_interactive_mode, "func_body");
+                PyObject* py_func_body = PyUnicode_FromString((const char*)code);
                 PyDict_SetItemString(py_func_body_dict, func_name, py_func_body);
                 Py_DECREF(py_func_body);
             }
@@ -355,7 +351,6 @@ int func_status_list::load_input_func_body(const char *code) {
     return YT_SUCCESS;
 }
 
-
 //-------------------------------------------------------------------------------------------------------
 // Class         :  func_status_list
 // Static Method :  get_funcname_defined
@@ -367,27 +362,29 @@ int func_status_list::load_input_func_body(const char *code) {
 //
 // Return        : std::vector<std::string> contains a list of function name defined in filename.
 //-------------------------------------------------------------------------------------------------------
-std::vector<std::string> func_status_list::get_funcname_defined(const char *filename) {
+std::vector<std::string> func_status_list::get_funcname_defined(const char* filename) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int command_len = 400 + strlen(filename);
-    char *command = (char*) malloc(command_len * sizeof(char));
-    sprintf(command, "libyt.interactive_mode[\"temp\"] = []\n"
-                     "for key in libyt.interactive_mode[\"script_globals\"].keys():\n"
-                     "    if key.startswith(\"__\") and key.endswith(\"__\"):\n"
-                     "        continue\n"
-                     "    else:\n"
-                     "        var = libyt.interactive_mode[\"script_globals\"][key]\n"
-                     "        if callable(var) and inspect.getsourcefile(var).split(\"/\")[-1] == \"%s\":\n"
-                     "            libyt.interactive_mode[\"temp\"].append(key)\n", filename);
+    char* command = (char*)malloc(command_len * sizeof(char));
+    sprintf(command,
+            "libyt.interactive_mode[\"temp\"] = []\n"
+            "for key in libyt.interactive_mode[\"script_globals\"].keys():\n"
+            "    if key.startswith(\"__\") and key.endswith(\"__\"):\n"
+            "        continue\n"
+            "    else:\n"
+            "        var = libyt.interactive_mode[\"script_globals\"][key]\n"
+            "        if callable(var) and inspect.getsourcefile(var).split(\"/\")[-1] == \"%s\":\n"
+            "            libyt.interactive_mode[\"temp\"].append(key)\n",
+            filename);
     if (PyRun_SimpleString(command) != 0) log_error("Unable to grab functions in python script %s.\n", filename);
 
-    PyObject *py_func_list = PyDict_GetItemString(g_py_interactive_mode, "temp");
+    PyObject* py_func_list = PyDict_GetItemString(g_py_interactive_mode, "temp");
     Py_ssize_t py_list_len = PyList_Size(py_func_list);
     std::vector<std::string> func_list;
     func_list.reserve((long)py_list_len);
-    for (Py_ssize_t i=0; i<py_list_len; i++) {
-        const char *func_name = PyUnicode_AsUTF8(PyList_GET_ITEM(py_func_list, i));
+    for (Py_ssize_t i = 0; i < py_list_len; i++) {
+        const char* func_name = PyUnicode_AsUTF8(PyList_GET_ITEM(py_func_list, i));
         func_list.emplace_back(std::string(func_name));
     }
 
@@ -397,7 +394,6 @@ std::vector<std::string> func_status_list::get_funcname_defined(const char *file
 
     return func_list;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  func_status_list
@@ -415,17 +411,20 @@ int func_status_list::set_exception_hook() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     char command[600];
-    sprintf(command, "import sys\n"
-                     "def mpi_libyt_interactive_mode_excepthook(exception_type, exception_value, tb):\n"
-                     "    traceback.print_tb(tb)\n"
-                     "    print(\"[YT_ERROR  ] {}: {}\".format(exception_type.__name__, exception_value))\n"
-                     "    print(\"[YT_ERROR  ] Error occurred on rank {}.\".format(%d))\n"
-                     "sys.excepthook = mpi_libyt_interactive_mode_excepthook\n", g_myrank);
+    sprintf(command,
+            "import sys\n"
+            "def mpi_libyt_interactive_mode_excepthook(exception_type, exception_value, tb):\n"
+            "    traceback.print_tb(tb)\n"
+            "    print(\"[YT_ERROR  ] {}: {}\".format(exception_type.__name__, exception_value))\n"
+            "    print(\"[YT_ERROR  ] Error occurred on rank {}.\".format(%d))\n"
+            "sys.excepthook = mpi_libyt_interactive_mode_excepthook\n",
+            g_myrank);
 
-    if (PyRun_SimpleString(command) == 0) return YT_SUCCESS;
-    else return YT_FAIL;
+    if (PyRun_SimpleString(command) == 0)
+        return YT_SUCCESS;
+    else
+        return YT_FAIL;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  func_status_list
@@ -445,20 +444,19 @@ int func_status_list::init_not_done_err_msg() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // error msg from not done yet statement to grab
-    std::array<std::string, s_NotDone_Num> not_done_statement = { std::string("if 1==1:\n"),
-                                                                  std::string("tri = \"\"\"\n"),
-                                                                  std::string("print(\n") };
+    std::array<std::string, s_NotDone_Num> not_done_statement = {
+        std::string("if 1==1:\n"), std::string("tri = \"\"\"\n"), std::string("print(\n")};
 
     // get python error type and its statement.
     PyObject *py_src, *py_exc, *py_val, *py_traceback, *py_obj;
-    const char *err_msg;
-    for (int i=0; i<s_NotDone_Num; i++) {
+    const char* err_msg;
+    for (int i = 0; i < s_NotDone_Num; i++) {
         py_src = Py_CompileString(not_done_statement[i].c_str(), "<get err msg>", Py_single_input);
         PyErr_Fetch(&py_exc, &py_val, &py_traceback);
         PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
 
         s_NotDone_ErrMsg[i] = std::string(err_msg);
-        s_NotDone_PyErr[i]  = py_exc;
+        s_NotDone_PyErr[i] = py_exc;
 
         // dereference
         Py_XDECREF(py_src);
@@ -471,7 +469,6 @@ int func_status_list::init_not_done_err_msg() {
 
     return YT_SUCCESS;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  func_status_list
@@ -492,17 +489,17 @@ int func_status_list::init_not_done_err_msg() {
 //
 // Return        :  true / false : true for user hasn't done inputting yet.
 //-------------------------------------------------------------------------------------------------------
-bool func_status_list::is_not_done_err_msg(const char *code) {
+bool func_status_list::is_not_done_err_msg(const char* code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     bool user_not_done = false;
 
-    for (int i=0; i<s_NotDone_Num; i++) {
+    for (int i = 0; i < s_NotDone_Num; i++) {
         // check error type
         if (PyErr_ExceptionMatches(s_NotDone_PyErr[i])) {
             // fetch err msg
             PyObject *py_exc, *py_val, *py_traceback, *py_obj;
-            const char *err_msg = "";
+            const char* err_msg = "";
             PyErr_Fetch(&py_exc, &py_val, &py_traceback);
             PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
 
@@ -511,8 +508,7 @@ bool func_status_list::is_not_done_err_msg(const char *code) {
                 // if it is IndentationError (i == 0), then check if the last line contains ':' (a multi-line statement)
                 if (i == 0) {
                     user_not_done = check_colon_exist(code);
-                }
-                else {
+                } else {
                     user_not_done = true;
                 }
             }
@@ -524,8 +520,7 @@ bool func_status_list::is_not_done_err_msg(const char *code) {
                 Py_XDECREF(py_traceback);
                 Py_XDECREF(py_obj);
                 break;
-            }
-            else {
+            } else {
                 // restore err msg, and I no longer own py_exc's, py_val's, and py_traceback's reference
                 PyErr_Restore(py_exc, py_val, py_traceback);
             }
@@ -534,7 +529,6 @@ bool func_status_list::is_not_done_err_msg(const char *code) {
 
     return user_not_done;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Function      :  check_colon_exist
@@ -549,7 +543,7 @@ bool func_status_list::is_not_done_err_msg(const char *code) {
 // Return        :  false : It is a true indentation error caused by user error.
 //                  true  : Indentation error caused by user not done inputting yet.
 //-------------------------------------------------------------------------------------------------------
-static bool check_colon_exist(const char *code) {
+static bool check_colon_exist(const char* code) {
     std::string code_str = std::string(code);
     std::size_t start_pos = 0, found;
     bool last_line_has_colon = false;
@@ -566,8 +560,7 @@ static bool check_colon_exist(const char *code) {
                     break;
                 }
             }
-        }
-        else {
+        } else {
             break;
         }
 
@@ -577,4 +570,4 @@ static bool check_colon_exist(const char *code) {
     return last_line_has_colon;
 }
 
-#endif // #ifdef INTERACTIVE_MODE
+#endif  // #ifdef INTERACTIVE_MODE

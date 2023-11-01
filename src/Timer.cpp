@@ -1,21 +1,20 @@
 #ifdef SUPPORT_TIMER
 
-#include <thread>
-#include <iostream>
 #include "Timer.h"
-#include "LibytProcessControl.h"
 
+#include <iostream>
+#include <thread>
+
+#include "LibytProcessControl.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  Timer
 // Method      :  Constructor
 // Description :  Record start time
 //-------------------------------------------------------------------------------------------------------
-Timer::Timer(const char *func_name)
-: m_FuncName(func_name), m_Stopped(false) {
+Timer::Timer(const char* func_name) : m_FuncName(func_name), m_Stopped(false) {
     m_StartTime = std::chrono::high_resolution_clock::now();
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  Timer
@@ -23,10 +22,8 @@ Timer::Timer(const char *func_name)
 // Description :  Stop the clock
 //-------------------------------------------------------------------------------------------------------
 Timer::~Timer() {
-    if (!m_Stopped)
-        Stop();
+    if (!m_Stopped) Stop();
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  Timer
@@ -45,4 +42,4 @@ void Timer::Stop() {
     m_Stopped = true;
 }
 
-#endif // #ifdef SUPPORT_TIMER
+#endif  // #ifdef SUPPORT_TIMER

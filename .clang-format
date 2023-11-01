@@ -17,11 +17,11 @@ ColumnLimit: '120'
 CommentPragmas: '''^  *'''
 CompactNamespaces: 'false'
 IndentCaseLabels: 'true'
-IndentPPDirectives: AfterHash
+IndentPPDirectives: None
 IndentWidth: '4'
 KeepEmptyLinesAtTheStartOfBlocks: 'false'
 Language: Cpp
-PointerAlignment: Right
+DerivePointerAlignment: false
 ReflowComments: 'true'
 SpaceAfterCStyleCast: 'false'
 SpaceAfterLogicalNot: 'false'

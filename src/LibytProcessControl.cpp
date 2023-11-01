@@ -2,6 +2,7 @@
 #include <mpi.h>
 #endif
 #include <string>
+
 #include "LibytProcessControl.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -43,20 +44,19 @@ LibytProcessControl LibytProcessControl::s_Instance;
 //-------------------------------------------------------------------------------------------------------
 LibytProcessControl::LibytProcessControl() {
     // Check points for libyt process
-    libyt_initialized   = false;
-    param_yt_set        = false;
-    get_fieldsPtr       = false;
-    get_particlesPtr    = false;
-    get_gridsPtr        = false;
-    commit_grids        = false;
-    free_gridsPtr       = true;
+    libyt_initialized = false;
+    param_yt_set = false;
+    get_fieldsPtr = false;
+    get_particlesPtr = false;
+    get_gridsPtr = false;
+    commit_grids = false;
+    free_gridsPtr = true;
 
-    field_list          = nullptr;
-    particle_list       = nullptr;
-    grids_local         = nullptr;
+    field_list = nullptr;
+    particle_list = nullptr;
+    grids_local = nullptr;
     num_grids_local_MPI = nullptr;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytProcessControl
@@ -84,7 +84,6 @@ void LibytProcessControl::Initialize() {
 #endif
 }
 
-
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytProcessControl
 // Method      :  Public static method
@@ -92,7 +91,4 @@ void LibytProcessControl::Initialize() {
 //
 // Notes       :  1. Return the reference of LibytProcessControl instance.
 //-------------------------------------------------------------------------------------------------------
-LibytProcessControl& LibytProcessControl::Get()
-{
-    return s_Instance;
-}
+LibytProcessControl& LibytProcessControl::Get() { return s_Instance; }
