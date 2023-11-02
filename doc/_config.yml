@@ -1,12 +1,12 @@
-title: libyt Documents (Dev)
-description: libyt documents, this site is mainly for developing.
+title: libyt Documents
+description: libyt documents
 theme: just-the-docs
 
-url: https://cindytsai.github.io/libyt/
+url: https://yt-project.github.io/libyt/
 
 # Aux links for the upper right navigation, create new tab once click
 aux_links:
-  cindytsai/libyt (dev): https://github.com/cindytsai/libyt
+  yt-project/libyt GitHub : https://github.com/yt-project/libyt
 aux_links_new_tab: true
 
 # Heading anchor links appear on hover over h1-h6 tags in page content
