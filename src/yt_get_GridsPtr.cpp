@@ -22,7 +22,6 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-//
 int yt_get_GridsPtr(yt_grid** grids_local) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
