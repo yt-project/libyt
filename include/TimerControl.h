@@ -1,6 +1,7 @@
 #ifndef __TIMERCONTROL_H__
 #define __TIMERCONTROL_H__
 
+#ifdef SUPPORT_TIMER
 #include <mutex>
 #include <string>
 
@@ -16,5 +17,6 @@ private:
     bool m_FirstLine;
     std::mutex m_Lock;
 };
+#endif  // #ifdef SUPPORT_TIMER
 
 #endif  // #ifndef __TIMERCONTROL_H__

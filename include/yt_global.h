@@ -27,42 +27,21 @@
 
 // include relevant headers
 #include "yt_type.h"
-
 #ifdef INTERACTIVE_MODE
 #include "func_status_list.h"
 #endif
 
-#include "Timer.h"
-
 // add the prefix "g_" for all global C variables
 SET_GLOBAL(yt_param_libyt, g_param_libyt);  // libyt runtime parameters
-                                            // ==> Do not defined it as a pointer so that it is
-                                            //     initialized during compilation
 SET_GLOBAL(yt_param_yt, g_param_yt);        // YT parameters
-
-SET_GLOBAL(int, g_myrank);  // My current MPI rank
-
-SET_GLOBAL(int, g_mysize);  // My current MPI size
-
+SET_GLOBAL(int, g_myrank);                  // MPI rank
+SET_GLOBAL(int, g_mysize);                  // MPI size
 #ifdef INTERACTIVE_MODE
-
 SET_GLOBAL(func_status_list, g_func_status_list, func_status_list(10));  // Inline function status list (default 10)
-
 #endif
 
-#ifndef SERIAL_MODE
-// user-defined MPI data type
-SET_GLOBAL(MPI_Datatype, yt_long_mpi_type);
-
-SET_GLOBAL(MPI_Datatype, yt_hierarchy_mpi_type);
-
-SET_GLOBAL(MPI_Datatype, yt_rma_grid_info_mpi_type);
-
-SET_GLOBAL(MPI_Datatype, yt_rma_particle_info_mpi_type);
-#endif
-
-// add the prefix "g_py_" for all global Python objects
 #ifndef NO_PYTHON
+// add the prefix "g_py_" for all global Python objects
 SET_GLOBAL(PyObject, *g_py_grid_data, NULL);      // Python dictionary to store grid data
 SET_GLOBAL(PyObject, *g_py_particle_data, NULL);  // Python dictionary to store particle data
 SET_GLOBAL(PyObject, *g_py_hierarchy, NULL);      // Python dictionary to store hierachy information
@@ -72,6 +51,14 @@ SET_GLOBAL(PyObject, *g_py_libyt_info, NULL);     // Python dictionary to store 
 #ifdef INTERACTIVE_MODE
 SET_GLOBAL(PyObject, *g_py_interactive_mode, NULL);  // Python dictionary to store interactive_mode stuff
 #endif
+#endif
+
+#ifndef SERIAL_MODE
+// user-defined MPI data type
+SET_GLOBAL(MPI_Datatype, yt_long_mpi_type);
+SET_GLOBAL(MPI_Datatype, yt_hierarchy_mpi_type);
+SET_GLOBAL(MPI_Datatype, yt_rma_grid_info_mpi_type);
+SET_GLOBAL(MPI_Datatype, yt_rma_particle_info_mpi_type);
 #endif
 
 // remove macros used locally

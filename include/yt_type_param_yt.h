@@ -43,7 +43,6 @@
 typedef struct yt_param_yt {
     const char* frontend;
     const char* fig_basename;
-
     double domain_left_edge[3];
     double domain_right_edge[3];
     double current_time;

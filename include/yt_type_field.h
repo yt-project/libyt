@@ -50,7 +50,6 @@ typedef struct yt_field {
     int num_field_name_alias;
     const char** field_name_alias;
     const char* field_display_name;
-
     void (*derived_func)(const int, const long*, const char*, yt_array*);
 
 #ifdef __cplusplus

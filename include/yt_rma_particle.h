@@ -16,6 +16,25 @@
 #include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
+// Structure   :  yt_rma_particle_info
+// Description :  Data structure for getting remote particle attribute, it's meant for temporary used.
+//
+// Notes       :  1. I change the order of the data member, in order to make creating mpi user data type
+//                   more efficient.
+//
+// Data Member :  long     id         : Grid id.
+//                MPI_Aint address    : Window address at which this data buffer attaches to.
+//                long     data_len   : Data array's length in the view of data array.
+//                int      rank       : Rank that contains the data buffer.
+//-------------------------------------------------------------------------------------------------------
+struct yt_rma_particle_info {
+    long id;
+    MPI_Aint address;
+    long data_len;
+    int rank;
+};
+
+//-------------------------------------------------------------------------------------------------------
 // Class       :  yt_rma_particle
 // Description :  Class to deal with RMA operation, to get non-local particle data.
 //
