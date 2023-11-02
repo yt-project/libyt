@@ -28,7 +28,7 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
 
 ### yt_particle
 - `const char* par_type` (set by `libyt`)
-  - Usage: Name of the particle type. `libyt` only copies the pointer from [`par_type_list`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt)'s data member `par_type` to this variable and does not make a hard copy. You don't need to assign it again. 
+  - Usage: Name of the particle type. `libyt` only copies the pointer from [`par_type_list`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt)'s data member `par_type` to this variable and does not make a hard copy. You don't need to assign it again. Refer to [Naming and Field Information]({% link InSituPythonAnalysis/UsingYT.md %}#naming-and-field-information) for how particle/attribute names and yt fields are linked and reused.
     > :pencil2: The lifetime of `par_type` should cover in situ analysis process. `libyt` only borrows this pointer and does not make a hard copy.
 - `int num_attr` (set by `libyt`)
   - Usage: Number of attributes does this particle type has. `libyt` will assign your input [`par_type_list`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt)'s data member `num_attr` to this variable. You may skip this.
@@ -36,16 +36,11 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
   - Usage: Attribute list of this particle. This is a `yt_attribute` array with length `num_attr`.
   - Data member in `yt_attribute`:
     - `const char* attr_name` (Default=`NULL`)
-      - Usage: Attribute name.
+      - Usage: Attribute name. Refer to [Naming and Field Information]({% link InSituPythonAnalysis/UsingYT.md %}#naming-and-field-information) for how particle/attribute names and yt fields are linked and reused.
       > :pencil2: The lifetime of `attr_name` should cover in situ analysis process. `libyt` only borrows this variable and does not make a copy.
     - `yt_dtype attr_dtype` (Default=`YT_DOUBLE`)
       - Usage: Attribute’s data type.
-      - Valid Value for `yt_dtype`: 
-        - `YT_FLOAT`: C type float.
-        - `YT_DOUBLE`: C type double.
-        - `YT_LONGDOUBLE`: C type long double.
-        - `YT_INT`: C type int. 
-        - `YT_LONG`: C type long.
+      - Valid Value:  [`yt_dtype`]({% link libytAPI/DataType.md %}#yt_dtype)
     - `const char* attr_unit` (Default=`""`)
       - Usage: Unit of the attribute, using `yt` unit system.
       > :pencil2: The lifetime of `attr_unit` should cover [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit).

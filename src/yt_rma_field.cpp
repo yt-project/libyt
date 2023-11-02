@@ -2,6 +2,7 @@
 
 #include "yt_rma_field.h"
 #include "yt_combo.h"
+#include "big_mpi.h"
 #include "LibytProcessControl.h"
 #include "libyt.h"
 #include <string.h>
@@ -117,7 +118,7 @@ int yt_rma_field::prepare_data(long& gid)
     }
 
     // Get data dimensions, data type, and data pointer
-    void *data_ptr = NULL;
+    void *data_ptr = nullptr;
     if ( strcmp(m_FieldDefineType, "derived_func") == 0 ) {
         // get data dimensions
         int grid_dimensions[3];
@@ -136,28 +137,8 @@ int yt_rma_field::prepare_data(long& gid)
 
         // allocate data_ptr
         long gridLength = grid_info.data_dim[0] * grid_info.data_dim[1] * grid_info.data_dim[2];
-        if ( grid_info.data_dtype == YT_FLOAT ){
-            data_ptr = malloc( gridLength * sizeof(float) );
-            for(long i = 0; i < gridLength; i++){ ((float *) data_ptr)[i] = 0.0; }
-        }
-        else if ( grid_info.data_dtype == YT_DOUBLE ){
-            data_ptr = malloc( gridLength * sizeof(double) );
-            for(long i = 0; i < gridLength; i++){ ((double *) data_ptr)[i] = 0.0; }
-        }
-        else if ( grid_info.data_dtype == YT_LONGDOUBLE ){
-            data_ptr = malloc( gridLength * sizeof(long double) );
-            for(long i = 0; i < gridLength; i++){ ((long double *) data_ptr)[i] = 0.0; }
-        }
-        else if ( grid_info.data_dtype == YT_INT ){
-            data_ptr = malloc( gridLength * sizeof(int) );
-            for(long i = 0; i < gridLength; i++){ ((int *) data_ptr)[i] = 0; }
-        }
-        else if ( grid_info.data_dtype == YT_LONG ){
-            data_ptr = malloc( gridLength * sizeof(long) );
-            for(long i = 0; i < gridLength; i++){ ((long *) data_ptr)[i] = 0; }
-        }
-        else{
-            YT_ABORT("yt_rma_field: Unknown field_dtype.\n");
+        if (get_dtype_allocation(grid_info.data_dtype, gridLength, &data_ptr) != YT_SUCCESS){
+            YT_ABORT("yt_rma_field: Cannot allocate memory, unknown field_dtype.\n");
         }
 
         // get derived function and generate data
@@ -166,12 +147,13 @@ int yt_rma_field::prepare_data(long& gid)
         yt_array data_array[1];
         data_array[0].gid = gid; data_array[0].data_length = gridLength; data_array[0].data_ptr = data_ptr;
 
-        if ( LibytProcessControl::Get().field_list[m_FieldIndex].derived_func != NULL ){
+        if ( LibytProcessControl::Get().field_list[m_FieldIndex].derived_func != nullptr ){
             void (*derived_func) (const int, const long*, const char*, yt_array*);
             derived_func = LibytProcessControl::Get().field_list[m_FieldIndex].derived_func;
             (*derived_func) (list_length, list_gid, m_FieldName, data_array);
         }
         else{
+            free(data_ptr);
             YT_ABORT("yt_rma_field: In field [%s], field_type == %s, but derived_func not set!\n",
                      m_FieldName, m_FieldDefineType);
         }
@@ -193,9 +175,10 @@ int yt_rma_field::prepare_data(long& gid)
     // Attach buffer to window.
     int size;
     if( get_dtype_size( grid_info.data_dtype, &size ) != YT_SUCCESS ){
+        if ( strcmp(m_FieldDefineType, "derived_func") == 0 ) free(data_ptr);
         YT_ABORT("yt_rma_field: Unknown data type.\n");
     }
-    if( data_ptr == NULL ){
+    if( data_ptr == nullptr ){
         YT_ABORT("yt_rma_field: Unable to get GID [%ld] field [%s] data.\n", gid, m_FieldName);
     }
 
@@ -203,11 +186,13 @@ int yt_rma_field::prepare_data(long& gid)
     if( mpi_return_code != MPI_SUCCESS ){
         log_error("yt_rma_field: attach data buffer to one-sided MPI (RMA) window failed!\n");
         log_error("yt_rma_field: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
+        if ( strcmp(m_FieldDefineType, "derived_func") == 0 ) free(data_ptr);
         YT_ABORT("yt_rma_field: Attach buffer to window failed.\n");
     }
 
     // Get the address of the attached buffer.
     if( MPI_Get_address(data_ptr, &(grid_info.address)) != MPI_SUCCESS ){
+        if ( strcmp(m_FieldDefineType, "derived_func") == 0 ) free(data_ptr);
         YT_ABORT("yt_rma_field: Get attached buffer address failed.\n");
     }
 
@@ -261,8 +246,8 @@ int yt_rma_field::gather_all_prepare_data(int root)
 
     // Gather PreparedInfoList, which is m_Prepare in each rank, perform big_MPI_Gatherv and big_MPI_Bcast
     m_AllPrepare = new yt_rma_grid_info [m_LenAllPrepare];
-    big_MPI_Gatherv(root, SendCount, (void*)PreparedInfoList, &yt_rma_grid_info_mpi_type, (void*)m_AllPrepare, 1);
-    big_MPI_Bcast(root, m_LenAllPrepare, (void*)m_AllPrepare, &yt_rma_grid_info_mpi_type, 1);
+    big_MPI_Gatherv<yt_rma_grid_info>(root, SendCount, (void*)PreparedInfoList, &yt_rma_grid_info_mpi_type, (void*)m_AllPrepare);
+    big_MPI_Bcast<yt_rma_grid_info>(root, m_LenAllPrepare, (void*)m_AllPrepare, &yt_rma_grid_info_mpi_type);
 
     // Open window epoch.
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOPRECEDE, m_Window);
@@ -313,15 +298,15 @@ int yt_rma_field::fetch_remote_data(long& gid, int& rank)
             break;
         }
     }
-    if( get_remote_grid != true ){
+    if(!get_remote_grid){
         YT_ABORT("yt_rma_field: Cannot get remote grid id [ %ld ] located in rank [ %d ] on MPI rank [ %d ].\n",
                  gid, rank, g_myrank);
     }
     void *fetchedData = malloc( gridLength * dtype_size );
 
     // Fetch data and info
-    if( big_MPI_Get(fetchedData, gridLength, &(fetched.data_dtype), &mpi_dtype, rank, fetched.address, &m_Window) != YT_SUCCESS ){
-        YT_ABORT("yt_rma_field: big_MPI_Get fetch remote grid [ %ld ] located on rank [ %d ] failed!\n", gid, rank);
+    if( big_MPI_Get_dtype(fetchedData, gridLength, &(fetched.data_dtype), &mpi_dtype, rank, fetched.address, &m_Window) != YT_SUCCESS ){
+        YT_ABORT("yt_rma_field: big_MPI_Get_dtype fetch remote grid [ %ld ] located on rank [ %d ] failed!\n", gid, rank);
     }
 
     // Push back to m_Fetched and m_FetchedData

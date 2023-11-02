@@ -18,9 +18,9 @@ int print_yt_param_yt(const yt_param_yt &param_yt) {
     const int width_scalar = 25;
     const int width_vector = width_scalar - 3;
 
-    if ( param_yt.frontend != NULL )
+    if ( param_yt.frontend != nullptr )
         log_debug( "   %-*s = %s\n",         width_scalar, "frontend",                param_yt.frontend                );
-    if ( param_yt.fig_basename != NULL )
+    if ( param_yt.fig_basename != nullptr )
         log_debug( "   %-*s = %s\n",         width_scalar, "fig_basename",            param_yt.fig_basename            );
     for (int d=0; d<3; d++) {
         log_debug( "   %-*s[%d] = %13.7e\n", width_vector, "domain_left_edge",  d,    param_yt.domain_left_edge [d]    ); }
@@ -55,7 +55,7 @@ int print_yt_param_yt(const yt_param_yt &param_yt) {
     log_debug( "   %-*s = %ld\n",        width_scalar, "num_fields",              param_yt.num_fields              );
     log_debug( "   %-*s = %ld\n",        width_scalar, "num_par_types",           param_yt.num_par_types           );
     for (int s=0; s<param_yt.num_par_types; s++){
-        if (param_yt.par_type_list != NULL)
+        if (param_yt.par_type_list != nullptr)
             log_debug( "   %-*s[%d] = (type=\"%s\", num_attr=%d)\n", width_vector, "par_type_list", s, param_yt.par_type_list[s].par_type, param_yt.par_type_list[s].num_attr);
         else
             log_debug( "   %-*s[%d] = (type=\"%s\", num_attr=%d)\n", width_vector, "par_type_list", s, "NULL", param_yt.par_type_list[s].num_attr);
