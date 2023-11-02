@@ -15,5 +15,5 @@ repos:
     rev: v14.0.6
     hooks:
       - id: clang-format
-        types: ['c++', 'c']
+        types_or: ['c++', 'c']
         args: ['-style=file']
