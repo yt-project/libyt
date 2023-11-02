@@ -1,19 +1,21 @@
 #ifdef SUPPORT_TIMER
 
-#include <fstream>
-#include <string.h>
-#include <iostream>
-#include <algorithm>
 #include "TimerControl.h"
-#include "libyt.h"
 
+#include <string.h>
+
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+
+#include "libyt.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  TimerControl
 // Method      :  CreateFile
 // Description :  Create profile result file and write headings
 //-------------------------------------------------------------------------------------------------------
-void TimerControl::CreateFile(const char *filename, int rank) {
+void TimerControl::CreateFile(const char* filename, int rank) {
     // Initialize
     m_FileName = std::string(filename);
     m_MPIRank = rank;
@@ -28,18 +30,19 @@ void TimerControl::CreateFile(const char *filename, int rank) {
         file_out << "{\"otherData\": {"
                  << "\"version\": \"" << LIBYT_MAJOR_VERSION << "." << LIBYT_MINOR_VERSION << "." << LIBYT_MICRO_VERSION
                  << "\","
-                 #ifdef INTERACTIVE_MODE
-                 << "\"mode\": " << "\"interactive_mode\""
-                 #else
-                 << "\"mode\": " << "\"normal_mode\""
-                 #endif
+#ifdef INTERACTIVE_MODE
+                 << "\"mode\": "
+                 << "\"interactive_mode\""
+#else
+                 << "\"mode\": "
+                 << "\"normal_mode\""
+#endif
                  << "},";
         file_out << "\"traceEvents\":[";
     }
 
     file_out.close();
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  TimerControl
@@ -56,7 +59,7 @@ void TimerControl::CreateFile(const char *filename, int rank) {
 //                end       : end time
 //                thread_id : thread id
 //-------------------------------------------------------------------------------------------------------
-void TimerControl::WriteProfile(const char *func_name, long long start, long long end, uint32_t thread_id) {
+void TimerControl::WriteProfile(const char* func_name, long long start, long long end, uint32_t thread_id) {
     std::lock_guard<std::mutex> lock(m_Lock);
 
     // replace " to ' in func_name;
@@ -65,17 +68,18 @@ void TimerControl::WriteProfile(const char *func_name, long long start, long lon
 
     // Set profile string, write to file
     char profile[1000];
-    sprintf(profile, "%s{\"name\":\"%s\","
-                       "\"cat\":\"function\","
-                       "\"dur\":%lld,"
-                       "\"ph\":\"X\","
-                       "\"pid\":%d,"
-                       "\"tid\":%llu,"
-                       "\"ts\":%lld"
-                       "}",
-                       m_FirstLine ? "" : ",", func_name_str.c_str(), end - start, m_MPIRank, (long long int)thread_id, start);
+    sprintf(profile,
+            "%s{\"name\":\"%s\","
+            "\"cat\":\"function\","
+            "\"dur\":%lld,"
+            "\"ph\":\"X\","
+            "\"pid\":%d,"
+            "\"tid\":%llu,"
+            "\"ts\":%lld"
+            "}",
+            m_FirstLine ? "" : ",", func_name_str.c_str(), end - start, m_MPIRank, (long long int)thread_id, start);
 
-    std::ofstream  file_out;
+    std::ofstream file_out;
     file_out.open(m_FileName.c_str(), std::ofstream::out | std::ofstream::app);
     file_out.write(profile, strlen(profile));
     m_FirstLine = false;
@@ -83,4 +87,4 @@ void TimerControl::WriteProfile(const char *func_name, long long start, long lon
     file_out.close();
 }
 
-#endif // #ifdef SUPPORT_TIMER
+#endif  // #ifdef SUPPORT_TIMER

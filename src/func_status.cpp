@@ -1,11 +1,13 @@
 #ifdef INTERACTIVE_MODE
 
 #include "func_status.h"
-#include "yt_combo.h"
-#include <iostream>
-#include <string>
+
 #include <string.h>
 
+#include <iostream>
+#include <string>
+
+#include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status
@@ -32,17 +34,14 @@
 // Arguments   :  const char *func_name: inline function name
 //                int         run      : will run in next iteration or not
 //-------------------------------------------------------------------------------------------------------
-func_status::func_status(const char *func_name, int run)
-: m_Args(""), m_Wrapper(true), m_Run(run), m_Status(-1)
-{
+func_status::func_status(const char* func_name, int run) : m_Args(""), m_Wrapper(true), m_Run(run), m_Status(-1) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // copy func_name to m_FuncName
     int len = strlen(func_name);
-    m_FuncName = new char [len + 1];
+    m_FuncName = new char[len + 1];
     strcpy(m_FuncName, func_name);
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status
@@ -56,22 +55,16 @@ func_status::func_status(const char *func_name, int run)
 // Arguments   :  const func_status& other
 //-------------------------------------------------------------------------------------------------------
 func_status::func_status(const func_status& other)
-: m_Args(other.m_Args), m_Wrapper(other.m_Wrapper), m_Run(other.m_Run), m_Status(-1)
-{
+    : m_Args(other.m_Args), m_Wrapper(other.m_Wrapper), m_Run(other.m_Run), m_Status(-1) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // copy m_FuncName;
     int len = strlen(other.m_FuncName);
-    m_FuncName = new char [len + 1];
+    m_FuncName = new char[len + 1];
     strcpy(m_FuncName, other.m_FuncName);
 }
 
-
-func_status::~func_status()
-{
-    delete [] m_FuncName;
-}
-
+func_status::~func_status() { delete[] m_FuncName; }
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status
@@ -99,22 +92,25 @@ int func_status::get_status() {
     if (m_Status != -2) return m_Status;
 
     // check if key exist in libyt.interactive_mode["func_err_msg"] dict, which is to get local status
-    PyObject *py_func_name = PyUnicode_FromString(m_FuncName);
-    if (PyDict_Contains(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name) == 1) m_Status = 0;
-    else m_Status = 1;
+    PyObject* py_func_name = PyUnicode_FromString(m_FuncName);
+    if (PyDict_Contains(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name) == 1)
+        m_Status = 0;
+    else
+        m_Status = 1;
     Py_DECREF(py_func_name);
 
 #ifndef SERIAL_MODE
     // mpi reduce, if sum(m_Status) != g_mysize, then some rank must have failed. Now m_Status is global status
     int tot_status = 0;
     MPI_Allreduce(&m_Status, &tot_status, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    if (tot_status != g_mysize) m_Status = 0;
-    else m_Status = 1;
+    if (tot_status != g_mysize)
+        m_Status = 0;
+    else
+        m_Status = 1;
 #endif
 
     return m_Status;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status
@@ -134,25 +130,27 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // get my err msg at current rank
-    PyObject *py_func_name = PyUnicode_FromString(m_FuncName);
-    PyObject *py_err_msg = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name);
-    const char *err_msg;
-    if (py_err_msg != NULL) err_msg = PyUnicode_AsUTF8(py_err_msg);
-    else                    err_msg = "";
+    PyObject* py_func_name = PyUnicode_FromString(m_FuncName);
+    PyObject* py_err_msg = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name);
+    const char* err_msg;
+    if (py_err_msg != NULL)
+        err_msg = PyUnicode_AsUTF8(py_err_msg);
+    else
+        err_msg = "";
     Py_DECREF(py_func_name);
 
     // serial print
     int root = 0;
     if (g_myrank == root) {
-        for (int rank=0; rank<g_mysize; rank++) {
-            printf("\033[1;36m");                               // set to bold cyan
-            printf("%*s", indent_size * indent_level, "");      // indent
+        for (int rank = 0; rank < g_mysize; rank++) {
+            printf("\033[1;36m");                           // set to bold cyan
+            printf("%*s", indent_size * indent_level, "");  // indent
 #ifndef SERIAL_MODE
             printf("[ MPI %d ]\n", rank);
 #else
             printf("[ Process %d ]\n", rank);
 #endif
-            printf("\033[0;37m");                               // set to white
+            printf("\033[0;37m");  // set to white
 
             // get and print error msg, convert to string
             std::string str_err_msg;
@@ -165,7 +163,7 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
                 int err_msg_len;
                 MPI_Recv(&err_msg_len, 1, MPI_INT, rank, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-                char *err_msg_remote = (char*) malloc((err_msg_len + 1) * sizeof(char));
+                char* err_msg_remote = (char*)malloc((err_msg_len + 1) * sizeof(char));
                 MPI_Recv(err_msg_remote, err_msg_len, MPI_CHAR, rank, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 err_msg_remote[err_msg_len] = '\0';
 
@@ -185,10 +183,11 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
                 found = str_err_msg.find("\n", start_pos);
                 if (found != std::string::npos) {
                     printf("%*s", indent_size * (indent_level + 1), "");
-                    for (std::size_t c=start_pos; c<found; c++) { printf("%c", str_err_msg[c]); }
+                    for (std::size_t c = start_pos; c < found; c++) {
+                        printf("%c", str_err_msg[c]);
+                    }
                     printf("\n");
-                }
-                else {
+                } else {
                     break;
                 }
                 start_pos = found + 1;
@@ -212,7 +211,6 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
     return YT_SUCCESS;
 }
 
-
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status
 // Method      :  print_func_body
@@ -230,11 +228,13 @@ int func_status::print_func_body(int indent_size, int indent_level) {
     int root = 0;
     if (g_myrank == root) {
         // get function body
-        PyObject *py_func_name = PyUnicode_FromString(m_FuncName);
-        PyObject *py_func_body = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_body"), py_func_name);
-        const char *func_body;
-        if (py_func_body != NULL) func_body = PyUnicode_AsUTF8(py_func_body);
-        else                      func_body = "";
+        PyObject* py_func_name = PyUnicode_FromString(m_FuncName);
+        PyObject* py_func_body = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_body"), py_func_name);
+        const char* func_body;
+        if (py_func_body != NULL)
+            func_body = PyUnicode_AsUTF8(py_func_body);
+        else
+            func_body = "";
         Py_DECREF(py_func_name);
 
         // print function body with indent
@@ -242,8 +242,7 @@ int func_status::print_func_body(int indent_size, int indent_level) {
         if (strcmp(func_body, "") == 0) {
             printf("%*s", indent_size * (indent_level + 1), "");
             printf("(not defined)\n");
-        }
-        else {
+        } else {
             std::string str_func_body(func_body);
             std::size_t start_pos = 0;
             std::size_t found;
@@ -251,10 +250,12 @@ int func_status::print_func_body(int indent_size, int indent_level) {
                 found = str_func_body.find("\n", start_pos);
                 if (found != std::string::npos) {
                     printf("%*s", indent_size * (indent_level + 1), "");
-                    for (std::size_t c=start_pos; c<found; c++) { printf("%c", str_func_body[c]); }
+                    for (std::size_t c = start_pos; c < found; c++) {
+                        printf("%c", str_func_body[c]);
+                    }
                     printf("\n");
-                }
-                else break;
+                } else
+                    break;
                 start_pos = found + 1;
             }
         }
@@ -265,4 +266,4 @@ int func_status::print_func_body(int indent_size, int indent_level) {
     return YT_SUCCESS;
 }
 
-#endif // #ifdef INTERACTIVE_MODE
+#endif  // #ifdef INTERACTIVE_MODE

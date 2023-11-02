@@ -1,22 +1,24 @@
 #include <sys/stat.h>
-#include <fstream>
+
 #include <cstring>
+#include <fstream>
 #include <string>
+
+#include "LibytProcessControl.h"
+#include "libyt.h"
 #include "yt_combo.h"
 #include "yt_rma_field.h"
 #include "yt_rma_particle.h"
 #include "yt_type_array.h"
-#include "LibytProcessControl.h"
-#include "libyt.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Description :  List of libyt C extension python methods
 //
 // Note        :  1. List of python C extension methods functions.
-//                2. These function will be called in python, so the parameters indicate python 
+//                2. These function will be called in python, so the parameters indicate python
 //                   input type.
-// 
-// Lists       :       Python Method         C Extension Function         
+//
+// Lists       :       Python Method         C Extension Function
 //              .............................................................
 //                     derived_func          libyt_field_derived_func
 //                     get_particle          libyt_particle_get_particle
@@ -36,24 +38,24 @@
 //                4. grid_dimensions[3] is in [x][y][z] coordinate.
 //                5. Now, input from Python only contains gid and field name. In the future, when we
 //                   support hybrid OpenMP/MPI, it can accept list and a string.
-//                
+//
 // Parameter   :  int : GID of the grid
 //                str : field name
 //
 // Return      :  numpy.3darray
 //-------------------------------------------------------------------------------------------------------
-static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
+static PyObject* libyt_field_derived_func(PyObject* self, PyObject* args) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Parse the input arguments input by python.
     // If not in the format libyt.derived_func( int , str ), raise an error
-    long  gid;
-    char *field_name;
-    int   field_id;
+    long gid;
+    char* field_name;
+    int field_id;
     yt_dtype field_dtype;
 
     // TODO: Hybrid OpenMP/MPI, accept a list of gid and a string.
-    if ( !PyArg_ParseTuple(args, "ls", &gid, &field_name) ){
+    if (!PyArg_ParseTuple(args, "ls", &gid, &field_name)) {
         PyErr_SetString(PyExc_TypeError, "Wrong input type, expect to be libyt.derived_func(int, str).");
         return NULL;
     }
@@ -61,21 +63,21 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     // Get the derived_func define in field_list according to field_name.
     //  (1) If we cannot find field_name inside field_list, raise an error.
     //  (2) If we successfully find the field_name, but the derived_func is not assigned (is NULL), raise an error.
-    void (*derived_func) (const int, const long*, const char*, yt_array*);
+    void (*derived_func)(const int, const long*, const char*, yt_array*);
     bool have_FieldName = false;
 
     derived_func = NULL;
-    yt_field *field_list = LibytProcessControl::Get().field_list;
-    for (int v = 0; v < g_param_yt.num_fields; v++){
-        if ( strcmp(field_list[v].field_name, field_name) == 0 ){
+    yt_field* field_list = LibytProcessControl::Get().field_list;
+    for (int v = 0; v < g_param_yt.num_fields; v++) {
+        if (strcmp(field_list[v].field_name, field_name) == 0) {
             have_FieldName = true;
             field_id = v;
             field_dtype = field_list[v].field_dtype;
-            if ( field_list[v].derived_func != NULL ){
+            if (field_list[v].derived_func != NULL) {
                 derived_func = field_list[v].derived_func;
-            }
-            else {
-                PyErr_Format(PyExc_NotImplementedError, "In field_list, field_name [ %s ], derived_func did not set properly.\n",
+            } else {
+                PyErr_Format(PyExc_NotImplementedError,
+                             "In field_list, field_name [ %s ], derived_func did not set properly.\n",
                              field_list[v].field_name);
                 return NULL;
             }
@@ -83,25 +85,27 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
         }
     }
 
-    if ( !have_FieldName ) {
+    if (!have_FieldName) {
         PyErr_Format(PyExc_ValueError, "Cannot find field_name [ %s ] in field_list.\n", field_name);
         return NULL;
     }
 
     // Get the grid's dimension[3], proc_num according to the gid.
-    int  grid_dimensions[3], proc_num;
-    if ( yt_getGridInfo_ProcNum(gid, &proc_num) != YT_SUCCESS ||
-         yt_getGridInfo_Dimensions(gid, &grid_dimensions) != YT_SUCCESS ){
+    int grid_dimensions[3], proc_num;
+    if (yt_getGridInfo_ProcNum(gid, &proc_num) != YT_SUCCESS ||
+        yt_getGridInfo_Dimensions(gid, &grid_dimensions) != YT_SUCCESS) {
         PyErr_Format(PyExc_ValueError, "Cannot get grid [%ld] dimensions or MPI rank.\n", gid);
         return NULL;
     }
-    if ( proc_num != g_myrank ){
-        PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal grid. Grid [%ld] is on MPI rank [%d].\n", gid, proc_num);
+    if (proc_num != g_myrank) {
+        PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal grid. Grid [%ld] is on MPI rank [%d].\n", gid,
+                     proc_num);
         return NULL;
     }
-    for (int d=0; d<3; d++){
-        if (grid_dimensions[d] < 0){
-            PyErr_Format(PyExc_ValueError, "Trying to prepare grid [%ld] that has grid_dimensions[%d] = %d < 0.\n", gid, d, grid_dimensions[d]);
+    for (int d = 0; d < 3; d++) {
+        if (grid_dimensions[d] < 0) {
+            PyErr_Format(PyExc_ValueError, "Trying to prepare grid [%ld] that has grid_dimensions[%d] = %d < 0.\n", gid,
+                         d, grid_dimensions[d]);
             return NULL;
         }
     }
@@ -113,7 +117,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     //      The called object will then OWN this numpy array, so that we don't have to free it.
     // TODO: Hybrid OpenMP/MPI, need to allocate for a list of gid.
     long gridTotalSize = grid_dimensions[0] * grid_dimensions[1] * grid_dimensions[2];
-    void *output;
+    void* output;
     if (get_dtype_allocation(field_dtype, gridTotalSize, &output) != YT_SUCCESS) {
         PyErr_Format(PyExc_ValueError, "Unknown field_dtype in field [%s]\n", field_name);
         return NULL;
@@ -122,43 +126,43 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     // Call derived_func result will be made inside output 1D array.
     // TODO: Hybrid OpenMP/OpenMPI, dynamically ask a list of grid data from derived function.
     //       I assume we get one grid at a time here. Will change later...
-    int  list_length = 1;
+    int list_length = 1;
     long list_gid[1] = {gid};
     yt_array data_array[1];
-    data_array[0].gid = gid; data_array[0].data_length = gridTotalSize; data_array[0].data_ptr = output;
+    data_array[0].gid = gid;
+    data_array[0].data_length = gridTotalSize;
+    data_array[0].data_ptr = output;
 
-    (*derived_func) (list_length, list_gid, field_name, data_array);
+    (*derived_func)(list_length, list_gid, field_name, data_array);
 
     // Wrapping the C allocated 1D array into 3D numpy array.
-    // grid_dimensions[3] is in [x][y][z] coordinate, 
+    // grid_dimensions[3] is in [x][y][z] coordinate,
     // thus we have to check if the field has contiguous_in_x == true or false.
     // TODO: Hybrid OpenMP/MPI, we will need to further pack up a list of gid's field data into Python dictionary.
-    int      nd = 3;
-    int      typenum;
+    int nd = 3;
+    int typenum;
     npy_intp dims[3];
 
-    if ( get_npy_dtype(field_dtype, &typenum) != YT_SUCCESS ){
+    if (get_npy_dtype(field_dtype, &typenum) != YT_SUCCESS) {
         PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
         return NULL;
     }
 
-    if (field_list[field_id].contiguous_in_x){
+    if (field_list[field_id].contiguous_in_x) {
         dims[0] = grid_dimensions[2];
         dims[1] = grid_dimensions[1];
         dims[2] = grid_dimensions[0];
-    }
-    else{
+    } else {
         dims[0] = grid_dimensions[0];
         dims[1] = grid_dimensions[1];
         dims[2] = grid_dimensions[2];
     }
 
-    PyObject *derived_NpArray = PyArray_SimpleNewFromData(nd, dims, typenum, output);
-    PyArray_ENABLEFLAGS( (PyArrayObject*) derived_NpArray, NPY_ARRAY_OWNDATA);
+    PyObject* derived_NpArray = PyArray_SimpleNewFromData(nd, dims, typenum, output);
+    PyArray_ENABLEFLAGS((PyArrayObject*)derived_NpArray, NPY_ARRAY_OWNDATA);
 
     return derived_NpArray;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  libyt_particle_get_particle
@@ -168,56 +172,55 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
 //                   yt_particle must be set.
 //                2. Deal with local particles only.
 //                3. The returned numpy array data type well be set by attr_dtype.
-//                4. We will always return 1D numpy array, with length equal particle count of the species 
+//                4. We will always return 1D numpy array, with length equal particle count of the species
 //                   in that grid.
 //                5. Return Py_None if number of ptype particle == 0.
-//                
+//
 // Parameter   :  int : GID of the grid
 //                str : ptype, particle species, ex:"io"
 //                str : attribute, or in terms in yt, which is particle.
 //
 // Return      :  numpy.1darray
 //-------------------------------------------------------------------------------------------------------
-static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
+static PyObject* libyt_particle_get_particle(PyObject* self, PyObject* args) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Parse the input arguments input by python.
     // If not in the format libyt.get_particle( int , str , str ), raise an error
-    long  gid;
-    char *ptype;
-    char *attr_name;
+    long gid;
+    char* ptype;
+    char* attr_name;
 
-    if ( !PyArg_ParseTuple(args, "lss", &gid, &ptype, &attr_name) ){
+    if (!PyArg_ParseTuple(args, "lss", &gid, &ptype, &attr_name)) {
         PyErr_SetString(PyExc_TypeError, "Wrong input type, expect to be libyt.get_particle(int, str, str).");
         return NULL;
     }
 
-    
     // Get get_par_attr function pointer defined in particle_list according to ptype and attr_name.
     // Get attr_dtype of the attr_name.
     // If cannot find ptype or attr_name, raise an error.
     // If find them successfully, but get_par_attr not set, which is == NULL, raise an error.
-    void    (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*);
+    void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*);
     yt_dtype attr_dtype = YT_DTYPE_UNKNOWN;
-    int      species_index = -1;
-    yt_particle *particle_list = LibytProcessControl::Get().particle_list;
-    for ( int s = 0; s < g_param_yt.num_par_types; s++ ){
-        if ( strcmp(particle_list[s].par_type, ptype) == 0 ){
+    int species_index = -1;
+    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
+    for (int s = 0; s < g_param_yt.num_par_types; s++) {
+        if (strcmp(particle_list[s].par_type, ptype) == 0) {
             species_index = s;
 
             // Get get_par_attr
-            if ( particle_list[s].get_par_attr != NULL ){
+            if (particle_list[s].get_par_attr != NULL) {
                 get_par_attr = particle_list[s].get_par_attr;
-            }
-            else {
-                PyErr_Format(PyExc_NotImplementedError, "In particle_list par_type [ %s ], get_par_attr does not set properly.\n",
+            } else {
+                PyErr_Format(PyExc_NotImplementedError,
+                             "In particle_list par_type [ %s ], get_par_attr does not set properly.\n",
                              particle_list[s].par_type);
                 return NULL;
             }
 
             // Get attr_dtype
-            for ( int p = 0; p < particle_list[s].num_attr; p++ ){
-                if ( strcmp(particle_list[s].attr_list[p].attr_name, attr_name) == 0 ){
+            for (int p = 0; p < particle_list[s].num_attr; p++) {
+                if (strcmp(particle_list[s].attr_list[p].attr_name, attr_name) == 0) {
                     attr_dtype = particle_list[s].attr_list[p].attr_dtype;
                     break;
                 }
@@ -227,35 +230,35 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
         }
     }
 
-    if ( species_index == -1 ){
+    if (species_index == -1) {
         PyErr_Format(PyExc_ValueError, "Cannot find par_type [ %s ] in particle_list.\n", ptype);
         return NULL;
     }
-    if ( attr_dtype == YT_DTYPE_UNKNOWN ){
-        PyErr_Format(PyExc_ValueError, "par_type [ %s ], attr_name [ %s ] not in particle_list.\n",
-                     ptype, attr_name);
+    if (attr_dtype == YT_DTYPE_UNKNOWN) {
+        PyErr_Format(PyExc_ValueError, "par_type [ %s ], attr_name [ %s ] not in particle_list.\n", ptype, attr_name);
         return NULL;
     }
 
     // Get length of the returned 1D numpy array, which is equal to par_count_list in the grid.
-    long  array_length;
+    long array_length;
     int proc_num;
-    if ( yt_getGridInfo_ProcNum(gid, &proc_num) != YT_SUCCESS ||
-         yt_getGridInfo_ParticleCount(gid, ptype, &array_length) != YT_SUCCESS ){
+    if (yt_getGridInfo_ProcNum(gid, &proc_num) != YT_SUCCESS ||
+        yt_getGridInfo_ParticleCount(gid, ptype, &array_length) != YT_SUCCESS) {
         PyErr_Format(PyExc_ValueError, "Cannot get particle number in grid [%ld] or MPI rank.\n", gid);
         return NULL;
     }
-    if ( proc_num != g_myrank ){
-        PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal particles. Grid [%ld] is on MPI rank [%d].\n", gid, proc_num);
+    if (proc_num != g_myrank) {
+        PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal particles. Grid [%ld] is on MPI rank [%d].\n", gid,
+                     proc_num);
         return NULL;
     }
-    if ( array_length == 0 ){
+    if (array_length == 0) {
         Py_INCREF(Py_None);
         return Py_None;
     }
-    if ( array_length < 0 ) {
-        PyErr_Format(PyExc_ValueError, "Grid [%ld] particle species [%s] has particle number = %ld < 0.\n",
-                     gid, ptype, array_length);
+    if (array_length < 0) {
+        PyErr_Format(PyExc_ValueError, "Grid [%ld] particle species [%s] has particle number = %ld < 0.\n", gid, ptype,
+                     array_length);
         return NULL;
     }
 
@@ -263,12 +266,12 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
     // Then pass in to get_par_attr(const int, const long*, const char*, const char*, yt_array*) function
     // Finally, return numpy 1D array, by wrapping the output.
     // We do not need to free output, since we make python owns this data after returning.
-    int      nd = 1;
-    int      typenum;
-    npy_intp dims[1] = { array_length };
-    void     *output;
+    int nd = 1;
+    int typenum;
+    npy_intp dims[1] = {array_length};
+    void* output;
 
-    if ( get_npy_dtype(attr_dtype, &typenum) != YT_SUCCESS ){
+    if (get_npy_dtype(attr_dtype, &typenum) != YT_SUCCESS) {
         PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
         return NULL;
     }
@@ -277,31 +280,33 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
         PyErr_Format(PyExc_ValueError, "Particle [ %s ] attribute [ %s ], unknown yt_dtype.\n", ptype, attr_name);
         return NULL;
     }
-    
+
     // Call get_par_attr function pointer
-    int  list_length = 1;
-    long list_gid[1] = { gid };
+    int list_length = 1;
+    long list_gid[1] = {gid};
     yt_array data_array[1];
-    data_array[0].gid = gid; data_array[0].data_length = array_length; data_array[0].data_ptr = output;
+    data_array[0].gid = gid;
+    data_array[0].data_length = array_length;
+    data_array[0].data_ptr = output;
     get_par_attr(list_length, list_gid, ptype, attr_name, data_array);
 
     // Wrap the output and return back to python
-    PyObject *outputNumpyArray = PyArray_SimpleNewFromData(nd, dims, typenum, output);
-    PyArray_ENABLEFLAGS( (PyArrayObject*) outputNumpyArray, NPY_ARRAY_OWNDATA);
+    PyObject* outputNumpyArray = PyArray_SimpleNewFromData(nd, dims, typenum, output);
+    PyArray_ENABLEFLAGS((PyArrayObject*)outputNumpyArray, NPY_ARRAY_OWNDATA);
 
     return outputNumpyArray;
 }
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  libyt_field_get_field_remote
-// Description :  Get non-local field data from remote ranks. 
+// Description :  Get non-local field data from remote ranks.
 //
 // Note        :  1. Support only grid dimension = 3 for now.
 //                2. We return in dictionary objects.
 //                3. We assume that the fname_list passed in has the same fname order in each rank.
 //                4. This function will get all the desired fields and grids.
 //                5. Directly return None if it is in SERIAL_MODE.
-//                
+//
 // Parameter   :  list obj : fname_list   : list of field name to get.
 //                list obj : to_prepare   : list of grid ids you need to prepare.
 //                list obj : nonlocal_id  : nonlocal grid id that you want to get.
@@ -309,71 +314,73 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
 //
 // Return      :  dict obj data[grid id][field_name][:,:,:]
 //-------------------------------------------------------------------------------------------------------
-static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
+static PyObject* libyt_field_get_field_remote(PyObject* self, PyObject* args) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef SERIAL_MODE
     // Parse the input list arguments by python
-    PyObject *arg1; // fname_list, we will make it an iterable object.
-    PyObject *py_prepare_grid_id_list;
-    PyObject *py_get_grid_id_list;
-    PyObject *py_get_grid_rank_list;
+    PyObject* arg1;  // fname_list, we will make it an iterable object.
+    PyObject* py_prepare_grid_id_list;
+    PyObject* py_get_grid_id_list;
+    PyObject* py_get_grid_rank_list;
 
-    int  len_fname_list;   // Max number of field is INT_MAX
-    int  len_prepare;      // Since maximum number of local grid is INT_MAX
-    long len_get_grid;     // Max of total grid number is LNG_MAX
+    int len_fname_list;  // Max number of field is INT_MAX
+    int len_prepare;     // Since maximum number of local grid is INT_MAX
+    long len_get_grid;   // Max of total grid number is LNG_MAX
 
-    if ( !PyArg_ParseTuple(args, "OiOiOOl", &arg1, &len_fname_list, &py_prepare_grid_id_list, &len_prepare,
-                                            &py_get_grid_id_list, &py_get_grid_rank_list, &len_get_grid) ){
-        PyErr_SetString(PyExc_TypeError, "Wrong input type, "
-                                         "expect to be libyt.get_field_remote(list, int, list, int, list, list, long).\n");
+    if (!PyArg_ParseTuple(args, "OiOiOOl", &arg1, &len_fname_list, &py_prepare_grid_id_list, &len_prepare,
+                          &py_get_grid_id_list, &py_get_grid_rank_list, &len_get_grid)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "Wrong input type, "
+                        "expect to be libyt.get_field_remote(list, int, list, int, list, list, long).\n");
         return NULL;
     }
 
     // Make these input lists iterators.
-    PyObject *fname_list = PyObject_GetIter( arg1 );
-    if( fname_list == NULL ){
+    PyObject* fname_list = PyObject_GetIter(arg1);
+    if (fname_list == NULL) {
         PyErr_SetString(PyExc_TypeError, "fname_list is not an iterable object!\n");
         return NULL;
     }
 
     // Create Python dictionary for storing remote data.
     // py_output for returning back to python, the others are used temporary inside this method.
-    PyObject *py_output = PyDict_New();
+    PyObject* py_output = PyDict_New();
     PyObject *py_grid_id, *py_field_label, *py_field_data;
 
     // Get all remote grid id in field name fname, get one field at a time.
-    PyObject *py_fname;
-    PyObject *py_prepare_grid_id;
-    PyObject *py_get_grid_id;
-    PyObject *py_get_grid_rank;
+    PyObject* py_fname;
+    PyObject* py_prepare_grid_id;
+    PyObject* py_get_grid_id;
+    PyObject* py_get_grid_rank;
     int root = 0;
-    while( (py_fname = PyIter_Next( fname_list )) ){
+    while ((py_fname = PyIter_Next(fname_list))) {
         // Get fname, and create yt_rma_field class.
-        char *fname = PyBytes_AsString( py_fname );
-        yt_rma_field RMAOperation = yt_rma_field( fname, len_prepare, len_get_grid );
+        char* fname = PyBytes_AsString(py_fname);
+        yt_rma_field RMAOperation = yt_rma_field(fname, len_prepare, len_get_grid);
 
         // Prepare grid with field fname and id = gid.
         // TODO: Hybrid OpenMP/OpenMPI, we might want to prepare a list of gid at one call
         //       if it is a derived field.
-        for(int i = 0; i < len_prepare; i++){
+        for (int i = 0; i < len_prepare; i++) {
             py_prepare_grid_id = PyList_GetItem(py_prepare_grid_id_list, i);
-            long gid = PyLong_AsLong( py_prepare_grid_id );
-            if( RMAOperation.prepare_data( gid ) != YT_SUCCESS ){
+            long gid = PyLong_AsLong(py_prepare_grid_id);
+            if (RMAOperation.prepare_data(gid) != YT_SUCCESS) {
                 PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_field when preparing data.\n");
                 return NULL;
             }
         }
-        RMAOperation.gather_all_prepare_data( root );
+        RMAOperation.gather_all_prepare_data(root);
 
         // Fetch remote data.
-        for(long i = 0; i < len_get_grid; i++){
+        for (long i = 0; i < len_get_grid; i++) {
             py_get_grid_id = PyList_GetItem(py_get_grid_id_list, i);
             py_get_grid_rank = PyList_GetItem(py_get_grid_rank_list, i);
-            long get_gid  = PyLong_AsLong( py_get_grid_id );
-            int  get_rank = (int) PyLong_AsLong( py_get_grid_rank );
-            if( RMAOperation.fetch_remote_data( get_gid, get_rank ) != YT_SUCCESS ){
-                PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_field when fetching remote data.\n");
+            long get_gid = PyLong_AsLong(py_get_grid_id);
+            int get_rank = (int)PyLong_AsLong(py_get_grid_rank);
+            if (RMAOperation.fetch_remote_data(get_gid, get_rank) != YT_SUCCESS) {
+                PyErr_SetString(PyExc_RuntimeError,
+                                "Something went wrong in yt_rma_field when fetching remote data.\n");
                 return NULL;
             }
         }
@@ -382,15 +389,16 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
         RMAOperation.clean_up();
 
         // Get those fetched data and wrap it to NumPy array
-        long        get_gid;
-        const char *get_fname;
-        yt_dtype    get_data_dtype;
-        int         get_data_dim[3];
-        void       *get_data_ptr;
-        long        num_to_get = len_get_grid;
-        while( num_to_get > 0 ){
+        long get_gid;
+        const char* get_fname;
+        yt_dtype get_data_dtype;
+        int get_data_dim[3];
+        void* get_data_ptr;
+        long num_to_get = len_get_grid;
+        while (num_to_get > 0) {
             // Step1: Fetched data.
-            if( RMAOperation.get_fetched_data(&get_gid, &get_fname, &get_data_dtype, &get_data_dim, &get_data_ptr) != YT_SUCCESS ){
+            if (RMAOperation.get_fetched_data(&get_gid, &get_fname, &get_data_dtype, &get_data_dim, &get_data_ptr) !=
+                YT_SUCCESS) {
                 // It means we have reached the end of the fetched data container.
                 // This if clause is just a safety check.
                 break;
@@ -399,22 +407,22 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
 
             // Step2: Get Python dictionary to append.
             // Check if grid id key exist in py_output, if not create one.
-            py_grid_id = PyLong_FromLong( get_gid );
-            if( PyDict_Contains(py_output, py_grid_id) == 0 ){
+            py_grid_id = PyLong_FromLong(get_gid);
+            if (PyDict_Contains(py_output, py_grid_id) == 0) {
                 py_field_label = PyDict_New();
-                PyDict_SetItem( py_output, py_grid_id, py_field_label );
+                PyDict_SetItem(py_output, py_grid_id, py_field_label);
                 Py_DECREF(py_field_label);
             }
             // Get the Python dictionary under key: grid id, and stored in py_field_label.
             // PyDict_GetItem returns a borrowed reference.
-            py_field_label = PyDict_GetItem( py_output, py_grid_id );
+            py_field_label = PyDict_GetItem(py_output, py_grid_id);
 
             // Step3: Wrap the data to NumPy array and append to dictionary.
-            npy_intp npy_dim[3] = { get_data_dim[0], get_data_dim[1], get_data_dim[2] };
-            int      npy_dtype;
+            npy_intp npy_dim[3] = {get_data_dim[0], get_data_dim[1], get_data_dim[2]};
+            int npy_dtype;
             get_npy_dtype(get_data_dtype, &npy_dtype);
             py_field_data = PyArray_SimpleNewFromData(3, npy_dim, npy_dtype, get_data_ptr);
-            PyArray_ENABLEFLAGS((PyArrayObject*) py_field_data, NPY_ARRAY_OWNDATA);
+            PyArray_ENABLEFLAGS((PyArrayObject*)py_field_data, NPY_ARRAY_OWNDATA);
             PyDict_SetItemString(py_field_label, get_fname, py_field_data);
 
             // Dereference
@@ -423,17 +431,17 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
         }
 
         // Done with this py_fname, dereference it.
-        Py_DECREF( py_fname );
+        Py_DECREF(py_fname);
     }
 
     // Dereference Python objects
-    Py_DECREF( fname_list );
+    Py_DECREF(fname_list);
 
     // Return to Python
     return py_output;
-#else // #ifndef SERIAL_MODE
+#else   // #ifndef SERIAL_MODE
     Py_RETURN_NONE;
-#endif // #ifndef SERIAL_MODE
+#endif  // #ifndef SERIAL_MODE
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -454,81 +462,83 @@ static PyObject* libyt_field_get_field_remote(PyObject *self, PyObject *args){
 //
 // Return      :  dict obj data[grid id][ptype][attribute]
 //-------------------------------------------------------------------------------------------------------
-static PyObject* libyt_particle_get_particle_remote(PyObject *self, PyObject *args){
+static PyObject* libyt_particle_get_particle_remote(PyObject* self, PyObject* args) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef SERIAL_MODE
     // Parse the input list arguments by Python
-    PyObject *py_ptf_dict;
+    PyObject* py_ptf_dict;
     PyObject *arg2, *py_ptf_keys;
-    PyObject *py_prepare_list;
-    PyObject *py_to_get_list;
-    PyObject *py_get_rank_list;
+    PyObject* py_prepare_list;
+    PyObject* py_to_get_list;
+    PyObject* py_get_rank_list;
 
-    int  len_prepare;
+    int len_prepare;
     long len_to_get;
 
-    if( !PyArg_ParseTuple(args, "OOOiOOl", &py_ptf_dict, &arg2, &py_prepare_list, &len_prepare,
-                                            &py_to_get_list, &py_get_rank_list, &len_to_get) ){
-        PyErr_SetString(PyExc_TypeError, "Wrong input type, "
-                                         "expect to be libyt.get_particle_remote(dict, iter, list, int, list, list, long).\n");
+    if (!PyArg_ParseTuple(args, "OOOiOOl", &py_ptf_dict, &arg2, &py_prepare_list, &len_prepare, &py_to_get_list,
+                          &py_get_rank_list, &len_to_get)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "Wrong input type, "
+                        "expect to be libyt.get_particle_remote(dict, iter, list, int, list, list, long).\n");
         return NULL;
     }
 
-    py_ptf_keys = PyObject_GetIter( arg2 );
-    if( py_ptf_keys == NULL ){
+    py_ptf_keys = PyObject_GetIter(arg2);
+    if (py_ptf_keys == NULL) {
         PyErr_SetString(PyExc_TypeError, "py_ptf_keys is not an iterable object!\n");
         return NULL;
     }
 
     // Variables for creating output.
-    PyObject *py_output = PyDict_New();
+    PyObject* py_output = PyDict_New();
     PyObject *py_grid_id, *py_ptype_dict, *py_ptype_key, *py_attribute_dict, *py_par_data;
 
     // Run through all the py_ptf_dict and its value.
-    PyObject *py_ptype;
-    PyObject *py_value;
+    PyObject* py_ptype;
+    PyObject* py_value;
     PyObject *py_attribute, *py_attr_iter;
     PyObject *py_prepare_id, *py_get_id, *py_get_rank;
     int root = 0;
-    while( (py_ptype = PyIter_Next( py_ptf_keys )) ){
-
-        char *ptype = PyBytes_AsString( py_ptype );
+    while ((py_ptype = PyIter_Next(py_ptf_keys))) {
+        char* ptype = PyBytes_AsString(py_ptype);
 
         // Get attribute list inside key ptype in py_ptf_dict.
         // PyDict_GetItemWithError returns a borrowed reference.
-        py_value = PyDict_GetItemWithError( py_ptf_dict, py_ptype );
-        if( py_value == NULL ){
+        py_value = PyDict_GetItemWithError(py_ptf_dict, py_ptype);
+        if (py_value == NULL) {
             PyErr_Format(PyExc_KeyError, "py_ptf_dict has no key [ %s ].\n", ptype);
             return NULL;
         }
-        py_attr_iter = PyObject_GetIter( py_value );
+        py_attr_iter = PyObject_GetIter(py_value);
 
         // Iterate through attribute list, and perform RMA operation.
-        while( (py_attribute = PyIter_Next( py_attr_iter )) ){
+        while ((py_attribute = PyIter_Next(py_attr_iter))) {
             // Initialize RMA operation
-            char *attr = PyBytes_AsString( py_attribute );
-            yt_rma_particle RMAOperation = yt_rma_particle( ptype, attr, len_prepare, len_to_get );
+            char* attr = PyBytes_AsString(py_attribute);
+            yt_rma_particle RMAOperation = yt_rma_particle(ptype, attr, len_prepare, len_to_get);
 
             // Prepare particle data in grid gid.
-            for(int i = 0; i < len_prepare; i++){
-                py_prepare_id = PyList_GetItem( py_prepare_list, i );
-                long gid = PyLong_AsLong( py_prepare_id );
-                if( RMAOperation.prepare_data( gid ) != YT_SUCCESS ){
-                    PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_particle when preparing data.\n");
+            for (int i = 0; i < len_prepare; i++) {
+                py_prepare_id = PyList_GetItem(py_prepare_list, i);
+                long gid = PyLong_AsLong(py_prepare_id);
+                if (RMAOperation.prepare_data(gid) != YT_SUCCESS) {
+                    PyErr_SetString(PyExc_RuntimeError,
+                                    "Something went wrong in yt_rma_particle when preparing data.\n");
                     return NULL;
                 }
             }
-            RMAOperation.gather_all_prepare_data( root );
+            RMAOperation.gather_all_prepare_data(root);
 
             // Fetch remote data.
-            for(long i = 0; i < len_to_get; i++){
-                py_get_id = PyList_GetItem( py_to_get_list, i );
-                py_get_rank = PyList_GetItem( py_get_rank_list, i );
-                long get_gid = PyLong_AsLong( py_get_id );
-                int  get_rank = (int) PyLong_AsLong( py_get_rank );
-                if( RMAOperation.fetch_remote_data( get_gid, get_rank ) != YT_SUCCESS ){
-                    PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_particle when fetching remote data.\n");
+            for (long i = 0; i < len_to_get; i++) {
+                py_get_id = PyList_GetItem(py_to_get_list, i);
+                py_get_rank = PyList_GetItem(py_get_rank_list, i);
+                long get_gid = PyLong_AsLong(py_get_id);
+                int get_rank = (int)PyLong_AsLong(py_get_rank);
+                if (RMAOperation.fetch_remote_data(get_gid, get_rank) != YT_SUCCESS) {
+                    PyErr_SetString(PyExc_RuntimeError,
+                                    "Something went wrong in yt_rma_particle when fetching remote data.\n");
                     return NULL;
                 }
             }
@@ -537,81 +547,81 @@ static PyObject* libyt_particle_get_particle_remote(PyObject *self, PyObject *ar
             RMAOperation.clean_up();
 
             // Get fetched data, and wrap up to NumPy Array, then store inside py_output.
-            long         get_gid;
-            const char  *get_ptype;
-            const char  *get_attr;
-            yt_dtype     get_data_dtype;
-            long         get_data_len;
-            void        *get_data_ptr;
+            long get_gid;
+            const char* get_ptype;
+            const char* get_attr;
+            yt_dtype get_data_dtype;
+            long get_data_len;
+            void* get_data_ptr;
             long num_to_get = len_to_get;
-            while( num_to_get > 0 ){
+            while (num_to_get > 0) {
                 // Step1: Fetch data.
-                if ( RMAOperation.get_fetched_data(&get_gid, &get_ptype, &get_attr, &get_data_dtype, &get_data_len, &get_data_ptr) != YT_SUCCESS ){
+                if (RMAOperation.get_fetched_data(&get_gid, &get_ptype, &get_attr, &get_data_dtype, &get_data_len,
+                                                  &get_data_ptr) != YT_SUCCESS) {
                     break;
                 }
                 num_to_get -= 1;
 
                 // Step2: Get python dictionary to append data to.
                 // Check if the grid id key exist in py_output, if not create one.
-                py_grid_id = PyLong_FromLong( get_gid );
-                if( PyDict_Contains(py_output, py_grid_id) == 0 ){
+                py_grid_id = PyLong_FromLong(get_gid);
+                if (PyDict_Contains(py_output, py_grid_id) == 0) {
                     py_ptype_dict = PyDict_New();
-                    PyDict_SetItem( py_output, py_grid_id, py_ptype_dict );
-                    Py_DECREF( py_ptype_dict );
+                    PyDict_SetItem(py_output, py_grid_id, py_ptype_dict);
+                    Py_DECREF(py_ptype_dict);
                 }
                 // Get python dictionary under key: py_grid_id. Stored in py_ptype_dict.
-                py_ptype_dict = PyDict_GetItem( py_output, py_grid_id );
+                py_ptype_dict = PyDict_GetItem(py_output, py_grid_id);
                 Py_DECREF(py_grid_id);
 
                 // Check if py_ptype_key exist in py_ptype_dict, if not create one.
-                py_ptype_key = PyUnicode_FromString( get_ptype );
-                if( PyDict_Contains(py_ptype_dict, py_ptype_key) == 0 ){
+                py_ptype_key = PyUnicode_FromString(get_ptype);
+                if (PyDict_Contains(py_ptype_dict, py_ptype_key) == 0) {
                     py_attribute_dict = PyDict_New();
-                    PyDict_SetItem( py_ptype_dict, py_ptype_key, py_attribute_dict );
-                    Py_DECREF( py_attribute_dict );
+                    PyDict_SetItem(py_ptype_dict, py_ptype_key, py_attribute_dict);
+                    Py_DECREF(py_attribute_dict);
                 }
                 // Get python dictionary under key: py_ptype_key. Stored in py_attribute_dict.
-                py_attribute_dict = PyDict_GetItem( py_ptype_dict, py_ptype_key );
+                py_attribute_dict = PyDict_GetItem(py_ptype_dict, py_ptype_key);
                 Py_DECREF(py_ptype_key);
 
                 // Step3: Wrap the data to NumPy array if ptr is not NULL and append to dictionary.
                 //        Or else append None to dictionary.
-                if( get_data_len == 0 ){
+                if (get_data_len == 0) {
                     PyDict_SetItemString(py_attribute_dict, get_attr, Py_None);
-                }
-                else if ( get_data_len > 0 && get_data_ptr != nullptr ) {
+                } else if (get_data_len > 0 && get_data_ptr != nullptr) {
                     int nd = 1;
                     int npy_type;
-                    npy_intp dims[1] = { get_data_len };
-                    get_npy_dtype( get_data_dtype, &npy_type );
+                    npy_intp dims[1] = {get_data_len};
+                    get_npy_dtype(get_data_dtype, &npy_type);
                     py_par_data = PyArray_SimpleNewFromData(nd, dims, npy_type, get_data_ptr);
-                    PyArray_ENABLEFLAGS( (PyArrayObject*) py_par_data, NPY_ARRAY_OWNDATA );
+                    PyArray_ENABLEFLAGS((PyArrayObject*)py_par_data, NPY_ARRAY_OWNDATA);
                     PyDict_SetItemString(py_attribute_dict, get_attr, py_par_data);
                     Py_DECREF(py_par_data);
-                }
-                else {
-                    PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_particle when fetching remote data.\n");
+                } else {
+                    PyErr_SetString(PyExc_RuntimeError,
+                                    "Something went wrong in yt_rma_particle when fetching remote data.\n");
                     return NULL;
                 }
             }
 
             // Free unused resource
-            Py_DECREF( py_attribute );
+            Py_DECREF(py_attribute);
         }
 
         // Free unused resource.
-        Py_DECREF( py_attr_iter );
-        Py_DECREF( py_ptype );
+        Py_DECREF(py_attr_iter);
+        Py_DECREF(py_ptype);
     }
 
     // Free unneeded resource.
-    Py_DECREF( py_ptf_keys );
+    Py_DECREF(py_ptf_keys);
 
     // Return.
     return py_output;
-#else // #ifndef SERIAL_MODE
+#else   // #ifndef SERIAL_MODE
     Py_RETURN_NONE;
-#endif // #ifndef SERIAL_MODE
+#endif  // #ifndef SERIAL_MODE
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -619,87 +629,74 @@ static PyObject* libyt_particle_get_particle_remote(PyObject *self, PyObject *ar
 //
 // Note        :  1. Contains data blocks for creating libyt python module.
 //                2. Only initialize libyt python module, not import to system yet.
-// 
+//
 // Lists:      :  libyt_method_list       : Declare libyt C extension python methods.
 //                libyt_module_definition : Definition to libyt python module.
-//                PyInit_libyt            : Create libyt python module, and append python objects, 
+//                PyInit_libyt            : Create libyt python module, and append python objects,
 //                                          ex: dictionary.
 //-------------------------------------------------------------------------------------------------------
 
 // Define functions in module, list all libyt module methods here
-static PyMethodDef libyt_method_list[] =
-{
-// { "method_name", c_function_name, METH_VARARGS, "Description"},
-   {"derived_func",        libyt_field_derived_func, METH_VARARGS,
-    "Get local derived field data."},
-   {"get_particle",        libyt_particle_get_particle,  METH_VARARGS,
-    "Get local particle attribute data."},
-   {"get_field_remote",    libyt_field_get_field_remote, METH_VARARGS,
-    "Get remote field data."},
-   {"get_particle_remote", libyt_particle_get_particle_remote, METH_VARARGS,
-    "Get remote particle attribute data."},
-   { NULL, NULL, 0, NULL } // sentinel
+static PyMethodDef libyt_method_list[] = {
+    // { "method_name", c_function_name, METH_VARARGS, "Description"},
+    {"derived_func", libyt_field_derived_func, METH_VARARGS, "Get local derived field data."},
+    {"get_particle", libyt_particle_get_particle, METH_VARARGS, "Get local particle attribute data."},
+    {"get_field_remote", libyt_field_get_field_remote, METH_VARARGS, "Get remote field data."},
+    {"get_particle_remote", libyt_particle_get_particle_remote, METH_VARARGS, "Get remote particle attribute data."},
+    {NULL, NULL, 0, NULL}  // sentinel
 };
 
 // Declare the definition of libyt_module
-static struct PyModuleDef libyt_module_definition = 
-{
-    PyModuleDef_HEAD_INIT,
-    "libyt",
-    "libyt documentation",
-    -1,
-    libyt_method_list
-};
+static struct PyModuleDef libyt_module_definition = {PyModuleDef_HEAD_INIT, "libyt", "libyt documentation", -1,
+                                                     libyt_method_list};
 
 // Create libyt python module
-static PyObject* PyInit_libyt(void)
-{
-  SET_TIMER(__PRETTY_FUNCTION__);
+static PyObject* PyInit_libyt(void) {
+    SET_TIMER(__PRETTY_FUNCTION__);
 
-  // Create libyt module
-  PyObject *libyt_module = PyModule_Create( &libyt_module_definition );
-  if ( libyt_module != nullptr ){
-    log_debug( "Creating libyt module ... done\n" );
-  }
-  else {
-    YT_ABORT(  "Creating libyt module ... failed!\n");
-  }
+    // Create libyt module
+    PyObject* libyt_module = PyModule_Create(&libyt_module_definition);
+    if (libyt_module != nullptr) {
+        log_debug("Creating libyt module ... done\n");
+    } else {
+        YT_ABORT("Creating libyt module ... failed!\n");
+    }
 
-  // Add objects dictionary
-  g_py_grid_data        = PyDict_New();
-  g_py_particle_data    = PyDict_New();
-  g_py_hierarchy        = PyDict_New();
-  g_py_param_yt         = PyDict_New();
-  g_py_param_user       = PyDict_New();
-  g_py_libyt_info       = PyDict_New();
+    // Add objects dictionary
+    g_py_grid_data = PyDict_New();
+    g_py_particle_data = PyDict_New();
+    g_py_hierarchy = PyDict_New();
+    g_py_param_yt = PyDict_New();
+    g_py_param_user = PyDict_New();
+    g_py_libyt_info = PyDict_New();
 #ifdef INTERACTIVE_MODE
-  g_py_interactive_mode = PyDict_New();
+    g_py_interactive_mode = PyDict_New();
 #endif
 
-  // set libyt info
-  PyObject *py_version = Py_BuildValue("(iii)", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION, LIBYT_MICRO_VERSION);
-  PyDict_SetItemString(g_py_libyt_info, "version", py_version);
+    // set libyt info
+    PyObject* py_version = Py_BuildValue("(iii)", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION, LIBYT_MICRO_VERSION);
+    PyDict_SetItemString(g_py_libyt_info, "version", py_version);
 #ifdef INTERACTIVE_MODE
-  PyDict_SetItemString(g_py_libyt_info, "interactive_mode", Py_True);
+    PyDict_SetItemString(g_py_libyt_info, "interactive_mode", Py_True);
 #else
-  PyDict_SetItemString(g_py_libyt_info, "interactive_mode", Py_False);
+    PyDict_SetItemString(g_py_libyt_info, "interactive_mode", Py_False);
 #endif
-  Py_DECREF(py_version);
+    Py_DECREF(py_version);
 
-  // add dict object to libyt python module
-  PyModule_AddObject(libyt_module, "grid_data",      g_py_grid_data     );
-  PyModule_AddObject(libyt_module, "particle_data",  g_py_particle_data );
-  PyModule_AddObject(libyt_module, "hierarchy",      g_py_hierarchy     );
-  PyModule_AddObject(libyt_module, "param_yt",       g_py_param_yt      );
-  PyModule_AddObject(libyt_module, "param_user",     g_py_param_user    );
-  PyModule_AddObject(libyt_module, "libyt_info",     g_py_libyt_info    );
+    // add dict object to libyt python module
+    PyModule_AddObject(libyt_module, "grid_data", g_py_grid_data);
+    PyModule_AddObject(libyt_module, "particle_data", g_py_particle_data);
+    PyModule_AddObject(libyt_module, "hierarchy", g_py_hierarchy);
+    PyModule_AddObject(libyt_module, "param_yt", g_py_param_yt);
+    PyModule_AddObject(libyt_module, "param_user", g_py_param_user);
+    PyModule_AddObject(libyt_module, "libyt_info", g_py_libyt_info);
 #ifdef INTERACTIVE_MODE
-  PyModule_AddObject(libyt_module, "interactive_mode", g_py_interactive_mode);
+    PyModule_AddObject(libyt_module, "interactive_mode", g_py_interactive_mode);
 #endif
 
-  log_debug( "Attaching empty dictionaries to libyt module ... done\n" );
+    log_debug("Attaching empty dictionaries to libyt module ... done\n");
 
-  return libyt_module;
+    return libyt_module;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -713,13 +710,12 @@ static PyObject* PyInit_libyt(void)
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int create_libyt_module()
-{
-  SET_TIMER(__PRETTY_FUNCTION__);
+int create_libyt_module() {
+    SET_TIMER(__PRETTY_FUNCTION__);
 
-  PyImport_AppendInittab("libyt", &PyInit_libyt);
+    PyImport_AppendInittab("libyt", &PyInit_libyt);
 
-  return YT_SUCCESS;
+    return YT_SUCCESS;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -731,68 +727,67 @@ int create_libyt_module()
 //                3. In INTERACTIVE_MODE:
 //                   (1) libyt.interactive_mode["script_globals"] = sys.modules["<script>"].__dict__
 //                   (2) libyt.interactive_mode["func_err_msg"] = dict()
-//                
+//
 // Parameter   :  None
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int init_libyt_module()
-{
-   SET_TIMER(__PRETTY_FUNCTION__);
+int init_libyt_module() {
+    SET_TIMER(__PRETTY_FUNCTION__);
 
-// import newly created libyt module
-   if ( PyRun_SimpleString("import libyt\n") == 0 )
-      log_debug( "Import libyt module ... done\n" );
-   else
-      YT_ABORT(  "Import libyt module ... failed!\n" );
+    // import newly created libyt module
+    if (PyRun_SimpleString("import libyt\n") == 0)
+        log_debug("Import libyt module ... done\n");
+    else
+        YT_ABORT("Import libyt module ... failed!\n");
 
-// check if script exist
-   if (g_myrank == 0) {
-       struct stat buffer;
-       std::string script_fullname = std::string(g_param_libyt.script) + std::string(".py");
-       if (stat(script_fullname.c_str(), &buffer) == 0) {
-           log_debug("Finding user script %s ... done\n", script_fullname.c_str());
-       }
-       else {
-           log_info("Unable to find user script %s, creating one ...\n", script_fullname.c_str());
-           std::ofstream python_script(script_fullname.c_str());
-           python_script.close();
-           log_info("Creating empty user script %s ... done\n", script_fullname.c_str());
-       }
-   }
+    // check if script exist
+    if (g_myrank == 0) {
+        struct stat buffer;
+        std::string script_fullname = std::string(g_param_libyt.script) + std::string(".py");
+        if (stat(script_fullname.c_str(), &buffer) == 0) {
+            log_debug("Finding user script %s ... done\n", script_fullname.c_str());
+        } else {
+            log_info("Unable to find user script %s, creating one ...\n", script_fullname.c_str());
+            std::ofstream python_script(script_fullname.c_str());
+            python_script.close();
+            log_info("Creating empty user script %s ... done\n", script_fullname.c_str());
+        }
+    }
 
 #ifndef SERIAL_MODE
-   MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-// import YT inline analysis script
-   int command_width = 8 + strlen( g_param_libyt.script );   // 8 = "import " + '\0'
-   char *command = (char*) malloc( command_width * sizeof(char) );
-   sprintf( command, "import %s", g_param_libyt.script );
+    // import YT inline analysis script
+    int command_width = 8 + strlen(g_param_libyt.script);  // 8 = "import " + '\0'
+    char* command = (char*)malloc(command_width * sizeof(char));
+    sprintf(command, "import %s", g_param_libyt.script);
 
-   if ( PyRun_SimpleString( command ) == 0 )
-      log_info( "Importing YT inline analysis script \"%s\" ... done\n", g_param_libyt.script );
-   else {
-       free(command);
-       YT_ABORT(
-               "Importing YT inline analysis script \"%s\" ... failed (please do not include the \".py\" extension)!\n",
-               g_param_libyt.script);
-   }
+    if (PyRun_SimpleString(command) == 0)
+        log_info("Importing YT inline analysis script \"%s\" ... done\n", g_param_libyt.script);
+    else {
+        free(command);
+        YT_ABORT(
+            "Importing YT inline analysis script \"%s\" ... failed (please do not include the \".py\" extension)!\n",
+            g_param_libyt.script);
+    }
 
-   free( command );
+    free(command);
 
 #ifdef INTERACTIVE_MODE
     // add imported script's namespace under in libyt.interactive_mode["script_globals"]
     command_width = 200 + strlen(g_param_libyt.script);
-    command = (char*) malloc( command_width * sizeof(char) );
-    sprintf( command, "libyt.interactive_mode[\"script_globals\"] = sys.modules[\"%s\"].__dict__\n"
-                      "libyt.interactive_mode[\"func_err_msg\"] = dict()\n"
-                      "libyt.interactive_mode[\"func_body\"] = dict()\n", g_param_libyt.script);
+    command = (char*)malloc(command_width * sizeof(char));
+    sprintf(command,
+            "libyt.interactive_mode[\"script_globals\"] = sys.modules[\"%s\"].__dict__\n"
+            "libyt.interactive_mode[\"func_err_msg\"] = dict()\n"
+            "libyt.interactive_mode[\"func_body\"] = dict()\n",
+            g_param_libyt.script);
 
-    if ( PyRun_SimpleString( command ) == 0 ){
+    if (PyRun_SimpleString(command) == 0) {
         log_debug("Preparing interactive mode environment ... done\n");
-    }
-    else {
+    } else {
         free(command);
         YT_ABORT("Preparing interactive mode environment ... failed\n");
     }
@@ -801,11 +796,11 @@ int init_libyt_module()
     std::string filename = std::string(g_param_libyt.script) + ".py";
     func_status_list::load_file_func_body(filename.c_str());
     std::vector<std::string> func_list = func_status_list::get_funcname_defined(filename.c_str());
-    for (int i=0; i<(int)func_list.size(); i++) {
+    for (int i = 0; i < (int)func_list.size(); i++) {
         g_func_status_list.add_new_func(func_list[i].c_str(), -1);
     }
-#endif // #ifdef INTERACTIVE_MODE
+#endif  // #ifdef INTERACTIVE_MODE
 
-   return YT_SUCCESS;
+    return YT_SUCCESS;
 
-} // FUNCTION : init_libyt_module
+}  // FUNCTION : init_libyt_module

@@ -31,8 +31,7 @@ static void init_yt_rma_particle_info_mpi_type();
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
-
+int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
     LibytProcessControl::Get().Initialize();
 
     SET_TIMER(__PRETTY_FUNCTION__);
@@ -52,7 +51,7 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
     // --> better do it **before** calling any log function since they will query g_param_libyt.verbose
     g_param_libyt.verbose = param_libyt->verbose;
     g_param_libyt.script = param_libyt->script;
-    g_param_libyt.counter = param_libyt->counter;   // useful during restart, where the initial counter can be non-zero
+    g_param_libyt.counter = param_libyt->counter;  // useful during restart, where the initial counter can be non-zero
     g_param_libyt.check_data = param_libyt->check_data;
 
     log_info("******libyt version******\n");
@@ -85,14 +84,14 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt) {
     // set python exception hook and set not-yet-done error msg
 #ifdef INTERACTIVE_MODE
     if (func_status_list::set_exception_hook() == YT_FAIL) return YT_FAIL;
-    if (func_status_list::init_not_done_err_msg() != YT_SUCCESS ) return YT_FAIL;
+    if (func_status_list::init_not_done_err_msg() != YT_SUCCESS) return YT_FAIL;
 #endif
 
     LibytProcessControl::Get().libyt_initialized = true;
 
     return YT_SUCCESS;
 
-} // FUNCTION : yt_initialize
+}  // FUNCTION : yt_initialize
 
 static void init_general_info() {
     SET_TIMER(__PRETTY_FUNCTION__);
@@ -137,9 +136,7 @@ static void init_yt_rma_grid_info_mpi_type() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int lengths[5] = {1, 1, 1, 1, 3};
-    const MPI_Aint displacements[5] = {0,
-                                       1 * sizeof(long),
-                                       1 * sizeof(long) + 1 * sizeof(MPI_Aint),
+    const MPI_Aint displacements[5] = {0, 1 * sizeof(long), 1 * sizeof(long) + 1 * sizeof(MPI_Aint),
                                        1 * sizeof(long) + 1 * sizeof(MPI_Aint) + 1 * sizeof(int),
                                        1 * sizeof(long) + 1 * sizeof(MPI_Aint) + 2 * sizeof(int)};
     MPI_Datatype types[5] = {MPI_LONG, MPI_AINT, MPI_INT, MPI_INT, MPI_INT};
@@ -151,9 +148,7 @@ static void init_yt_rma_particle_info_mpi_type() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int lengths[4] = {1, 1, 1, 1};
-    const MPI_Aint displacements[4] = {0,
-                                       1 * sizeof(long),
-                                       1 * sizeof(long) + 1 * sizeof(MPI_Aint),
+    const MPI_Aint displacements[4] = {0, 1 * sizeof(long), 1 * sizeof(long) + 1 * sizeof(MPI_Aint),
                                        2 * sizeof(long) + 1 * sizeof(MPI_Aint)};
     MPI_Datatype types[4] = {MPI_LONG, MPI_AINT, MPI_LONG, MPI_INT};
     MPI_Type_create_struct(4, lengths, displacements, types, &yt_rma_particle_info_mpi_type);

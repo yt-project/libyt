@@ -1,14 +1,11 @@
 #ifndef __YT_COMBO_H__
 #define __YT_COMBO_H__
 
-
-
 /*******************************************************************************
 /
 /  This header includes various headers relevant for libyt just for convenience
 /
 ********************************************************************************/
-
 
 // Python-related headers
 // ==> define NO_PYTHON for files having nothing to do with Python
@@ -28,10 +25,10 @@
 
 // Python.h must be included before any standard headers are included
 #include <Python.h>
+
 #include "numpy/arrayobject.h"
 
-#endif // #ifndef NO_PYTHON
-
+#endif  // #ifndef NO_PYTHON
 
 // standard headers
 #include <stdio.h>
@@ -40,12 +37,11 @@
 #include <mpi.h>
 #endif
 
-
 // libyt headers
-#include "yt_macro.h"
-#include "yt_type.h"
-#include "yt_prototype.h"
-#include "yt_global.h"
 #include "Timer.h"
+#include "yt_global.h"
+#include "yt_macro.h"
+#include "yt_prototype.h"
+#include "yt_type.h"
 
-#endif // #ifndef __YT_COMBO_H__
+#endif  // #ifndef __YT_COMBO_H__
