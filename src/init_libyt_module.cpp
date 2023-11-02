@@ -1,6 +1,8 @@
-#include "yt_combo.h"
-#include <string.h>
+#include <sys/stat.h>
+#include <fstream>
+#include <cstring>
 #include <string>
+#include "yt_combo.h"
 #include "yt_rma_field.h"
 #include "yt_rma_particle.h"
 #include "yt_type_array.h"
@@ -112,27 +114,7 @@ static PyObject* libyt_field_derived_func(PyObject *self, PyObject *args){
     // TODO: Hybrid OpenMP/MPI, need to allocate for a list of gid.
     long gridTotalSize = grid_dimensions[0] * grid_dimensions[1] * grid_dimensions[2];
     void *output;
-    if ( field_dtype == YT_FLOAT ){
-        output = malloc( gridTotalSize * sizeof(float) );
-        for (long i = 0; i < gridTotalSize; i++) { ((float *) output)[i] = 0.0; }
-    }
-    else if ( field_dtype == YT_DOUBLE ){
-        output = malloc( gridTotalSize * sizeof(double) );
-        for (long i = 0; i < gridTotalSize; i++) { ((double *) output)[i] = 0.0; }
-    }
-    else if ( field_dtype == YT_LONGDOUBLE ){
-        output = malloc( gridTotalSize * sizeof(long double) );
-        for (long i = 0; i < gridTotalSize; i++) { ((long double *) output)[i] = 0.0; }
-    }
-    else if ( field_dtype == YT_INT ){
-        output = malloc( gridTotalSize * sizeof(int) );
-        for (long i = 0; i < gridTotalSize; i++) { ((int *) output)[i] = 0; }
-    }
-    else if ( field_dtype == YT_LONG ){
-        output = malloc( gridTotalSize * sizeof(long) );
-        for (long i = 0; i < gridTotalSize; i++) { ((long *) output)[i] = 0; }
-    }
-    else{
+    if (get_dtype_allocation(field_dtype, gridTotalSize, &output) != YT_SUCCESS) {
         PyErr_Format(PyExc_ValueError, "Unknown field_dtype in field [%s]\n", field_name);
         return NULL;
     }
@@ -291,28 +273,7 @@ static PyObject* libyt_particle_get_particle(PyObject *self, PyObject *args){
         return NULL;
     }
 
-    // Initialize output array
-    if ( attr_dtype == YT_INT ){
-        output = malloc( array_length * sizeof(int) );
-        for ( long i = 0; i < array_length; i++ ){ ((int *)output)[i] = 0; }
-    }
-    else if ( attr_dtype == YT_FLOAT ){
-        output = malloc( array_length * sizeof(float) );
-        for ( long i = 0; i < array_length; i++ ){ ((float *)output)[i] = 0.0; }
-    }
-    else if ( attr_dtype == YT_DOUBLE ){
-        output = malloc( array_length * sizeof(double) );
-        for ( long i = 0; i < array_length; i++ ){ ((double *)output)[i] = 0.0; }
-    }
-    else if ( attr_dtype == YT_LONGDOUBLE ){
-        output = malloc( array_length * sizeof(long double) );
-        for ( long i = 0; i < array_length; i++ ){ ((long double *)output)[i] = 0.0; }
-    }
-    else if ( attr_dtype == YT_LONG ){
-        output = malloc( array_length * sizeof(long) );
-        for ( long i = 0; i < array_length; i++ ){ ((long *)output)[i] = 0; }
-    }
-    else{
+    if (get_dtype_allocation(attr_dtype, array_length, &output) != YT_SUCCESS) {
         PyErr_Format(PyExc_ValueError, "Particle [ %s ] attribute [ %s ], unknown yt_dtype.\n", ptype, attr_name);
         return NULL;
     }
@@ -618,7 +579,7 @@ static PyObject* libyt_particle_get_particle_remote(PyObject *self, PyObject *ar
                 if( get_data_len == 0 ){
                     PyDict_SetItemString(py_attribute_dict, get_attr, Py_None);
                 }
-                else if ( get_data_len > 0 && get_data_ptr != NULL ) {
+                else if ( get_data_len > 0 && get_data_ptr != nullptr ) {
                     int nd = 1;
                     int npy_type;
                     npy_intp dims[1] = { get_data_len };
@@ -697,7 +658,7 @@ static PyObject* PyInit_libyt(void)
 
   // Create libyt module
   PyObject *libyt_module = PyModule_Create( &libyt_module_definition );
-  if ( libyt_module != NULL ){
+  if ( libyt_module != nullptr ){
     log_debug( "Creating libyt module ... done\n" );
   }
   else {
@@ -785,16 +746,38 @@ int init_libyt_module()
    else
       YT_ABORT(  "Import libyt module ... failed!\n" );
 
+// check if script exist
+   if (g_myrank == 0) {
+       struct stat buffer;
+       std::string script_fullname = std::string(g_param_libyt.script) + std::string(".py");
+       if (stat(script_fullname.c_str(), &buffer) == 0) {
+           log_debug("Finding user script %s ... done\n", script_fullname.c_str());
+       }
+       else {
+           log_info("Unable to find user script %s, creating one ...\n", script_fullname.c_str());
+           std::ofstream python_script(script_fullname.c_str());
+           python_script.close();
+           log_info("Creating empty user script %s ... done\n", script_fullname.c_str());
+       }
+   }
+
+#ifndef SERIAL_MODE
+   MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
 // import YT inline analysis script
    int command_width = 8 + strlen( g_param_libyt.script );   // 8 = "import " + '\0'
    char *command = (char*) malloc( command_width * sizeof(char) );
    sprintf( command, "import %s", g_param_libyt.script );
 
    if ( PyRun_SimpleString( command ) == 0 )
-      log_debug( "Importing YT inline analysis script \"%s\" ... done\n", g_param_libyt.script );
-   else
-      YT_ABORT(  "Importing YT inline analysis script \"%s\" ... failed (please do not include the \".py\" extension)!\n",
-                g_param_libyt.script );
+      log_info( "Importing YT inline analysis script \"%s\" ... done\n", g_param_libyt.script );
+   else {
+       free(command);
+       YT_ABORT(
+               "Importing YT inline analysis script \"%s\" ... failed (please do not include the \".py\" extension)!\n",
+               g_param_libyt.script);
+   }
 
    free( command );
 

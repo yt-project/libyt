@@ -61,7 +61,7 @@ int yt_get_GridsPtr( yt_grid **grids_local )
 				(*grids_local)[id].field_data   = new yt_data [g_param_yt.num_fields];
 			}
 			else{
-				(*grids_local)[id].field_data   = NULL;
+				(*grids_local)[id].field_data   = nullptr;
 			}
 
             if (g_param_yt.num_par_types > 0 ){
@@ -79,8 +79,8 @@ int yt_get_GridsPtr( yt_grid **grids_local )
                 }
             }
             else{
-                (*grids_local)[id].particle_data = NULL;
-                (*grids_local)[id].par_count_list = NULL;
+                (*grids_local)[id].particle_data = nullptr;
+                (*grids_local)[id].par_count_list = nullptr;
             }
 		}
 

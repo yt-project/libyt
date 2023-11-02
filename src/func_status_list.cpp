@@ -2,8 +2,10 @@
 
 #include "yt_combo.h"
 #include <string.h>
+#include <iostream>
 #include "func_status_list.h"
 
+static bool check_colon_exist(const char *code);
 
 std::array<std::string, func_status_list::s_NotDone_Num> func_status_list::s_NotDone_ErrMsg;
 std::array<PyObject*, func_status_list::s_NotDone_Num>   func_status_list::s_NotDone_PyErr;
@@ -187,6 +189,7 @@ int func_status_list::run_func() {
             m_FuncStatusList[i].set_status(-2);
             if (PyRun_SimpleString(command) != 0) {
                 m_FuncStatusList[i].set_status(0);
+                free(command);
                 YT_ABORT("Unexpected error occurred while executing %s(%s) in script's namespace.\n",
                          funcname, m_FuncStatusList[i].get_args().c_str());
             }
@@ -293,7 +296,7 @@ int func_status_list::load_file_func_body(const char *filename) {
 //
 // Return        : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int func_status_list::load_input_func_body(char *code) {
+int func_status_list::load_input_func_body(const char *code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // prepare subspace to silent printing from python
@@ -482,12 +485,14 @@ int func_status_list::init_not_done_err_msg() {
 //                  4. s_NotDone_ErrMsg's and s_NotDone_PyErr's elements are one-to-one relationship. Make
 //                     sure to go through every element, since some of them might have error of same type
 //                     but with different err msg.
+//                  5. IndentationError (s_NotDon_PyErr[0]) can be caused by multi-line statement (with ':'),
+//                     or simply an error.
 //
 // Arguments     :  None
 //
 // Return        :  true / false : true for user hasn't done inputting yet.
 //-------------------------------------------------------------------------------------------------------
-bool func_status_list::is_not_done_err_msg() {
+bool func_status_list::is_not_done_err_msg(const char *code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     bool user_not_done = false;
@@ -501,10 +506,19 @@ bool func_status_list::is_not_done_err_msg() {
             PyErr_Fetch(&py_exc, &py_val, &py_traceback);
             PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
 
-            // check err msg:
-            //   if it is not done yet, no need to restore the error msg buffer in python
+            // check error msg
             if (s_NotDone_ErrMsg[i].compare(err_msg) == 0) {
-                user_not_done = true;
+                // if it is IndentationError (i == 0), then check if the last line contains ':' (a multi-line statement)
+                if (i == 0) {
+                    user_not_done = check_colon_exist(code);
+                }
+                else {
+                    user_not_done = true;
+                }
+            }
+
+            if (user_not_done) {
+                // decrease reference error msg
                 Py_XDECREF(py_exc);
                 Py_XDECREF(py_val);
                 Py_XDECREF(py_traceback);
@@ -519,6 +533,48 @@ bool func_status_list::is_not_done_err_msg() {
     }
 
     return user_not_done;
+}
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function      :  check_colon_exist
+//
+// Notes         :  1. This function gets called when detects s_NotDone_PyErr[0] ("if 1==1:\n") error.
+//                  2. If it is a true indentation error (which means a syntax err), then the code buffer
+//                     will reset.
+//                  3. An indentation error caused by user-not-done-yet will contain ':' in the last line.
+//
+// Arguments     :  const char *code : code
+//
+// Return        :  false : It is a true indentation error caused by user error.
+//                  true  : Indentation error caused by user not done inputting yet.
+//-------------------------------------------------------------------------------------------------------
+static bool check_colon_exist(const char *code) {
+    std::string code_str = std::string(code);
+    std::size_t start_pos = 0, found;
+    bool last_line_has_colon = false;
+
+    while (code_str.length() > 0) {
+        found = code_str.find('\n', start_pos);
+        if (found != std::string::npos) {
+            last_line_has_colon = false;
+
+            // check if the line contains ':' only
+            for (std::size_t i = start_pos; i < found; i++) {
+                if (code_str.at(i) == ':') {
+                    last_line_has_colon = true;
+                    break;
+                }
+            }
+        }
+        else {
+            break;
+        }
+
+        start_pos = found + 1;
+    }
+
+    return last_line_has_colon;
 }
 
 #endif // #ifdef INTERACTIVE_MODE

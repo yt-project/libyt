@@ -53,14 +53,16 @@ int append_grid( yt_grid *grid ){
 
     log_debug( "Inserting grid [%ld] info to libyt.hierarchy ... done\n", grid->id );
 
-    if ( grid->field_data != NULL && set_field_data(grid) != YT_SUCCESS ) {
+    if ( grid->field_data != nullptr && set_field_data(grid) != YT_SUCCESS ) {
         YT_ABORT("Failed to append grid [%ld] field data.\n", grid->id);
     }
-    if ( grid->particle_data != NULL && set_particle_data(grid) != YT_SUCCESS ) {
+    if ( grid->particle_data != nullptr && set_particle_data(grid) != YT_SUCCESS ) {
         YT_ABORT("Failed to append grid [%ld] particle data.\n", grid->id);
     }
 
     return YT_SUCCESS;
+
+#undef FILL_ARRAY
 }
 
 
@@ -85,7 +87,7 @@ static int set_field_data( yt_grid *grid ) {
     py_field_labels = PyDict_New();
     for (int v=0; v<g_param_yt.num_fields; v++) {
         // append data to dict only if data is not NULL.
-        if ( (grid->field_data)[v].data_ptr == NULL ) continue;
+        if ( (grid->field_data)[v].data_ptr == nullptr ) continue;
 
         // check if dictionary exists, if no add new dict under key gid
         if ( PyDict_Contains( g_py_grid_data, py_grid_id ) != 1 ) {
@@ -105,6 +107,8 @@ static int set_field_data( yt_grid *grid ) {
                       grid->id, field_list[v].field_name);
         }
         else{
+            Py_DECREF(py_grid_id);
+            Py_DECREF(py_field_labels);
             YT_ABORT("Grid ID [ %ld ], field data [ %s ], cannot get the NumPy enumerate type properly.\n",
                      grid->id, field_list[v].field_name);
         }
@@ -127,6 +131,8 @@ static int set_field_data( yt_grid *grid ) {
         // See if all data_dimensions > 0, abort if not.
         for (int d = 0; d < 3; d++){
             if ( (grid->field_data)[v].data_dimensions[d] <= 0 ){
+                Py_DECREF(py_grid_id);
+                Py_DECREF(py_field_labels);
                 YT_ABORT("Grid ID [ %ld ], field data [ %s ], data_dimensions[%d] = %d <= 0.\n",
                          grid->id, field_list[v].field_name, d, (grid->field_data)[v].data_dimensions[d]);
             }
@@ -189,7 +195,7 @@ static int set_particle_data( yt_grid* grid ) {
         for (int a = 0; a < particle_list[p].num_attr; a++) {
 
             // skip if particle attribute pointer is NULL
-            if ((grid->particle_data)[p][a].data_ptr == NULL) continue;
+            if ((grid->particle_data)[p][a].data_ptr == nullptr) continue;
 
             // Wrap the data array if pointer exist
             int data_dtype;
