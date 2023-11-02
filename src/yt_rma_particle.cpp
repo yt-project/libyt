@@ -1,11 +1,13 @@
 #ifndef SERIAL_MODE
 
 #include "yt_rma_particle.h"
-#include "yt_combo.h"
-#include "big_mpi.h"
-#include "LibytProcessControl.h"
-#include "libyt.h"
+
 #include <string.h>
+
+#include "LibytProcessControl.h"
+#include "big_mpi.h"
+#include "libyt.h"
+#include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  yt_rma_particle
@@ -25,32 +27,31 @@
 //                int       len_prepare: Number of grid to prepare.
 //                long          len_get: Number of grid to get.
 //-------------------------------------------------------------------------------------------------------
-yt_rma_particle::yt_rma_particle(const char *ptype, const char *attribute, int len_prepare, long len_get)
- : m_ParticleIndex(-1), m_AttributeIndex(-1), m_LenAllPrepare(0)
-{
+yt_rma_particle::yt_rma_particle(const char* ptype, const char* attribute, int len_prepare, long len_get)
+    : m_ParticleIndex(-1), m_AttributeIndex(-1), m_LenAllPrepare(0) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Initialize m_Window and set info to "no_locks".
     MPI_Info windowInfo;
-    MPI_Info_create( &windowInfo );
-    MPI_Info_set( windowInfo, "no_locks", "true" );
-    int mpi_return_code = MPI_Win_create_dynamic( windowInfo, MPI_COMM_WORLD, &m_Window );
-    MPI_Info_free( &windowInfo );
+    MPI_Info_create(&windowInfo);
+    MPI_Info_set(windowInfo, "no_locks", "true");
+    int mpi_return_code = MPI_Win_create_dynamic(windowInfo, MPI_COMM_WORLD, &m_Window);
+    MPI_Info_free(&windowInfo);
 
     if (mpi_return_code != MPI_SUCCESS) {
         log_error("yt_rma_particle: create one-sided MPI (RMA) window failed!\n");
         log_error("yt_rma_particle: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
     }
 
-    yt_particle *particle_list = LibytProcessControl::Get().particle_list;
-    for(int v = 0; v < g_param_yt.num_par_types; v++){
-        if( strcmp(ptype, particle_list[v].par_type) == 0 ){
-            m_ParticleType  = particle_list[v].par_type;
+    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
+    for (int v = 0; v < g_param_yt.num_par_types; v++) {
+        if (strcmp(ptype, particle_list[v].par_type) == 0) {
+            m_ParticleType = particle_list[v].par_type;
             m_ParticleIndex = v;
-            for(int a = 0; a < particle_list[v].num_attr; a++) {
-                if( strcmp(attribute, particle_list[v].attr_list[a].attr_name) == 0 ){
-                    m_AttributeName     = particle_list[v].attr_list[a].attr_name;
-                    m_AttributeIndex    = a;
+            for (int a = 0; a < particle_list[v].num_attr; a++) {
+                if (strcmp(attribute, particle_list[v].attr_list[a].attr_name) == 0) {
+                    m_AttributeName = particle_list[v].attr_list[a].attr_name;
+                    m_AttributeIndex = a;
                     m_AttributeDataType = particle_list[v].attr_list[a].attr_dtype;
                     break;
                 }
@@ -79,8 +80,7 @@ yt_rma_particle::yt_rma_particle(const char *ptype, const char *attribute, int l
 //
 // Arguments   :  None
 //-------------------------------------------------------------------------------------------------------
-yt_rma_particle::~yt_rma_particle()
-{
+yt_rma_particle::~yt_rma_particle() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     MPI_Win_free(&m_Window);
@@ -107,15 +107,15 @@ yt_rma_particle::~yt_rma_particle()
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_rma_particle::prepare_data(long& gid)
-{
+int yt_rma_particle::prepare_data(long& gid) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Make sure particle type and its attribute name exist.
-    if( m_ParticleIndex == -1 ){
-        YT_ABORT("yt_rma_particle: Cannot find particle type [ %s ] in particle_list on MPI rank [ %d ].\n", m_ParticleType, g_myrank);
+    if (m_ParticleIndex == -1) {
+        YT_ABORT("yt_rma_particle: Cannot find particle type [ %s ] in particle_list on MPI rank [ %d ].\n",
+                 m_ParticleType, g_myrank);
     }
-    if( m_AttributeIndex == -1 ){
+    if (m_AttributeIndex == -1) {
         YT_ABORT("yt_rma_particle: Cannot find attribute name [ %s ] in particle type [ %s ] on MPI rank [ %d ].\n",
                  m_AttributeName, m_ParticleType, g_myrank);
     }
@@ -124,40 +124,41 @@ int yt_rma_particle::prepare_data(long& gid)
     yt_rma_particle_info par_info;
     par_info.id = gid;
     yt_getGridInfo_ProcNum(gid, &(par_info.rank));
-    if ( par_info.rank != g_myrank ) {
+    if (par_info.rank != g_myrank) {
         YT_ABORT("yt_rma_particle: Trying to prepare nonlocal particle data in grid [%ld] that is on MPI rank [%d].\n",
                  gid, par_info.rank);
     }
-    if ( yt_getGridInfo_ParticleCount(gid, m_ParticleType, &(par_info.data_len)) != YT_SUCCESS ) {
+    if (yt_getGridInfo_ParticleCount(gid, m_ParticleType, &(par_info.data_len)) != YT_SUCCESS) {
         YT_ABORT("yt_rma_particle: Failed to get number of particle %s in grid [%ld].\n", m_ParticleType, gid);
     }
-    if ( par_info.data_len < 0 ) {
-        YT_ABORT("yt_rma_particle: Particle %s count = %ld < 0 in grid [%ld].\n", m_ParticleType, par_info.data_len, gid);
+    if (par_info.data_len < 0) {
+        YT_ABORT("yt_rma_particle: Particle %s count = %ld < 0 in grid [%ld].\n", m_ParticleType, par_info.data_len,
+                 gid);
     }
 
     // Get particle data
-    void *data_ptr = nullptr;
+    void* data_ptr = nullptr;
     par_info.address = NULL;
     int dtype_size;
     bool to_free = false;
     if (par_info.data_len > 0) {
         // get data type
-        if ( get_dtype_size(m_AttributeDataType, &dtype_size) != YT_SUCCESS ){
-            YT_ABORT("yt_rma_particle: Particle type [%s] attribute [%s], unknown yt_dtype.\n", m_ParticleType, m_AttributeName);
+        if (get_dtype_size(m_AttributeDataType, &dtype_size) != YT_SUCCESS) {
+            YT_ABORT("yt_rma_particle: Particle type [%s] attribute [%s], unknown yt_dtype.\n", m_ParticleType,
+                     m_AttributeName);
         }
 
         // get data_ptr: check if the data can be get in libyt.particle_data[g.id][ptype][attr] first,
         // if not, generate data in get_par_attr
         yt_data par_array;
-        if (yt_getGridInfo_ParticleData(gid, m_ParticleType, m_AttributeName, &par_array) == YT_SUCCESS ) {
+        if (yt_getGridInfo_ParticleData(gid, m_ParticleType, m_AttributeName, &par_array) == YT_SUCCESS) {
             data_ptr = par_array.data_ptr;
             to_free = false;
-        }
-        else {
+        } else {
             // Generate particle data through get_par_attr function pointer, if we cannot find it in libyt.particle_data
-            void (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*);
+            void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*);
             get_par_attr = LibytProcessControl::Get().particle_list[m_ParticleIndex].get_par_attr;
-            if( get_par_attr == nullptr ){
+            if (get_par_attr == nullptr) {
                 YT_ABORT("yt_rma_particle: Particle type [%s], get_par_attr not set!\n", m_ParticleType);
             }
 
@@ -167,24 +168,26 @@ int yt_rma_particle::prepare_data(long& gid)
             }
             to_free = true;
             int list_len = 1;
-            long list_gid[1] = { gid };
+            long list_gid[1] = {gid};
             yt_array data_array[1];
-            data_array[0].gid = gid; data_array[0].data_length = par_info.data_len; data_array[0].data_ptr = data_ptr;
-            (*get_par_attr) (list_len, list_gid, m_ParticleType, m_AttributeName, data_array);
+            data_array[0].gid = gid;
+            data_array[0].data_length = par_info.data_len;
+            data_array[0].data_ptr = data_ptr;
+            (*get_par_attr)(list_len, list_gid, m_ParticleType, m_AttributeName, data_array);
         }
 
         // Attach buffer to window.
-        int mpi_return_code = MPI_Win_attach(m_Window, data_ptr, par_info.data_len * dtype_size );
+        int mpi_return_code = MPI_Win_attach(m_Window, data_ptr, par_info.data_len * dtype_size);
         if (mpi_return_code != MPI_SUCCESS) {
             log_error("yt_rma_particle: attach data buffer to one-sided MPI (RMA) window failed!\n");
             log_error("yt_rma_particle: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\"\n");
             if (to_free) free(data_ptr);
-            YT_ABORT("yt_rma_particle: Attach particle [%s] attribute [%s] to window failed!\n",
-                     m_ParticleType, m_AttributeName);
+            YT_ABORT("yt_rma_particle: Attach particle [%s] attribute [%s] to window failed!\n", m_ParticleType,
+                     m_AttributeName);
         }
 
         // Get the address of the attached buffer.
-        if( MPI_Get_address(data_ptr, &(par_info.address)) != MPI_SUCCESS ){
+        if (MPI_Get_address(data_ptr, &(par_info.address)) != MPI_SUCCESS) {
             if (to_free) free(data_ptr);
             YT_ABORT("yt_rma_particle: Get attached particle [%s] attribute [%s] buffer address failed!\n",
                      m_ParticleType, m_AttributeName);
@@ -192,9 +195,9 @@ int yt_rma_particle::prepare_data(long& gid)
     }
 
     // Push back to m_Prepare, m_PrepareData.
-    m_PrepareData.push_back( data_ptr );
-    m_FreePrepareData.push_back( to_free );
-    m_Prepare.push_back( par_info );
+    m_PrepareData.push_back(data_ptr);
+    m_FreePrepareData.push_back(to_free);
+    m_Prepare.push_back(par_info);
 
     return YT_SUCCESS;
 }
@@ -214,8 +217,7 @@ int yt_rma_particle::prepare_data(long& gid)
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_rma_particle::gather_all_prepare_data(int root)
-{
+int yt_rma_particle::gather_all_prepare_data(int root) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int NRank;
@@ -223,33 +225,34 @@ int yt_rma_particle::gather_all_prepare_data(int root)
 
     // Get m_Prepare data and its length
     int PreparedInfoListLength = m_Prepare.size();
-    yt_rma_particle_info *PreparedInfoList = m_Prepare.data();
+    yt_rma_particle_info* PreparedInfoList = m_Prepare.data();
 
     // MPI_Gather send count in each rank, then MPI_Bcast.
-    int *SendCount = new int [NRank];
+    int* SendCount = new int[NRank];
     MPI_Gather(&PreparedInfoListLength, 1, MPI_INT, SendCount, 1, MPI_INT, root, MPI_COMM_WORLD);
     MPI_Bcast(SendCount, NRank, MPI_INT, root, MPI_COMM_WORLD);
 
     // Calculate m_SearchRange, and m_LenAllPrepare.
-    m_SearchRange = new long [ NRank + 1 ];
-    for(int i = 0; i < NRank + 1; i++) {
+    m_SearchRange = new long[NRank + 1];
+    for (int i = 0; i < NRank + 1; i++) {
         m_SearchRange[i] = 0;
         for (int rank = 0; rank < i; rank++) {
             m_SearchRange[i] += SendCount[rank];
         }
     }
-    m_LenAllPrepare = m_SearchRange[ NRank ];
+    m_LenAllPrepare = m_SearchRange[NRank];
 
     // Gather PreparedInfoList, which is m_Prepare in each rank, perform big_MPI_Gatherv and big_MPI_Bcast
-    m_AllPrepare = new yt_rma_particle_info [m_LenAllPrepare];
-    big_MPI_Gatherv<yt_rma_particle_info>(root, SendCount, (void*)PreparedInfoList, &yt_rma_particle_info_mpi_type, (void*)m_AllPrepare);
+    m_AllPrepare = new yt_rma_particle_info[m_LenAllPrepare];
+    big_MPI_Gatherv<yt_rma_particle_info>(root, SendCount, (void*)PreparedInfoList, &yt_rma_particle_info_mpi_type,
+                                          (void*)m_AllPrepare);
     big_MPI_Bcast<yt_rma_particle_info>(root, m_LenAllPrepare, (void*)m_AllPrepare, &yt_rma_particle_info_mpi_type);
 
     // Open window epoch.
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOPRECEDE, m_Window);
 
     // Free unused resource
-    delete [] SendCount;
+    delete[] SendCount;
 
     return YT_SUCCESS;
 }
@@ -269,40 +272,39 @@ int yt_rma_particle::gather_all_prepare_data(int root)
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
-{
+int yt_rma_particle::fetch_remote_data(long& gid, int& rank) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Look for gid in m_AllPrepare.
     bool get_remote_gid = false;
     yt_rma_particle_info fetched;
-    for(long aid = m_SearchRange[rank]; aid < m_SearchRange[rank+1]; aid++){
-        if( m_AllPrepare[aid].id == gid ){
+    for (long aid = m_SearchRange[rank]; aid < m_SearchRange[rank + 1]; aid++) {
+        if (m_AllPrepare[aid].id == gid) {
             fetched = m_AllPrepare[aid];
 
             get_remote_gid = true;
             break;
         }
     }
-    if( get_remote_gid != true ){
-        YT_ABORT("yt_rma_particle: Cannot get remote grid id [ %ld ] located in rank [ %d ] on MPI rank [ %d ].\n",
-                 gid, rank, g_myrank);
+    if (get_remote_gid != true) {
+        YT_ABORT("yt_rma_particle: Cannot get remote grid id [ %ld ] located in rank [ %d ] on MPI rank [ %d ].\n", gid,
+                 rank, g_myrank);
     }
-    void *fetchedData;
+    void* fetchedData;
 
-    if( fetched.data_len > 0 ){
-        int  dtype_size;
+    if (fetched.data_len > 0) {
+        int dtype_size;
         MPI_Datatype mpi_dtype;
-        get_dtype_size( m_AttributeDataType, &dtype_size );
-        get_mpi_dtype( m_AttributeDataType, &mpi_dtype );
-        fetchedData = malloc( fetched.data_len * dtype_size );
+        get_dtype_size(m_AttributeDataType, &dtype_size);
+        get_mpi_dtype(m_AttributeDataType, &mpi_dtype);
+        fetchedData = malloc(fetched.data_len * dtype_size);
 
-        if( big_MPI_Get_dtype(fetchedData, fetched.data_len, &m_AttributeDataType, &mpi_dtype, rank, fetched.address, &m_Window) != YT_SUCCESS ){
+        if (big_MPI_Get_dtype(fetchedData, fetched.data_len, &m_AttributeDataType, &mpi_dtype, rank, fetched.address,
+                              &m_Window) != YT_SUCCESS) {
             YT_ABORT("yt_rma_particle: big_MPI_Get_dtype fetch particle [%s] attribute [%s] in grid [%ld] failed!\n",
                      m_ParticleType, m_AttributeName, gid);
         }
-    }
-    else{
+    } else {
         fetchedData = nullptr;
     }
 
@@ -325,26 +327,25 @@ int yt_rma_particle::fetch_remote_data(long& gid, int& rank)
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_rma_particle::clean_up()
-{
+int yt_rma_particle::clean_up() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Close the window epoch
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOSUCCEED, m_Window);
 
     // Detach m_PrepareData from m_Window and free it, if data length > 0.
-    for(int i = 0; i < (int)m_Prepare.size(); i++){
-        if( m_Prepare[i].data_len > 0 ){
+    for (int i = 0; i < (int)m_Prepare.size(); i++) {
+        if (m_Prepare[i].data_len > 0) {
             MPI_Win_detach(m_Window, m_PrepareData[i]);
             if (m_FreePrepareData[i]) {
-                free( m_PrepareData[i] );
+                free(m_PrepareData[i]);
             }
         }
     }
 
     // Free m_AllPrepare, m_SearchRange, m_PrepareData, m_FreePrepareData, m_Prepare
-    delete [] m_AllPrepare;
-    delete [] m_SearchRange;
+    delete[] m_AllPrepare;
+    delete[] m_SearchRange;
     m_PrepareData.clear();
     m_FreePrepareData.clear();
     m_Prepare.clear();
@@ -373,12 +374,12 @@ int yt_rma_particle::clean_up()
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_rma_particle::get_fetched_data(long *gid, const char **ptype, const char **attribute, yt_dtype *data_dtype, long *data_len, void **data_ptr)
-{
+int yt_rma_particle::get_fetched_data(long* gid, const char** ptype, const char** attribute, yt_dtype* data_dtype,
+                                      long* data_len, void** data_ptr) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Check if there are left fetched data to get.
-    if( m_Fetched.size() == 0 ){
+    if (m_Fetched.size() == 0) {
         return YT_FAIL;
     }
 

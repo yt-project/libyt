@@ -1,13 +1,12 @@
-#include "yt_combo.h"
 #include "LibytProcessControl.h"
 #include "libyt.h"
-
+#include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_free()
 // Description :  Refresh the python yt state after finish inline-analysis
 //
-// Note        :  1. Call and use by user, after they are done with all the inline-analysis in this 
+// Note        :  1. Call and use by user, after they are done with all the inline-analysis in this
 //                   round, or they want to freed everything allocated by libyt.
 //                2. We also freed grids_local here, in case user didn't call yt_commit and cause memory
 //                   leak.
@@ -38,8 +37,8 @@ int yt_free() {
 
     // Free resource allocated in yt_set_Parameters():
     //    field_list, particle_list, attr_list, num_grids_local_MPI
-    yt_field *field_list = LibytProcessControl::Get().field_list;
-    yt_particle *particle_list = LibytProcessControl::Get().particle_list;
+    yt_field* field_list = LibytProcessControl::Get().field_list;
+    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
     if (LibytProcessControl::Get().param_yt_set) {
         if (g_param_yt.num_fields > 0) delete[] field_list;
         if (g_param_yt.num_par_types > 0) {
@@ -53,7 +52,7 @@ int yt_free() {
 
     // Free resource allocated in yt_get_GridsPtr() in case it hasn't got freed yet:
     //    grids_local, field_data, particle_data, par_count_list
-    yt_grid *grids_local = LibytProcessControl::Get().grids_local;
+    yt_grid* grids_local = LibytProcessControl::Get().grids_local;
     if (LibytProcessControl::Get().get_gridsPtr && g_param_yt.num_grids_local > 0) {
         for (int i = 0; i < g_param_yt.num_grids_local; i = i + 1) {
             if (g_param_yt.num_fields > 0) {
@@ -61,7 +60,7 @@ int yt_free() {
             }
             if (g_param_yt.num_par_types > 0) {
                 delete[] grids_local[i].par_count_list;
-                for (int p = 0; p < g_param_yt.num_par_types; p++){
+                for (int p = 0; p < g_param_yt.num_par_types; p++) {
                     delete[] grids_local[i].particle_data[p];
                 }
                 delete[] grids_local[i].particle_data;
@@ -95,4 +94,4 @@ int yt_free() {
     g_param_libyt.counter++;
 
     return YT_SUCCESS;
-} // FUNCTION: yt_free()
+}  // FUNCTION: yt_free()

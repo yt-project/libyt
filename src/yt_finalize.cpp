@@ -1,7 +1,6 @@
-#include "yt_combo.h"
 #include "LibytProcessControl.h"
 #include "libyt.h"
-
+#include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_finalize
@@ -15,23 +14,22 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_finalize()
-{
-   SET_TIMER(__PRETTY_FUNCTION__);
+int yt_finalize() {
+    SET_TIMER(__PRETTY_FUNCTION__);
 
-   log_info( "Exiting libyt ...\n" );
+    log_info("Exiting libyt ...\n");
 
-// check whether libyt has been initialized
-   if ( !LibytProcessControl::Get().libyt_initialized )   YT_ABORT( "Calling yt_finalize() before yt_initialize()!\n" );
+    // check whether libyt has been initialized
+    if (!LibytProcessControl::Get().libyt_initialized) YT_ABORT("Calling yt_finalize() before yt_initialize()!\n");
 
-// check if all the libyt allocated resource are freed
-   if ( !LibytProcessControl::Get().free_gridsPtr ) YT_ABORT("Please invoke yt_free() before calling yt_finalize().\n");
+    // check if all the libyt allocated resource are freed
+    if (!LibytProcessControl::Get().free_gridsPtr) YT_ABORT("Please invoke yt_free() before calling yt_finalize().\n");
 
-// free all libyt resources
-   Py_Finalize();
+    // free all libyt resources
+    Py_Finalize();
 
-   LibytProcessControl::Get().libyt_initialized = false;
+    LibytProcessControl::Get().libyt_initialized = false;
 
-   return YT_SUCCESS;
+    return YT_SUCCESS;
 
-} // FUNCTION : yt_finalize
+}  // FUNCTION : yt_finalize

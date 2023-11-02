@@ -1,15 +1,11 @@
 #define NO_PYTHON
 #include "yt_combo.h"
 #undef NO_PYTHON
-#include <string.h>
 #include <stdarg.h>
-
+#include <string.h>
 
 // width of log prefix ==> [LogPrefixWidth] messages
 static const int LogPrefixWidth = 10;
-
-
-
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  log_info
@@ -27,29 +23,26 @@ static const int LogPrefixWidth = 10;
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
-void log_info( const char *format, ... )
-{
-    if ( g_myrank != 0 ) return;
+void log_info(const char* format, ...) {
+    if (g_myrank != 0) return;
 
-// work only for verbose level >= YT_VERBOSE_INFO
-   if ( g_param_libyt.verbose < YT_VERBOSE_INFO )   return;
+    // work only for verbose level >= YT_VERBOSE_INFO
+    if (g_param_libyt.verbose < YT_VERBOSE_INFO) return;
 
-// flush previous messages
-   fflush( stdout );
+    // flush previous messages
+    fflush(stdout);
 
-// print messages
-   va_list arg;
-   va_start( arg, format );
+    // print messages
+    va_list arg;
+    va_start(arg, format);
 
-   fprintf( stdout, "[%-*s] ", LogPrefixWidth, "YT_INFO" );
-   vfprintf( stdout, format, arg );
-   fflush( stdout );
+    fprintf(stdout, "[%-*s] ", LogPrefixWidth, "YT_INFO");
+    vfprintf(stdout, format, arg);
+    fflush(stdout);
 
-   va_end( arg );
+    va_end(arg);
 
-} // FUNCTION : log_info
-
-
+}  // FUNCTION : log_info
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  log_warning
@@ -63,28 +56,24 @@ void log_info( const char *format, ... )
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
-void log_warning( const char *format, ... )
-{
+void log_warning(const char* format, ...) {
+    // work only for verbose level >= YT_VERBOSE_WARNING
+    if (g_param_libyt.verbose < YT_VERBOSE_WARNING) return;
 
-// work only for verbose level >= YT_VERBOSE_WARNING
-   if ( g_param_libyt.verbose < YT_VERBOSE_WARNING )   return;
+    // flush previous messages
+    fflush(stderr);
 
-// flush previous messages
-   fflush( stderr );
+    // print messages
+    va_list arg;
+    va_start(arg, format);
 
-// print messages
-   va_list arg;
-   va_start( arg, format );
+    fprintf(stderr, "[%-*s] ", LogPrefixWidth, "YT_WARNING");
+    vfprintf(stderr, format, arg);
+    fflush(stderr);
 
-   fprintf( stderr, "[%-*s] ", LogPrefixWidth, "YT_WARNING" );
-   vfprintf( stderr, format, arg );
-   fflush( stderr );
+    va_end(arg);
 
-   va_end( arg );
-
-} // FUNCTION : log_warning
-
-
+}  // FUNCTION : log_warning
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  log_debug
@@ -98,28 +87,24 @@ void log_warning( const char *format, ... )
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
-void log_debug( const char *format, ... )
-{
+void log_debug(const char* format, ...) {
+    // work only for verbose level >= YT_VERBOSE_DEBUG
+    if (g_param_libyt.verbose < YT_VERBOSE_DEBUG) return;
 
-// work only for verbose level >= YT_VERBOSE_DEBUG
-   if ( g_param_libyt.verbose < YT_VERBOSE_DEBUG )   return;
+    // flush previous messages
+    fflush(stderr);
 
-// flush previous messages
-   fflush( stderr );
+    // print messages
+    va_list arg;
+    va_start(arg, format);
 
-// print messages
-   va_list arg;
-   va_start( arg, format );
+    fprintf(stderr, "[%-*s] ", LogPrefixWidth, "YT_DEBUG");
+    vfprintf(stderr, format, arg);
+    fflush(stderr);
 
-   fprintf( stderr, "[%-*s] ", LogPrefixWidth, "YT_DEBUG" );
-   vfprintf( stderr, format, arg );
-   fflush( stderr );
+    va_end(arg);
 
-   va_end( arg );
-
-} // FUNCTION : log_debug
-
-
+}  // FUNCTION : log_debug
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  log_error
@@ -136,20 +121,18 @@ void log_debug( const char *format, ... )
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
-void log_error( const char *format, ... )
-{
+void log_error(const char* format, ...) {
+    // flush previous messages
+    fflush(stderr);
 
-// flush previous messages
-   fflush( stderr );
+    // print messages
+    va_list arg;
+    va_start(arg, format);
 
-// print messages
-   va_list arg;
-   va_start( arg, format );
+    fprintf(stderr, "[%-*s] ", LogPrefixWidth, "YT_ERROR");
+    vfprintf(stderr, format, arg);
+    fflush(stderr);
 
-   fprintf( stderr, "[%-*s] ", LogPrefixWidth, "YT_ERROR" );
-   vfprintf( stderr, format, arg );
-   fflush( stderr );
+    va_end(arg);
 
-   va_end( arg );
-
-} // FUNCTION : log_error
+}  // FUNCTION : log_error
