@@ -15,7 +15,6 @@ private:
     std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTime;
     bool m_Stopped;
 };
-
 #endif  // #ifdef SUPPORT_TIMER
 
 #ifdef SUPPORT_TIMER

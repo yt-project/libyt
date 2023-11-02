@@ -69,15 +69,12 @@ typedef struct yt_data {
 typedef struct yt_grid {
     double left_edge[3];
     double right_edge[3];
-
     long* par_count_list;
     long id;
     long parent_id;
-
     int grid_dimensions[3];
     int level;
     int proc_num;
-
     yt_data* field_data;
     yt_data** particle_data;
 

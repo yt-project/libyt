@@ -107,11 +107,9 @@ typedef struct yt_particle {
     const char* par_type;
     int num_attr;
     yt_attribute* attr_list;
-
     const char* coor_x;
     const char* coor_y;
     const char* coor_z;
-
     void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*);
 
 #ifdef __cplusplus
@@ -127,11 +125,9 @@ typedef struct yt_particle {
         par_type = nullptr;
         num_attr = INT_UNDEFINED;
         attr_list = nullptr;
-
         coor_x = nullptr;
         coor_y = nullptr;
         coor_z = nullptr;
-
         get_par_attr = nullptr;
     }
 #endif  // #ifdef __cplusplus

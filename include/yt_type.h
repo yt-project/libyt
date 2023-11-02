@@ -12,12 +12,8 @@ typedef unsigned int uint;
 typedef unsigned long int ulong;
 
 // enumerate types
-typedef enum yt_verbose {
-    YT_VERBOSE_OFF = 0,
-    YT_VERBOSE_INFO = 1,
-    YT_VERBOSE_WARNING = 2,
-    YT_VERBOSE_DEBUG = 3
-} yt_verbose;
+typedef enum yt_verbose { YT_VERBOSE_OFF = 0, YT_VERBOSE_INFO, YT_VERBOSE_WARNING, YT_VERBOSE_DEBUG } yt_verbose;
+
 typedef enum yt_dtype {
     YT_FLOAT = 0,   // float
     YT_DOUBLE,      // double
