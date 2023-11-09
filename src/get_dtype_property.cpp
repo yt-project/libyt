@@ -1,14 +1,15 @@
-#include "yt_combo.h"
-#include "big_mpi.h"
-#include "libyt.h"
 #include <cstring>
 #include <typeinfo>
+
+#include "big_mpi.h"
+#include "libyt.h"
+#include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get_npy_dtype
 // Description :  Match from yt_dtype YT_* to NumPy enumerate type.
 //
-// Note        :  1. This function matches yt_dtype to NumPy enumerate type, and will write result in 
+// Note        :  1. This function matches yt_dtype to NumPy enumerate type, and will write result in
 //                   npy_dtype.
 //                2.   yt_dtype      NumPy Enumerate Type
 //                  ========================================
@@ -23,7 +24,7 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int get_npy_dtype( yt_dtype data_type, int *npy_dtype ){
+int get_npy_dtype(yt_dtype data_type, int* npy_dtype) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     switch (data_type) {
@@ -80,8 +81,7 @@ int get_npy_dtype( yt_dtype data_type, int *npy_dtype ){
             }
             if (valid) {
                 log_error("Forget to match new yt_dtype to NumPy enumerate type in get_npy_dtype function.\n");
-            }
-            else {
+            } else {
                 log_error("No such yt_dtype.\n");
             }
 
@@ -89,7 +89,6 @@ int get_npy_dtype( yt_dtype data_type, int *npy_dtype ){
             return YT_FAIL;
     }
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get_yt_dtype_from_npy
@@ -103,8 +102,8 @@ int get_npy_dtype( yt_dtype data_type, int *npy_dtype ){
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int  get_yt_dtype_from_npy(int npy_dtype, yt_dtype *data_dtype ) {
-    SET_TIMER(__PRETTY_FUNCTION__ );
+int get_yt_dtype_from_npy(int npy_dtype, yt_dtype* data_dtype) {
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     switch (npy_dtype) {
         case NPY_FLOAT:
@@ -153,7 +152,6 @@ int  get_yt_dtype_from_npy(int npy_dtype, yt_dtype *data_dtype ) {
     }
 }
 
-
 #ifndef SERIAL_MODE
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get_mpi_dtype
@@ -174,7 +172,7 @@ int  get_yt_dtype_from_npy(int npy_dtype, yt_dtype *data_dtype ) {
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype ){
+int get_mpi_dtype(yt_dtype data_type, MPI_Datatype* mpi_dtype) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     switch (data_type) {
@@ -231,8 +229,7 @@ int get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype ){
             }
             if (valid) {
                 log_error("Forget to match new yt_dtype to MPI_Datatype in get_mpi_dtype function.\n");
-            }
-            else {
+            } else {
                 log_error("No such yt_dtype.\n");
             }
 
@@ -241,7 +238,6 @@ int get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype ){
     }
 }
 #endif
-
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get_dtype_size
@@ -261,7 +257,7 @@ int get_mpi_dtype( yt_dtype data_type, MPI_Datatype *mpi_dtype ){
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int get_dtype_size( yt_dtype data_type, int *dtype_size ){
+int get_dtype_size(yt_dtype data_type, int* dtype_size) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     switch (data_type) {
@@ -318,8 +314,7 @@ int get_dtype_size( yt_dtype data_type, int *dtype_size ){
             }
             if (valid) {
                 log_error("Forget to match new yt_dtype to size in get_dtype_size function.\n");
-            }
-            else {
+            } else {
                 log_error("No such yt_dtype.\n");
             }
 
@@ -327,7 +322,6 @@ int get_dtype_size( yt_dtype data_type, int *dtype_size ){
             return YT_FAIL;
     }
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get_dtype_typeid
@@ -348,7 +342,7 @@ int get_dtype_size( yt_dtype data_type, int *dtype_size ){
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int get_dtype_typeid(yt_dtype data_type, const std::type_info **dtype_id ) {
+int get_dtype_typeid(yt_dtype data_type, const std::type_info** dtype_id) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     switch (data_type) {
@@ -414,7 +408,6 @@ int get_dtype_typeid(yt_dtype data_type, const std::type_info **dtype_id ) {
     }
 }
 
-
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get_dtype_allocation
 // Description :  Allocate memory with base unit yt_dtype (YT_*) in C
@@ -436,7 +429,7 @@ int get_dtype_typeid(yt_dtype data_type, const std::type_info **dtype_id ) {
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int get_dtype_allocation(yt_dtype data_type, unsigned long length, void ** data_ptr ) {
+int get_dtype_allocation(yt_dtype data_type, unsigned long length, void** data_ptr) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     switch (data_type) {
@@ -506,8 +499,7 @@ int get_dtype_allocation(yt_dtype data_type, unsigned long length, void ** data_
             }
             if (valid) {
                 log_error("Forget to match new yt_dtype to allocation in get_dtype_allocation function.\n");
-            }
-            else {
+            } else {
                 log_error("No such yt_dtype.\n");
             }
 
@@ -515,7 +507,6 @@ int get_dtype_allocation(yt_dtype data_type, unsigned long length, void ** data_
             return YT_FAIL;
     }
 }
-
 
 #ifndef SERIAL_MODE
 //-------------------------------------------------------------------------------------------------------
@@ -539,7 +530,8 @@ int get_dtype_allocation(yt_dtype data_type, unsigned long length, void ** data_
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int big_MPI_Get_dtype(void *recv_buff, long data_len, yt_dtype *data_dtype, MPI_Datatype *mpi_dtype, int get_rank, MPI_Aint base_address, MPI_Win *window) {
+int big_MPI_Get_dtype(void* recv_buff, long data_len, yt_dtype* data_dtype, MPI_Datatype* mpi_dtype, int get_rank,
+                      MPI_Aint base_address, MPI_Win* window) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     switch (*data_dtype) {
@@ -583,8 +575,7 @@ int big_MPI_Get_dtype(void *recv_buff, long data_len, yt_dtype *data_dtype, MPI_
             }
             if (valid) {
                 log_error("Forget to delegate new yt_dtype to big_MPI_Get in big_MPI_Get_dtype function.\n");
-            }
-            else {
+            } else {
                 log_error("No such yt_dtype.\n");
             }
             return YT_FAIL;
