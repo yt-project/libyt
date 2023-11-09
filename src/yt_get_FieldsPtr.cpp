@@ -1,6 +1,6 @@
-#include "yt_combo.h"
 #include "LibytProcessControl.h"
 #include "libyt.h"
+#include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_get_FieldsPtr
@@ -9,40 +9,39 @@
 // Note        :  1. User should call this function after yt_set_Parameters(), since we allocate field_list
 //                   there.
 //
-// Parameter   :  yt_field **field_list  : Initialize and store the field list array under this pointer 
+// Parameter   :  yt_field **field_list  : Initialize and store the field list array under this pointer
 //                                         points to.
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 //
-int yt_get_FieldsPtr( yt_field **field_list )
-{
+int yt_get_FieldsPtr(yt_field** field_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-	// check if libyt has been initialized
-   	if ( !LibytProcessControl::Get().libyt_initialized ){
-    	YT_ABORT( "Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__ );
-   	}
+    // check if libyt has been initialized
+    if (!LibytProcessControl::Get().libyt_initialized) {
+        YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
+    }
 
-	// check if yt_set_Parameters() have been called
-   	if ( !LibytProcessControl::Get().param_yt_set ) {
-    	YT_ABORT( "Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__ );
+    // check if yt_set_Parameters() have been called
+    if (!LibytProcessControl::Get().param_yt_set) {
+        YT_ABORT("Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__);
     }
 
     // check if num_fields > 0, if not, field_list won't be initialized
-    if ( g_param_yt.num_fields <= 0 ){
-    	YT_ABORT( "num_fields == %d <= 0, you don't need to input field_list, and it is also not initialized!\n",
-    	           g_param_yt.num_fields);
+    if (g_param_yt.num_fields <= 0) {
+        YT_ABORT("num_fields == %d <= 0, you don't need to input field_list, and it is also not initialized!\n",
+                 g_param_yt.num_fields);
     }
 
-   	log_info( "Getting pointer to field list information ...\n" );
+    log_info("Getting pointer to field list information ...\n");
 
-	// Store the field_list ptr to *field_list
-	*field_list =  LibytProcessControl::Get().field_list;
+    // Store the field_list ptr to *field_list
+    *field_list = LibytProcessControl::Get().field_list;
 
-	// Above all works like charm
+    // Above all works like charm
     LibytProcessControl::Get().get_fieldsPtr = true;
-	log_info( "Getting pointer to field list information  ... done.\n" );
+    log_info("Getting pointer to field list information  ... done.\n");
 
-	return YT_SUCCESS;
+    return YT_SUCCESS;
 }

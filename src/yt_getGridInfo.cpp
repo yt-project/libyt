@@ -1,7 +1,6 @@
-#include "yt_combo.h"
 #include "LibytProcessControl.h"
 #include "libyt.h"
-
+#include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_getGridInfo_*
@@ -27,41 +26,39 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-#define GET_ARRAY(KEY, ARRAY, DIM, TYPE, GID)                                                            \
-    {                                                                                                    \
-        PyArrayObject *py_array_obj = (PyArrayObject*) PyDict_GetItemString( g_py_hierarchy, KEY );      \
-        for (int t=0; t<DIM; t++) {                                                                      \
-            (ARRAY)[t] = *(TYPE*)PyArray_GETPTR2( py_array_obj, GID - g_param_yt.index_offset, t );      \
-        }                                                                                                \
+#define GET_ARRAY(KEY, ARRAY, DIM, TYPE, GID)                                                                          \
+    {                                                                                                                  \
+        PyArrayObject* py_array_obj = (PyArrayObject*)PyDict_GetItemString(g_py_hierarchy, KEY);                       \
+        for (int t = 0; t < DIM; t++) {                                                                                \
+            (ARRAY)[t] = *(TYPE*)PyArray_GETPTR2(py_array_obj, GID - g_param_yt.index_offset, t);                      \
+        }                                                                                                              \
     }
 
 // function factory
-#define GET_GRIDINFO_DIM3(NAME, KEY, TYPE)                                                                            \
-    int yt_getGridInfo_##NAME(const long gid, TYPE (*NAME)[3])                                                        \
-    {                                                                                                                 \
-        SET_TIMER(__PRETTY_FUNCTION__);                                                                                                             \
-        if (!LibytProcessControl::Get().commit_grids) {                                                               \
-            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",        \
-                     __FUNCTION__);                                                                                   \
-        }                                                                                                             \
-        GET_ARRAY(KEY, *NAME, 3, TYPE, gid)                                                                           \
-        return YT_SUCCESS;                                                                                            \
-    }                                                                                                                 \
+#define GET_GRIDINFO_DIM3(NAME, KEY, TYPE)                                                                             \
+    int yt_getGridInfo_##NAME(const long gid, TYPE(*NAME)[3]) {                                                        \
+        SET_TIMER(__PRETTY_FUNCTION__);                                                                                \
+        if (!LibytProcessControl::Get().commit_grids) {                                                                \
+            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",         \
+                     __FUNCTION__);                                                                                    \
+        }                                                                                                              \
+        GET_ARRAY(KEY, *NAME, 3, TYPE, gid)                                                                            \
+        return YT_SUCCESS;                                                                                             \
+    }
 
 // function factory
-#define GET_GRIDINFO_DIM1(NAME, KEY, TYPE)                                                                            \
-    int yt_getGridInfo_##NAME(const long gid, TYPE *NAME)                                                             \
-    {                                                                                                                 \
-        SET_TIMER(__PRETTY_FUNCTION__);                                                                               \
-        if (!LibytProcessControl::Get().commit_grids) {                                                                            \
-            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",        \
-                     __FUNCTION__);                                                                                   \
-        }                                                                                                             \
-        TYPE temp[1];                                                                                                 \
-        GET_ARRAY(KEY, temp, 1, TYPE, gid)                                                                            \
-        *NAME = temp[0];                                                                                              \
-        return YT_SUCCESS;                                                                                            \
-    }                                                                                                                 \
+#define GET_GRIDINFO_DIM1(NAME, KEY, TYPE)                                                                             \
+    int yt_getGridInfo_##NAME(const long gid, TYPE* NAME) {                                                            \
+        SET_TIMER(__PRETTY_FUNCTION__);                                                                                \
+        if (!LibytProcessControl::Get().commit_grids) {                                                                \
+            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",         \
+                     __FUNCTION__);                                                                                    \
+        }                                                                                                              \
+        TYPE temp[1];                                                                                                  \
+        GET_ARRAY(KEY, temp, 1, TYPE, gid)                                                                             \
+        *NAME = temp[0];                                                                                               \
+        return YT_SUCCESS;                                                                                             \
+    }
 
 // int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] )
 GET_GRIDINFO_DIM3(Dimensions, "grid_dimensions", int)
@@ -72,7 +69,7 @@ GET_GRIDINFO_DIM3(LeftEdge, "grid_left_edge", double)
 // int yt_getGridInfo_RightEdge(const long, double (*)[3])
 GET_GRIDINFO_DIM3(RightEdge, "grid_right_edge", double)
 
-//int yt_getGridInfo_ParentId(const long, long *)
+// int yt_getGridInfo_ParentId(const long, long *)
 GET_GRIDINFO_DIM1(ParentId, "grid_parent_id", long)
 
 // int yt_getGridInfo_Level(const long, int *)
@@ -103,7 +100,7 @@ GET_GRIDINFO_DIM1(ProcNum, "proc_num", int)
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_count) {
+int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_count) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     if (!LibytProcessControl::Get().commit_grids) {
@@ -112,19 +109,19 @@ int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_co
     }
 
     // find index of ptype
-    yt_particle *particle_list = LibytProcessControl::Get().particle_list;
+    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
     int label = -1;
-    for (int s=0; s<g_param_yt.num_par_types; s++) {
+    for (int s = 0; s < g_param_yt.num_par_types; s++) {
         if (strcmp(particle_list[s].par_type, ptype) == 0) {
             label = s;
             break;
         }
     }
-    if ( label == -1 ) YT_ABORT("Cannot find species name [%s] in particle_list.\n", ptype);
+    if (label == -1) YT_ABORT("Cannot find species name [%s] in particle_list.\n", ptype);
 
     // get particle count NumPy array in libyt.hierarchy["par_count_list"]
-    PyArrayObject *py_array_obj = (PyArrayObject*)PyDict_GetItemString(g_py_hierarchy, "par_count_list");
-    if ( py_array_obj == NULL ) YT_ABORT("Cannot find key \"par_count_list\" in libyt.hierarchy dict.\n");
+    PyArrayObject* py_array_obj = (PyArrayObject*)PyDict_GetItemString(g_py_hierarchy, "par_count_list");
+    if (py_array_obj == NULL) YT_ABORT("Cannot find key \"par_count_list\" in libyt.hierarchy dict.\n");
 
     // read libyt.hierarchy["par_count_list"][index][ptype]
     *par_count = *(long*)PyArray_GETPTR2(py_array_obj, gid - g_param_yt.index_offset, label);
@@ -148,14 +145,14 @@ int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_co
 // Parameter   :  const long   gid              : Target grid id.
 //                const char  *field_name       : Target field name.
 //                yt_data     *field_data       : Store the yt_data struct pointer that points to data here.
-//                
+//
 // Example     :  yt_data Data;
 //                yt_getGridInfo_FieldData( gid, "field_name", &Data );
 //                double *FieldData = (double *) Data.data_ptr;
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *field_data) {
+int yt_getGridInfo_FieldData(const long gid, const char* field_name, yt_data* field_data) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     if (!LibytProcessControl::Get().commit_grids) {
@@ -164,8 +161,8 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
     }
 
     // get dictionary libyt.grid_data[gid][field_name]
-    PyObject *py_grid_id = PyLong_FromLong(gid);
-    PyObject *py_field = PyUnicode_FromString(field_name);
+    PyObject* py_grid_id = PyLong_FromLong(gid);
+    PyObject* py_field = PyUnicode_FromString(field_name);
 
     if (PyDict_Contains(g_py_grid_data, py_grid_id) != 1 ||
         PyDict_Contains(PyDict_GetItem(g_py_grid_data, py_grid_id), py_field) != 1) {
@@ -174,29 +171,28 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
         Py_DECREF(py_field);
         return YT_FAIL;
     }
-    PyArrayObject *py_array_obj = (PyArrayObject*) PyDict_GetItem(PyDict_GetItem(g_py_grid_data, py_grid_id), py_field);
+    PyArrayObject* py_array_obj = (PyArrayObject*)PyDict_GetItem(PyDict_GetItem(g_py_grid_data, py_grid_id), py_field);
 
     Py_DECREF(py_grid_id);
     Py_DECREF(py_field);
 
     // get NumPy array dimensions.
-    npy_intp *py_array_dims = PyArray_DIMS(py_array_obj);
-    for ( int d=0; d<3; d++ ){
-        (*field_data).data_dimensions[d] = (int) py_array_dims[d];
+    npy_intp* py_array_dims = PyArray_DIMS(py_array_obj);
+    for (int d = 0; d < 3; d++) {
+        (*field_data).data_dimensions[d] = (int)py_array_dims[d];
     }
 
     // get NumPy data pointer.
     (*field_data).data_ptr = PyArray_DATA(py_array_obj);
 
     // get NumPy data dtype, and convert to YT_DTYPE.
-    PyArray_Descr *py_array_info = PyArray_DESCR(py_array_obj);
+    PyArray_Descr* py_array_info = PyArray_DESCR(py_array_obj);
     if (get_yt_dtype_from_npy(py_array_info->type_num, &(*field_data).data_dtype) != YT_SUCCESS) {
         YT_ABORT("No matching yt_dtype for NumPy data type num [%d].\n", py_array_info->type_num);
     }
 
     return YT_SUCCESS;
 }
-
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_getGridInfo_ParticleData
@@ -219,7 +215,7 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int yt_getGridInfo_ParticleData(const long gid, const char *ptype, const char *attr, yt_data *par_data) {
+int yt_getGridInfo_ParticleData(const long gid, const char* ptype, const char* attr, yt_data* par_data) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     if (!LibytProcessControl::Get().commit_grids) {
@@ -228,36 +224,37 @@ int yt_getGridInfo_ParticleData(const long gid, const char *ptype, const char *a
     }
 
     // get dictionary libyt.particle_data[gid][ptype]
-    PyObject *py_grid_id = PyLong_FromLong(gid);
-    PyObject *py_ptype   = PyUnicode_FromString(ptype);
-    PyObject *py_attr    = PyUnicode_FromString(attr);
+    PyObject* py_grid_id = PyLong_FromLong(gid);
+    PyObject* py_ptype = PyUnicode_FromString(ptype);
+    PyObject* py_attr = PyUnicode_FromString(attr);
 
     if (PyDict_Contains(g_py_particle_data, py_grid_id) != 1 ||
         PyDict_Contains(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype) != 1 ||
         PyDict_Contains(PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr) != 1) {
-        log_error("Cannot find particle type [%s] attribute [%s] data in grid [%ld] on MPI rank [%d].\n",
-                  ptype, attr, gid, g_myrank);
+        log_error("Cannot find particle type [%s] attribute [%s] data in grid [%ld] on MPI rank [%d].\n", ptype, attr,
+                  gid, g_myrank);
         Py_DECREF(py_grid_id);
         Py_DECREF(py_ptype);
         Py_DECREF(py_attr);
         return YT_FAIL;
     }
-    PyArrayObject *py_data = (PyArrayObject*) PyDict_GetItem(PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr);
+    PyArrayObject* py_data = (PyArrayObject*)PyDict_GetItem(
+        PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr);
 
     Py_DECREF(py_grid_id);
     Py_DECREF(py_ptype);
     Py_DECREF(py_attr);
 
     // extracting py_data to par_data
-    npy_intp *py_data_dims = PyArray_DIMS(py_data);
-    (*par_data).data_dimensions[0] = (int) py_data_dims[0];
+    npy_intp* py_data_dims = PyArray_DIMS(py_data);
+    (*par_data).data_dimensions[0] = (int)py_data_dims[0];
     (*par_data).data_dimensions[1] = 0;
     (*par_data).data_dimensions[2] = 0;
 
     (*par_data).data_ptr = PyArray_DATA(py_data);
 
-    PyArray_Descr *py_data_info = PyArray_DESCR(py_data);
-    if (get_yt_dtype_from_npy(py_data_info->type_num, &(*par_data).data_dtype) != YT_SUCCESS ) {
+    PyArray_Descr* py_data_info = PyArray_DESCR(py_data);
+    if (get_yt_dtype_from_npy(py_data_info->type_num, &(*par_data).data_dtype) != YT_SUCCESS) {
         YT_ABORT("No matching yt_dtype for NumPy data type num [%d].\n", py_data_info->type_num);
     }
 

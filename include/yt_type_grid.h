@@ -1,13 +1,14 @@
 #ifndef __YT_TYPE_GRID_H__
 #define __YT_TYPE_GRID_H__
 
+#include "yt_macro.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_data
 // Description :  Data structure to store a field data's pointer and its array dimensions.
-// 
+//
 // Notes       :  1. This struct will be use in yt_grid data member field_data and particle_data.
-// 
+//
 // Data Member :  data_ptr           : data pointer
 //                data_dimensions[3] : dimension of the data to be passed to python for wrapping, which is the actual
 //                                     size of the array.
@@ -17,11 +18,10 @@
 //
 // Methods     : yt_data            : Constructor
 //-------------------------------------------------------------------------------------------------------
-typedef struct yt_data
-{
-    void     *data_ptr;
-    int       data_dimensions[3];
-    yt_dtype  data_dtype;
+typedef struct yt_data {
+    void* data_ptr;
+    int data_dimensions[3];
+    yt_dtype data_dtype;
 
 #ifdef __cplusplus
     //===================================================================================
@@ -32,20 +32,20 @@ typedef struct yt_data
     //
     // Parameter   :  None
     //===================================================================================
-    yt_data()
-    {
+    yt_data() {
         data_ptr = nullptr;
-        for(int d=0; d<3; d++){ data_dimensions[d] = 0; }
+        for (int d = 0; d < 3; d++) {
+            data_dimensions[d] = 0;
+        }
         data_dtype = YT_DTYPE_UNKNOWN;
     }
-#endif // #ifdef __cplusplus
+#endif  // #ifdef __cplusplus
 } yt_data;
-
 
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_grid
 // Description :  Data structure to store a full single grid with data pointer
-// 
+//
 // Notes       :  1. We assume that each element in array[3] are all in use, which is we only support
 //                   dim 3 for now, though it can be [len][0][0].
 //
@@ -66,21 +66,17 @@ typedef struct yt_data
 //
 // Method      :  yt_grid  : Constructor
 //-------------------------------------------------------------------------------------------------------
-typedef struct yt_grid
-{
-    double     left_edge[3];
-    double     right_edge[3];
-
-    long      *par_count_list;
-    long       id;
-    long       parent_id;
-
-    int        grid_dimensions[3];
-    int        level;
-    int        proc_num;
-
-    yt_data   *field_data;
-    yt_data  **particle_data;
+typedef struct yt_grid {
+    double left_edge[3];
+    double right_edge[3];
+    long* par_count_list;
+    long id;
+    long parent_id;
+    int grid_dimensions[3];
+    int level;
+    int proc_num;
+    yt_data* field_data;
+    yt_data** particle_data;
 
 #ifdef __cplusplus
     //===================================================================================
@@ -91,26 +87,24 @@ typedef struct yt_grid
     //
     // Parameter   :  None
     //===================================================================================
-    yt_grid()
-    {
-        for (int d=0; d<3; d++) {
-            left_edge [d]  = DBL_UNDEFINED;
-            right_edge[d]  = DBL_UNDEFINED;
+    yt_grid() {
+        for (int d = 0; d < 3; d++) {
+            left_edge[d] = DBL_UNDEFINED;
+            right_edge[d] = DBL_UNDEFINED;
         }
-        for (int d=0; d<3; d++) {
-            grid_dimensions[d]  = INT_UNDEFINED;
+        for (int d = 0; d < 3; d++) {
+            grid_dimensions[d] = INT_UNDEFINED;
         }
         par_count_list = nullptr;
-        id             = LNG_UNDEFINED;
-        parent_id      = LNG_UNDEFINED;
-        level          = INT_UNDEFINED;
-        proc_num       = INT_UNDEFINED;
-        field_data     = nullptr;
-        particle_data  = nullptr;
-
+        id = LNG_UNDEFINED;
+        parent_id = LNG_UNDEFINED;
+        level = INT_UNDEFINED;
+        proc_num = INT_UNDEFINED;
+        field_data = nullptr;
+        particle_data = nullptr;
     }
-#endif // #ifdef __cplusplus
+#endif  // #ifdef __cplusplus
 
 } yt_grid;
 
-#endif // #ifndef __YT_TYPE_GRID_H__
+#endif  // #ifndef __YT_TYPE_GRID_H__

@@ -9,7 +9,7 @@
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_field
 // Description :  Data structure to store a field's label and its definition of data representation.
-// 
+//
 // Notes       :  1. The data representation type will be initialized as "cell-centered".
 //                2. The lifetime of field_name and field_type should cover the whole in situ process.
 //                3. The lifetime of field_unit, field_name_alias, field_display_name should cover yt_commit.
@@ -24,7 +24,8 @@
 //                yt_dtype      field_dtype          : Field type of the grid.
 //                bool          contiguous_in_x      : true  ==> [z][y][x], x address alter-first, default value.
 //                                                     false ==> [x][y][z], z address alter-first
-//                short         field_ghost_cell[6]  : Number of cell to ignore at the beginning and the end of each dimension.
+//                short         field_ghost_cell[6]  : Number of cell to ignore at the beginning and the end of each
+//                                                     dimension.
 //                                                     The dimensions are in the point of view of the field data, it has
 //                                                     nothing to do with x, y, z coordinates.
 //
@@ -39,19 +40,17 @@
 //
 // Method      :  yt_field  : Constructor
 //-------------------------------------------------------------------------------------------------------
-typedef struct yt_field
-{
-	const char     *field_name;
-	const char     *field_type;
-	yt_dtype        field_dtype;
-	bool            contiguous_in_x;
-    short           field_ghost_cell[6];
-	const char     *field_unit;
-	int             num_field_name_alias;
-	const char    **field_name_alias;
-	const char     *field_display_name;
-
-	void (*derived_func) (const int, const long *, const char*, yt_array*);
+typedef struct yt_field {
+    const char* field_name;
+    const char* field_type;
+    yt_dtype field_dtype;
+    bool contiguous_in_x;
+    short field_ghost_cell[6];
+    const char* field_unit;
+    int num_field_name_alias;
+    const char** field_name_alias;
+    const char* field_display_name;
+    void (*derived_func)(const int, const long*, const char*, yt_array*);
 
 #ifdef __cplusplus
     //=======================================================================================================
@@ -64,21 +63,22 @@ typedef struct yt_field
     //
     // Parameter   : None
     // ======================================================================================================
-	yt_field()
-	{
-		field_name = nullptr;
+    yt_field() {
+        field_name = nullptr;
         field_type = "cell-centered";
-		field_dtype = YT_DTYPE_UNKNOWN;
+        field_dtype = YT_DTYPE_UNKNOWN;
         contiguous_in_x = true;
-        for(int d=0; d<6; d++){ field_ghost_cell[d] = 0; }
-		field_unit = "";
-		num_field_name_alias = 0;
-		field_name_alias = nullptr;
-		field_display_name = nullptr;
-		derived_func = nullptr;
-	}
-#endif // #ifdef __cplusplus
+        for (int d = 0; d < 6; d++) {
+            field_ghost_cell[d] = 0;
+        }
+        field_unit = "";
+        num_field_name_alias = 0;
+        field_name_alias = nullptr;
+        field_display_name = nullptr;
+        derived_func = nullptr;
+    }
+#endif  // #ifdef __cplusplus
 
 } yt_field;
 
-#endif // #ifndef __YT_TYPE_FIELD_H__
+#endif  // #ifndef __YT_TYPE_FIELD_H__

@@ -1,11 +1,12 @@
-#include "yt_combo.h"
 #include "libyt.h"
+#include "yt_combo.h"
 
 #ifdef INTERACTIVE_MODE
 #include <ctype.h>
-#include "define_command.h"
-#include <sys/stat.h>
 #include <readline/readline.h>
+#include <sys/stat.h>
+
+#include "define_command.h"
 #endif
 
 //-------------------------------------------------------------------------------------------------------
@@ -26,7 +27,6 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_run_InteractiveMode(const char* flag_file_name) {
-
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef INTERACTIVE_MODE
@@ -38,14 +38,16 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     fflush(stderr);
 
     // run new added function and output func_status summary
-    if (g_func_status_list.run_func() != YT_SUCCESS) YT_ABORT("Something went wrong when running new added functions\n");
-    if (g_func_status_list.print_summary() != YT_SUCCESS) YT_ABORT("Something went wrong when summarizing inline function status\n");
+    if (g_func_status_list.run_func() != YT_SUCCESS)
+        YT_ABORT("Something went wrong when running new added functions\n");
+    if (g_func_status_list.print_summary() != YT_SUCCESS)
+        YT_ABORT("Something went wrong when summarizing inline function status\n");
 
     // check if we need to enter interactive prompt
     struct stat buffer;
     if (stat(flag_file_name, &buffer) != 0) {
         bool enter_interactive_mode = false;
-        for (int i=0; i<g_func_status_list.size(); i++) {
+        for (int i = 0; i < g_func_status_list.size(); i++) {
             if ((g_func_status_list[i].get_run() == 1) && (g_func_status_list[i].get_status() == 0)) {
                 enter_interactive_mode = true;
                 break;
@@ -53,15 +55,16 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
         }
 
         if (!enter_interactive_mode) {
-            log_info("No failed inline function and no stop file %s detected ... leaving interactive mode\n", flag_file_name);
+            log_info("No failed inline function and no stop file %s detected ... leaving interactive mode\n",
+                     flag_file_name);
             return YT_SUCCESS;
         }
     }
 
     // create prompt interface
-    const char *ps1 = ">>> ";
-    const char *ps2 = "... ";
-    const char *prompt = ps1;
+    const char* ps1 = ">>> ";
+    const char* ps2 = "... ";
+    const char* prompt = ps1;
     bool done = false;
     int root = 0;
 
@@ -70,7 +73,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     char *input_line, *code = NULL;
 
     // get inline script's namespace, globals and locals are the same.
-    PyObject *global_var;
+    PyObject* global_var;
     global_var = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
 
     // python object for interactive loop, parsing syntax error for code not yet done
@@ -85,7 +88,6 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
 
     // enter interactive loop
     while (!done) {
-
         // root: prompt and input
         if (g_myrank == root) {
             input_line = readline(prompt);
@@ -95,7 +97,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                 // check if it contains spaces only or null line if prompt >>>, otherwise python will count as
                 // not finished yet.
                 long first_char = -1;
-                for (long i=0; i<(long)strlen(input_line); i++) {
+                for (long i = 0; i < (long)strlen(input_line); i++) {
                     if (isspace(input_line[i]) == 0) {
                         first_char = i;
                         break;
@@ -110,7 +112,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                 if (input_line[first_char] == '%') {
 #ifndef SERIAL_MODE
                     // tell other ranks no matter if it is valid, even though not all libyt command are collective
-                    input_len = (int) strlen(input_line) - first_char;
+                    input_len = (int)strlen(input_line) - first_char;
                     MPI_Bcast(&input_len, 1, MPI_INT, root, MPI_COMM_WORLD);
                     MPI_Bcast(&(input_line[first_char]), input_len, MPI_CHAR, root, MPI_COMM_WORLD);
 #endif
@@ -130,11 +132,13 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
 
             // dealing with Python input
             input_len = strlen(input_line);
-            if (code == NULL) code_len = 0;
-            else              code_len = strlen(code);
+            if (code == NULL)
+                code_len = 0;
+            else
+                code_len = strlen(code);
 
             // append input to code, additional 2 for '\n' and '\0'
-            code = (char*) realloc(code, input_len + code_len + 2);
+            code = (char*)realloc(code, input_len + code_len + 2);
             if (code_len == 0) code[0] = '\0';
             strncat(code, input_line, input_len);
             code[code_len + input_len] = '\n';
@@ -147,7 +151,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                 if (prompt == ps1 || code[code_len + input_len - 1] == '\n') {
 #ifndef SERIAL_MODE
                     // broadcast to other ranks, code character num no longer than INT_MAX
-                    int temp = (int) strlen(code);
+                    int temp = (int)strlen(code);
                     MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
                     MPI_Bcast(code, strlen(code), MPI_CHAR, root, MPI_COMM_WORLD);
 #endif
@@ -158,8 +162,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                     if (PyErr_Occurred()) {
                         PyErr_Print();
                         PyRun_SimpleString("sys.stderr.flush()");
-                    }
-                    else {
+                    } else {
                         // if it worked successfully, write to prompt history (only on root)
                         g_func_status_list.update_prompt_history(std::string(code));
                     }
@@ -187,7 +190,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                 prompt = ps2;
             }
             // case 3: real errors in code
-            else{
+            else {
                 PyErr_Print();
                 PyRun_SimpleString("sys.stderr.flush()");
 
@@ -206,7 +209,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
         else {
             // get code; additional 1 for '\0'
             MPI_Bcast(&code_len, 1, MPI_INT, root, MPI_COMM_WORLD);
-            code = (char*) malloc((code_len + 1) * sizeof(char));
+            code = (char*)malloc((code_len + 1) * sizeof(char));
             MPI_Bcast(code, code_len, MPI_CHAR, root, MPI_COMM_WORLD);
             code[code_len] = '\0';
 
@@ -214,8 +217,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
             if (code[0] == '%') {
                 define_command command(code);
                 done = command.run();
-            }
-            else {
+            } else {
                 // compile and execute code, and detect functors.
                 src = Py_CompileString(code, "<libyt-stdin>", Py_single_input);
                 dum = PyEval_EvalCode(src, global_var, global_var);
@@ -237,9 +239,9 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
             fflush(stderr);
             MPI_Barrier(MPI_COMM_WORLD);
         }
-#endif // #ifndef SERIAL_MODE
+#endif  // #ifndef SERIAL_MODE
     }
 
     return YT_SUCCESS;
-#endif // #ifndef INTERACTIVE_MODE
+#endif  // #ifndef INTERACTIVE_MODE
 }
