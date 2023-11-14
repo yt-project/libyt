@@ -62,7 +62,7 @@ jobs:
           cd ${{ github.workspace }}
           rm -rf build
           cmake -B build -S . 
-                -DCMAKE_INSTALL_PREFIX="${{ env.LIBYT_PARALLEL_INSTALL_PATH }}"
+                -DCMAKE_INSTALL_PREFIX=""${{ env.LIBYT_PARALLEL_INSTALL_PATH }}""
           cmake --build build
           cmake --install build
 
@@ -72,7 +72,7 @@ jobs:
           rm -rf build-serial
           cmake -B build-serial -S . 
                 -DSERIAL_MODE:BOOL=ON
-                -DCMAKE_INSTALL_PREFIX="${{ env.LIBYT_SERIAL_INSTALL_PATH }}"
+                -DCMAKE_INSTALL_PREFIX=""${{ env.LIBYT_SERIAL_INSTALL_PATH }}""
           cmake --build build-serial
           cmake --install build-serial
 
