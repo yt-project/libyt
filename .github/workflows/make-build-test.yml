@@ -40,7 +40,7 @@ jobs:
           cache: 'pip'
       - run: |
           python -m pip install --upgrade pip
-          pip install -r $GITHUB_WORKSPACE/.github/tools/requirements.txt
+          pip install -r ${{ github.workspace}}/.github/tools/requirements.txt
 
       - name: Setup MPI environment
         uses: mpi4py/setup-mpi@v1
@@ -50,7 +50,7 @@ jobs:
       - name: Install yt, mpi4py, and yt_libyt
         run: |
           pip install mpi4py yt
-          cd $GITHUB_WORKSPACE
+          cd ${{ github.workspace}}
           cd ..
           git clone --depth 1 -b libyt-dev --single-branch "https://github.com/cindytsai/yt_libyt.git" yt_libyt
           cd yt_libyt
@@ -60,16 +60,15 @@ jobs:
         run: |
           echo "PYTHON_PATH=${{ env.pythonLocation }}" >> $GITHUB_ENV
           echo "NUMPY_PATH=${{ env.pythonLocation }}/lib/python${{ matrix.python-version }}/site-packages/numpy" >> $GITHUB_ENV
-          echo "MPI_PATH=/usr" >> $GITHUB_ENV
-          echo "LIBYT_PARALLEL_INSTALL_PATH=$GITHUB_WORKSPACE/libyt_parallel" >> $GITHUB_ENV
-          echo "LIBYT_SERIAL_INSTALL_PATH=$GITHUB_WORKSPACE/libyt_serial" >> $GITHUB_ENV
+          echo "LIBYT_PARALLEL_INSTALL_PATH=${{ github.workspace}}/libyt_parallel" >> $GITHUB_ENV
+          echo "LIBYT_SERIAL_INSTALL_PATH=${{ github.workspace}}/libyt_serial" >> $GITHUB_ENV
       
       # setup-python has python3.7m only, idk why. 
       # So split building libyt into two.
       - name: Set PYTHON_PATH, PYTHON_VERSION, NUMPY_PATH
         if: ${{ matrix.python-version == '3.7'}}
         run: |
-          cd $GITHUB_WORKSPACE/src
+          cd ${{ github.workspace}}/src
           sed -i 's@$(YOUR_PYTHON_PATH)@"${{ env.PYTHON_PATH }}"@' Makefile
           sed -i 's@$(YOUR_NUMPY_PATH)@"${{ env.NUMPY_PATH }}"@' Makefile
           sed -i 's@$(YOUR_PYTHON_VERSION)@"${{ matrix.python-version }}m"@' Makefile
@@ -77,48 +76,47 @@ jobs:
       - name: Set PYTHON_PATH, PYTHON_VERSION, NUMPY_PATH
         if: ${{ matrix.python-version != '3.7' }}
         run: |
-          cd $GITHUB_WORKSPACE/src
+          cd ${{ github.workspace}}/src
           sed -i 's@$(YOUR_PYTHON_PATH)@"${{ env.PYTHON_PATH }}"@' Makefile
           sed -i 's@$(YOUR_NUMPY_PATH)@"${{ env.NUMPY_PATH }}"@' Makefile
           sed -i 's@$(YOUR_PYTHON_VERSION)@"${{ matrix.python-version }}"@' Makefile
 
       - name: Build libyt -- Parallel (MPI)
         run: |
-          cd $GITHUB_WORKSPACE/src
+          cd ${{ github.workspace}}/src
           make clean
-          make MPI_PATH="${{ env.MPI_PATH }}"
           make INSTALL_PREFIX="${{ env.LIBYT_PARALLEL_INSTALL_PATH }}" install
 
       - name: Build libyt -- Serial (GCC)
         run: |
-          cd $GITHUB_WORKSPACE/src
+          cd ${{ github.workspace}}/src
           make clean
           make OPTIONS="-DSERIAL_MODE"
           make INSTALL_PREFIX="${{ env.LIBYT_SERIAL_INSTALL_PATH }}" install
 
       - name: Prepare Test
         run: |
-          cd $GITHUB_WORKSPACE/example
-          cp $GITHUB_WORKSPACE/.github/tests/test-DataIO/DataIOTest.py .
+          cd ${{ github.workspace}}/example
+          cp ${{ github.workspace}}/.github/tests/test-DataIO/DataIOTest.py .
           sed -i 's/inline_script/DataIOTest/' example.cpp
 
       - name: Generate Density Data for Testing
         run: |
-          cd $GITHUB_WORKSPACE/example
-          cp $GITHUB_WORKSPACE/.github/tools/generate_density_data.cpp .
+          cd ${{ github.workspace}}/example
+          cp ${{ github.workspace}}/.github/tools/generate_density_data.cpp .
           g++ -o generate_density_data generate_density_data.cpp
           ./generate_density_data
 
       - name: Test Run and DataIO Test - example - Serial
         run: |
-          cd $GITHUB_WORKSPACE/example
+          cd ${{ github.workspace}}/example
           make clean
           make OPTIONS=-DSERIAL_MODE LIBYT_PATH="${{ env.LIBYT_SERIAL_INSTALL_PATH }}"
           ./example
           
       - name: Test Run and DataIO Test - example - Parallel (MPI 3)
         run: |
-          cd $GITHUB_WORKSPACE/example
+          cd ${{ github.workspace}}/example
           make clean
-          make LIBYT_PATH="${{ env.LIBYT_PARALLEL_INSTALL_PATH }}" MPI_PATH="${{ env.MPI_PATH }}"
+          make LIBYT_PATH="${{ env.LIBYT_PARALLEL_INSTALL_PATH }}"
           OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./example
