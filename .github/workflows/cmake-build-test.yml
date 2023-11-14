@@ -28,6 +28,9 @@ jobs:
       - name: Checkout libyt repo
         uses: actions/checkout@v3
 
+      - name: CMake Version
+        run: cmake --version
+
       - name: Setup Python ${{ matrix.python-version }} environment
         uses: actions/setup-python@v4
         with:
