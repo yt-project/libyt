@@ -9,10 +9,9 @@ option(INTERACTIVE_MODE  "Use interactive mode"               OFF)
 option(SUPPORT_TIMER     "Support timer"                      OFF)
 
 ## set paths ##
-set(PYTHON_PATH    "")
-set(MPI_PATH       "")
-set(GCC_PATH       "")
-set(READLINE_PATH  "")
+set(PYTHON_PATH    "" CACHE PATH "Path to Python installation prefix")
+set(MPI_PATH       "" CACHE PATH "Path to MPI installation prefix")
+set(READLINE_PATH  "" CACHE PATH "Path to Readline installation prefix")
 
 ###### COMPILATION (DO NOT TOUCH) ######################################################################################
 ## build static/shared library ##
