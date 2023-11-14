@@ -20,7 +20,6 @@ endfunction()
 print_option(SERIAL_MODE)
 print_option(INTERACTIVE_MODE)
 print_option(SUPPORT_TIMER)
-print_option(BUILD_SHARED_LIBS)
 
 # define
 if (SUPPORT_TIMER)
@@ -79,5 +78,3 @@ include(GNUInstallDirs)
 install(TARGETS yt
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-#install(FILES ${CMAKE_BINARY_DIR}/libyt.pc
-#        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
