@@ -17,11 +17,17 @@ on:
 
 jobs:
   cmake-build-test:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.platform.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        platform:
+          - os: ubuntu-latest
+            mpi: 'openmpi'
+          - os: windows-latest
+            mpi: 'msmpi'
+          - os: macos-latest
+            mpi: 'intelmpi'
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
 
     steps:
@@ -44,7 +50,7 @@ jobs:
       - name: Setup MPI environment
         uses: mpi4py/setup-mpi@v1
         with:
-          mpi: 'openmpi'
+          mpi: ${{ matrix.platform.mpi }}
 
       - name: Install yt, mpi4py, and yt_libyt
         run: |
