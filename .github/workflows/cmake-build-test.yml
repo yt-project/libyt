@@ -72,7 +72,7 @@ jobs:
         run: | 
           cd ${{ github.workspace }}
           rm -rf build-serial
-          cmake -B build-serial -S . -DSERIAL_MODE:BOOL=ON
+          cmake -B build-serial -S . -DSERIAL_MODE=ON
           cmake --build build-serial
           cmake --install build-serial --prefix "${{ env.LIBYT_SERIAL_INSTALL_PATH }}"
 
