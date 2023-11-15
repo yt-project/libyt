@@ -80,7 +80,6 @@ jobs:
         run: |
           cd ${{ github.workspace }}/example
           cp ${{ github.workspace }}/.github/tests/test-DataIO/DataIOTest.py .
-          sed -i 's/inline_script/DataIOTest/' example.cpp
 
       - name: Generate Density Data for Testing
         run: |
@@ -94,11 +93,11 @@ jobs:
           cd ${{ github.workspace }}/example
           make clean
           make OPTIONS=-DSERIAL_MODE LIBYT_PATH="${{ env.LIBYT_SERIAL_INSTALL_PATH }}"
-          ./example
+          ./example DataIOTest.py
 
       - name: Test Run and DataIO Test - example - Parallel (MPI 3)
         run: |
           cd ${{ github.workspace }}/example
           make clean
           make LIBYT_PATH="${{ env.LIBYT_PARALLEL_INSTALL_PATH }}"
-          OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./example
+          OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./example DataIOTest.py

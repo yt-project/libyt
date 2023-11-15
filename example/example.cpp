@@ -40,10 +40,12 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <time.h>
 
+#include <cstring>
+#include <string>
 #include <typeinfo>
+
 #ifndef SERIAL_MODE
 #include <mpi.h>
 #endif
@@ -97,10 +99,12 @@ int main(int argc, char* argv[]) {
     // ==========================================
     // libyt: 1. initialize libyt
     // ==========================================
+    std::string filename;
+    if (argc > 1) filename = std::string(argv[1]).substr(0, std::string(argv[1]).length() - 3);
     yt_param_libyt param_libyt;
-    param_libyt.verbose = YT_VERBOSE_INFO;  // libyt log level
-    param_libyt.script = "inline_script";   // inline python script, excluding ".py"
-    param_libyt.check_data = false;         // check passed in data or not
+    param_libyt.verbose = YT_VERBOSE_INFO;                                 // libyt log level
+    param_libyt.script = (argc > 1) ? filename.c_str() : "inline_script";  // inline python script, excluding ".py"
+    param_libyt.check_data = false;                                        // check passed in data or not
 
     if (yt_initialize(argc, argv, &param_libyt) != YT_SUCCESS) {
         fprintf(stderr, "ERROR: yt_initialize() failed!\n");
