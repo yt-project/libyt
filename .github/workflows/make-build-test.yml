@@ -60,8 +60,8 @@ jobs:
         run: |
           echo "PYTHON_PATH=${{ env.pythonLocation }}" >> $GITHUB_ENV
           echo "NUMPY_PATH=${{ env.pythonLocation }}/lib/python${{ matrix.python-version }}/site-packages/numpy" >> $GITHUB_ENV
-          echo "LIBYT_PARALLEL_INSTALL_PATH=${{ github.workspace}}/libyt_parallel" >> $GITHUB_ENV
-          echo "LIBYT_SERIAL_INSTALL_PATH=${{ github.workspace}}/libyt_serial" >> $GITHUB_ENV
+          echo "LIBYT_PARALLEL_INSTALL_PATH=${{ github.workspace }}/libyt_parallel" >> $GITHUB_ENV
+          echo "LIBYT_SERIAL_INSTALL_PATH=${{ github.workspace }}/libyt_serial" >> $GITHUB_ENV
       
       # setup-python has python3.7m only, idk why. 
       # So split building libyt into two.
