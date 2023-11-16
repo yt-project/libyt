@@ -18,7 +18,11 @@ RPATH   :=
 INCLUDE :=
 
 ifneq "$(filter -DSERIAL_MODE, $(OPTIONS))" "-DSERIAL_MODE"
-	COMPILER := $(MPI_PATH)/bin/mpic++
+	ifeq ($(MPI_PATH),)
+		COMPILER := mpic++
+	else
+		COMPILER := $(MPI_PATH)/bin/mpic++
+	endif
 else
 	ifeq ($(GCC_PATH),)
 		COMPILER := g++
