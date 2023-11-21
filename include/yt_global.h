@@ -29,6 +29,7 @@
 #include "yt_type.h"
 #ifdef INTERACTIVE_MODE
 #include "func_status_list.h"
+#include "libyt_python_shell.h"
 #endif
 
 // add the prefix "g_" for all global C variables
@@ -38,6 +39,7 @@ SET_GLOBAL(int, g_myrank);                  // MPI rank
 SET_GLOBAL(int, g_mysize);                  // MPI size
 #ifdef INTERACTIVE_MODE
 SET_GLOBAL(func_status_list, g_func_status_list, func_status_list(10));  // Inline function status list (default 10)
+SET_GLOBAL(LibytPythonShell, g_libyt_python_shell);
 #endif
 
 #ifndef NO_PYTHON

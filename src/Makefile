@@ -50,7 +50,7 @@ CC_FILE := yt_initialize.cpp  yt_finalize.cpp  yt_set_Parameters.cpp  yt_run.cpp
 CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp       \
 		   check_data.cpp append_grid.cpp get_dtype_property.cpp func_status.cpp                           \
 		   func_status_list.cpp define_command.cpp LibytProcessControl.cpp print_data.cpp                  \
-		   Timer.cpp TimerControl.cpp
+		   Timer.cpp TimerControl.cpp libyt_python_shell.cpp
 
 
 # flags
