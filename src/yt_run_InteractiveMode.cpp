@@ -170,11 +170,11 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                         PyRun_SimpleString("sys.stderr.flush()");
                     } else {
                         // if it worked successfully, write to prompt history (only on root)
-                        g_func_status_list.update_prompt_history(std::string(code));
+                        g_libyt_python_shell.update_prompt_history(std::string(code));
                     }
 
                     // detect callables and their function definition
-                    func_status_list::load_input_func_body(code);
+                    LibytPythonShell::load_input_func_body(code);
 
                     // clean up
                     Py_XDECREF(dum);
@@ -191,7 +191,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                 }
             }
             // case 2: not finish yet
-            else if (func_status_list::is_not_done_err_msg(code)) {
+            else if (LibytPythonShell::is_not_done_err_msg(code)) {
                 // code not complete yet, switch prompt to ps2
                 prompt = ps2;
             }
@@ -232,7 +232,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                     PyErr_Print();
                     PyRun_SimpleString("sys.stderr.flush()");
                 }
-                func_status_list::load_input_func_body(code);
+                LibytPythonShell::load_input_func_body(code);
 
                 // clean up
                 Py_XDECREF(dum);

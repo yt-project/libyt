@@ -6,7 +6,8 @@ add_library(yt SHARED
         yt_commit.cpp yt_finalize.cpp yt_free.cpp yt_get_FieldsPtr.cpp yt_get_GridsPtr.cpp yt_run_JupyterKernel.cpp
         yt_get_ParticlesPtr.cpp yt_getGridInfo.cpp yt_initialize.cpp yt_rma_field.cpp
         yt_rma_particle.cpp yt_run.cpp yt_run_InteractiveMode.cpp yt_set_Parameters.cpp
-        yt_set_UserParameter.cpp LibytProcessControl.cpp Timer.cpp TimerControl.cpp)
+        yt_set_UserParameter.cpp LibytProcessControl.cpp Timer.cpp TimerControl.cpp
+        libyt_python_shell.cpp)
 
 # print options and apply compile definition -D
 function(print_option option_name)
