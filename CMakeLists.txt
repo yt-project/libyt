@@ -4,9 +4,10 @@ cmake_minimum_required(VERSION 3.15)
 project(LIBYT_PROJECT VERSION 0.1.0 DESCRIPTION "In situ Python analysis tool using yt and Python")
 
 ## set options ##
-option(SERIAL_MODE       "Compile library for serial process" OFF)
-option(INTERACTIVE_MODE  "Use interactive mode"               OFF)
-option(SUPPORT_TIMER     "Support timer"                      OFF)
+option(SERIAL_MODE       "Compile library for serial process"                                                 OFF)
+option(INTERACTIVE_MODE  "Use interactive mode"                                                               OFF)
+option(JUPYTER_KERNEL    "Use Jupyter notebook interface for interactive mode, must enable INTERACTIVE_MODE"  OFF)
+option(SUPPORT_TIMER     "Support timer"                                                                      OFF)
 
 ## set paths ##
 set(PYTHON_PATH    "" CACHE PATH "Path to Python installation prefix")
