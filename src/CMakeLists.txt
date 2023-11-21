@@ -3,15 +3,16 @@ add_library(yt SHARED
         add_dict.cpp allocate_hierarchy.cpp append_grid.cpp check_data.cpp
         define_command.cpp func_status.cpp func_status_list.cpp get_dtype_property.cpp
         init_libyt_module.cpp init_python.cpp logging.cpp print_data.cpp
-        yt_commit.cpp yt_finalize.cpp yt_free.cpp yt_get_FieldsPtr.cpp yt_get_GridsPtr.cpp
+        yt_commit.cpp yt_finalize.cpp yt_free.cpp yt_get_FieldsPtr.cpp yt_get_GridsPtr.cpp yt_run_JupyterKernel.cpp
         yt_get_ParticlesPtr.cpp yt_getGridInfo.cpp yt_initialize.cpp yt_rma_field.cpp
         yt_rma_particle.cpp yt_run.cpp yt_run_InteractiveMode.cpp yt_set_Parameters.cpp
         yt_set_UserParameter.cpp LibytProcessControl.cpp Timer.cpp TimerControl.cpp)
 
-# print options
+# print options and apply compile definition -D
 function(print_option option_name)
     if (${option_name})
         message(STATUS "${option_name} is ON")
+        target_compile_definitions(yt PUBLIC ${option_name})
     else ()
         message(STATUS "${option_name} is OFF")
     endif ()
@@ -19,20 +20,9 @@ endfunction()
 
 print_option(SERIAL_MODE)
 print_option(INTERACTIVE_MODE)
+print_option(JUPYTER_KERNEL)
 print_option(SUPPORT_TIMER)
-
-# define
-if (SUPPORT_TIMER)
-    target_compile_definitions(yt PUBLIC SUPPORT_TIMER)
-endif ()
-
-if (INTERACTIVE_MODE)
-    target_compile_definitions(yt PUBLIC INTERACTIVE_MODE)
-endif ()
-
-if (SERIAL_MODE)
-    target_compile_definitions(yt PUBLIC SERIAL_MODE)
-endif ()
+# TODO: make JUPYTER_KERNEL INTERACTIVE_MODE dependent
 
 # compile option
 add_library(libyt_compiler_flags INTERFACE)

@@ -6,6 +6,7 @@
 #include <readline/readline.h>
 #include <sys/stat.h>
 
+#include "LibytProcessControl.h"
 #include "define_command.h"
 #endif
 
@@ -31,9 +32,14 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
 
 #ifndef INTERACTIVE_MODE
     log_error("Cannot enter interactive prompt. "
-              "Please compile libyt with -DINTERACTIVE_MODE\n");
+              "Please compile libyt with -DINTERACTIVE_MODE.\n");
     return YT_FAIL;
 #else
+    // check if libyt has been initialized
+    if (!LibytProcessControl::Get().libyt_initialized) {
+        YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
+    }
+
     fflush(stdout);
     fflush(stderr);
 
