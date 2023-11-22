@@ -14,7 +14,7 @@ std::array<std::string, LibytPythonShell::s_NotDone_Num> LibytPythonShell::s_Not
 std::array<PyObject*, LibytPythonShell::s_NotDone_Num> LibytPythonShell::s_NotDone_PyErr;
 
 //-------------------------------------------------------------------------------------------------------
-// Class       :  func_status_list
+// Class       :  LibytPythonShell
 // Method      :  update_prompt_history / clear_prompt_history
 //
 // Notes       :  1. Only root rank will record all the successful inputs from interactive prompt.
@@ -44,7 +44,7 @@ int LibytPythonShell::clear_prompt_history() {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Class         :  func_status_list
+// Class         :  LibytPythonShell
 // Static Method :  load_file_func_body
 //
 // Notes         :  1. This is a static method.
@@ -87,7 +87,7 @@ int LibytPythonShell::load_file_func_body(const char* filename) {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Class         :  func_status_list
+// Class         :  LibytPythonShell
 // Static Method :  load_input_func_body
 //
 // Notes         :  1. This is a static method.
@@ -163,7 +163,7 @@ int LibytPythonShell::load_input_func_body(const char* code) {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Class         :  func_status_list
+// Class         :  LibytPythonShell
 // Static Method :  get_funcname_defined
 //
 // Notes         :  1. This is a static method.
@@ -207,7 +207,7 @@ std::vector<std::string> LibytPythonShell::get_funcname_defined(const char* file
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Class         :  func_status_list
+// Class         :  LibytPythonShell
 // Static Method :  set_exception_hook()
 //
 // Notes         :  1. This is a static method.
@@ -238,7 +238,7 @@ int LibytPythonShell::set_exception_hook() {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Class         :  func_status_list
+// Class         :  LibytPythonShell
 // Static Method :  init_not_done_err_msg
 //
 // Notes         :  1. This is a static method.
@@ -282,7 +282,7 @@ int LibytPythonShell::init_not_done_err_msg() {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Class         :  func_status_list
+// Class         :  LibytPythonShell
 // Static Method :  is_not_done_err_msg
 //
 // Notes         :  1. This is a static method.
