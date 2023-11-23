@@ -1,4 +1,5 @@
 ### libyt COMPILATION ###
+# old tangled libyt stuff combined as a whole (will definitely split to smaller modules in future version)
 add_library(yt SHARED
         add_dict.cpp allocate_hierarchy.cpp append_grid.cpp check_data.cpp
         define_command.cpp func_status.cpp func_status_list.cpp get_dtype_property.cpp
@@ -7,7 +8,7 @@ add_library(yt SHARED
         yt_get_ParticlesPtr.cpp yt_getGridInfo.cpp yt_initialize.cpp yt_rma_field.cpp
         yt_rma_particle.cpp yt_run.cpp yt_run_InteractiveMode.cpp yt_set_Parameters.cpp
         yt_set_UserParameter.cpp LibytProcessControl.cpp Timer.cpp TimerControl.cpp
-        libyt_python_shell.cpp)
+        libyt_python_shell.cpp libyt_kernel.cpp)
 
 # print options and apply compile definition -D
 function(print_option option_name)
@@ -43,7 +44,8 @@ target_link_libraries(yt PRIVATE
         $<$<NOT:$<BOOL:${SERIAL_MODE}>>:MPI::MPI_CXX>
         ${Python_LIBRARIES}
         Python::NumPy
-        $<$<BOOL:${INTERACTIVE_MODE}>:readline>)
+        $<$<BOOL:${INTERACTIVE_MODE}>:readline>
+        $<$<BOOL:${JUPYTER_KERNEL}>:xeus-zmq>)
 target_link_libraries(yt PUBLIC
         libyt_compiler_flags)
 
