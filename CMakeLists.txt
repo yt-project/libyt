@@ -24,6 +24,10 @@ if (NOT SERIAL_MODE)
     find_package(MPI REQUIRED)
 endif ()
 
+if (JUPYTER_KERNEL)
+    find_package(xeus-zmq 1.0 REQUIRED)
+endif ()
+
 set(Python_ROOT_DIR ${PYTHON_PATH})
 find_package(Python COMPONENTS Development NumPy REQUIRED)
 
