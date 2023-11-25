@@ -18,6 +18,7 @@ struct CodeValidity {
 static std::vector<std::string> split(const std::string& code, const char* c);
 static std::array<std::string, 2> split_on_line(const std::string& code, unsigned int lineno);
 static CodeValidity code_is_valid(const std::string& code, bool prompt_env = false);
+static std::array<int, 2> find_lineno_columno(const std::string& code, int pos);
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytKernel
@@ -26,7 +27,7 @@ static CodeValidity code_is_valid(const std::string& code, bool prompt_env = fal
 //
 // Notes       :  1. Import io, sys. We need io.StringIO to get the output and error.
 //                2. Get script's global python object.
-//                3. TODO: initialize jedi auto-completion
+//                3. Initialize jedi auto-completion.
 //
 // Arguments   :  (None)
 //
@@ -38,6 +39,16 @@ void LibytKernel::configure_impl() {
     PyRun_SimpleString("import io, sys\n");
 
     m_py_global = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
+
+    PyObject* py_module_jedi = PyImport_ImportModule("jedi");
+    if (py_module_jedi == NULL) {
+        log_info("Unable to import jedi, jedi auto-completion library is disabled\n");
+        log_info("See https://jedi.readthedocs.io/ \n");
+        m_py_jedi_interpreter = NULL;
+    } else {
+        m_py_jedi_interpreter = PyObject_GetAttrString(py_module_jedi, "Interpreter");
+        Py_DECREF(py_module_jedi);
+    }
 
     log_info("libyt kernel: configure the kernel ... done\n");
 }
@@ -170,6 +181,76 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     }
 
     return xeus::create_successful_reply();
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  LibytKernel
+// Method      :  complete_request_impl
+// Description :  Respond to <TAB> and create a list for auto-completion
+//
+// Notes       :  1. Route process to call jedi using Python C API:
+//                   script = jedi.Interpreter(code, [namespaces])
+//                   script.complete(lineno, columno)
+//
+// Arguments   :  const std::string &code : code to inspect for auto-completion
+//                int          cursor_pos : cursor position in the code to inspect
+//
+// Return      :  nl::json
+//-------------------------------------------------------------------------------------------------------
+nl::json LibytKernel::complete_request_impl(const std::string& code, int cursor_pos) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    // Check if jedi has successfully import
+    if (m_py_jedi_interpreter == NULL) {
+        log_info("Unable to import jedi, jedi auto-completion library is disabled\n");
+        log_info("See https://jedi.readthedocs.io/ \n");
+        return xeus::create_complete_reply({}, cursor_pos, cursor_pos);
+    }
+
+    PyObject* py_tuple_args = PyTuple_New(2);
+    PyObject* py_list_scope = PyList_New(1);
+    PyList_SET_ITEM(py_list_scope, 0, m_py_global);  // steal ref
+    Py_INCREF(m_py_global);
+    PyTuple_SET_ITEM(py_tuple_args, 0, Py_BuildValue("s", code.c_str()));  // steal ref
+    PyTuple_SET_ITEM(py_tuple_args, 1, py_list_scope);                     // steal ref
+    PyObject* py_script = PyObject_CallObject(m_py_jedi_interpreter, py_tuple_args);
+    Py_DECREF(py_tuple_args);
+    Py_XDECREF(py_list_scope);
+
+    // find lineno and columno of the cursor position, and call script.complete(lineno, columno)
+    std::array<int, 2> pos_no = find_lineno_columno(code, cursor_pos);
+    PyObject* py_script_complete_callable = PyObject_GetAttrString(py_script, "complete");
+    py_tuple_args = PyTuple_New(2);
+    PyTuple_SET_ITEM(py_tuple_args, 0, PyLong_FromLong(pos_no[0]));
+    PyTuple_SET_ITEM(py_tuple_args, 1, PyLong_FromLong(pos_no[1]));
+    PyObject* py_complete_list = PyObject_CallObject(py_script_complete_callable, py_tuple_args);
+    Py_DECREF(py_tuple_args);
+    Py_DECREF(py_script_complete_callable);
+    Py_DECREF(py_script);
+
+    nl::json complete_list;
+    for (Py_ssize_t i = 0; i < PyList_Size(py_complete_list); i++) {
+        PyObject* py_name = PyObject_GetAttrString(PyList_GET_ITEM(py_complete_list, i), "name");
+        complete_list.emplace_back(PyUnicode_AsUTF8(py_name));
+        Py_DECREF(py_name);
+    }
+
+    int cursor_start = cursor_pos;
+    if (PyList_Size(py_complete_list) > 0) {
+        PyObject* py_name = PyObject_GetAttrString(PyList_GET_ITEM(py_complete_list, 0), "name");
+        PyObject* py_complete = PyObject_GetAttrString(PyList_GET_ITEM(py_complete_list, 0), "complete");
+        cursor_start = cursor_pos - ((int)(PyUnicode_GET_LENGTH(py_name) - PyUnicode_GET_LENGTH(py_complete)));
+        Py_DECREF(py_name);
+        Py_DECREF(py_complete);
+    }
+    Py_DECREF(py_complete_list);
+
+    // publish result
+    if (complete_list.size()) {
+        return xeus::create_complete_reply(complete_list, cursor_start, cursor_pos);
+    } else {
+        return xeus::create_complete_reply({}, cursor_pos, cursor_pos);
+    }
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -309,6 +390,50 @@ static CodeValidity code_is_valid(const std::string& code, bool prompt_env) {
 
         return code_validity;
     }
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Method      :  find_lineno_columno
+// Description :  Convert cursor position to lineno and columno, count starts from 1.
+//
+// Notes       :  1. Cursor position, lineno, and columno count start from 1.
+//                2. Cursor position indicates how many characters are there from its position to the
+//                   beginning of the string.
+//
+// Arguments   :  const std::string& code : raw code, contains newline characters.
+//                int                 pos : cursor position
+//
+// Return      : std::array<int, 2> no[0] : lineno
+//                                  no[1] : columno
+//-------------------------------------------------------------------------------------------------------
+static std::array<int, 2> find_lineno_columno(const std::string& code, int pos) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    if (code.length() < pos) return {-1, -1};
+
+    int acc = pos;  // pos count start at 1.
+    int lineno = 1, columno = 0;
+
+    std::size_t start_pos = 0, found;
+    while (code.length() > 0) {
+        found = code.find('\n', start_pos);
+        if (found != std::string::npos) {
+            int len_in_line = found - start_pos;  // exclude "\n"
+            if (acc - len_in_line <= 0) {
+                columno = acc;
+                break;
+            } else {
+                acc = acc - len_in_line - 1;  // remember to include "\n"
+            }
+        } else {
+            columno = acc;
+            break;
+        }
+        start_pos = found + 1;
+        lineno += 1;
+    }
+
+    return {lineno, columno};
 }
 
 #endif
