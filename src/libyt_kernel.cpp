@@ -316,6 +316,8 @@ nl::json LibytKernel::is_complete_request_impl(const std::string& code) {
 // Return      :  nl::json
 //-------------------------------------------------------------------------------------------------------
 nl::json LibytKernel::kernel_info_request_impl() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     nl::json libyt_kernel_info;
 
     // kernel implementation
