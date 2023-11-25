@@ -301,6 +301,28 @@ nl::json LibytKernel::is_complete_request_impl(const std::string& code) {
 }
 
 //-------------------------------------------------------------------------------------------------------
+// Class       :  LibytKernel
+// Method      :  shutdown_request_impl
+// Description :  Shutdown libyt kernel
+//
+// Notes       :  1. Dereference m_py_global (namespace of script), and jedi interpreter python function.
+//
+// Arguments   :  (None)
+//
+// Return      :  (None)
+//-------------------------------------------------------------------------------------------------------
+void LibytKernel::shutdown_request_impl() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    Py_DECREF(m_py_global);
+    if (m_py_jedi_interpreter != NULL) {
+        Py_DECREF(m_py_jedi_interpreter);
+    }
+
+    log_info("Shutting down libyt kernel ...");
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Method      :  split
 // Description :  Split the string based on character
 //
