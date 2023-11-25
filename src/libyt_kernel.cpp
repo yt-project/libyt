@@ -6,17 +6,18 @@
 #include <iostream>
 #include <string>
 
+#include "libyt_python_shell.h"
 #include "xeus/xhelper.hpp"
 #include "yt_combo.h"
 
 struct CodeValidity {
-    bool is_valid;
+    std::string is_valid;
     std::string error_msg;
 };
 
 static std::vector<std::string> split(const std::string& code, const char* c);
 static std::array<std::string, 2> split_on_line(const std::string& code, unsigned int lineno);
-static CodeValidity code_is_valid(const std::string& code);
+static CodeValidity code_is_valid(const std::string& code, bool prompt_env = false);
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytKernel
@@ -69,7 +70,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
 
     // Make sure code is valid before continue
     CodeValidity code_validity = code_is_valid(code);
-    if (!code_validity.is_valid) {
+    if (code_validity.is_valid.compare("complete") != 0) {
         publish_execution_error("", "", split(code_validity.error_msg, "\n"));
         return xeus::create_successful_reply();
     }
@@ -172,6 +173,31 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
 }
 
 //-------------------------------------------------------------------------------------------------------
+// Class       :  LibytKernel
+// Method      :  is_complete_request_impl
+// Description :  Check if the code is complete in Jupyter console
+//
+// Notes       :  1. This request is never called from the Notebook or from JupyterLab clients,
+//                   but it is called from the Jupyter console client.
+//                2. Though this method is implemented, I still cannot access it through jupyter console,
+//                   so this method is idled.
+//
+// Arguments   :  const std::string &code : code to check if it is complete
+//
+// Return      :  nl::json
+//-------------------------------------------------------------------------------------------------------
+nl::json LibytKernel::is_complete_request_impl(const std::string& code) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    CodeValidity code_validity = code_is_valid(code, true);
+    if (code_validity.is_valid.compare("complete") == 0) {
+        return xeus::create_is_complete_reply("complete");
+    } else {
+        return xeus::create_is_complete_reply("incomplete");
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Method      :  split
 // Description :  Split the string based on character
 //
@@ -251,17 +277,19 @@ static std::array<std::string, 2> split_on_line(const std::string& code, unsigne
 //
 // Arguments   :  const std::string& code  : raw code
 //
-// Return      :  CodeValidity.is_valid : true if is valid, false if it failed to compile
+// Return      :  CodeValidity.is_valid : "complete", "incomplete", "invalid", "unknown"
 //                             error_msg: error message from Python if it failed.
 //-------------------------------------------------------------------------------------------------------
-static CodeValidity code_is_valid(const std::string& code) {
+static CodeValidity code_is_valid(const std::string& code, bool prompt_env) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     PyObject* py_test_compile = Py_CompileString(code.c_str(), "<test-validity>", Py_file_input);
 
     if (py_test_compile != NULL) {
         Py_DECREF(py_test_compile);
-        return {true, std::string("")};
+        return {"complete", std::string("")};
+    } else if (prompt_env && LibytPythonShell::is_not_done_err_msg(code.c_str())) {
+        return {"incomplete", ""};
     } else {
         // Get the error message
         PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
@@ -271,7 +299,7 @@ static CodeValidity code_is_valid(const std::string& code) {
         PyRun_SimpleString("sys.stderr=sys.__stderr__\n");
         PyObject* py_module_sys = PyImport_ImportModule("sys");
         PyObject* py_stderr_buf = PyObject_GetAttrString(py_module_sys, "OUTPUT_STDERR");
-        CodeValidity code_validity = {false, std::string(PyUnicode_AsUTF8(py_stderr_buf))};
+        CodeValidity code_validity = {"invalid", std::string(PyUnicode_AsUTF8(py_stderr_buf))};
 
         // Clear buffer and dereference
         PyErr_Clear();

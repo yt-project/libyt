@@ -287,7 +287,7 @@ int LibytPythonShell::init_not_done_err_msg() {
 //
 // Notes         :  1. This is a static method.
 //                  2. Check current Python state to see if it is error msg that is caused by user input
-//                     not done yet.
+//                     not done yet. Which means there is error buffer.
 //                  3. If it is indeed caused by user not done its input, clear error buffer. If not,
 //                     restore the buffer and let yt_run_InteractiveMode print the error msg.
 //                  4. s_NotDone_ErrMsg's and s_NotDone_PyErr's elements are one-to-one relationship. Make
