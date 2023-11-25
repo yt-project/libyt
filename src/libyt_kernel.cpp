@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 
+#include "libyt.h"
 #include "libyt_python_shell.h"
 #include "xeus/xhelper.hpp"
 #include "yt_combo.h"
@@ -298,6 +299,49 @@ nl::json LibytKernel::is_complete_request_impl(const std::string& code) {
     } else {
         return xeus::create_is_complete_reply("incomplete");
     }
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  LibytKernel
+// Method      :  kernel_info_request_impl
+// Description :  Get libyt kernel information
+//
+// Notes       :  1. It needs PY_VERSION (defined in Python header).
+//                2. Check https://jupyter-client.readthedocs.io/en/stable/messaging.html#kernel-info
+//                3. TODO: Probably need to add protocol version, but not sure what is it for.
+//                4. TODO: When there is a specific class for controlling libyt info, update helper links.
+//
+// Arguments   :  (None)
+//
+// Return      :  nl::json
+//-------------------------------------------------------------------------------------------------------
+nl::json LibytKernel::kernel_info_request_impl() {
+    nl::json libyt_kernel_info;
+
+    // kernel implementation
+    char libyt_version[20];
+    sprintf(libyt_version, "%d.%d.%d", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION, LIBYT_MICRO_VERSION);
+    libyt_kernel_info["implementation"] = "libyt_kernel";
+    libyt_kernel_info["implementation_version"] = libyt_version;
+
+    // language info
+    libyt_kernel_info["language_info"]["name"] = "python";
+    libyt_kernel_info["language_info"]["version"] = PY_VERSION;
+    libyt_kernel_info["language_info"]["mimetype"] = "text/x-python";
+    libyt_kernel_info["language_info"]["file_extension"] = ".py";
+
+    // debugger, not supported
+    libyt_kernel_info["debugger"] = false;
+
+    // helper
+    libyt_kernel_info["help_links"] = nl::json::array();
+    libyt_kernel_info["help_links"][0] =
+        nl::json::object({{"text", "libyt Kernel Documents"}, {"url", "https://yt-project.github.io/libyt/"}});
+
+    // status
+    libyt_kernel_info["status"] = "ok";
+
+    return libyt_kernel_info;
 }
 
 //-------------------------------------------------------------------------------------------------------
