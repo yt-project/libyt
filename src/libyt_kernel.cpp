@@ -255,6 +255,28 @@ nl::json LibytKernel::complete_request_impl(const std::string& code, int cursor_
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytKernel
+// Method      :  inspect_request_impl
+// Description :  Respond to ? inspection
+//
+// Notes       :  1. This function is currently idled, because I don't know why Xeus does not route
+//                   inspections to this api when <python object>? occurred.
+//
+// Arguments   :  const std::string &code : code to inspect
+//                int          cursor_pos : cursor position in the code where inspection is requested
+//                int        detail_level : The level of detail desired. 0 for x?, 1 for x??
+//
+// Return      :  nl::json
+//-------------------------------------------------------------------------------------------------------
+nl::json LibytKernel::inspect_request_impl(const std::string& code, int cursor_pos, int detail_level) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    log_info("Code inspection is not supported yet\n");
+
+    return xeus::create_inspect_reply();
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  LibytKernel
 // Method      :  is_complete_request_impl
 // Description :  Check if the code is complete in Jupyter console
 //
