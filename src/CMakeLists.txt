@@ -64,7 +64,8 @@ set_target_properties(yt PROPERTIES
         VERSION ${PROJECT_VERSION}                       # version
         SOVERSION ${PROJECT_VERSION_MAJOR}               # soversion (.so.x.y.z)
         PUBLIC_HEADER "${LIBYT_PUBLIC_HEADER}"           # APIs
-        POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})  # build PIC
+        POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS}   # build PIC
+        INSTALL_RPATH_USE_LINK_PATH TRUE)                # set rpath
 
 ### libyt INSTALLATION RULE ###
 include(GNUInstallDirs)
