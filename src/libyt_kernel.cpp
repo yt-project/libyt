@@ -103,7 +103,9 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     std::array<std::string, 2> code_split = split_on_line(code, last_statement_lineno - 1);
 
     // Append newline at the front of the last statement, so that Python error buffer can catch the correct lineno
-    code_split[1].insert(0, std::string('\n', last_statement_lineno - 1));
+    if (last_statement_lineno >= 1) {
+        code_split[1].insert(0, std::string(last_statement_lineno - 1, '\n'));
+    }
 
     Py_DECREF(py_module_ast);
     Py_DECREF(py_ast_parse);
