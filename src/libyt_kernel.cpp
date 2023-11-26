@@ -326,6 +326,9 @@ nl::json LibytKernel::kernel_info_request_impl() {
     libyt_kernel_info["implementation"] = "libyt_kernel";
     libyt_kernel_info["implementation_version"] = libyt_version;
 
+    // protocol
+    libyt_kernel_info["protocol_version"] = xeus::get_protocol_version().c_str();
+
     // language info
     libyt_kernel_info["language_info"]["name"] = "python";
     libyt_kernel_info["language_info"]["version"] = PY_VERSION;
