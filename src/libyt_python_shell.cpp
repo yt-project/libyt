@@ -226,8 +226,8 @@ int LibytPythonShell::set_exception_hook() {
             "import sys\n"
             "def mpi_libyt_interactive_mode_excepthook(exception_type, exception_value, tb):\n"
             "    traceback.print_tb(tb)\n"
-            "    print(\"[YT_ERROR  ] {}: {}\".format(exception_type.__name__, exception_value))\n"
-            "    print(\"[YT_ERROR  ] Error occurred on rank {}.\".format(%d))\n"
+            "    print(\"[YT_ERROR  ] {}: {}\".format(exception_type.__name__, exception_value), file=sys.stderr)\n"
+            "    print(\"[YT_ERROR  ] Error occurred on rank {}.\".format(%d), file=sys.stderr)\n"
             "sys.excepthook = mpi_libyt_interactive_mode_excepthook\n",
             g_myrank);
 
