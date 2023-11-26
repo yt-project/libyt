@@ -23,6 +23,7 @@
 //                5. Simulation + libyt processes and Jupyter server are launch in separate process.
 //                6. Currently, this API is tested on local computing resources. Need further improvement
 //                   when libyt kernel is launch on remote nodes.
+//                7. Currently, connection_file_name must be "libyt_kernel_connection.json".
 //
 // Parameter   :  const char *flag_file_name       : once this file is detected, it will activate libyt kernel.
 //                bool        use_connection_file  : use connection file set by user
