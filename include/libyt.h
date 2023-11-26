@@ -14,6 +14,10 @@
 // declare libyt data type
 #include "yt_type.h"
 
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
+
 // declare libyt API
 #ifdef __cplusplus
 extern "C" {
@@ -39,7 +43,7 @@ int yt_free();
 int yt_run_FunctionArguments(const char* function_name, int argc, ...);
 int yt_run_Function(const char* function_name);
 int yt_run_InteractiveMode(const char* flag_file_name);
-int yt_run_JupyterKernel(const char* flag_file_name);
+int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file, const char* connection_file_name);
 
 // For derived field function to get grid information by GID and by field_name.
 int yt_getGridInfo_Dimensions(const long gid, int (*dimensions)[3]);
