@@ -1,0 +1,9 @@
+{
+  "display_name": "Libyt",
+  "language": "python",
+  "metadata": {
+    "kernel_provisioner": {
+      "provisioner_name": "libyt-kernel-provisioner"
+    }
+  }
+}
