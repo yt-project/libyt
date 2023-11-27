@@ -42,6 +42,8 @@ add_subdirectory(src)                       # for library
 add_subdirectory(example)                  # for example exe
 
 ### libyt INSTALLATION RULE ###
-include(GNUInstallDirs)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json
-        DESTINATION "${LIBYT_KERNELSPEC_RELATIVE_PATH}")
+if (JUPYTER_KERNEL)
+    include(GNUInstallDirs)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json
+            DESTINATION "${LIBYT_KERNELSPEC_RELATIVE_PATH}")
+endif ()
