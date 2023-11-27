@@ -459,32 +459,38 @@ static std::array<std::string, 2> split_on_line(const std::string& code, unsigne
 static CodeValidity code_is_valid(const std::string& code, bool prompt_env) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
+    // TODO: Fix %libyt error
+    CodeValidity code_validity;
+
+    PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
+
     PyObject* py_test_compile = Py_CompileString(code.c_str(), "<test-validity>", Py_file_input);
 
     if (py_test_compile != NULL) {
+        code_validity.is_valid = "complete";
         Py_DECREF(py_test_compile);
-        return {"complete", std::string("")};
     } else if (prompt_env && LibytPythonShell::is_not_done_err_msg(code.c_str())) {
-        return {"incomplete", ""};
+        code_validity.is_valid = "incomplete";
     } else {
-        // Get the error message
-        PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
+        code_validity.is_valid = "invalid";
+
         PyErr_Print();
         PyRun_SimpleString("sys.stderr.flush()\n");
-        PyRun_SimpleString("sys.OUTPUT_STDERR=stderr_buf.getvalue()\nstderr_buf.close()\n");
-        PyRun_SimpleString("sys.stderr=sys.__stderr__\n");
+        PyRun_SimpleString("sys.OUTPUT_STDERR=stderr_buf.getvalue()\n");
         PyObject* py_module_sys = PyImport_ImportModule("sys");
         PyObject* py_stderr_buf = PyObject_GetAttrString(py_module_sys, "OUTPUT_STDERR");
-        CodeValidity code_validity = {"invalid", std::string(PyUnicode_AsUTF8(py_stderr_buf))};
+        code_validity.error_msg = std::string(PyUnicode_AsUTF8(py_stderr_buf));
 
-        // Clear buffer and dereference
-        PyErr_Clear();
-        Py_XDECREF(py_test_compile);
         Py_DECREF(py_module_sys);
         Py_DECREF(py_stderr_buf);
-
-        return code_validity;
     }
+
+    // Clear buffer and dereference
+    PyRun_SimpleString("stderr_buf.close()\nsys.stderr=sys.__stderr__\n");
+    Py_XDECREF(py_test_compile);
+    PyErr_Clear();
+
+    return code_validity;
 }
 
 //-------------------------------------------------------------------------------------------------------
