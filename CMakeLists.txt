@@ -31,16 +31,17 @@ endif ()
 set(Python_ROOT_DIR ${PYTHON_PATH})
 find_package(Python COMPONENTS Development NumPy REQUIRED)
 
+## config files ##
+if (JUPYTER_KERNEL)
+    set(LIBYT_KERNELSPEC_RELATIVE_PATH "share/jupyter/kernels/libyt_kernel")
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json ./${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json COPYONLY)
+endif ()
+
 ## sub directory ##
 add_subdirectory(src)                       # for library
-#add_subdirectory(example)                  # for example exe
+add_subdirectory(example)                  # for example exe
 
-### libyt PACKAGING ###
-#include(InstallRequiredSystemLibraries)
-#set(MYPROJECT_SRC "${CMAKE_CURRENT_SOURCE_DIR}")
-#set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE") # set license
-#set(CPACK_PACKAGE_VERSION_MAJOR "${LIBYT_PROJECT_VERSION_MAJOR}")      # major version
-#set(CPACK_PACKAGE_VERSION_MINOR "${LIBYT_PROJECT_VERSION_MINOR}")      # minor version
-#set(CPACK_SOURCE_GENERATOR "TGZ")                                      # packed format
-#
-#include(CPack)
+### libyt INSTALLATION RULE ###
+include(GNUInstallDirs)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json
+        DESTINATION "${LIBYT_KERNELSPEC_RELATIVE_PATH}")
