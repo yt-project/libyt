@@ -18,7 +18,8 @@ struct CodeValidity {
 
 static std::vector<std::string> split(const std::string& code, const char* c);
 static std::array<std::string, 2> split_on_line(const std::string& code, unsigned int lineno);
-static CodeValidity code_is_valid(const std::string& code, bool prompt_env = false);
+static CodeValidity code_is_valid(const std::string& code, bool prompt_env = false,
+                                  const char* cell_name = "<libyt-stdin>");
 static std::array<int, 2> find_lineno_columno(const std::string& code, int pos);
 
 //-------------------------------------------------------------------------------------------------------
@@ -80,8 +81,10 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
                                            bool store_history, nl::json user_expressions, bool allow_stdin) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
+    std::string cell_name = std::string("In [") + std::to_string(execution_counter) + std::string("]");
+
     // Make sure code is valid before continue
-    CodeValidity code_validity = code_is_valid(code);
+    CodeValidity code_validity = code_is_valid(code, false, cell_name.c_str());
     if (code_validity.is_valid.compare("complete") != 0) {
         publish_execution_error("", "", split(code_validity.error_msg, "\n"));
         return xeus::create_successful_reply();
@@ -115,9 +118,6 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     // Clear the template buffer and redirect stdout, stderr
     PyRun_SimpleString("sys.OUTPUT_STDOUT=''\nstdout_buf=io.StringIO()\nsys.stdout=stdout_buf\n");
     PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
-
-    // Compile and execute code in script's namespace
-    std::string cell_name = std::string("In [") + std::to_string(execution_counter) + std::string("]");
 
     // Execute upper half and lower half in serial, if error occurred, it will skip execute the lower half
     PyObject* py_src;
@@ -456,7 +456,7 @@ static std::array<std::string, 2> split_on_line(const std::string& code, unsigne
 // Return      :  CodeValidity.is_valid : "complete", "incomplete", "invalid", "unknown"
 //                             error_msg: error message from Python if it failed.
 //-------------------------------------------------------------------------------------------------------
-static CodeValidity code_is_valid(const std::string& code, bool prompt_env) {
+static CodeValidity code_is_valid(const std::string& code, bool prompt_env, const char* cell_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // TODO: Fix %libyt error
@@ -464,7 +464,7 @@ static CodeValidity code_is_valid(const std::string& code, bool prompt_env) {
 
     PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
 
-    PyObject* py_test_compile = Py_CompileString(code.c_str(), "<test-validity>", Py_file_input);
+    PyObject* py_test_compile = Py_CompileString(code.c_str(), cell_name, Py_file_input);
 
     if (py_test_compile != NULL) {
         code_validity.is_valid = "complete";
