@@ -16,7 +16,7 @@
 // Function    :  yt_run_JupyterKernel
 // Description :  Start libyt kernel for Jupyter Notebook access
 //
-// Note        :  1. Must enable -DINTERACTIVE_MODE and -DJUPYTER_KERNEL.
+// Notes       :  1. Must enable -DINTERACTIVE_MODE and -DJUPYTER_KERNEL.
 //                2. Must install libyt provisioner for jupyter client.
 //                3. This API is like interactive mode, but with Jupyter Notebook access for better UI.
 //                4. This API forces kernel to be on MPI process 0 (root).
@@ -27,7 +27,7 @@
 //
 // Parameter   :  const char *flag_file_name       : once this file is detected, it will activate libyt kernel.
 //                bool        use_connection_file  : use connection file set by user
-//                const char *connection_file_name : API will read this file if use_connection_file is true
+//                const char *connection_file_name : currently must be "libyt_kernel_connection.json
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
