@@ -103,6 +103,7 @@ static void init_general_info() {
     g_mysize = 1;
     g_myrank = 0;
 #endif
+    g_myroot = 0;
 }
 
 #ifndef SERIAL_MODE
