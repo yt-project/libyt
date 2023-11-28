@@ -3,7 +3,6 @@
 
 #include <Python.h>
 
-#include <iostream>
 #include <string>
 
 #include "libyt.h"
@@ -453,7 +452,9 @@ static std::array<std::string, 2> split_on_line(const std::string& code, unsigne
 //                2. I separated this function because code passed in can have multi-statement, and we
 //                   want the last statement to use Py_single_input, which is different from here.
 //
-// Arguments   :  const std::string& code  : raw code
+// Arguments   :  const std::string&  code : code to check
+//                bool          prompt_env : if it is in prompt environment
+//                const char    *cell_name : cell name
 //
 // Return      :  CodeValidity.is_valid : "complete", "incomplete", "invalid", "unknown"
 //                             error_msg: error message from Python if it failed.
