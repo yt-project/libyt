@@ -120,7 +120,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
 
     // Execute upper half and lower half in serial, if error occurred, it will skip execute the lower half
-    PyObject* py_src;
+    PyObject *py_src, *py_dump;
     bool has_error = false;
     for (int i = 0; i < 2; i++) {
         if (code_split[i].length() <= 0) continue;
@@ -134,14 +134,16 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
 
         // Evaluate code
         if (py_src != NULL) {
-            PyEval_EvalCode(py_src, m_py_global, m_py_global);
+            py_dump = PyEval_EvalCode(py_src, m_py_global, m_py_global);
             if (PyErr_Occurred()) {
                 has_error = true;
                 PyErr_Print();
                 Py_DECREF(py_src);
+                Py_XDECREF(py_dump);
                 break;
             }
             Py_DECREF(py_src);
+            Py_XDECREF(py_dump);
         } else {
             has_error = true;
             PyErr_Print();
@@ -459,7 +461,6 @@ static std::array<std::string, 2> split_on_line(const std::string& code, unsigne
 static CodeValidity code_is_valid(const std::string& code, bool prompt_env, const char* cell_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    // TODO: Fix %libyt error
     CodeValidity code_validity;
 
     PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
@@ -468,7 +469,6 @@ static CodeValidity code_is_valid(const std::string& code, bool prompt_env, cons
 
     if (py_test_compile != NULL) {
         code_validity.is_valid = "complete";
-        Py_DECREF(py_test_compile);
     } else if (prompt_env && LibytPythonShell::is_not_done_err_msg(code.c_str())) {
         code_validity.is_valid = "incomplete";
     } else {
@@ -488,7 +488,6 @@ static CodeValidity code_is_valid(const std::string& code, bool prompt_env, cons
     // Clear buffer and dereference
     PyRun_SimpleString("stderr_buf.close()\nsys.stderr=sys.__stderr__\n");
     Py_XDECREF(py_test_compile);
-    PyErr_Clear();
 
     return code_validity;
 }
