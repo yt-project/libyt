@@ -1,8 +1,6 @@
 #if defined(INTERACTIVE_MODE) && defined(JUPYTER_KERNEL)
 #include "libyt_kernel.h"
 
-#include <Python.h>
-
 #include <string>
 
 #include "libyt.h"
@@ -357,7 +355,8 @@ nl::json LibytKernel::kernel_info_request_impl() {
 // Method      :  shutdown_request_impl
 // Description :  Shutdown libyt kernel
 //
-// Notes       :  1. Dereference m_py_global (namespace of script), and jedi interpreter python function.
+// Notes       :  1. Dereference jedi interpreter python function.
+//                2. m_py_global is a borrowed reference.
 //
 // Arguments   :  (None)
 //
@@ -366,7 +365,6 @@ nl::json LibytKernel::kernel_info_request_impl() {
 void LibytKernel::shutdown_request_impl() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    Py_DECREF(m_py_global);
     if (m_py_jedi_interpreter != NULL) {
         Py_DECREF(m_py_jedi_interpreter);
     }
