@@ -52,8 +52,14 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file, c
         YT_ABORT("Something went wrong when running new added functions\n");
     }
 
-    // TODO: (LATER) see if we need to start libyt kernel by checking if file flag_file_name exist.
-    // (START HERE)
+    // see if we need to start libyt kernel by checking if file flag_file_name exist.
+    struct stat buffer;
+    if (stat(flag_file_name, &buffer) != 0) {
+        log_info("No file '%s' detected, skip starting libyt kernel for Jupyter Notebook access ...\n");
+        return YT_SUCCESS;
+    } else {
+        log_info("File '%s' detected, preparing libyt kernel for Jupyter Notebook access ...\n");
+    }
 
 #ifndef SERIAL_MODE
     MPI_Barrier(MPI_COMM_WORLD);
