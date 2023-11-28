@@ -46,13 +46,16 @@ void LibytWorker::start() {
 
         // Dispatch jobs
         switch (indicator) {
-            case -1:
+            case -1: {
                 done = true;
                 break;
-            case 1:
-                execute_code();
-            default:
+            }
+            case 1: {
+                std::array<std::string, 2> temp_string = execute_code();
+            }
+            default: {
                 done = false;
+            }
         }
     }
 
@@ -62,16 +65,23 @@ void LibytWorker::start() {
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytWorker
 // Method      :  execute_code
-// Description :  Prepare to get code from root rank and execute code
+// Description :  Get code and execute code
 //
-// Notes       :  1. This is a collective operation.
-//                2.
+// Notes       :  1. This is a collective operation, requires every rank to call this function.
+//                2. Root rank will gather stdout and stderr from non-root rank, so the string returned
+//                   contains each ranks dumped output in root, and non-root rank only returns output from
+//                   itself.
+//                3. This method is called by LibytWorker::start and LibytKernel::execute_request_impl.
 //
-// Arguments   :  (None)
+// Arguments   :
+//
+// Return      :  std::array<std::string, 2> output[0] : stdout
+//                                           output[1] : stderr
 //-------------------------------------------------------------------------------------------------------
-void LibytWorker::execute_code() {
-    if (m_mpi_rank == m_mpi_root) {
-    }
+std::array<std::string, 2> LibytWorker::execute_code() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    return {"", ""};
 }
 
 #endif  // #if defined(INTERACTIVE_MODE) && defined(JUPYTER_KERNEL) && !defined(SERIAL_MODE)
