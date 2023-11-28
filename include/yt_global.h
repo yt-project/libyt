@@ -37,6 +37,7 @@ SET_GLOBAL(yt_param_libyt, g_param_libyt);  // libyt runtime parameters
 SET_GLOBAL(yt_param_yt, g_param_yt);        // YT parameters
 SET_GLOBAL(int, g_myrank);                  // MPI rank
 SET_GLOBAL(int, g_mysize);                  // MPI size
+SET_GLOBAL(int, g_myroot);                  // MPI root rank
 #ifdef INTERACTIVE_MODE
 SET_GLOBAL(func_status_list, g_func_status_list, func_status_list(10));  // Inline function status list (default 10)
 SET_GLOBAL(LibytPythonShell, g_libyt_python_shell);
