@@ -10,6 +10,9 @@
 
 #include "LibytProcessControl.h"
 #include "libyt_kernel.h"
+#ifndef SERIAL_MODE
+#include "libyt_worker.h"
+#endif
 #endif
 
 //-------------------------------------------------------------------------------------------------------
@@ -50,6 +53,11 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file, c
     }
 
     // TODO: (LATER) see if we need to start libyt kernel by checking if file flag_file_name exist.
+    // (START HERE)
+
+#ifndef SERIAL_MODE
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
     // Launch libyt kernel on root process
     int root = 0;
@@ -101,10 +109,15 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file, c
         }
     }
 #ifndef SERIAL_MODE
-    // TODO: Launch worker on non-root ranks
     else {
+        LibytWorker libyt_worker(g_myrank, g_mysize);
+        libyt_worker.start();
     }
 #endif  // #ifndef SERIAL_MODE
+
+#ifndef SERIAL_MODE
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
     return YT_SUCCESS;
 #endif  // #if !defined(INTERACTIVE_MODE) && !defined(JUPYTER_KERNEL)
