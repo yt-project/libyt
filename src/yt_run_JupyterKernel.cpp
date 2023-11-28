@@ -119,7 +119,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file, c
         LibytWorker libyt_worker(g_myrank, g_mysize);
         libyt_worker.start();
     }
-#endif  // #ifndef SERIAL_MODE
+#endif
 
 #ifndef SERIAL_MODE
     MPI_Barrier(MPI_COMM_WORLD);

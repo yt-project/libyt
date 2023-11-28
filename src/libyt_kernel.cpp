@@ -2,10 +2,10 @@
 #include "libyt_kernel.h"
 
 #include <string>
+#include <xeus/xhelper.hpp>
 
 #include "libyt.h"
 #include "libyt_python_shell.h"
-#include "xeus/xhelper.hpp"
 #include "yt_combo.h"
 
 struct CodeValidity {

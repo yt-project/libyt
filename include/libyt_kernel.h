@@ -3,8 +3,8 @@
 
 #include <Python.h>
 
-#include "nlohmann/json.hpp"
-#include "xeus/xinterpreter.hpp"
+#include <nlohmann/json.hpp>
+#include <xeus/xinterpreter.hpp>
 
 class LibytKernel : public xeus::xinterpreter {
 public:
