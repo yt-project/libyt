@@ -116,7 +116,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file, c
     }
 #ifndef SERIAL_MODE
     else {
-        LibytWorker libyt_worker(g_myrank, g_mysize);
+        LibytWorker libyt_worker(g_myrank, g_mysize, root);
         libyt_worker.start();
     }
 #endif

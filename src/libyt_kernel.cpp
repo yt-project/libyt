@@ -365,6 +365,11 @@ nl::json LibytKernel::kernel_info_request_impl() {
 void LibytKernel::shutdown_request_impl() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
+#ifndef SERIAL_MODE
+    int indicator = -1;
+    MPI_Bcast(&indicator, 1, MPI_INT, 0, MPI_COMM_WORLD);
+#endif
+
     if (m_py_jedi_interpreter != NULL) {
         Py_DECREF(m_py_jedi_interpreter);
     }
