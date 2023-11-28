@@ -61,9 +61,7 @@ void LibytKernel::configure_impl() {
 //                2. Code will not be empty, it must contain characters other than newline or space.
 //                3. Always return "xeus::create_successful_reply()", though I don't know what it is for.
 //                4. Run the last statement using Py_single_input, so that it displays value.
-//                2. TODO: Support Parallel
-//                2. TODO: Support libyt defined commands.
-//                3. TODO: Supprt Display
+//                5. TODO: Support libyt defined commands and display
 //
 // Arguments   :  int   execution_counter  : cell number
 //                const std::string& code  : raw code, will not be empty
@@ -357,6 +355,7 @@ nl::json LibytKernel::kernel_info_request_impl() {
 //
 // Notes       :  1. Dereference jedi interpreter python function.
 //                2. m_py_global is a borrowed reference.
+//                3. TODO: It is a bad practice to send shutdown msg to other ranks, should wrap in function.
 //
 // Arguments   :  (None)
 //
@@ -367,7 +366,7 @@ void LibytKernel::shutdown_request_impl() {
 
 #ifndef SERIAL_MODE
     int indicator = -1;
-    MPI_Bcast(&indicator, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&indicator, 1, MPI_INT, g_myrank, MPI_COMM_WORLD);
 #endif
 
     if (m_py_jedi_interpreter != NULL) {
