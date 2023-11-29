@@ -2,9 +2,8 @@
 
 #include "libyt_python_shell.h"
 
-#include <string.h>
-
 #include <iostream>
+#include <string>
 
 #include "yt_combo.h"
 
@@ -515,10 +514,16 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
             output[i] = std::string(all_output);
 
             // Insert header to string, do it in reverse, so that the displacement won't lose count
-            //            for (int r = g_mysize - 1; r <= 0; r--) {
-            //                std::string head = std::string("\033[1;34m[MPI Process ") + std::to_string(r) +
-            //                std::string("]\n\033[0;37m"); output[i].insert(displace[r], head);
-            //            }
+            if (output[i].length() > 0) {
+                for (int r = g_mysize - 1; r >= 0; r--) {
+                    std::string head =
+                        std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\n\033[0;30m");
+                    if (all_output_len[r] == 0) {
+                        head += std::string("(None)\n");
+                    }
+                    output[i].insert(displace[r], head);
+                }
+            }
 
             // Free
             delete[] all_output_len;
