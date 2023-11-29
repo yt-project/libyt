@@ -443,6 +443,15 @@ int main(int argc, char* argv[]) {
         //     exit(EXIT_FAILURE);
         // }
 
+        // Only supports in CMake (with -DINTERACTIVE_MODE and -DJUPYTER_KERNEL enabled)
+        // Activate libyt kernel when detects "LIBYT_STOP" file.
+        // False for making libyt find empty port to bind to by itself.
+        // True for using connection file provided by user, file name must be "libyt_kernel_connection.json".
+        // if (yt_run_JupyterKernel("LIBYT_STOP", false) != YT_SUCCESS) {
+        //     fprintf(stderr, "ERROR: yt_run_JupyterKernel failed!\n");
+        //     exit(EXIT_FAILURE);
+        // }
+
         // =================================================
         // libyt: 10. finish in-situ analysis, clean up libyt
         // =================================================
