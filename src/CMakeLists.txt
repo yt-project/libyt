@@ -28,7 +28,7 @@ print_option(SUPPORT_TIMER)
 
 # compile option
 add_library(libyt_compiler_flags INTERFACE)
-target_compile_features(libyt_compiler_flags INTERFACE cxx_std_11)
+target_compile_features(libyt_compiler_flags INTERFACE cxx_std_14)
 
 # include dir
 target_include_directories(yt PRIVATE
