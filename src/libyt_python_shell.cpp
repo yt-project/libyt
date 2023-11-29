@@ -440,8 +440,8 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
         }
 #endif
 
-        // Every MPI process should have the same compile result (TODO: consider if not later )
-        // Evaluate code (TODO: consider error occur)
+        // Every MPI process should have the same compile result
+        // Evaluate code
         if (py_src != NULL) {
             py_dump = PyEval_EvalCode(py_src, LibytPythonShell::get_script_namespace(),
                                       LibytPythonShell::get_script_namespace());
@@ -450,13 +450,24 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
                 PyErr_Print();
                 Py_DECREF(py_src);
                 Py_XDECREF(py_dump);
-                break;
+            } else {
+                Py_DECREF(py_src);
+                Py_XDECREF(py_dump);
             }
-            Py_DECREF(py_src);
-            Py_XDECREF(py_dump);
         } else {
             has_error = true;
             PyErr_Print();
+        }
+
+#ifndef SERIAL_MODE
+        int success = has_error ? 0 : 1;
+        int all_success;
+        MPI_Allreduce(&success, &all_success, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+        if (all_success != g_mysize) {
+            has_error = true;
+        }
+#endif
+        if (has_error) {
             break;
         }
     }
