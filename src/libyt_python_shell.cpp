@@ -369,6 +369,7 @@ bool LibytPythonShell::is_not_done_err_msg(const char* code) {
 // Description   :  Execute code get from cell in Jupyter Notebook
 //
 // Notes       :  1. This is a collective operation, requires every rank to call this function.
+//                   Assuming every MPI process enter this function at the same state the same time.
 //                2. Root rank will gather stdout and stderr from non-root rank, so the string returned
 //                   contains each ranks dumped output in root, and non-root rank only returns output from
 //                   itself.
@@ -377,20 +378,27 @@ bool LibytPythonShell::is_not_done_err_msg(const char* code) {
 //                4. Root rank will pass in code, cell name; Non-root ranks only need to wait.
 //
 // Arguments   :  const std::array<std::string, 2>& code_split : code with upper and lower half
-//                const std::string&                 cell_name : cell name
+//                int                             cell_counter : cell counter on the left
 //
 // Return      :  std::array<std::string, 2> output[0] : stdout
 //                                           output[1] : stderr
 //-------------------------------------------------------------------------------------------------------
 std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::string, 2>& code_split,
-                                                          const std::string& cell_name) {
+                                                          int cell_counter) {
     SET_TIMER(__PRETTY_FUNCTION__);
+
+#ifndef SERIAL_MODE
+    // Get code_split and cell name from root rank
+
+#endif
+
+    std::string cell_name = std::string("In [") + std::to_string(cell_counter) + std::string("]");
 
     // Clear the template buffer and redirect stdout, stderr
     PyRun_SimpleString("sys.OUTPUT_STDOUT=''\nstdout_buf=io.StringIO()\nsys.stdout=stdout_buf\n");
     PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
 
-    // Execute upper half and lower half in serial, if error occurred, it will skip execute the lower half
+    // Execute upper half and lower half one after another, if error occurred, it will skip execute the lower half
     PyObject *py_src, *py_dump;
     bool has_error = false;
     for (int i = 0; i < 2; i++) {
