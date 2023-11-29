@@ -16,7 +16,7 @@ private:
     std::string m_PromptHistory;
     int m_PromptHistoryCount;
 
-    static PyObject* m_PyGlobals;
+    static PyObject* s_PyGlobals;
 
 public:
     LibytPythonShell() : m_PromptHistory(""), m_PromptHistoryCount(0) {}
@@ -30,6 +30,7 @@ public:
     static int set_exception_hook();
     static int init_not_done_err_msg();
     static int init_script_namespace();
+    static PyObject* get_script_namespace() { return s_PyGlobals; }
     static bool is_not_done_err_msg(const char* code);
     static std::array<std::string, 2> execute_cell();
 };

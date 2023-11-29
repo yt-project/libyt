@@ -14,7 +14,6 @@ public:
     virtual ~LibytKernel() = default;
 
 private:
-    PyObject* m_py_global;
     PyObject* m_py_jedi_interpreter;
 
     void configure_impl() override;

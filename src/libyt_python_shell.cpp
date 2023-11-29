@@ -12,7 +12,7 @@ static bool check_colon_exist(const char* code);
 
 std::array<std::string, LibytPythonShell::s_NotDone_Num> LibytPythonShell::s_NotDone_ErrMsg;
 std::array<PyObject*, LibytPythonShell::s_NotDone_Num> LibytPythonShell::s_NotDone_PyErr;
-PyObject* LibytPythonShell::m_PyGlobals;
+PyObject* LibytPythonShell::s_PyGlobals;
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytPythonShell
@@ -298,7 +298,7 @@ int LibytPythonShell::init_not_done_err_msg() {
 int LibytPythonShell::init_script_namespace() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    m_PyGlobals = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
+    s_PyGlobals = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
 
     return YT_SUCCESS;
 }
