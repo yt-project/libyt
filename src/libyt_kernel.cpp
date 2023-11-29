@@ -108,6 +108,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     Py_DECREF(py_result_body);
 
     // Call execute cell
+    // TODO: It is a bad practice to send execute signal msg to other ranks like this, should wrap in function.
 #ifndef SERIAL_MODE
     int indicator = 1;
     MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
