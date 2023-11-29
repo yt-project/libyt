@@ -155,6 +155,8 @@ int yt_rma_particle::prepare_data(long& gid) {
             data_ptr = par_array.data_ptr;
             to_free = false;
         } else {
+            log_info("Trying to get particle data through user-defined function.\n");
+
             // Generate particle data through get_par_attr function pointer, if we cannot find it in libyt.particle_data
             void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*);
             get_par_attr = LibytProcessControl::Get().particle_list[m_ParticleIndex].get_par_attr;
