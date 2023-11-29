@@ -389,12 +389,31 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
 
 #ifndef SERIAL_MODE
     // Get code_split and cell name from root rank
+    unsigned long code_len[2] = {code_split[0].length(), code_split[1].length()};
+    MPI_Bcast(&code_len[0], 1, MPI_UNSIGNED_LONG, g_myroot, MPI_COMM_WORLD);
+    MPI_Bcast(&code_len[1], 1, MPI_UNSIGNED_LONG, g_myroot, MPI_COMM_WORLD);
 
+    char* code_get[2];
+    if (g_myrank == g_myroot) {
+        for (int i = 0; i < 2; i++) {
+            MPI_Bcast((void*)code_split[i].c_str(), (int)code_len[i], MPI_CHAR, g_myroot, MPI_COMM_WORLD);
+        }
+    } else {
+        for (int i = 0; i < 2; i++) {
+            code_get[i] = new char[code_len[i] + 1];
+            MPI_Bcast((void*)code_get[i], (int)code_len[i], MPI_CHAR, g_myroot, MPI_COMM_WORLD);
+            code_get[i][code_len[i]] = '\0';
+        }
+    }
+
+    // Get cell_counter
+    MPI_Bcast(&cell_counter, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
 
     std::string cell_name = std::string("In [") + std::to_string(cell_counter) + std::string("]");
 
     // Clear the template buffer and redirect stdout, stderr
+    PyRun_SimpleString("import sys, io\n");
     PyRun_SimpleString("sys.OUTPUT_STDOUT=''\nstdout_buf=io.StringIO()\nsys.stdout=stdout_buf\n");
     PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
 
@@ -430,6 +449,13 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
             break;
         }
     }
+
+#ifndef SERIAL_MODE
+    if (g_myrank != g_myroot) {
+        delete[] code_get[0];
+        delete[] code_get[1];
+    }
+#endif
 
     // Collect stdout_buf/stderr_buf and store under sys.OUTPUT_STDOUT and sys.OUTPUT_STDERR
     PyRun_SimpleString("sys.stdout.flush()\n");
