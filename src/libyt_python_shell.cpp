@@ -418,19 +418,31 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
     PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
 
     // Execute upper half and lower half one after another, if error occurred, it will skip execute the lower half
+    // Need to consider both parallel and serial. Root runs code_split, non-root runs code_get.
     PyObject *py_src, *py_dump;
     bool has_error = false;
     for (int i = 0; i < 2; i++) {
-        if (code_split[i].length() <= 0) continue;
-
-        // Compile code
-        if (i == 0) {
-            py_src = Py_CompileString(code_split[i].c_str(), cell_name.c_str(), Py_file_input);
-        } else if (i == 1) {
-            py_src = Py_CompileString(code_split[i].c_str(), cell_name.c_str(), Py_single_input);
+        if (g_myrank == g_myroot) {
+            if (code_split[i].length() <= 0) continue;
+            if (i == 0) {
+                py_src = Py_CompileString(code_split[i].c_str(), cell_name.c_str(), Py_file_input);
+            } else if (i == 1) {
+                py_src = Py_CompileString(code_split[i].c_str(), cell_name.c_str(), Py_single_input);
+            }
         }
+#ifndef SERIAL_MODE
+        else {
+            if (code_len[i] <= 0) continue;
+            if (i == 0) {
+                py_src = Py_CompileString(code_get[i], cell_name.c_str(), Py_file_input);
+            } else if (i == 1) {
+                py_src = Py_CompileString(code_get[i], cell_name.c_str(), Py_single_input);
+            }
+        }
+#endif
 
-        // Evaluate code
+        // Every MPI process should have the same compile result (TODO: consider if not later )
+        // Evaluate code (TODO: consider error occur)
         if (py_src != NULL) {
             py_dump = PyEval_EvalCode(py_src, LibytPythonShell::get_script_namespace(),
                                       LibytPythonShell::get_script_namespace());
@@ -471,18 +483,63 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
     PyObject* py_stdout_buf = PyObject_GetAttrString(py_module_sys, "OUTPUT_STDOUT");
     PyObject* py_stderr_buf = PyObject_GetAttrString(py_module_sys, "OUTPUT_STDERR");
 
-    std::string output_stdout("");
-    std::string output_stderr("");
-    output_stdout = std::string(PyUnicode_AsUTF8(py_stdout_buf));
+    std::array<std::string, 2> output = {std::string(""), std::string("")};
+    output[0] = std::string(PyUnicode_AsUTF8(py_stdout_buf));
     if (has_error) {
-        output_stderr = std::string(PyUnicode_AsUTF8(py_stderr_buf));
+        output[1] = PyUnicode_AsUTF8(py_stderr_buf);
     }
+
+#ifndef SERIAL_MODE
+    // Collect output from each rank to root
+    for (int i = 0; i < 2; i++) {
+        if (g_myrank == g_myroot) {
+            // Gather output length
+            int output_len = (int)output[i].length();
+            int* all_output_len = new int[g_mysize];
+            MPI_Gather(&output_len, 1, MPI_INT, all_output_len, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+
+            // Gather output
+            long sum_output_len = 0;
+            int* displace = new int[g_mysize];
+            for (int r = 0; r < g_mysize; r++) {
+                displace[r] = 0;
+                sum_output_len += all_output_len[r];
+                for (int r1 = 0; r1 < r; r1++) {
+                    displace[r] += all_output_len[r1];
+                }
+            }
+            char* all_output = new char[sum_output_len + 1];
+            MPI_Gatherv(output[i].c_str(), output_len, MPI_CHAR, all_output, all_output_len, displace, MPI_CHAR,
+                        g_myroot, MPI_COMM_WORLD);
+            all_output[sum_output_len] = '\0';
+            output[i] = std::string(all_output);
+
+            // Insert header to string, do it in reverse, so that the displacement won't lose count
+            //            for (int r = g_mysize - 1; r <= 0; r--) {
+            //                std::string head = std::string("\033[1;34m[MPI Process ") + std::to_string(r) +
+            //                std::string("]\n\033[0;37m"); output[i].insert(displace[r], head);
+            //            }
+
+            // Free
+            delete[] all_output_len;
+            delete[] all_output;
+            delete[] displace;
+        } else {
+            int output_len = (int)output[i].length();
+            MPI_Gather(&output_len, 1, MPI_INT, nullptr, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+            MPI_Gatherv(output[i].c_str(), output_len, MPI_CHAR, nullptr, nullptr, nullptr, MPI_CHAR, g_myroot,
+                        MPI_COMM_WORLD);
+        }
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
     Py_DECREF(py_module_sys);
     Py_DECREF(py_stdout_buf);
     Py_DECREF(py_stderr_buf);
 
-    return {output_stdout, output_stderr};
+    return output;
 }
 
 //-------------------------------------------------------------------------------------------------------
