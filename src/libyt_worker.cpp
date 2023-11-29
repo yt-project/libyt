@@ -21,8 +21,6 @@ LibytWorker::LibytWorker(int myrank, int mysize, int root) : m_mpi_rank(myrank),
     SET_TIMER(__PRETTY_FUNCTION__);
 }
 
-LibytWorker::~LibytWorker() {}
-
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytWorker
 // Method      :  start

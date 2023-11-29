@@ -9,7 +9,6 @@
 class LibytWorker {
 public:
     LibytWorker(int myrank, int mysize, int root);
-    ~LibytWorker();
 
     void start();
 
