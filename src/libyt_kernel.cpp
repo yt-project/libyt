@@ -108,7 +108,11 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     Py_DECREF(py_result_body);
 
     // Call execute cell
-    std::array<std::string, 2> output = LibytPythonShell::execute_cell(code_split, cell_name);
+#ifndef SERIAL_MODE
+    int indicator = 1;
+    MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+#endif
+    std::array<std::string, 2> output = LibytPythonShell::execute_cell(code_split, execution_counter);
 
     // Publish results
     nl::json pub_data;

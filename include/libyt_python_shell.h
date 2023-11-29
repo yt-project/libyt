@@ -33,7 +33,7 @@ public:
     static PyObject* get_script_namespace() { return s_PyGlobals; }
     static bool is_not_done_err_msg(const char* code);
     static std::array<std::string, 2> execute_cell(const std::array<std::string, 2>& code_split = {"", ""},
-                                                   const std::string& cell_name = "");
+                                                   int cell_counter = -1);
 };
 
 #endif  // __LIBYT_PYTHON_SHELL_H__
