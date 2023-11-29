@@ -12,7 +12,6 @@ public:
     ~LibytWorker();
 
     void start();
-    std::array<std::string, 2> execute_code();
 
 private:
     int m_mpi_rank;

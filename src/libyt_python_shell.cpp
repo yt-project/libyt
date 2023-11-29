@@ -364,6 +364,28 @@ bool LibytPythonShell::is_not_done_err_msg(const char* code) {
 }
 
 //-------------------------------------------------------------------------------------------------------
+// Class         :  LibytPythonShell
+// Static Method :  execute_cell
+// Description   :  Execute code get from cell in Jupyter Notebook
+//
+// Notes       :  1. This is a collective operation, requires every rank to call this function.
+//                2. Root rank will gather stdout and stderr from non-root rank, so the string returned
+//                   contains each ranks dumped output in root, and non-root rank only returns output from
+//                   itself.
+//                3. This method is called by LibytWorker::start and LibytKernel::execute_request_impl.
+//
+// Arguments   :
+//
+// Return      :  std::array<std::string, 2> output[0] : stdout
+//                                           output[1] : stderr
+//-------------------------------------------------------------------------------------------------------
+std::array<std::string, 2> LibytPythonShell::execute_cell() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    return {"", ""};
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Function      :  check_colon_exist
 //
 // Notes         :  1. This function gets called when detects s_NotDone_PyErr[0] ("if 1==1:\n") error.

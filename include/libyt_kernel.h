@@ -16,7 +16,6 @@ public:
 private:
     PyObject* m_py_global;
     PyObject* m_py_jedi_interpreter;
-    LibytWorker* m_libyt_worker;
 
     void configure_impl() override;
     nl::json execute_request_impl(int execution_counter, const std::string& code, bool silent, bool store_history,

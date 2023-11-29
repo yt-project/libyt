@@ -31,6 +31,7 @@ public:
     static int init_not_done_err_msg();
     static int init_script_namespace();
     static bool is_not_done_err_msg(const char* code);
+    static std::array<std::string, 2> execute_cell();
 };
 
 #endif  // __LIBYT_PYTHON_SHELL_H__

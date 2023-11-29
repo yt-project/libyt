@@ -49,37 +49,17 @@ void LibytWorker::start() {
                 break;
             }
             case 1: {
-                std::array<std::string, 2> temp_string = execute_code();
+                std::array<std::string, 2> temp_string = LibytPythonShell::execute_cell();
+                break;
             }
             default: {
-                done = false;
+                done = true;
+                log_error("Unknown job indicator '%d'\n", indicator);
             }
         }
     }
 
     log_debug("Leaving libyt worker on MPI process %d\n", m_mpi_rank);
-}
-
-//-------------------------------------------------------------------------------------------------------
-// Class       :  LibytWorker
-// Method      :  execute_code
-// Description :  Get code and execute code
-//
-// Notes       :  1. This is a collective operation, requires every rank to call this function.
-//                2. Root rank will gather stdout and stderr from non-root rank, so the string returned
-//                   contains each ranks dumped output in root, and non-root rank only returns output from
-//                   itself.
-//                3. This method is called by LibytWorker::start and LibytKernel::execute_request_impl.
-//
-// Arguments   :
-//
-// Return      :  std::array<std::string, 2> output[0] : stdout
-//                                           output[1] : stderr
-//-------------------------------------------------------------------------------------------------------
-std::array<std::string, 2> LibytWorker::execute_code() {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
-    return {"", ""};
 }
 
 #endif  // #if defined(INTERACTIVE_MODE) && defined(JUPYTER_KERNEL) && !defined(SERIAL_MODE)
