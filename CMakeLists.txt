@@ -4,9 +4,10 @@ cmake_minimum_required(VERSION 3.15)
 project(LIBYT_PROJECT VERSION 0.1.0 DESCRIPTION "In situ Python analysis tool using yt and Python")
 
 ## set options ##
-option(SERIAL_MODE       "Compile library for serial process" OFF)
-option(INTERACTIVE_MODE  "Use interactive mode"               OFF)
-option(SUPPORT_TIMER     "Support timer"                      OFF)
+option(SERIAL_MODE       "Compile library for serial process"                                                 OFF)
+option(INTERACTIVE_MODE  "Use interactive mode"                                                               OFF)
+option(JUPYTER_KERNEL    "Use Jupyter notebook interface for interactive mode, must enable INTERACTIVE_MODE"  OFF)
+option(SUPPORT_TIMER     "Support timer"                                                                      OFF)
 
 ## set paths ##
 set(PYTHON_PATH    "" CACHE PATH "Path to Python installation prefix")
@@ -23,19 +24,26 @@ if (NOT SERIAL_MODE)
     find_package(MPI REQUIRED)
 endif ()
 
+if (JUPYTER_KERNEL)
+    find_package(xeus-zmq 1.0 REQUIRED)
+endif ()
+
 set(Python_ROOT_DIR ${PYTHON_PATH})
 find_package(Python COMPONENTS Development NumPy REQUIRED)
+
+## config files ##
+if (JUPYTER_KERNEL)
+    set(LIBYT_KERNELSPEC_RELATIVE_PATH "share/jupyter/kernels/libyt_kernel")
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json ./${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json COPYONLY)
+endif ()
 
 ## sub directory ##
 add_subdirectory(src)                       # for library
 #add_subdirectory(example)                  # for example exe
 
-### libyt PACKAGING ###
-#include(InstallRequiredSystemLibraries)
-#set(MYPROJECT_SRC "${CMAKE_CURRENT_SOURCE_DIR}")
-#set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE") # set license
-#set(CPACK_PACKAGE_VERSION_MAJOR "${LIBYT_PROJECT_VERSION_MAJOR}")      # major version
-#set(CPACK_PACKAGE_VERSION_MINOR "${LIBYT_PROJECT_VERSION_MINOR}")      # minor version
-#set(CPACK_SOURCE_GENERATOR "TGZ")                                      # packed format
-#
-#include(CPack)
+### libyt INSTALLATION RULE ###
+if (JUPYTER_KERNEL)
+    include(GNUInstallDirs)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json
+            DESTINATION "${LIBYT_KERNELSPEC_RELATIVE_PATH}")
+endif ()

@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "func_status_list.h"
+#include "libyt_python_shell.h"
 #include "yt_combo.h"
 
 int define_command::s_Root = 0;
@@ -45,7 +46,7 @@ bool define_command::run() {
         // call corresponding method
         if (arg_list.size() == 1) {
             if (arg_list[0].compare("exit") == 0) {
-                g_func_status_list.clear_prompt_history();
+                g_libyt_python_shell.clear_prompt_history();
                 return true;
             } else if (arg_list[0].compare("status") == 0)
                 run_success = print_status();
@@ -74,7 +75,7 @@ bool define_command::run() {
                    m_Command.c_str());
         }
         if (run_success) {
-            g_func_status_list.update_prompt_history(std::string("# ") + m_Command + std::string("\n"));
+            g_libyt_python_shell.update_prompt_history(std::string("# ") + m_Command + std::string("\n"));
         }
     }
 
@@ -226,11 +227,11 @@ int define_command::load_script(const char* filename) {
     }
 
     // update libyt.interactive_mode["func_body"]
-    func_status_list::load_file_func_body(filename);
+    LibytPythonShell::load_file_func_body(filename);
 
     // get function list defined inside the script, add the function name to list if it doesn't exist
     // and set to idle
-    std::vector<std::string> func_list = func_status_list::get_funcname_defined(filename);
+    std::vector<std::string> func_list = LibytPythonShell::get_funcname_defined(filename);
     for (int i = 0; i < (int)func_list.size(); i++) {
         g_func_status_list.add_new_func(func_list[i].c_str(), 0);
     }
@@ -264,7 +265,7 @@ int define_command::export_script(const char* filename) {
     if (g_myrank == s_Root) {
         std::ofstream dump_file;
         dump_file.open(filename, std::ofstream::trunc);
-        dump_file << g_func_status_list.get_prompt_history();
+        dump_file << g_libyt_python_shell.get_prompt_history();
         dump_file.close();
         printf("Exporting script %s ... done\n", filename);
     }

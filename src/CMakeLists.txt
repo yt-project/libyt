@@ -1,17 +1,20 @@
 ### libyt COMPILATION ###
+# old tangled libyt stuff combined as a whole (will definitely split to smaller modules in future version)
 add_library(yt SHARED
         add_dict.cpp allocate_hierarchy.cpp append_grid.cpp check_data.cpp
         define_command.cpp func_status.cpp func_status_list.cpp get_dtype_property.cpp
         init_libyt_module.cpp init_python.cpp logging.cpp print_data.cpp
-        yt_commit.cpp yt_finalize.cpp yt_free.cpp yt_get_FieldsPtr.cpp yt_get_GridsPtr.cpp
+        yt_commit.cpp yt_finalize.cpp yt_free.cpp yt_get_FieldsPtr.cpp yt_get_GridsPtr.cpp yt_run_JupyterKernel.cpp
         yt_get_ParticlesPtr.cpp yt_getGridInfo.cpp yt_initialize.cpp yt_rma_field.cpp
         yt_rma_particle.cpp yt_run.cpp yt_run_InteractiveMode.cpp yt_set_Parameters.cpp
-        yt_set_UserParameter.cpp LibytProcessControl.cpp Timer.cpp TimerControl.cpp)
+        yt_set_UserParameter.cpp LibytProcessControl.cpp Timer.cpp TimerControl.cpp
+        libyt_python_shell.cpp libyt_kernel.cpp libyt_worker.cpp)
 
-# print options
+# print options and apply compile definition -D
 function(print_option option_name)
     if (${option_name})
         message(STATUS "${option_name} is ON")
+        target_compile_definitions(yt PUBLIC ${option_name})
     else ()
         message(STATUS "${option_name} is OFF")
     endif ()
@@ -19,24 +22,13 @@ endfunction()
 
 print_option(SERIAL_MODE)
 print_option(INTERACTIVE_MODE)
+print_option(JUPYTER_KERNEL)
 print_option(SUPPORT_TIMER)
-
-# define
-if (SUPPORT_TIMER)
-    target_compile_definitions(yt PUBLIC SUPPORT_TIMER)
-endif ()
-
-if (INTERACTIVE_MODE)
-    target_compile_definitions(yt PUBLIC INTERACTIVE_MODE)
-endif ()
-
-if (SERIAL_MODE)
-    target_compile_definitions(yt PUBLIC SERIAL_MODE)
-endif ()
+# TODO: make JUPYTER_KERNEL INTERACTIVE_MODE dependent
 
 # compile option
 add_library(libyt_compiler_flags INTERFACE)
-target_compile_features(libyt_compiler_flags INTERFACE cxx_std_11)
+target_compile_features(libyt_compiler_flags INTERFACE cxx_std_14)
 
 # include dir
 target_include_directories(yt PRIVATE
@@ -52,7 +44,8 @@ target_link_libraries(yt PRIVATE
         $<$<NOT:$<BOOL:${SERIAL_MODE}>>:MPI::MPI_CXX>
         ${Python_LIBRARIES}
         Python::NumPy
-        $<$<BOOL:${INTERACTIVE_MODE}>:readline>)
+        $<$<BOOL:${INTERACTIVE_MODE}>:readline>
+        $<$<BOOL:${JUPYTER_KERNEL}>:xeus-zmq>)
 target_link_libraries(yt PUBLIC
         libyt_compiler_flags)
 
@@ -71,7 +64,8 @@ set_target_properties(yt PROPERTIES
         VERSION ${PROJECT_VERSION}                       # version
         SOVERSION ${PROJECT_VERSION_MAJOR}               # soversion (.so.x.y.z)
         PUBLIC_HEADER "${LIBYT_PUBLIC_HEADER}"           # APIs
-        POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})  # build PIC
+        POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS}   # build PIC
+        INSTALL_RPATH_USE_LINK_PATH TRUE)                # set rpath
 
 ### libyt INSTALLATION RULE ###
 include(GNUInstallDirs)
