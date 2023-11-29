@@ -66,8 +66,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file, c
 #endif
 
     // Launch libyt kernel on root process
-    int root = 0;
-    if (g_myrank == root) {
+    if (g_myrank == g_myroot) {
         // Get root process PID
         std::ofstream file;
         file.open("libyt_kernel_pid.txt", std::ios::out | std::ios::trunc);
@@ -116,7 +115,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file, c
     }
 #ifndef SERIAL_MODE
     else {
-        LibytWorker libyt_worker(g_myrank, g_mysize, root);
+        LibytWorker libyt_worker(g_myrank, g_mysize, g_myroot);
         libyt_worker.start();
     }
 #endif

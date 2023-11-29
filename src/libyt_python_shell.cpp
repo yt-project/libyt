@@ -12,6 +12,7 @@ static bool check_colon_exist(const char* code);
 
 std::array<std::string, LibytPythonShell::s_NotDone_Num> LibytPythonShell::s_NotDone_ErrMsg;
 std::array<PyObject*, LibytPythonShell::s_NotDone_Num> LibytPythonShell::s_NotDone_PyErr;
+PyObject* LibytPythonShell::m_PyGlobals;
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytPythonShell
@@ -277,6 +278,27 @@ int LibytPythonShell::init_not_done_err_msg() {
         Py_XDECREF(py_obj);
         PyErr_Clear();
     }
+
+    return YT_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  LibytPythonShell
+// Static Method :  init_script_namespace
+//
+// Notes         :  1. This is a static method.
+//                  2. Initialize m_PyGlobals, which is a Python dict object that contains namespace of
+//                     the script.
+//                  3. It is a borrowed reference.
+//
+// Arguments     :  None
+//
+// Return        :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int LibytPythonShell::init_script_namespace() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    m_PyGlobals = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
 
     return YT_SUCCESS;
 }
