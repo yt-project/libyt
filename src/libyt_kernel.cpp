@@ -25,8 +25,7 @@ static std::array<int, 2> find_lineno_columno(const std::string& code, int pos);
 // Description :  Configure kernel before it runs anything
 //
 // Notes       :  1. Import io, sys. We need io.StringIO to get the output and error.
-//                2. Get script's global python object.
-//                3. Initialize jedi auto-completion.
+//                2. Initialize jedi auto-completion.
 //
 // Arguments   :  (None)
 //
@@ -36,8 +35,6 @@ void LibytKernel::configure_impl() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     PyRun_SimpleString("import io, sys\n");
-
-    m_py_global = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
 
     PyObject* py_module_jedi = PyImport_ImportModule("jedi");
     if (py_module_jedi == NULL) {
@@ -129,7 +126,8 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
 
         // Evaluate code
         if (py_src != NULL) {
-            py_dump = PyEval_EvalCode(py_src, m_py_global, m_py_global);
+            py_dump = PyEval_EvalCode(py_src, LibytPythonShell::get_script_namespace(),
+                                      LibytPythonShell::get_script_namespace());
             if (PyErr_Occurred()) {
                 has_error = true;
                 PyErr_Print();
@@ -209,8 +207,8 @@ nl::json LibytKernel::complete_request_impl(const std::string& code, int cursor_
 
     PyObject* py_tuple_args = PyTuple_New(2);
     PyObject* py_list_scope = PyList_New(1);
-    PyList_SET_ITEM(py_list_scope, 0, m_py_global);  // steal ref
-    Py_INCREF(m_py_global);
+    PyList_SET_ITEM(py_list_scope, 0, LibytPythonShell::get_script_namespace());  // steal ref
+    Py_INCREF(LibytPythonShell::get_script_namespace());
     PyTuple_SET_ITEM(py_tuple_args, 0, Py_BuildValue("s", code.c_str()));  // steal ref
     PyTuple_SET_ITEM(py_tuple_args, 1, py_list_scope);                     // steal ref
     PyObject* py_script = PyObject_CallObject(m_py_jedi_interpreter, py_tuple_args);
@@ -354,8 +352,7 @@ nl::json LibytKernel::kernel_info_request_impl() {
 // Description :  Shutdown libyt kernel
 //
 // Notes       :  1. Dereference jedi interpreter python function.
-//                2. m_py_global is a borrowed reference.
-//                3. TODO: It is a bad practice to send shutdown msg to other ranks, should wrap in function.
+//                2. TODO: It is a bad practice to send shutdown msg to other ranks, should wrap in function.
 //
 // Arguments   :  (None)
 //

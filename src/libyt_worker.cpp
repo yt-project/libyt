@@ -11,7 +11,7 @@
 // Class       :  LibytWorker
 // Method      :  Constructor
 //
-// Notes       :  1.
+// Notes       :  1. Assume only non-root rank will call this class.
 //
 // Arguments   :  int myrank : my MPI process num
 //                int mysize : my MPI size in MPI_COMM_WORLD
