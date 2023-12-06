@@ -7,6 +7,13 @@
 #include <string>
 #include <vector>
 
+struct AccumulatedOutputString {
+    std::string output_string;
+    std::vector<int> output_length;
+
+    AccumulatedOutputString();
+};
+
 class LibytPythonShell {
 private:
     static const int s_NotDone_Num = 3;
@@ -32,8 +39,8 @@ public:
     static int init_script_namespace();
     static PyObject* get_script_namespace() { return s_PyGlobals; }
     static bool is_not_done_err_msg(const char* code);
-    static std::array<std::string, 2> execute_cell(const std::array<std::string, 2>& code_split = {"", ""},
-                                                   int cell_counter = -1);
+    static std::array<AccumulatedOutputString, 2> execute_cell(const std::array<std::string, 2>& code_split = {"", ""},
+                                                               int cell_counter = -1);
 };
 
 #endif  // __LIBYT_PYTHON_SHELL_H__

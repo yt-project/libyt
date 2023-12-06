@@ -14,6 +14,28 @@ std::array<PyObject*, LibytPythonShell::s_NotDone_Num> LibytPythonShell::s_NotDo
 PyObject* LibytPythonShell::s_PyGlobals;
 
 //-------------------------------------------------------------------------------------------------------
+// Struct      :  AccumulatedOutputString
+// Method      :  Constructor
+//
+// Notes       :  1. Used in execute_cell and execute_prompt, for passing concatenated string around in
+//                   root rank.
+//                2. Initialize string as "", and length as vector with size equal to g_mysize (number of
+//                   MPI processes).
+//                3. Elements in output_length represent string length produced in each MPI process.
+//
+// Arguments   :  (None)
+//
+// Return      :  (None)
+//-------------------------------------------------------------------------------------------------------
+AccumulatedOutputString::AccumulatedOutputString() {
+    output_string = std::string("");
+    output_length.reserve(g_mysize);
+    for (int i = 0; i < g_mysize; i++) {
+        output_length.emplace_back(0);
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Class       :  LibytPythonShell
 // Method      :  update_prompt_history / clear_prompt_history
 //
@@ -379,11 +401,11 @@ bool LibytPythonShell::is_not_done_err_msg(const char* code) {
 // Arguments   :  const std::array<std::string, 2>& code_split : code with upper and lower half
 //                int                             cell_counter : cell counter on the left
 //
-// Return      :  std::array<std::string, 2> output[0] : stdout
-//                                           output[1] : stderr
+// Return      :  std::array<AccumulatedOutputString, 2> output[0] : stdout
+//                                                       output[1] : stderr
 //-------------------------------------------------------------------------------------------------------
-std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::string, 2>& code_split,
-                                                          int cell_counter) {
+std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std::array<std::string, 2>& code_split,
+                                                                      int cell_counter) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef SERIAL_MODE
@@ -493,10 +515,12 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
     PyObject* py_stdout_buf = PyObject_GetAttrString(py_module_sys, "OUTPUT_STDOUT");
     PyObject* py_stderr_buf = PyObject_GetAttrString(py_module_sys, "OUTPUT_STDERR");
 
-    std::array<std::string, 2> output = {std::string(""), std::string("")};
-    output[0] = std::string(PyUnicode_AsUTF8(py_stdout_buf));
+    std::array<AccumulatedOutputString, 2> output;
+    output[0].output_string = std::string(PyUnicode_AsUTF8(py_stdout_buf));
+    output[0].output_length[g_myrank] = output[0].output_string.length();
     if (has_error) {
-        output[1] = PyUnicode_AsUTF8(py_stderr_buf);
+        output[1].output_string = std::string(PyUnicode_AsUTF8(py_stderr_buf));
+        output[1].output_length[g_myrank] = output[1].output_string.length();
     }
 
 #ifndef SERIAL_MODE
@@ -504,47 +528,33 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
     for (int i = 0; i < 2; i++) {
         if (g_myrank == g_myroot) {
             // Gather output length
-            int output_len = (int)output[i].length();
-            int* all_output_len = new int[g_mysize];
-            MPI_Gather(&output_len, 1, MPI_INT, all_output_len, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+            int output_len = (int)output[i].output_length[g_myrank];
+            MPI_Gather(&output_len, 1, MPI_INT, output[i].output_length.data(), 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 
             // Gather output
             long sum_output_len = 0;
             int* displace = new int[g_mysize];
             for (int r = 0; r < g_mysize; r++) {
                 displace[r] = 0;
-                sum_output_len += all_output_len[r];
+                sum_output_len += output[i].output_length[r];
                 for (int r1 = 0; r1 < r; r1++) {
-                    displace[r] += all_output_len[r1];
+                    displace[r] += output[i].output_length[r1];
                 }
             }
             char* all_output = new char[sum_output_len + 1];
-            MPI_Gatherv(output[i].c_str(), output_len, MPI_CHAR, all_output, all_output_len, displace, MPI_CHAR,
-                        g_myroot, MPI_COMM_WORLD);
+            MPI_Gatherv(output[i].output_string.c_str(), output_len, MPI_CHAR, all_output,
+                        output[i].output_length.data(), displace, MPI_CHAR, g_myroot, MPI_COMM_WORLD);
             all_output[sum_output_len] = '\0';
-            output[i] = std::string(all_output);
-
-            // Insert header to string, do it in reverse, so that the displacement won't lose count
-            if (output[i].length() > 0) {
-                for (int r = g_mysize - 1; r >= 0; r--) {
-                    std::string head =
-                        std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\n\033[0;30m");
-                    if (all_output_len[r] == 0) {
-                        head += std::string("(None)\n");
-                    }
-                    output[i].insert(displace[r], head);
-                }
-            }
+            output[i].output_string = std::string(all_output);
 
             // Free
-            delete[] all_output_len;
             delete[] all_output;
             delete[] displace;
         } else {
-            int output_len = (int)output[i].length();
+            int output_len = (int)output[i].output_length[g_myrank];
             MPI_Gather(&output_len, 1, MPI_INT, nullptr, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
-            MPI_Gatherv(output[i].c_str(), output_len, MPI_CHAR, nullptr, nullptr, nullptr, MPI_CHAR, g_myroot,
-                        MPI_COMM_WORLD);
+            MPI_Gatherv(output[i].output_string.c_str(), output_len, MPI_CHAR, nullptr, nullptr, nullptr, MPI_CHAR,
+                        g_myroot, MPI_COMM_WORLD);
         }
     }
 

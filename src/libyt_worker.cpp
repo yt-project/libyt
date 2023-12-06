@@ -47,7 +47,7 @@ void LibytWorker::start() {
                 break;
             }
             case 1: {
-                std::array<std::string, 2> temp_string = LibytPythonShell::execute_cell();
+                std::array<AccumulatedOutputString, 2> temp_string = LibytPythonShell::execute_cell();
                 break;
             }
             default: {
