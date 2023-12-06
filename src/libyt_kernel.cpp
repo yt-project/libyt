@@ -107,22 +107,38 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     Py_DECREF(py_result);
     Py_DECREF(py_result_body);
 
-    // Call execute cell
+    // Call execute cell, and concatenate the string
     // TODO: It is a bad practice to send execute signal msg to other ranks like this, should wrap in function.
 #ifndef SERIAL_MODE
     int indicator = 1;
     MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
-    std::array<std::string, 2> output = LibytPythonShell::execute_cell(code_split, execution_counter);
+    std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_cell(code_split, execution_counter);
+
+    // Insert header to string
+    for (int i = 0; i < 2; i++) {
+        int offset = 0;
+        if (output[i].output_string.length() > 0) {
+            for (int r = 0; r < g_mysize; r++) {
+                std::string head =
+                    std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\n\033[0;30m");
+                if (output[i].output_length[r] == 0) {
+                    head += std::string("(None)\n");
+                }
+                output[i].output_string.insert(offset, head);
+                offset = offset + head.length() + output[i].output_length[r];
+            }
+        }
+    }
 
     // Publish results
     nl::json pub_data;
-    if (output[0].length() > 0) {
-        pub_data["text/plain"] = output[0].c_str();
+    if (output[0].output_string.length() > 0) {
+        pub_data["text/plain"] = output[0].output_string.c_str();
         publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
     }
-    if (output[1].length() > 0) {
-        publish_execution_error("", "", split(output[1], "\n"));
+    if (output[1].output_string.length() > 0) {
+        publish_execution_error("", "", split(output[1].output_string, "\n"));
     }
 
     return xeus::create_successful_reply();
@@ -252,7 +268,7 @@ nl::json LibytKernel::is_complete_request_impl(const std::string& code) {
 //
 // Notes       :  1. It needs PY_VERSION (defined in Python header).
 //                2. Check https://jupyter-client.readthedocs.io/en/stable/messaging.html#kernel-info
-//                3. TODO: Probably need to add protocol version, but not sure what is it for.
+//                3. Not sure what 'protocol_version' is for.
 //                4. TODO: When there is a specific class for controlling libyt info, update helper links.
 //
 // Arguments   :  (None)
