@@ -2,6 +2,7 @@
 
 #include "libyt_python_shell.h"
 
+#include <cstring>
 #include <iostream>
 #include <string>
 
@@ -431,7 +432,12 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std:
     MPI_Bcast(&cell_counter, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
 
-    std::string cell_name = std::string("In [") + std::to_string(cell_counter) + std::string("]");
+    std::string cell_name;
+    if (cell_counter == -1) {
+        cell_name = std::string("<libyt-stdin>");
+    } else {
+        cell_name = std::string("In [") + std::to_string(cell_counter) + std::string("]");
+    }
 
     // Clear the template buffer and redirect stdout, stderr
     PyRun_SimpleString("import sys, io\n");
@@ -439,28 +445,24 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std:
     PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
 
     // Execute upper half and lower half one after another, if error occurred, it will skip execute the lower half
-    // Need to consider both parallel and serial. Root runs code_split, non-root runs code_get.
     PyObject *py_src, *py_dump;
     bool has_error = false;
     for (int i = 0; i < 2; i++) {
+        const char* code;
         if (g_myrank == g_myroot) {
-            if (code_split[i].length() <= 0) continue;
-            if (i == 0) {
-                py_src = Py_CompileString(code_split[i].c_str(), cell_name.c_str(), Py_file_input);
-            } else if (i == 1) {
-                py_src = Py_CompileString(code_split[i].c_str(), cell_name.c_str(), Py_single_input);
-            }
+            code = code_split[i].c_str();
         }
 #ifndef SERIAL_MODE
         else {
-            if (code_len[i] <= 0) continue;
-            if (i == 0) {
-                py_src = Py_CompileString(code_get[i], cell_name.c_str(), Py_file_input);
-            } else if (i == 1) {
-                py_src = Py_CompileString(code_get[i], cell_name.c_str(), Py_single_input);
-            }
+            code = code_get[i];
         }
 #endif
+        if (strlen(code) <= 0) continue;
+        if (i == 0) {
+            py_src = Py_CompileString(code, cell_name.c_str(), Py_file_input);
+        } else {
+            py_src = Py_CompileString(code, cell_name.c_str(), Py_single_input);
+        }
 
         // Every MPI process should have the same compile result
         // Evaluate code
@@ -470,9 +472,14 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std:
             if (PyErr_Occurred()) {
                 has_error = true;
                 PyErr_Print();
+                LibytPythonShell::load_input_func_body(code);
+
                 Py_DECREF(py_src);
                 Py_XDECREF(py_dump);
             } else {
+                LibytPythonShell::load_input_func_body(code);
+                g_libyt_python_shell.update_prompt_history(std::string(code));
+
                 Py_DECREF(py_src);
                 Py_XDECREF(py_dump);
             }
