@@ -2,6 +2,7 @@
 
 #include "libyt_python_shell.h"
 
+#include <cstring>
 #include <iostream>
 #include <string>
 
@@ -12,6 +13,28 @@ static bool check_colon_exist(const char* code);
 std::array<std::string, LibytPythonShell::s_NotDone_Num> LibytPythonShell::s_NotDone_ErrMsg;
 std::array<PyObject*, LibytPythonShell::s_NotDone_Num> LibytPythonShell::s_NotDone_PyErr;
 PyObject* LibytPythonShell::s_PyGlobals;
+
+//-------------------------------------------------------------------------------------------------------
+// Struct      :  AccumulatedOutputString
+// Method      :  Constructor
+//
+// Notes       :  1. Used in execute_cell and execute_prompt, for passing concatenated string around in
+//                   root rank.
+//                2. Initialize string as "", and length as vector with size equal to g_mysize (number of
+//                   MPI processes).
+//                3. Elements in output_length represent string length produced in each MPI process.
+//
+// Arguments   :  (None)
+//
+// Return      :  (None)
+//-------------------------------------------------------------------------------------------------------
+AccumulatedOutputString::AccumulatedOutputString() {
+    output_string = std::string("");
+    output_length.reserve(g_mysize);
+    for (int i = 0; i < g_mysize; i++) {
+        output_length.emplace_back(0);
+    }
+}
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytPythonShell
@@ -93,11 +116,12 @@ int LibytPythonShell::load_file_func_body(const char* filename) {
 // Notes         :  1. This is a static method.
 //                  2. Detect if there are functors defined in code object src_ptr, if yes, put it under
 //                     libyt.interactive_mode["func_body"].
-//                  3. It's not this method's responsibility to free code.
-//                  4. To silent the printing when PyEval_EvalCode evaluates the code, that sys.stdout
+//                  3. Every MPI process has a copy of function body.
+//                  4. It's not this method's responsibility to free code.
+//                  5. To silent the printing when PyEval_EvalCode evaluates the code, that sys.stdout
 //                     point to somewhere else when evaluating.
-//                  5. It accepts indent size different from 4.
-//                  6. TODO: It needs script's scope, otherwise some functors aren't detectable.
+//                  6. It accepts indent size different from 4.
+//                  7. TODO: It needs script's scope, otherwise some functors aren't detectable.
 //                     (ex: b = np.random.rand)
 //
 // Arguments     :  char *code : code to detect.
@@ -128,7 +152,6 @@ int LibytPythonShell::load_input_func_body(const char* code) {
         start_pos = found + 1;
     }
 
-    // detecting callables
     // detecting callables: loop over keys in new dict, and check if it is callable
     PyObject* py_src = Py_CompileString(command_str.c_str(), "<libyt-stdin>", Py_file_input);
     if (py_src != NULL) {
@@ -379,11 +402,11 @@ bool LibytPythonShell::is_not_done_err_msg(const char* code) {
 // Arguments   :  const std::array<std::string, 2>& code_split : code with upper and lower half
 //                int                             cell_counter : cell counter on the left
 //
-// Return      :  std::array<std::string, 2> output[0] : stdout
-//                                           output[1] : stderr
+// Return      :  std::array<AccumulatedOutputString, 2> output[0] : stdout
+//                                                       output[1] : stderr
 //-------------------------------------------------------------------------------------------------------
-std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::string, 2>& code_split,
-                                                          int cell_counter) {
+std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std::array<std::string, 2>& code_split,
+                                                                      int cell_counter) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef SERIAL_MODE
@@ -409,7 +432,12 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
     MPI_Bcast(&cell_counter, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
 
-    std::string cell_name = std::string("In [") + std::to_string(cell_counter) + std::string("]");
+    std::string cell_name;
+    if (cell_counter == -1) {
+        cell_name = std::string("<libyt-stdin>");
+    } else {
+        cell_name = std::string("In [") + std::to_string(cell_counter) + std::string("]");
+    }
 
     // Clear the template buffer and redirect stdout, stderr
     PyRun_SimpleString("import sys, io\n");
@@ -417,28 +445,24 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
     PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
 
     // Execute upper half and lower half one after another, if error occurred, it will skip execute the lower half
-    // Need to consider both parallel and serial. Root runs code_split, non-root runs code_get.
     PyObject *py_src, *py_dump;
     bool has_error = false;
     for (int i = 0; i < 2; i++) {
+        const char* code;
         if (g_myrank == g_myroot) {
-            if (code_split[i].length() <= 0) continue;
-            if (i == 0) {
-                py_src = Py_CompileString(code_split[i].c_str(), cell_name.c_str(), Py_file_input);
-            } else if (i == 1) {
-                py_src = Py_CompileString(code_split[i].c_str(), cell_name.c_str(), Py_single_input);
-            }
+            code = code_split[i].c_str();
         }
 #ifndef SERIAL_MODE
         else {
-            if (code_len[i] <= 0) continue;
-            if (i == 0) {
-                py_src = Py_CompileString(code_get[i], cell_name.c_str(), Py_file_input);
-            } else if (i == 1) {
-                py_src = Py_CompileString(code_get[i], cell_name.c_str(), Py_single_input);
-            }
+            code = code_get[i];
         }
 #endif
+        if (strlen(code) <= 0) continue;
+        if (i == 0) {
+            py_src = Py_CompileString(code, cell_name.c_str(), Py_file_input);
+        } else {
+            py_src = Py_CompileString(code, cell_name.c_str(), Py_single_input);
+        }
 
         // Every MPI process should have the same compile result
         // Evaluate code
@@ -448,9 +472,14 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
             if (PyErr_Occurred()) {
                 has_error = true;
                 PyErr_Print();
+                LibytPythonShell::load_input_func_body(code);
+
                 Py_DECREF(py_src);
                 Py_XDECREF(py_dump);
             } else {
+                LibytPythonShell::load_input_func_body(code);
+                g_libyt_python_shell.update_prompt_history(std::string(code));
+
                 Py_DECREF(py_src);
                 Py_XDECREF(py_dump);
             }
@@ -493,10 +522,12 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
     PyObject* py_stdout_buf = PyObject_GetAttrString(py_module_sys, "OUTPUT_STDOUT");
     PyObject* py_stderr_buf = PyObject_GetAttrString(py_module_sys, "OUTPUT_STDERR");
 
-    std::array<std::string, 2> output = {std::string(""), std::string("")};
-    output[0] = std::string(PyUnicode_AsUTF8(py_stdout_buf));
+    std::array<AccumulatedOutputString, 2> output;
+    output[0].output_string = std::string(PyUnicode_AsUTF8(py_stdout_buf));
+    output[0].output_length[g_myrank] = output[0].output_string.length();
     if (has_error) {
-        output[1] = PyUnicode_AsUTF8(py_stderr_buf);
+        output[1].output_string = std::string(PyUnicode_AsUTF8(py_stderr_buf));
+        output[1].output_length[g_myrank] = output[1].output_string.length();
     }
 
 #ifndef SERIAL_MODE
@@ -504,47 +535,33 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
     for (int i = 0; i < 2; i++) {
         if (g_myrank == g_myroot) {
             // Gather output length
-            int output_len = (int)output[i].length();
-            int* all_output_len = new int[g_mysize];
-            MPI_Gather(&output_len, 1, MPI_INT, all_output_len, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+            int output_len = (int)output[i].output_length[g_myrank];
+            MPI_Gather(&output_len, 1, MPI_INT, output[i].output_length.data(), 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 
             // Gather output
             long sum_output_len = 0;
             int* displace = new int[g_mysize];
             for (int r = 0; r < g_mysize; r++) {
                 displace[r] = 0;
-                sum_output_len += all_output_len[r];
+                sum_output_len += output[i].output_length[r];
                 for (int r1 = 0; r1 < r; r1++) {
-                    displace[r] += all_output_len[r1];
+                    displace[r] += output[i].output_length[r1];
                 }
             }
             char* all_output = new char[sum_output_len + 1];
-            MPI_Gatherv(output[i].c_str(), output_len, MPI_CHAR, all_output, all_output_len, displace, MPI_CHAR,
-                        g_myroot, MPI_COMM_WORLD);
+            MPI_Gatherv(output[i].output_string.c_str(), output_len, MPI_CHAR, all_output,
+                        output[i].output_length.data(), displace, MPI_CHAR, g_myroot, MPI_COMM_WORLD);
             all_output[sum_output_len] = '\0';
-            output[i] = std::string(all_output);
-
-            // Insert header to string, do it in reverse, so that the displacement won't lose count
-            if (output[i].length() > 0) {
-                for (int r = g_mysize - 1; r >= 0; r--) {
-                    std::string head =
-                        std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\n\033[0;30m");
-                    if (all_output_len[r] == 0) {
-                        head += std::string("(None)\n");
-                    }
-                    output[i].insert(displace[r], head);
-                }
-            }
+            output[i].output_string = std::string(all_output);
 
             // Free
-            delete[] all_output_len;
             delete[] all_output;
             delete[] displace;
         } else {
-            int output_len = (int)output[i].length();
+            int output_len = (int)output[i].output_length[g_myrank];
             MPI_Gather(&output_len, 1, MPI_INT, nullptr, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
-            MPI_Gatherv(output[i].c_str(), output_len, MPI_CHAR, nullptr, nullptr, nullptr, MPI_CHAR, g_myroot,
-                        MPI_COMM_WORLD);
+            MPI_Gatherv(output[i].output_string.c_str(), output_len, MPI_CHAR, nullptr, nullptr, nullptr, MPI_CHAR,
+                        g_myroot, MPI_COMM_WORLD);
         }
     }
 
@@ -554,6 +571,32 @@ std::array<std::string, 2> LibytPythonShell::execute_cell(const std::array<std::
     Py_DECREF(py_module_sys);
     Py_DECREF(py_stdout_buf);
     Py_DECREF(py_stderr_buf);
+
+    return output;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  LibytPythonShell
+// Static Method :  execute_prompt
+// Description   :  Execute single statement code get from prompt.
+//
+// Notes       :  1. This is a collective operation, requires every rank to call this function.
+//                   Assuming every MPI process enter this function at the same state the same time.
+//                2. Root rank will gather stdout and stderr from non-root rank, so the string returned
+//                   contains each ranks dumped output in root, and non-root rank only returns output from
+//                   itself.
+//                3.
+//
+// Arguments   :  const std::string&         code : single statement code    (default = "")
+//                int                cell_counter : cell counter on the left (default = -1, "libyt-stdin")
+//
+// Return      :  std::array<AccumulatedOutputString, 2> output[0] : stdout
+//                                                       output[1] : stderr
+//-------------------------------------------------------------------------------------------------------
+std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_prompt(const std::string& code, int cell_counter) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    std::array<AccumulatedOutputString, 2> output = execute_cell({"", code}, cell_counter);
 
     return output;
 }
