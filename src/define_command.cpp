@@ -24,7 +24,7 @@ int define_command::s_Root = 0;
 //
 // Arguments   :  None
 //
-// Return      : true / false   : whether or not to exit interactive loop.
+// Return      : true / false   : whether to exit interactive loop.
 //-------------------------------------------------------------------------------------------------------
 bool define_command::run() {
     SET_TIMER(__PRETTY_FUNCTION__);

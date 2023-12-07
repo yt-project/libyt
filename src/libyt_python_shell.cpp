@@ -115,11 +115,12 @@ int LibytPythonShell::load_file_func_body(const char* filename) {
 // Notes         :  1. This is a static method.
 //                  2. Detect if there are functors defined in code object src_ptr, if yes, put it under
 //                     libyt.interactive_mode["func_body"].
-//                  3. It's not this method's responsibility to free code.
-//                  4. To silent the printing when PyEval_EvalCode evaluates the code, that sys.stdout
+//                  3. Every MPI process has a copy of function body.
+//                  4. It's not this method's responsibility to free code.
+//                  5. To silent the printing when PyEval_EvalCode evaluates the code, that sys.stdout
 //                     point to somewhere else when evaluating.
-//                  5. It accepts indent size different from 4.
-//                  6. TODO: It needs script's scope, otherwise some functors aren't detectable.
+//                  6. It accepts indent size different from 4.
+//                  7. TODO: It needs script's scope, otherwise some functors aren't detectable.
 //                     (ex: b = np.random.rand)
 //
 // Arguments     :  char *code : code to detect.
@@ -150,7 +151,6 @@ int LibytPythonShell::load_input_func_body(const char* code) {
         start_pos = found + 1;
     }
 
-    // detecting callables
     // detecting callables: loop over keys in new dict, and check if it is callable
     PyObject* py_src = Py_CompileString(command_str.c_str(), "<libyt-stdin>", Py_file_input);
     if (py_src != NULL) {
@@ -580,7 +580,7 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std:
 //                   itself.
 //                3.
 //
-// Arguments   :  const std::string&         code : single statement code
+// Arguments   :  const std::string&         code : single statement code    (default = "")
 //                int                cell_counter : cell counter on the left (default = -1, "libyt-stdin")
 //
 // Return      :  std::array<AccumulatedOutputString, 2> output[0] : stdout
