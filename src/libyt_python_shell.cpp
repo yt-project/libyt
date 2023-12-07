@@ -569,6 +569,32 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std:
 }
 
 //-------------------------------------------------------------------------------------------------------
+// Class         :  LibytPythonShell
+// Static Method :  execute_prompt
+// Description   :  Execute single statement code get from prompt.
+//
+// Notes       :  1. This is a collective operation, requires every rank to call this function.
+//                   Assuming every MPI process enter this function at the same state the same time.
+//                2. Root rank will gather stdout and stderr from non-root rank, so the string returned
+//                   contains each ranks dumped output in root, and non-root rank only returns output from
+//                   itself.
+//                3.
+//
+// Arguments   :  const std::string&         code : single statement code
+//                int                cell_counter : cell counter on the left (default = -1, "libyt-stdin")
+//
+// Return      :  std::array<AccumulatedOutputString, 2> output[0] : stdout
+//                                                       output[1] : stderr
+//-------------------------------------------------------------------------------------------------------
+std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_prompt(const std::string& code, int cell_counter) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    std::array<AccumulatedOutputString, 2> output = execute_cell({"", code}, cell_counter);
+
+    return output;
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Function      :  check_colon_exist
 //
 // Notes         :  1. This function gets called when detects s_NotDone_PyErr[0] ("if 1==1:\n") error.

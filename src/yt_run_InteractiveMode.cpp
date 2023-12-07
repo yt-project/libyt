@@ -22,6 +22,7 @@
 //                   (2) libyt command
 //                   (3) Execute characters should be less than INT_MAX.
 //                4. Let user add and decide what inline function to run in the follow process.
+//                5. This API deals with user inputs, and direct jobs to other functions
 //
 // Parameter   :  const char *flag_file_name : once this file is detected, it enters interactive mode
 //

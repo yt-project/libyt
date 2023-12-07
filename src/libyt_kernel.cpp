@@ -8,15 +8,8 @@
 #include "libyt_python_shell.h"
 #include "yt_combo.h"
 
-struct CodeValidity {
-    std::string is_valid;
-    std::string error_msg;
-};
-
 static std::vector<std::string> split(const std::string& code, const char* c);
 static std::array<std::string, 2> split_on_line(const std::string& code, unsigned int lineno);
-static CodeValidity code_is_valid(const std::string& code, bool prompt_env = false,
-                                  const char* cell_name = "<libyt-stdin>");
 static std::array<int, 2> find_lineno_columno(const std::string& code, int pos);
 
 //-------------------------------------------------------------------------------------------------------
@@ -76,7 +69,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     std::string cell_name = std::string("In [") + std::to_string(execution_counter) + std::string("]");
 
     // Make sure code is valid before continue
-    CodeValidity code_validity = code_is_valid(code, false, cell_name.c_str());
+    CodeValidity code_validity = LibytPythonShell::check_code_validity(code, false, cell_name.c_str());
     if (code_validity.is_valid.compare("complete") != 0) {
         publish_execution_error("", "", split(code_validity.error_msg, "\n"));
         return xeus::create_successful_reply();
@@ -253,7 +246,7 @@ nl::json LibytKernel::inspect_request_impl(const std::string& code, int cursor_p
 nl::json LibytKernel::is_complete_request_impl(const std::string& code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    CodeValidity code_validity = code_is_valid(code, true);
+    CodeValidity code_validity = LibytPythonShell::check_code_validity(code, true);
     if (code_validity.is_valid.compare("complete") == 0) {
         return xeus::create_is_complete_reply("complete");
     } else {
@@ -404,55 +397,6 @@ static std::array<std::string, 2> split_on_line(const std::string& code, unsigne
         line += 1;
     }
     return code_split;
-}
-
-//-------------------------------------------------------------------------------------------------------
-// Method      :  code_is_valid
-// Description :  Check code validity.
-//
-// Notes       :  1. Test if it can compile based on Py_file_input.
-//                2. I separated this function because code passed in can have multi-statement, and we
-//                   want the last statement to use Py_single_input, which is different from here.
-//
-// Arguments   :  const std::string&  code : code to check
-//                bool          prompt_env : if it is in prompt environment
-//                const char    *cell_name : cell name
-//
-// Return      :  CodeValidity.is_valid : "complete", "incomplete", "invalid", "unknown"
-//                             error_msg: error message from Python if it failed.
-//-------------------------------------------------------------------------------------------------------
-static CodeValidity code_is_valid(const std::string& code, bool prompt_env, const char* cell_name) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
-    CodeValidity code_validity;
-
-    PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
-
-    PyObject* py_test_compile = Py_CompileString(code.c_str(), cell_name, Py_file_input);
-
-    if (py_test_compile != NULL) {
-        code_validity.is_valid = "complete";
-    } else if (prompt_env && LibytPythonShell::is_not_done_err_msg(code.c_str())) {
-        code_validity.is_valid = "incomplete";
-    } else {
-        code_validity.is_valid = "invalid";
-
-        PyErr_Print();
-        PyRun_SimpleString("sys.stderr.flush()\n");
-        PyRun_SimpleString("sys.OUTPUT_STDERR=stderr_buf.getvalue()\n");
-        PyObject* py_module_sys = PyImport_ImportModule("sys");
-        PyObject* py_stderr_buf = PyObject_GetAttrString(py_module_sys, "OUTPUT_STDERR");
-        code_validity.error_msg = std::string(PyUnicode_AsUTF8(py_stderr_buf));
-
-        Py_DECREF(py_module_sys);
-        Py_DECREF(py_stderr_buf);
-    }
-
-    // Clear buffer and dereference
-    PyRun_SimpleString("stderr_buf.close()\nsys.stderr=sys.__stderr__\n");
-    Py_XDECREF(py_test_compile);
-
-    return code_validity;
 }
 
 //-------------------------------------------------------------------------------------------------------
