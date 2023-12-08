@@ -11,23 +11,47 @@
 #include "libyt_python_shell.h"
 #include "yt_combo.h"
 
-int define_command::s_Root = 0;
+int define_command::s_Root = g_myroot;
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  define_command
 // Method      :  run
 //
-// Notes       :  1. Parst m_Command, and call according method.
+// Notes       :  1. This is a collective operation and an entry point for yt_run_InteractiveMode or
+//                   yt_run_JupyterKernel to call libyt defined command.
 //                2. stringstream is slow and string copying is slow, but ..., too lazy to do that.
-//                3. Update successfully executed libyt command to history on root rank.
-//                4. Will always ignore "%libyt exit", it will only clear prompt history.
+//                3. Will always ignore "%libyt exit", it will only clear prompt history.
 //
-// Arguments   :  None
+// Arguments   :  const std::string& command : command to run (default is "", which will get command from root).
 //
 // Return      : true / false   : whether to exit interactive loop.
 //-------------------------------------------------------------------------------------------------------
-bool define_command::run() {
+bool define_command::run(const std::string& command) {
     SET_TIMER(__PRETTY_FUNCTION__);
+
+    // get m_Command from s_Root
+#ifndef SERIAL_MODE
+    if (g_myrank == s_Root) {
+        int code_len = (int)command.length();
+        MPI_Bcast(&code_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+        MPI_Bcast((void*)command.c_str(), code_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
+
+        m_Command = command;
+    } else {
+        int code_len;
+        MPI_Bcast(&code_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+
+        char* code;
+        code = (char*)malloc((code_len + 1) * sizeof(char));
+        MPI_Bcast(code, code_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
+        code[code_len] = '\0';
+
+        m_Command = std::string(code);
+        free(code);
+    }
+#else
+    m_Command = command;
+#endif
 
     std::stringstream ss(m_Command);
     std::string arg;
