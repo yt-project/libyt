@@ -90,6 +90,11 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
         PyLong_AsLong(PyObject_GetAttrString(PyList_GET_ITEM(py_result_body, num_statements - 1), "lineno"));
     std::array<std::string, 2> code_split = split_on_line(code, last_statement_lineno - 1);
 
+    // Append newline at the end of the last statement, so that Python won't produce EOF error
+    if (code_split[1].length() > 0) {
+        code_split[1].append("\n");
+    }
+
     // Append newline at the front of the last statement, so that Python error buffer can catch the correct lineno
     if (last_statement_lineno >= 1) {
         code_split[1].insert(0, std::string(last_statement_lineno - 1, '\n'));
@@ -110,8 +115,8 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
 
     // Insert header to string
     for (int i = 0; i < 2; i++) {
-        int offset = 0;
         if (output[i].output_string.length() > 0) {
+            int offset = 0;
             for (int r = 0; r < g_mysize; r++) {
                 std::string head =
                     std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\n\033[0;30m");
@@ -125,8 +130,8 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     }
 
     // Publish results
-    nl::json pub_data;
     if (output[0].output_string.length() > 0) {
+        nl::json pub_data;
         pub_data["text/plain"] = output[0].output_string.c_str();
         publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
     }
