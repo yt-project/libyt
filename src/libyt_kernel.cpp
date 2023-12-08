@@ -90,6 +90,11 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
         PyLong_AsLong(PyObject_GetAttrString(PyList_GET_ITEM(py_result_body, num_statements - 1), "lineno"));
     std::array<std::string, 2> code_split = split_on_line(code, last_statement_lineno - 1);
 
+    // Append newline at the end of the last statement, so that Python won't produce EOF error
+    if (code_split[1].length() > 0) {
+        code_split[1].append("\n");
+    }
+
     // Append newline at the front of the last statement, so that Python error buffer can catch the correct lineno
     if (last_statement_lineno >= 1) {
         code_split[1].insert(0, std::string(last_statement_lineno - 1, '\n'));
