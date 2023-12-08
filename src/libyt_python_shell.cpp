@@ -3,7 +3,6 @@
 #include "libyt_python_shell.h"
 
 #include <cstring>
-#include <iostream>
 #include <string>
 
 #include "yt_combo.h"
@@ -75,6 +74,7 @@ int LibytPythonShell::clear_prompt_history() {
 //                     libyt.interactive_mode["func_body"].
 //                  3. Get only keyword def defined functions. If the functors are defined using __call__
 //                     this method cannot grab the corresponding definition.
+//                  4. TODO: It needs script's scope, otherwise some functors aren't detectable.
 //
 // Arguments     :  const char *filename: update function body for function defined inside filename
 //
@@ -521,17 +521,16 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std:
         // Every MPI process should have the same compile result
         // Evaluate code
         if (py_src != NULL) {
-            py_dump = PyEval_EvalCode(py_src, LibytPythonShell::get_script_namespace(),
-                                      LibytPythonShell::get_script_namespace());
+            py_dump = PyEval_EvalCode(py_src, get_script_namespace(), get_script_namespace());
             if (PyErr_Occurred()) {
                 has_error = true;
                 PyErr_Print();
-                LibytPythonShell::load_input_func_body(code);
+                load_input_func_body(code);
 
                 Py_DECREF(py_src);
                 Py_XDECREF(py_dump);
             } else {
-                LibytPythonShell::load_input_func_body(code);
+                load_input_func_body(code);
                 g_libyt_python_shell.update_prompt_history(std::string(code));
 
                 Py_DECREF(py_src);

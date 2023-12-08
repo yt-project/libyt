@@ -116,15 +116,10 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                     // Send call libyt define command code (indicator = 0)
                     int indicator = 0;
                     MPI_Bcast(&indicator, 1, MPI_INT, root, MPI_COMM_WORLD);
-
-                    // tell other ranks no matter if it is valid, even though not all libyt command are collective
-                    input_len = (int)strlen(input_line) - first_char;
-                    MPI_Bcast(&input_len, 1, MPI_INT, root, MPI_COMM_WORLD);
-                    MPI_Bcast(&(input_line[first_char]), input_len, MPI_CHAR, root, MPI_COMM_WORLD);
 #endif
                     // run libyt command
-                    define_command command(&(input_line[first_char]));
-                    done = command.run();
+                    define_command command;
+                    done = command.run(&(input_line[first_char]));
 #ifndef SERIAL_MODE
                     MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -208,24 +203,16 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
             int indicator = -1;
             MPI_Bcast(&indicator, 1, MPI_INT, root, MPI_COMM_WORLD);
 
-            // call libyt command, if indicator is 0
             if (indicator == 0) {
-                // TODO: make define command get code.
-                // get code; additional 1 for '\0'
-                MPI_Bcast(&code_len, 1, MPI_INT, root, MPI_COMM_WORLD);
-                code = (char*)malloc((code_len + 1) * sizeof(char));
-                MPI_Bcast(code, code_len, MPI_CHAR, root, MPI_COMM_WORLD);
-                code[code_len] = '\0';
-
-                define_command command(code);
+                // call libyt command, if indicator is 0
+                define_command command;
                 done = command.run();
-                free(code);
             } else {
                 // Execute code, the code must be a vaild code and successfully compile now
                 std::array<AccumulatedOutputString, 2> temp_output = LibytPythonShell::execute_prompt();
             }
 
-            // clean up and wait, TODO: Do I need this?
+            // clean up and wait
             fflush(stdout);
             fflush(stderr);
             MPI_Barrier(MPI_COMM_WORLD);
