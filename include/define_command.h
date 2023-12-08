@@ -11,8 +11,8 @@ private:
     static int s_Root;
 
 public:
-    define_command(char* command) : m_Command(command), m_Undefine(true){};
-    bool run();
+    define_command() : m_Command(""), m_Undefine(true){};
+    bool run(const std::string& command = std::string(""));
 
     int print_status();
     int print_help_msg();
