@@ -386,6 +386,60 @@ bool LibytPythonShell::is_not_done_err_msg(const char* code) {
 }
 
 //-------------------------------------------------------------------------------------------------------
+// Method      :  code_is_valid
+// Description :  Check code validity.
+//
+// Notes       :  1. Test if it can compile based on Py_single_input (if in prompt env), otherwise compile
+//                   base on Py_file_input.
+//
+// Arguments   :  const std::string&  code : code to check
+//                bool          prompt_env : if it is in prompt environment
+//                const char    *cell_name : cell name
+//
+// Return      :  CodeValidity.is_valid : "complete", "incomplete", "invalid", "unknown"
+//                             error_msg: error message from Python if it failed.
+//-------------------------------------------------------------------------------------------------------
+CodeValidity LibytPythonShell::check_code_validity(const std::string& code, bool prompt_env, const char* cell_name) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    CodeValidity code_validity;
+
+    PyRun_SimpleString("import sys, io\n");
+    PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
+
+    PyObject* py_test_compile;
+    if (prompt_env) {
+        py_test_compile = Py_CompileString(code.c_str(), cell_name, Py_single_input);
+    } else {
+        py_test_compile = Py_CompileString(code.c_str(), cell_name, Py_file_input);
+    }
+
+    if (py_test_compile != NULL) {
+        code_validity.is_valid = "complete";
+    } else if (prompt_env && is_not_done_err_msg(code.c_str())) {
+        code_validity.is_valid = "incomplete";
+    } else {
+        code_validity.is_valid = "invalid";
+
+        PyErr_Print();
+        PyRun_SimpleString("sys.stderr.flush()\n");
+        PyRun_SimpleString("sys.OUTPUT_STDERR=stderr_buf.getvalue()\n");
+        PyObject* py_module_sys = PyImport_ImportModule("sys");
+        PyObject* py_stderr_buf = PyObject_GetAttrString(py_module_sys, "OUTPUT_STDERR");
+        code_validity.error_msg = std::string(PyUnicode_AsUTF8(py_stderr_buf));
+
+        Py_DECREF(py_module_sys);
+        Py_DECREF(py_stderr_buf);
+    }
+
+    // Clear buffer and dereference
+    PyRun_SimpleString("stderr_buf.close()\nsys.stderr=sys.__stderr__\n");
+    Py_XDECREF(py_test_compile);
+
+    return code_validity;
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Class         :  LibytPythonShell
 // Static Method :  execute_cell
 // Description   :  Execute code get from cell in Jupyter Notebook
