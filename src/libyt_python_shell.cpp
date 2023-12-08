@@ -3,7 +3,6 @@
 #include "libyt_python_shell.h"
 
 #include <cstring>
-#include <iostream>
 #include <string>
 
 #include "yt_combo.h"
@@ -75,6 +74,7 @@ int LibytPythonShell::clear_prompt_history() {
 //                     libyt.interactive_mode["func_body"].
 //                  3. Get only keyword def defined functions. If the functors are defined using __call__
 //                     this method cannot grab the corresponding definition.
+//                  4. TODO: It needs script's scope, otherwise some functors aren't detectable.
 //
 // Arguments     :  const char *filename: update function body for function defined inside filename
 //
