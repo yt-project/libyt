@@ -386,8 +386,8 @@ bool LibytPythonShell::is_not_done_err_msg(const char* code) {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Method      :  code_is_valid
-// Description :  Check code validity.
+// Class         :  LibytPythonShell
+// Static Method :  check_code_validity
 //
 // Notes       :  1. Test if it can compile based on Py_single_input (if in prompt env), otherwise compile
 //                   base on Py_file_input.
