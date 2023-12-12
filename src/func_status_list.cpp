@@ -32,7 +32,8 @@ int func_status_list::reset() {
 // Method      :  print_summary
 //
 // Notes       :  1. Print function status and error msg in func_status_list.
-//                2. normal      -> bold white
+//                2. Only root rank prints.
+//                3. normal      -> bold white
 //                   idle        -> bold blue
 //                   not run yet -> bold yellow
 //                   success     -> bold green
@@ -50,7 +51,7 @@ int func_status_list::print_summary() {
     fflush(stdout);
     fflush(stderr);
 
-    if (g_myrank == 0) {
+    if (g_myrank == g_myroot) {
         printf("\033[1;37m");
         printf("=====================================================================\n");
         printf("  %-40s     %-12s   %s\n", "Inline Function", "Status", "Run");
