@@ -3,9 +3,7 @@
 
 #include <mpi.h>
 
-#include <iostream>
-
-#include "define_command.h"
+#include "magic_command.h"
 #include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -52,7 +50,7 @@ void LibytWorker::start() {
                 break;
             }
             case 2: {
-                define_command command;
+                MagicCommand command;
                 // TODO: run command on non-root worker.
                 bool temp = command.run();
                 break;
