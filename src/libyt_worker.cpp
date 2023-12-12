@@ -5,6 +5,7 @@
 
 #include <iostream>
 
+#include "define_command.h"
 #include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -48,6 +49,12 @@ void LibytWorker::start() {
             }
             case 1: {
                 std::array<AccumulatedOutputString, 2> temp_string = LibytPythonShell::execute_cell();
+                break;
+            }
+            case 2: {
+                define_command command;
+                // TODO: run command on non-root worker.
+                bool temp = command.run();
                 break;
             }
             default: {
