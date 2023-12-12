@@ -50,6 +50,8 @@ public:
                                                                const std::string& cell_name = std::string(""));
     static std::array<AccumulatedOutputString, 2> execute_prompt(
         const std::string& code = std::string(""), const std::string& cell_name = std::string("<libyt-stdin>"));
+    static std::array<AccumulatedOutputString, 2> execute_file(const std::string& code = std::string(""),
+                                                               const std::string& file_name = std::string(""));
 };
 
 #endif  // __LIBYT_PYTHON_SHELL_H__
