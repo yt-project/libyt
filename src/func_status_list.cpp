@@ -128,7 +128,8 @@ std::string func_status_list::get_summary_html() {
         std::string("<td><span style=\"color: #F1C40F;") + base_style + std::string("\">X</span></td>");
 
     // Create table header, Inline Function, Status, Run
-    std::string output_html = std::string("<table><tr><th>Inline Function</th><th>Status</th><th>Run</th></tr>");
+    std::string output_html =
+        std::string("<table style=\"width: 100%\"><tr><th>Inline Function</th><th>Status</th><th>Run</th></tr>");
 
     // Loop through each function
     for (int i = 0; i < size(); i++) {
@@ -136,8 +137,10 @@ std::string func_status_list::get_summary_html() {
         output_html.append("<tr>");
 
         // Get function name
-        output_html.append("<td>");
+        output_html.append("<td style=\"text-alight: left;\">");
+        output_html.append("<span style=\"font-family:'Courier New'\">");
         output_html.append(m_FuncStatusList[i].get_func_name());
+        output_html.append("</span>");
         output_html.append("</td>");
 
         // Get status
