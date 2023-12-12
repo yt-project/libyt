@@ -386,8 +386,8 @@ bool LibytPythonShell::is_not_done_err_msg(const char* code) {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Method      :  code_is_valid
-// Description :  Check code validity.
+// Class         :  LibytPythonShell
+// Static Method :  check_code_validity
 //
 // Notes       :  1. Test if it can compile based on Py_single_input (if in prompt env), otherwise compile
 //                   base on Py_file_input.
@@ -454,17 +454,17 @@ CodeValidity LibytPythonShell::check_code_validity(const std::string& code, bool
 //                4. Root rank will pass in code, cell name; Non-root ranks only need to wait.
 //
 // Arguments   :  const std::array<std::string, 2>& code_split : code with upper and lower half
-//                int                             cell_counter : cell counter on the left
+//                const std::string&                cell_name  : cell name (default = "")
 //
 // Return      :  std::array<AccumulatedOutputString, 2> output[0] : stdout
 //                                                       output[1] : stderr
 //-------------------------------------------------------------------------------------------------------
 std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std::array<std::string, 2>& code_split,
-                                                                      int cell_counter) {
+                                                                      const std::string& cell_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef SERIAL_MODE
-    // Get code_split and cell name from root rank
+    // Get code_split from root rank
     unsigned long code_len[2] = {code_split[0].length(), code_split[1].length()};
     MPI_Bcast(&code_len[0], 1, MPI_UNSIGNED_LONG, g_myroot, MPI_COMM_WORLD);
     MPI_Bcast(&code_len[1], 1, MPI_UNSIGNED_LONG, g_myroot, MPI_COMM_WORLD);
@@ -482,16 +482,19 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std:
         }
     }
 
-    // Get cell_counter
-    MPI_Bcast(&cell_counter, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
-#endif
+    // Get cell_name from root rank
+    unsigned long cell_name_len = cell_name.length();
+    MPI_Bcast(&cell_name_len, 1, MPI_UNSIGNED_LONG, g_myroot, MPI_COMM_WORLD);
 
-    std::string cell_name;
-    if (cell_counter == -1) {
-        cell_name = std::string("<libyt-stdin>");
+    char* cell_name_get;
+    if (g_myrank == g_myroot) {
+        MPI_Bcast((void*)cell_name.c_str(), (int)cell_name_len, MPI_CHAR, g_myroot, MPI_COMM_WORLD);
     } else {
-        cell_name = std::string("In [") + std::to_string(cell_counter) + std::string("]");
+        cell_name_get = new char[cell_name_len + 1];
+        MPI_Bcast((void*)cell_name_get, (int)cell_name_len, MPI_CHAR, g_myroot, MPI_COMM_WORLD);
+        cell_name_get[cell_name_len] = '\0';
     }
+#endif
 
     // Clear the template buffer and redirect stdout, stderr
     PyRun_SimpleString("import sys, io\n");
@@ -502,20 +505,23 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std:
     PyObject *py_src, *py_dump;
     bool has_error = false;
     for (int i = 0; i < 2; i++) {
-        const char* code;
+        const char* code_sync;
+        const char* cell_name_sync;
         if (g_myrank == g_myroot) {
-            code = code_split[i].c_str();
+            code_sync = code_split[i].c_str();
+            cell_name_sync = cell_name.c_str();
         }
 #ifndef SERIAL_MODE
         else {
-            code = code_get[i];
+            code_sync = code_get[i];
+            cell_name_sync = cell_name_get;
         }
 #endif
-        if (strlen(code) <= 0) continue;
+        if (strlen(code_sync) <= 0) continue;
         if (i == 0) {
-            py_src = Py_CompileString(code, cell_name.c_str(), Py_file_input);
+            py_src = Py_CompileString(code_sync, cell_name_sync, Py_file_input);
         } else {
-            py_src = Py_CompileString(code, cell_name.c_str(), Py_single_input);
+            py_src = Py_CompileString(code_sync, cell_name_sync, Py_single_input);
         }
 
         // Every MPI process should have the same compile result
@@ -525,13 +531,13 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std:
             if (PyErr_Occurred()) {
                 has_error = true;
                 PyErr_Print();
-                load_input_func_body(code);
+                load_input_func_body(code_sync);
 
                 Py_DECREF(py_src);
                 Py_XDECREF(py_dump);
             } else {
-                load_input_func_body(code);
-                g_libyt_python_shell.update_prompt_history(std::string(code));
+                load_input_func_body(code_sync);
+                g_libyt_python_shell.update_prompt_history(std::string(code_sync));
 
                 Py_DECREF(py_src);
                 Py_XDECREF(py_dump);
@@ -558,6 +564,7 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std:
     if (g_myrank != g_myroot) {
         delete[] code_get[0];
         delete[] code_get[1];
+        delete[] cell_name_get;
     }
 #endif
 
@@ -640,16 +647,44 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std:
 //                   itself.
 //                3.
 //
-// Arguments   :  const std::string&         code : single statement code    (default = "")
-//                int                cell_counter : cell counter on the left (default = -1, "libyt-stdin")
+// Arguments   :  const std::string&         code : single statement code (default = "")
+//                const std::string&    cell_name : cell name             (default = "<libyt-stdin>")
 //
 // Return      :  std::array<AccumulatedOutputString, 2> output[0] : stdout
 //                                                       output[1] : stderr
 //-------------------------------------------------------------------------------------------------------
-std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_prompt(const std::string& code, int cell_counter) {
+std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_prompt(const std::string& code,
+                                                                        const std::string& cell_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    std::array<AccumulatedOutputString, 2> output = execute_cell({"", code}, cell_counter);
+    std::array<AccumulatedOutputString, 2> output = execute_cell({"", code}, cell_name);
+
+    return output;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  LibytPythonShell
+// Static Method :  execute_file
+// Description   :  Execute a file
+//
+// Notes       :  1. This is a collective operation, requires every rank to call this function.
+//                   Assuming every MPI process enter this function at the same state the same time.
+//                2. Root rank will gather stdout and stderr from non-root rank, so the string returned
+//                   contains each ranks dumped output in root, and non-root rank only returns output from
+//                   itself.
+//                3. Root rank will broadcast codes and related info for non-root rank.
+//
+// Arguments   :  const std::string&         code : full code in a file   (default = "")
+//                const std::string&    file_name : file name             (default = "")
+//
+// Return      :  std::array<AccumulatedOutputString, 2> output[0] : stdout
+//                                                       output[1] : stderr
+//-------------------------------------------------------------------------------------------------------
+std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_file(const std::string& code,
+                                                                      const std::string& file_name) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    std::array<AccumulatedOutputString, 2> output = execute_cell({code, ""}, file_name);
 
     return output;
 }

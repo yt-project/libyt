@@ -47,8 +47,11 @@ public:
     static CodeValidity check_code_validity(const std::string& code, bool prompt_env = false,
                                             const char* cell_name = "<libyt-stdin>");
     static std::array<AccumulatedOutputString, 2> execute_cell(const std::array<std::string, 2>& code_split = {"", ""},
-                                                               int cell_counter = -1);
-    static std::array<AccumulatedOutputString, 2> execute_prompt(const std::string& code = "", int cell_counter = -1);
+                                                               const std::string& cell_name = std::string(""));
+    static std::array<AccumulatedOutputString, 2> execute_prompt(
+        const std::string& code = std::string(""), const std::string& cell_name = std::string("<libyt-stdin>"));
+    static std::array<AccumulatedOutputString, 2> execute_file(const std::string& code = std::string(""),
+                                                               const std::string& file_name = std::string(""));
 };
 
 #endif  // __LIBYT_PYTHON_SHELL_H__

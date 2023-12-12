@@ -4,6 +4,7 @@
 #include <string>
 #include <xeus/xhelper.hpp>
 
+#include "define_command.h"
 #include "libyt.h"
 #include "libyt_python_shell.h"
 #include "yt_combo.h"
@@ -51,7 +52,8 @@ void LibytKernel::configure_impl() {
 //                2. Code will not be empty, it must contain characters other than newline or space.
 //                3. Always return "xeus::create_successful_reply()", though I don't know what it is for.
 //                4. Run the last statement using Py_single_input, so that it displays value.
-//                5. TODO: Support libyt defined commands and display
+//                5. libyt defined commands and magic commands (though currently not supported yet), should
+//                   start with %, and should be single line.
 //
 // Arguments   :  int   execution_counter  : cell number
 //                const std::string& code  : raw code, will not be empty
@@ -67,6 +69,17 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     SET_TIMER(__PRETTY_FUNCTION__);
 
     std::string cell_name = std::string("In [") + std::to_string(execution_counter) + std::string("]");
+
+    // Find if '%' is the first non-space character, if so, redirect jobs to define command
+    std::size_t found = code.find_first_not_of("\t\n\v\f\r ");
+    if (found != std::string::npos && code.at(found) == '%') {
+#ifndef SERIAL_MODE
+        int indicator = 2;
+        MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+#endif
+        define_command command;
+        bool temp = command.run(code.substr(found, code.length() - found));
+    }
 
     // Make sure code is valid before continue
     CodeValidity code_validity = LibytPythonShell::check_code_validity(code, false, cell_name.c_str());
@@ -111,7 +124,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     int indicator = 1;
     MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
-    std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_cell(code_split, execution_counter);
+    std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_cell(code_split, cell_name);
 
     // Insert header to string
     for (int i = 0; i < 2; i++) {
