@@ -155,7 +155,10 @@ int MagicCommand::get_status() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
-    g_func_status_list.print_summary();
+
+    m_OutputData.mimetype = std::string("text/html");
+    m_OutputData.output = g_func_status_list.get_summary_html();
+
     return YT_SUCCESS;
 }
 
@@ -173,20 +176,22 @@ int MagicCommand::get_help_msg() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
-    if (g_myrank == s_Root) {
-        printf("Usage:  %%libyt COMMAND\n");
-        printf("Commands:\n");
-        printf("  %-6s  %-11s  %-8s  %s\n", "help", "", "", "print help message");
-        printf("  %-6s  %-11s  %-8s  %s\n", "exit", "", "", "exit and continue simulation");
-        printf("  %-6s  %-11s  %-8s  %s\n", "load", "<file name>", "", "load file to original script's");
-        printf("  %-6s  %-11s  %-8s  %s\n", "", "", "", "namespace");
-        printf("  %-6s  %-11s  %-8s  %s\n", "export", "<file name>", "", "export input in prompt to file");
-        printf("  %-6s  %-11s  %-8s  %s\n", "status", "", "", "get overall function status");
-        printf("  %-6s  %-11s  %-8s  %s\n", "status", "<func name>", "", "get function status");
-        printf("  %-6s  %-11s  %-8s  %s\n", "run", "<func name>", "[arg1 ]", "function will run in next iteration");
-        printf("  %-6s  %-11s  %-8s  %s\n", "", "", "", "using args, ex: func(arg1, arg2)");
-        printf("  %-6s  %-11s  %-8s  %s\n", "idle", "<func name>", "", "function will idle in next iteration");
-    }
+
+    m_OutputData.mimetype = std::string("text/markdown");
+    m_OutputData.output =
+        std::string("**Usage:** %libyt COMMAND\n"
+                    "| COMMAND | Arguments | Usage |\n"
+                    "|---|---|---|\n"
+                    "| help |  | Print help messages. |\n"
+                    "| load | filename | Load and run Python file `filename` in imported script's namespace. |\n"
+                    "| export | filename | Export history to `filename`. |\n"
+                    "| status |  | Get overall function status. <br> - \"Status\" indicates the execute status call by "
+                    "libyt API. <br> - \"Run\" indicates the the function will run automatically. |\n"
+                    "| status | function_name | Get `function_name` status. |\n"
+                    "| run | function_name [arg1, arg2, ...] | Run `function_name` automatically by calling "
+                    "`function_name(arg1, arg2, ...)`. Arguments are optional. |\n"
+                    "| idle | function_name | Make `function_name` idle. |");
+
     return YT_SUCCESS;
 }
 
