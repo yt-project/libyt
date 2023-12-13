@@ -78,7 +78,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
         MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
         MagicCommand command;
-        bool temp = command.run(code.substr(found, code.length() - found));
+        OutputData temp = command.run(code.substr(found, code.length() - found));
 
         // test get html
         nl::json pub_data;

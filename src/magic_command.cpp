@@ -25,7 +25,7 @@ int MagicCommand::s_Root = g_myroot;
 //
 // Return      : true / false   : whether to exit interactive loop.
 //-------------------------------------------------------------------------------------------------------
-bool MagicCommand::run(const std::string& command) {
+OutputData MagicCommand::run(const std::string& command) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // get m_Command from s_Root
@@ -57,6 +57,7 @@ bool MagicCommand::run(const std::string& command) {
     std::vector<std::string> arg_list;
 
     bool run_success = false;
+    // TODO: START HERE
 
     // Mapping %libyt defined commands to methods
     ss >> arg;
@@ -69,12 +70,10 @@ bool MagicCommand::run(const std::string& command) {
         // call corresponding method
         if (arg_list.size() == 1) {
             if (arg_list[0].compare("exit") == 0) {
-                g_libyt_python_shell.clear_prompt_history();
-                return true;
             } else if (arg_list[0].compare("status") == 0)
-                run_success = print_status();
+                run_success = get_status();
             else if (arg_list[0].compare("help") == 0)
-                run_success = print_help_msg();
+                run_success = get_help_msg();
         } else if (arg_list.size() == 2) {
             if (arg_list[0].compare("load") == 0)
                 run_success = load_script(arg_list[1].c_str());
@@ -102,10 +101,7 @@ bool MagicCommand::run(const std::string& command) {
         }
     }
 
-    fflush(stdout);
-    fflush(stderr);
-
-    return false;
+    return OutputData();
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -119,7 +115,7 @@ bool MagicCommand::run(const std::string& command) {
 //
 // Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int MagicCommand::print_status() {
+int MagicCommand::get_status() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
@@ -137,7 +133,7 @@ int MagicCommand::print_status() {
 //
 // Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int MagicCommand::print_help_msg() {
+int MagicCommand::get_help_msg() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
