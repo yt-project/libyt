@@ -16,16 +16,17 @@ int MagicCommand::s_Root = g_myroot;
 // Class       :  MagicCommand
 // Method      :  run
 //
-// Notes       :  1. This is a collective operation and an entry point for yt_run_InteractiveMode or
-//                   yt_run_JupyterKernel to call libyt defined command.
+// Notes       :  1. This is a collective operation and an entry point for yt_run_JupyterKernel to call
+//                   libyt defined command.
 //                2. stringstream is slow and string copying is slow, but ..., too lazy to do that.
-//                3. Will always ignore "%libyt exit", it will only clear prompt history.
+//                3. Returned from magic commands indicates if this operation is success or not.
+//                   m_Undefine indicates if there is a corresponding method.
 //
 // Arguments   :  const std::string& command : command to run (default is "", which will get command from root).
 //
-// Return      : true / false   : whether to exit interactive loop.
+// Return      : OutputData& m_OutputData : output data are generated and stored while calling methods.
 //-------------------------------------------------------------------------------------------------------
-OutputData MagicCommand::run(const std::string& command) {
+OutputData& MagicCommand::run(const std::string& command) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // get m_Command from s_Root
@@ -57,7 +58,6 @@ OutputData MagicCommand::run(const std::string& command) {
     std::vector<std::string> arg_list;
 
     bool run_success = false;
-    // TODO: START HERE
 
     // Mapping %libyt defined commands to methods
     ss >> arg;
@@ -67,41 +67,77 @@ OutputData MagicCommand::run(const std::string& command) {
             arg_list.emplace_back(arg);
         }
 
-        // call corresponding method
-        if (arg_list.size() == 1) {
-            if (arg_list[0].compare("exit") == 0) {
-            } else if (arg_list[0].compare("status") == 0)
-                run_success = get_status();
-            else if (arg_list[0].compare("help") == 0)
-                run_success = get_help_msg();
-        } else if (arg_list.size() == 2) {
-            if (arg_list[0].compare("load") == 0)
-                run_success = load_script(arg_list[1].c_str());
-            else if (arg_list[0].compare("export") == 0)
-                run_success = export_script(arg_list[1].c_str());
-            else if (arg_list[0].compare("run") == 0)
-                run_success = set_func_run(arg_list[1].c_str(), true);
-            else if (arg_list[0].compare("idle") == 0)
-                run_success = set_func_run(arg_list[1].c_str(), false);
-            else if (arg_list[0].compare("status") == 0)
-                run_success = get_func_status(arg_list[1].c_str());
-        } else if (arg_list.size() > 2) {
-            if (arg_list[0].compare("run") == 0) run_success = set_func_run(arg_list[1].c_str(), true, arg_list);
+        // dispatch to method
+        switch (arg_list.size()) {
+            case 1: {
+                // exit, status, help
+                if (arg_list[0].compare("exit") == 0) {
+                    run_success = exit();
+                } else if (arg_list[0].compare("status") == 0) {
+                    run_success = get_status();
+                } else if (arg_list[0].compare("help") == 0) {
+                    run_success = get_help_msg();
+                }
+                break;
+            }
+            case 2: {
+                // load, export, run, idle, status
+                if (arg_list[0].compare("load") == 0) {
+                    run_success = load_script(arg_list[1].c_str());
+                } else if (arg_list[0].compare("export") == 0) {
+                    run_success = export_script(arg_list[1].c_str());
+                } else if (arg_list[0].compare("run") == 0) {
+                    run_success = set_func_run(arg_list[1].c_str(), true);
+                } else if (arg_list[0].compare("idle") == 0) {
+                    run_success = set_func_run(arg_list[1].c_str(), false);
+                } else if (arg_list[0].compare("status") == 0) {
+                    run_success = get_func_status(arg_list[1].c_str());
+                }
+                break;
+            }
+            default: {
+                // > 2, run with args
+                if (arg_list[0].compare("run") == 0) {
+                    run_success = set_func_run(arg_list[1].c_str(), true, arg_list);
+                }
+                break;
+            }
         }
     }
 
     if (g_myrank == s_Root) {
         if (m_Undefine) {
-            printf("[YT_ERROR  ] Unkown libyt command : %s\n"
-                   "(Type %%libyt help for help ...)\n",
-                   m_Command.c_str());
+            m_OutputData.error = std::string("Unknown libyt command : ") + m_Command + std::string("\n") +
+                                 std::string("(Type %libyt help for help ...)");
         }
         if (run_success) {
             g_libyt_python_shell.update_prompt_history(std::string("# ") + m_Command + std::string("\n"));
         }
     }
 
-    return OutputData();
+    return m_OutputData;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class      :  MagicCommand
+// Method     :  exit
+//
+// Notes      :  1. Generate helper msg for JupyterKernel if this method is called, since this is not
+//                  supported in JupyterKernel.
+//
+// Arguments  :  None
+//
+// Return     :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int MagicCommand::exit() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    m_Undefine = false;
+
+    m_OutputData.error =
+        std::string("%libyt exit is not supported in Jupyter, please use frontend UI 'shutdown' to exit libyt kernel.");
+
+    return YT_FAIL;
 }
 
 //-------------------------------------------------------------------------------------------------------

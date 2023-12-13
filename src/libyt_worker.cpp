@@ -51,7 +51,6 @@ void LibytWorker::start() {
             }
             case 2: {
                 MagicCommand command;
-                // TODO: run command on non-root worker.
                 OutputData temp = command.run();
                 break;
             }
