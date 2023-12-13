@@ -262,23 +262,23 @@ int func_status_list::run_func() {
             const char* wrapped = m_FuncStatusList[i].get_wrapper() ? "\"\"\"" : "'''";
             sprintf(command,
                     "try:\n"
-                    "    exec(%s%s(%s)%s, sys.modules[\"%s\"].__dict__)\n"
+                    "    exec(%s%s%s, sys.modules[\"%s\"].__dict__)\n"
                     "except Exception as e:\n"
                     "    libyt.interactive_mode[\"func_err_msg\"][\"%s\"] = traceback.format_exc()\n",
-                    wrapped, funcname, m_FuncStatusList[i].get_args().c_str(), wrapped, g_param_libyt.script, funcname);
+                    wrapped, m_FuncStatusList[i].get_full_func().c_str(), wrapped, g_param_libyt.script, funcname);
 
             // run and update status
-            log_info("Performing YT inline analysis %s(%s) ...\n", funcname, m_FuncStatusList[i].get_args().c_str());
+            log_info("Performing YT inline analysis %s ...\n", m_FuncStatusList[i].get_full_func().c_str());
             m_FuncStatusList[i].set_status(-2);
             if (PyRun_SimpleString(command) != 0) {
                 m_FuncStatusList[i].set_status(0);
                 free(command);
-                YT_ABORT("Unexpected error occurred while executing %s(%s) in script's namespace.\n", funcname,
-                         m_FuncStatusList[i].get_args().c_str());
+                YT_ABORT("Unexpected error occurred while executing %s in script's namespace.\n",
+                         m_FuncStatusList[i].get_full_func().c_str());
             }
             m_FuncStatusList[i].get_status();
-            log_info("Performing YT inline analysis %s(%s) ... done\n", funcname,
-                     m_FuncStatusList[i].get_args().c_str());
+            log_info("Performing YT inline analysis %s ... done\n", funcname,
+                     m_FuncStatusList[i].get_full_func().c_str());
 
             // clean up
             free(command);
