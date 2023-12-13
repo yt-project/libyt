@@ -87,9 +87,9 @@ OutputData& MagicCommand::run(const std::string& command) {
                 } else if (arg_list[0].compare("export") == 0) {
                     run_success = export_script(arg_list[1]);
                 } else if (arg_list[0].compare("run") == 0) {
-                    run_success = set_func_run(arg_list[1].c_str(), true);
+                    run_success = set_func_run(arg_list[1], true);
                 } else if (arg_list[0].compare("idle") == 0) {
-                    run_success = set_func_run(arg_list[1].c_str(), false);
+                    run_success = set_func_run(arg_list[1], false);
                 } else if (arg_list[0].compare("status") == 0) {
                     run_success = get_func_status(arg_list[1].c_str());
                 }
@@ -98,7 +98,7 @@ OutputData& MagicCommand::run(const std::string& command) {
             default: {
                 // > 2, run with args
                 if (arg_list[0].compare("run") == 0) {
-                    run_success = set_func_run(arg_list[1].c_str(), true, arg_list);
+                    run_success = set_func_run(arg_list[1], true, arg_list);
                 }
                 break;
             }
@@ -337,49 +337,59 @@ int MagicCommand::export_script(const std::string& filename) {
 // Method     :  set_func_run
 //
 // Notes      :  1. Determine which function will run or idle in next step.
-//               2. arg_list is optional. If arg_list is passed in, then libyt will definitely set it to
-//                  run.
+//               2. arg_list is optional.
 //
-// Arguments  :  const char               *funcname : function name
+// Arguments  :  const std::string&        funcname : function name
 //               bool                      run      : run in next inline process or not
 //               std::vector<std::string>  arg_list : contains input args starting from index arg_list[2]
 //
 // Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int MagicCommand::set_func_run(const char* funcname, bool run) {
+int MagicCommand::set_func_run(const std::string& funcname, bool run) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
 
-    int index = g_func_status_list.get_func_index(funcname);
+    int index = g_func_status_list.get_func_index(funcname.c_str());
     if (index == -1) {
-        if (g_myrank == s_Root) printf("Function %s not found\n", funcname);
+        if (g_myrank == s_Root) {
+            m_OutputData.error = std::string("Function '") + funcname + std::string("' not found\n");
+        }
         return YT_FAIL;
     } else {
         g_func_status_list[index].set_run(run);
-        if (g_myrank == s_Root) printf("Function %s set to %s ... done\n", funcname, run ? "run" : "idle");
 
         // update input args to empty string
         std::string args("");
         g_func_status_list[index].set_args(args);
 
         // print args if function is set to run
-        if (g_myrank == s_Root && run)
-            printf("Run %s(%s) in next iteration\n", funcname, g_func_status_list[index].get_args().c_str());
+        if (g_myrank == s_Root) {
+            m_OutputData.mimetype = std::string("text/plain");
+            m_OutputData.output = std::string("Function '") + funcname + std::string("' set to ");
+            m_OutputData.output += run ? std::string("run") : std::string("idle");
+            m_OutputData.output += std::string(" ... done\n");
+            if (run) {
+                m_OutputData.output += std::string("Run ") + g_func_status_list[index].get_full_func() +
+                                       std::string(" in next iteration\n");
+            }
+        }
 
         return YT_SUCCESS;
     }
 }
 
-int MagicCommand::set_func_run(const char* funcname, bool run, std::vector<std::string>& arg_list) {
+int MagicCommand::set_func_run(const std::string& funcname, bool run, std::vector<std::string>& arg_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
 
     // get function index
-    int index = g_func_status_list.get_func_index(funcname);
+    int index = g_func_status_list.get_func_index(funcname.c_str());
     if (index == -1) {
-        if (g_myrank == s_Root) printf("Function %s not found\n", funcname);
+        if (g_myrank == s_Root) {
+            m_OutputData.error = std::string("Function '") + funcname + std::string("' not found\n");
+        }
         return YT_FAIL;
     }
 
@@ -412,14 +422,18 @@ int MagicCommand::set_func_run(const char* funcname, bool run, std::vector<std::
     args.pop_back();
 
     if (unable_to_wrapped) {
-        if (g_myrank == s_Root) printf("[YT_ERROR  ] Please avoid using both \"\"\" and ''' for triple quotes\n");
+        if (g_myrank == s_Root) {
+            m_OutputData.error = std::string("Please avoid using both \"\"\" and ''' for triple quotes\n");
+        }
         return YT_FAIL;
     } else {
         g_func_status_list[index].set_args(args);
         g_func_status_list[index].set_run(run);
         if (g_myrank == s_Root) {
-            printf("Function %s set to run ... done\n", funcname);
-            printf("Run %s(%s) in next iteration\n", funcname, g_func_status_list[index].get_args().c_str());
+            m_OutputData.mimetype = std::string("text/plain");
+            m_OutputData.output = std::string("Function '") + funcname + std::string("' set to run ... done\n");
+            m_OutputData.output +=
+                std::string("Run ") + g_func_status_list[index].get_full_func() + std::string(" in next iteration\n");
         }
         return YT_SUCCESS;
     }

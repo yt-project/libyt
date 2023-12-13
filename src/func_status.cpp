@@ -68,6 +68,25 @@ func_status::~func_status() { delete[] m_FuncName; }
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status
+// Method      :  get_full_func
+//
+// Notes       :  1. Return the string of how Python call this function, including arguments.
+//
+// Arguments   :  None
+//
+// Return      :  std::string function_call : how python will call this function, including args.
+//-------------------------------------------------------------------------------------------------------
+std::string func_status::get_full_func() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    std::string function_call = std::string(m_FuncName);
+    function_call += std::string("(") + m_Args + std::string(")");
+
+    return function_call;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  func_status
 // Method      :  get_status
 //
 // Notes       :  1. If m_Status = -2, which is running, then this is a collective call. After checking

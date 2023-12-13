@@ -189,7 +189,7 @@ std::string func_status_list::get_summary_html() {
 //
 // Arguments   :  char   *func_name: inline function name
 //
-// Return      :  index : index of func_name in list, return -1 if doesn't exist.
+// Return      :  index : index of func_name in list, return -1 if it doesn't exist.
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::get_func_index(const char* func_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
