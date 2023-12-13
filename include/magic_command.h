@@ -4,6 +4,12 @@
 #include <string>
 #include <vector>
 
+struct OutputData {
+    std::string status;
+    std::string mimetype;
+    std::string output;
+};
+
 class MagicCommand {
 private:
     std::string m_Command;
@@ -12,10 +18,10 @@ private:
 
 public:
     MagicCommand() : m_Command(""), m_Undefine(true){};
-    bool run(const std::string& command = std::string(""));
+    OutputData run(const std::string& command = std::string(""));
 
-    int print_status();
-    int print_help_msg();
+    int get_status();
+    int get_help_msg();
     int load_script(const char* filename);
     int export_script(const char* filename);
     int set_func_run(const char* funcname, bool run);

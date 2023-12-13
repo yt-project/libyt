@@ -52,7 +52,7 @@ void LibytWorker::start() {
             case 2: {
                 MagicCommand command;
                 // TODO: run command on non-root worker.
-                bool temp = command.run();
+                OutputData temp = command.run();
                 break;
             }
             default: {
