@@ -85,7 +85,7 @@ OutputData& MagicCommand::run(const std::string& command) {
                 if (arg_list[0].compare("load") == 0) {
                     run_success = load_script(arg_list[1]);
                 } else if (arg_list[0].compare("export") == 0) {
-                    run_success = export_script(arg_list[1].c_str());
+                    run_success = export_script(arg_list[1]);
                 } else if (arg_list[0].compare("run") == 0) {
                     run_success = set_func_run(arg_list[1].c_str(), true);
                 } else if (arg_list[0].compare("idle") == 0) {
@@ -308,14 +308,14 @@ int MagicCommand::load_script(const std::string& filename) {
 // Method     :  export_script
 //
 // Notes      :  1. Export input during this step's interactive loop.
-//               2. Let user maintain their script imported.
-//               3. Overwriting existing file.
+//               2. Overwriting existing file.
+//               3. Only process s_Root will write to file.
 //
 // Arguments  :  const char *filename : output file name
 //
 // Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int MagicCommand::export_script(const char* filename) {
+int MagicCommand::export_script(const std::string& filename) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
@@ -325,7 +325,8 @@ int MagicCommand::export_script(const char* filename) {
         dump_file.open(filename, std::ofstream::trunc);
         dump_file << g_libyt_python_shell.get_prompt_history();
         dump_file.close();
-        printf("Exporting script %s ... done\n", filename);
+        m_OutputData.mimetype = std::string("text/plain");
+        m_OutputData.output = std::string("Exporting script to '") + filename + std::string("' ... done\n");
     }
 
     return YT_SUCCESS;
