@@ -322,7 +322,7 @@ int define_command::set_func_run(const char* funcname, bool run) {
 
         // print args if function is set to run
         if (g_myrank == s_Root && run)
-            printf("Run %s(%s) in next iteration\n", funcname, g_func_status_list[index].get_args().c_str());
+            printf("Run %s in next iteration\n", g_func_status_list[index].get_full_func().c_str());
 
         return YT_SUCCESS;
     }
@@ -376,7 +376,7 @@ int define_command::set_func_run(const char* funcname, bool run, std::vector<std
         g_func_status_list[index].set_run(run);
         if (g_myrank == s_Root) {
             printf("Function %s set to run ... done\n", funcname);
-            printf("Run %s(%s) in next iteration\n", funcname, g_func_status_list[index].get_args().c_str());
+            printf("Run %s in next iteration\n", g_func_status_list[index].get_full_func().c_str());
         }
         return YT_SUCCESS;
     }
