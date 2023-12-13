@@ -73,17 +73,24 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     // Find if '%' is the first non-space character, if so, redirect jobs to define command
     std::size_t found = code.find_first_not_of("\t\n\v\f\r ");
     if (found != std::string::npos && code.at(found) == '%') {
+        // call magic command
 #ifndef SERIAL_MODE
         int indicator = 2;
         MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
         MagicCommand command;
-        OutputData temp = command.run(code.substr(found, code.length() - found));
+        OutputData command_output = command.run(code.substr(found, code.length() - found));
 
-        // test get html
-        nl::json pub_data;
-        pub_data["text/html"] = g_func_status_list.get_summary_html().c_str();
-        publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
+        // publish result and error
+        if (command_output.output.length() > 0) {
+            nlohmann::json pub_data;
+            pub_data[command_output.mimetype.c_str()] = command_output.output.c_str();
+            publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
+        }
+        if (command_output.error.length() > 0) {
+            publish_execution_error("LibytMagicCommandError", "", split(command_output.error, "\n"));
+        }
+
         return xeus::create_successful_reply();
     }
 
