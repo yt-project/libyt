@@ -25,7 +25,7 @@ public:
     int exit();
     int get_status();
     int get_help_msg();
-    int load_script(const char* filename);
+    int load_script(const std::string& filename);
     int export_script(const char* filename);
     int set_func_run(const char* funcname, bool run);
     int set_func_run(const char* funcname, bool run, std::vector<std::string>& arg_list);
