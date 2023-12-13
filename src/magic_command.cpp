@@ -83,7 +83,7 @@ OutputData& MagicCommand::run(const std::string& command) {
             case 2: {
                 // load, export, run, idle, status
                 if (arg_list[0].compare("load") == 0) {
-                    run_success = load_script(arg_list[1].c_str());
+                    run_success = load_script(arg_list[1]);
                 } else if (arg_list[0].compare("export") == 0) {
                     run_success = export_script(arg_list[1].c_str());
                 } else if (arg_list[0].compare("run") == 0) {
@@ -207,11 +207,11 @@ int MagicCommand::get_help_msg() {
 //                  be rewritten.
 //               4. Character in the file loaded cannot exceed INT_MAX.
 //
-// Arguments  :  const char *filename : file name to reload
+// Arguments  :  const std::string& filename : file name to reload
 //
 // Return     : YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int MagicCommand::load_script(const char* filename) {
+int MagicCommand::load_script(const std::string& filename) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
@@ -225,9 +225,9 @@ int MagicCommand::load_script(const char* filename) {
 #ifndef SERIAL_MODE
             int indicator = -1;
             MPI_Bcast(&indicator, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
-            printf("File %s doesn't exist.\n", filename);
-            printf("Loading script %s ... failed\n", filename);
 #endif
+            m_OutputData.error = std::string("File ") + filename + std::string("doesn't exist.\n");
+            m_OutputData.error += std::string("Loading script '") + filename + std::string("' ... failed.\n");
             return YT_FAIL;
         }
         std::string line;
@@ -238,33 +238,37 @@ int MagicCommand::load_script(const char* filename) {
         stream.close();
 
         // check code validity
-        CodeValidity code_validity = LibytPythonShell::check_code_validity(ss.str(), false, filename);
+        CodeValidity code_validity = LibytPythonShell::check_code_validity(ss.str(), false, filename.c_str());
         if (code_validity.is_valid.compare("complete") == 0) {
 #ifndef SERIAL_MODE
             int indicator = 1;
             MPI_Bcast(&indicator, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
 #endif
+            // run file and parse output
             std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_file(ss.str(), filename);
             for (int i = 0; i < 2; i++) {
                 if (output[i].output_string.length() > 0) {
                     int offset = 0;
                     for (int r = 0; r < g_mysize; r++) {
-                        printf("\033[1;34m[MPI Process %d]\033[0;37m\n", r);
+                        std::string head =
+                            std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\n\033[0;30m");
                         if (output[i].output_length[r] == 0) {
-                            printf("(None)\n");
+                            head += std::string("(None)\n");
                         }
-                        printf("%s\n", output[i].output_string.substr(offset, output[i].output_length[r]).c_str());
-                        offset += output[i].output_length[r];
+                        output[i].output_string.insert(offset, head);
+                        offset = offset + head.length() + output[i].output_length[r];
                     }
                 }
             }
+            m_OutputData.output = output[0].output_string;
+            m_OutputData.error = output[1].output_string;
         } else {
 #ifndef SERIAL_MODE
             int indicator = -1;
             MPI_Bcast(&indicator, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
 #endif
-            printf("%s\n", code_validity.error_msg.c_str());
-            printf("Loading script %s ... failed\n", filename);
+            m_OutputData.error = code_validity.error_msg + std::string("\n");
+            m_OutputData.error += std::string("Loading script '") + filename + std::string("' ... failed\n");
             return YT_FAIL;
         }
     }
@@ -283,16 +287,18 @@ int MagicCommand::load_script(const char* filename) {
 #endif
 
     // update libyt.interactive_mode["func_body"]
-    LibytPythonShell::load_file_func_body(filename);
+    LibytPythonShell::load_file_func_body(filename.c_str());
 
     // get function list defined inside the script, add the function name to list if it doesn't exist
     // and set to idle
-    std::vector<std::string> func_list = LibytPythonShell::get_funcname_defined(filename);
+    std::vector<std::string> func_list = LibytPythonShell::get_funcname_defined(filename.c_str());
     for (int i = 0; i < (int)func_list.size(); i++) {
         g_func_status_list.add_new_func(func_list[i].c_str(), 0);
     }
 
-    if (g_myrank == s_Root) printf("Loading script %s ... done\n", filename);
+    // returned type from file must be text/plain, like other python results
+    m_OutputData.mimetype = std::string("text/plain");
+    m_OutputData.output += std::string("Loading script '") + filename + std::string("' ... done\n");
 
     return YT_SUCCESS;
 }
