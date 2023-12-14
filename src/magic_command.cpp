@@ -503,7 +503,7 @@ int MagicCommand::get_func_status(const std::string& funcname) {
 
     // Call getting error message, this is a collective call
     if (status == 0) {
-        // TODO: get error message and parse it
+        std::vector<std::string> output_error = g_func_status_list[index].get_error_msg();
         m_OutputData.output += std::string("<details>\n"
                                            "  <summary>MPI Process 1</summary>\n"
                                            "  <p>Content 1 Content 1 Content 1 Content 1 Content 1 <br>\n"
