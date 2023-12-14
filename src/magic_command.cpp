@@ -471,7 +471,7 @@ int MagicCommand::get_func_status(const std::string& funcname) {
         m_OutputData.output = std::string("#### `") + funcname + std::string("`\n");
 
         // Execute status
-        m_OutputData.output += std::string("- **Execute status in current call:** ");
+        m_OutputData.output += std::string("- **Execute status in previous call:** ");
         if (status == 1) {
             m_OutputData.output += std::string("_Success_\n");
         } else if (status == 0) {
@@ -490,16 +490,14 @@ int MagicCommand::get_func_status(const std::string& funcname) {
         }
 
         // Function definition
-        m_OutputData.output += std::string("- **Function definition:**\n");
+        m_OutputData.output += std::string("- **Current function definition:**\n");
         m_OutputData.output += std::string("  ```python\n");
-        // TODO: get function definition
-        m_OutputData.output += std::string("  def func():\n"
-                                           "      print('PLACE HOLDER')\n");
+        m_OutputData.output += g_func_status_list[index].get_func_body();
         m_OutputData.output += std::string("  ```\n");
 
         // Error message if it has (status == 0)
         if (status == 0) {
-            m_OutputData.output += std::string("- **Error message from current call:**\n");
+            m_OutputData.output += std::string("- **Error message from previous call:**\n");
         }
     }
 
