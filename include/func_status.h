@@ -47,5 +47,6 @@ public:
 
     int serial_print_error(int indent_size, int indent_level);
     int print_func_body(int indent_size, int indent_level);
+    std::string get_func_body();
 };
 #endif  // #ifndef __FUNC_STATUS_H__
