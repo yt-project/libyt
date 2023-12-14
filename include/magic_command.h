@@ -29,7 +29,7 @@ public:
     int export_script(const std::string& filename);
     int set_func_run(const std::string& funcname, bool run);
     int set_func_run(const std::string& funcname, bool run, std::vector<std::string>& arg_list);
-    int get_func_status(const char* funcname);
+    int get_func_status(const std::string& funcname);
 };
 
 #endif  //__MAGIC_COMMAND_H__
