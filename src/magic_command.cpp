@@ -369,7 +369,7 @@ int MagicCommand::set_func_run(const std::string& funcname, bool run) {
             m_OutputData.output += run ? std::string("run") : std::string("idle");
             m_OutputData.output += std::string(" ... done\n");
             if (run) {
-                m_OutputData.output += std::string("Run ") + g_func_status_list[index].get_full_func() +
+                m_OutputData.output += std::string("Run ") + g_func_status_list[index].get_full_func_name() +
                                        std::string(" in next iteration\n");
             }
         }
@@ -431,8 +431,8 @@ int MagicCommand::set_func_run(const std::string& funcname, bool run, std::vecto
         if (g_myrank == s_Root) {
             m_OutputData.mimetype = std::string("text/plain");
             m_OutputData.output = std::string("Function '") + funcname + std::string("' set to run ... done\n");
-            m_OutputData.output +=
-                std::string("Run ") + g_func_status_list[index].get_full_func() + std::string(" in next iteration\n");
+            m_OutputData.output += std::string("Run ") + g_func_status_list[index].get_full_func_name() +
+                                   std::string(" in next iteration\n");
         }
         return YT_SUCCESS;
     }
@@ -483,7 +483,8 @@ int MagicCommand::get_func_status(const std::string& funcname) {
         // Function call in next iteration
         m_OutputData.output += std::string("- **Function call in next iteration:** ");
         if (g_func_status_list[index].get_run() == 1) {
-            m_OutputData.output += std::string("`") + g_func_status_list[index].get_full_func() + std::string("`\n");
+            m_OutputData.output +=
+                std::string("`") + g_func_status_list[index].get_full_func_name() + std::string("`\n");
         } else {
             m_OutputData.output += std::string("(None)\n");
         }
