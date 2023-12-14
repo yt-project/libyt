@@ -68,7 +68,7 @@ func_status::~func_status() { delete[] m_FuncName; }
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status
-// Method      :  get_full_func
+// Method      :  get_full_func_name
 //
 // Notes       :  1. Return the string of how Python call this function, including arguments.
 //
@@ -76,7 +76,7 @@ func_status::~func_status() { delete[] m_FuncName; }
 //
 // Return      :  std::string function_call : how python will call this function, including args.
 //-------------------------------------------------------------------------------------------------------
-std::string func_status::get_full_func() {
+std::string func_status::get_full_func_name() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     std::string function_call = std::string(m_FuncName);

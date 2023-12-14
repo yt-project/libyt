@@ -19,7 +19,7 @@ public:
     func_status(const func_status& other);
 
     char* get_func_name() { return m_FuncName; };
-    std::string get_full_func();
+    std::string get_full_func_name();
 
     std::string get_args() const { return m_Args; };
     int set_args(std::string& args) {
