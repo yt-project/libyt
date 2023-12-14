@@ -21,6 +21,7 @@ public:
     int reset();
     int size() { return (int)m_FuncStatusList.size(); };
     int print_summary();
+    std::string get_summary_html();
     int get_func_index(const char* func_name);
     int add_new_func(const char* func_name, int run);
     int run_func();
