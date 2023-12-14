@@ -248,31 +248,22 @@ int func_status::print_func_body(int indent_size, int indent_level) {
 
     int root = 0;
     if (g_myrank == root) {
-        // get function body
-        PyObject* py_func_name = PyUnicode_FromString(m_FuncName);
-        PyObject* py_func_body = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_body"), py_func_name);
-        const char* func_body;
-        if (py_func_body != NULL)
-            func_body = PyUnicode_AsUTF8(py_func_body);
-        else
-            func_body = "";
-        Py_DECREF(py_func_name);
+        std::string func_body = get_func_body();
 
         // print function body with indent
         printf("\033[0;37m");
-        if (strcmp(func_body, "") == 0) {
+        if (func_body.length() <= 0) {
             printf("%*s", indent_size * (indent_level + 1), "");
             printf("(not defined)\n");
         } else {
-            std::string str_func_body(func_body);
             std::size_t start_pos = 0;
             std::size_t found;
-            while (str_func_body.length() > 0) {
-                found = str_func_body.find("\n", start_pos);
+            while (func_body.length() > 0) {
+                found = func_body.find("\n", start_pos);
                 if (found != std::string::npos) {
                     printf("%*s", indent_size * (indent_level + 1), "");
                     for (std::size_t c = start_pos; c < found; c++) {
-                        printf("%c", str_func_body[c]);
+                        printf("%c", func_body[c]);
                     }
                     printf("\n");
                 } else
@@ -285,6 +276,31 @@ int func_status::print_func_body(int indent_size, int indent_level) {
     }
 
     return YT_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  func_status
+// Method      :  get_func_body
+//
+// Notes       :  1. Get function body by querying libyt.interactive_mode["func_body"][m_FuncName]
+//
+// Arguments   :  (None)
+//
+// Return      :  std::string func_body : function body
+//-------------------------------------------------------------------------------------------------------
+std::string func_status::get_func_body() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    // get function body
+    PyObject* py_func_name = PyUnicode_FromString(m_FuncName);
+    PyObject* py_func_body = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_body"), py_func_name);
+    std::string func_body("");
+    if (py_func_body != NULL) {
+        func_body = std::string(PyUnicode_AsUTF8(py_func_body));
+    }
+    Py_DECREF(py_func_name);
+
+    return func_body;
 }
 
 #endif  // #ifdef INTERACTIVE_MODE
