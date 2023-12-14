@@ -13,6 +13,7 @@
 // Method      :  reset
 //
 // Notes       :  1. Reset every func_status data member m_Status in list to -1 (not run yet).
+//                2. Clear the error buffer.
 //
 // Arguments   :  None
 //
@@ -23,6 +24,7 @@ int func_status_list::reset() {
 
     for (int i = 0; i < size(); i++) {
         m_FuncStatusList[i].set_status(-1);
+        m_FuncStatusList[i].clear_error_msg();
     }
     return YT_SUCCESS;
 }

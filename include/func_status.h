@@ -2,6 +2,7 @@
 #define __FUNC_STATUS_H__
 
 #include <string>
+#include <vector>
 
 #include "yt_macro.h"
 
@@ -12,6 +13,7 @@ private:
     bool m_Wrapper;
     int m_Run;
     int m_Status;
+    std::vector<std::string> m_FullErrorMsg;
 
 public:
     func_status(const char* func_name, int run);
@@ -46,6 +48,8 @@ public:
     };
 
     int serial_print_error(int indent_size, int indent_level);
+    std::vector<std::string>& get_error_msg();
+    int clear_error_msg();
     int print_func_body(int indent_size, int indent_level);
     std::string get_func_body();
 };
