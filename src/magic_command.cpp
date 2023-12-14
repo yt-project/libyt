@@ -442,10 +442,9 @@ int MagicCommand::set_func_run(const std::string& funcname, bool run, std::vecto
 // Class      :  MagicCommand
 // Method     :  get_func_status
 //
-// Notes      :  1. Get function status and print error msg if has.
-//               2. libyt.interactive_mode["func_err_msg"] only stores function's error msg when using
-//                  yt_run_Function/yt_run_FunctionArguments.
-//               3. A collective call, since it uses func_status::serial_print_error
+// Notes      :  1. Get function status and get error msg if it has.
+//               2. Fetch libyt.interactive_mode["func_err_msg"], it is a collective call.
+//               3. Only store output on root.
 //
 // Arguments  :  const std::string& funcname : function name
 //
@@ -501,14 +500,32 @@ int MagicCommand::get_func_status(const std::string& funcname) {
         }
     }
 
-    // Call getting error message, this is a collective call
+    // Call getting error message if it has (status == 0), this is a collective call
     if (status == 0) {
         std::vector<std::string> output_error = g_func_status_list[index].get_error_msg();
-        m_OutputData.output += std::string("<details>\n"
-                                           "  <summary>MPI Process 1</summary>\n"
-                                           "  <p>Content 1 Content 1 Content 1 Content 1 Content 1 <br>\n"
-                                           "      Content 1 Content 1 Content 1 Content 1 Content 1</p>\n"
-                                           "</details>\n");
+        if (g_myrank == s_Root) {
+            for (int r = 0; r < (int)output_error.size(); r++) {
+                if (output_error[r].length() <= 0) continue;
+
+                m_OutputData.output +=
+                    std::string("<details><summary>MPI Process ") + std::to_string(r) + (" </summary><p>");
+
+                std::size_t start_pos = 0, found;
+                while (true) {
+                    found = output_error[r].find('\n', start_pos);
+                    if (found != std::string::npos) {
+                        m_OutputData.output +=
+                            output_error[r].substr(start_pos, found - start_pos) + std::string("<br>");
+                    } else {
+                        m_OutputData.output += output_error[r].substr(start_pos, output_error[r].length() - start_pos);
+                        break;
+                    }
+                    start_pos = found + 1;
+                }
+
+                m_OutputData.output += std::string("</p></details>");
+            }
+        }
     }
 
     return YT_SUCCESS;
