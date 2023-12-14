@@ -13,6 +13,7 @@
 // Method      :  reset
 //
 // Notes       :  1. Reset every func_status data member m_Status in list to -1 (not run yet).
+//                2. Clear the error buffer.
 //
 // Arguments   :  None
 //
@@ -23,6 +24,7 @@ int func_status_list::reset() {
 
     for (int i = 0; i < size(); i++) {
         m_FuncStatusList[i].set_status(-1);
+        m_FuncStatusList[i].clear_error_msg();
     }
     return YT_SUCCESS;
 }
@@ -31,7 +33,7 @@ int func_status_list::reset() {
 // Class       :  func_status_list
 // Method      :  print_summary
 //
-// Notes       :  1. Print function status and error msg in func_status_list.
+// Notes       :  1. Print function status and run status in func_status_list.
 //                2. Only root rank prints.
 //                3. normal      -> bold white
 //                   idle        -> bold blue
@@ -94,13 +96,102 @@ int func_status_list::print_summary() {
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status_list
+// Method      :  print_summary
+//
+// Notes       :  1. Get function status and run status in func_status_list, returned as html format.
+//                2. Return in html format.
+//                3. normal      -> bold white
+//                   idle        -> bold blue
+//                   not run yet -> bold yellow
+//                   success     -> bold green
+//                   failed      -> bold red
+//                   MPI process -> bold cyan
+//
+// Arguments   :  None
+//
+// Return      :  std::string output_html : summary in html format
+//-------------------------------------------------------------------------------------------------------
+std::string func_status_list::get_summary_html() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    // Font style
+    std::string base_style = std::string("font-weight:bold;font-family:'arial'");
+    std::string success_cell =
+        std::string("<td><span style=\"color: #28B463;") + base_style + std::string("\">success</span></td>");
+    std::string failed_cell =
+        std::string("<td><span style=\"color: #E74C3C;") + base_style + std::string("\">failed</span></td>");
+    std::string idle_cell =
+        std::string("<td><span style=\"color: #2874A6;") + base_style + std::string("\">idle</span></td>");
+    std::string unknown_cell =
+        std::string("<td><span style=\"color: #A569BD;") + base_style + std::string("\">unknown</span></td>");
+    std::string will_run_cell =
+        std::string("<td><span style=\"color: #F1C40F;") + base_style + std::string("\">V</span></td>");
+    std::string will_idle_cell =
+        std::string("<td><span style=\"color: #F1C40F;") + base_style + std::string("\">X</span></td>");
+
+    // Create table header, Inline Function, Status, Run
+    std::string output_html =
+        std::string("<table style=\"width: 100%\"><tr><th>Inline Function</th><th>Status</th><th>Run</th></tr>");
+
+    // Loop through each function
+    for (int i = 0; i < size(); i++) {
+        // Initialize row
+        output_html.append("<tr>");
+
+        // Get function name
+        output_html.append("<td style=\"text-alight: left;\">");
+        output_html.append("<span style=\"font-family:'Courier New'\">");
+        output_html.append(m_FuncStatusList[i].get_func_name());
+        output_html.append("</span>");
+        output_html.append("</td>");
+
+        // Get status
+        int status = m_FuncStatusList[i].get_status();
+        switch (status) {
+            case 0: {
+                output_html.append(failed_cell);
+                break;
+            }
+            case 1: {
+                output_html.append(success_cell);
+                break;
+            }
+            case -1: {
+                output_html.append(idle_cell);
+                break;
+            }
+            default: {
+                output_html.append(unknown_cell);
+                break;
+            }
+        }
+
+        int run = m_FuncStatusList[i].get_run();
+        if (run == 1) {
+            output_html.append(will_run_cell);
+        } else {
+            output_html.append(will_idle_cell);
+        }
+
+        // Close row
+        output_html.append("</tr>");
+    }
+
+    // Close the table
+    output_html.append("</table>");
+
+    return output_html;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  func_status_list
 // Method      :  get_func_index
 //
 // Notes       :  1. Look up index of func_name in m_FuncStatusList.
 //
 // Arguments   :  char   *func_name: inline function name
 //
-// Return      :  index : index of func_name in list, return -1 if doesn't exist.
+// Return      :  index : index of func_name in list, return -1 if it doesn't exist.
 //-------------------------------------------------------------------------------------------------------
 int func_status_list::get_func_index(const char* func_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
@@ -173,23 +264,23 @@ int func_status_list::run_func() {
             const char* wrapped = m_FuncStatusList[i].get_wrapper() ? "\"\"\"" : "'''";
             sprintf(command,
                     "try:\n"
-                    "    exec(%s%s(%s)%s, sys.modules[\"%s\"].__dict__)\n"
+                    "    exec(%s%s%s, sys.modules[\"%s\"].__dict__)\n"
                     "except Exception as e:\n"
                     "    libyt.interactive_mode[\"func_err_msg\"][\"%s\"] = traceback.format_exc()\n",
-                    wrapped, funcname, m_FuncStatusList[i].get_args().c_str(), wrapped, g_param_libyt.script, funcname);
+                    wrapped, m_FuncStatusList[i].get_full_func_name().c_str(), wrapped, g_param_libyt.script, funcname);
 
             // run and update status
-            log_info("Performing YT inline analysis %s(%s) ...\n", funcname, m_FuncStatusList[i].get_args().c_str());
+            log_info("Performing YT inline analysis %s ...\n", m_FuncStatusList[i].get_full_func_name().c_str());
             m_FuncStatusList[i].set_status(-2);
             if (PyRun_SimpleString(command) != 0) {
                 m_FuncStatusList[i].set_status(0);
                 free(command);
-                YT_ABORT("Unexpected error occurred while executing %s(%s) in script's namespace.\n", funcname,
-                         m_FuncStatusList[i].get_args().c_str());
+                YT_ABORT("Unexpected error occurred while executing %s in script's namespace.\n",
+                         m_FuncStatusList[i].get_full_func_name().c_str());
             }
             m_FuncStatusList[i].get_status();
-            log_info("Performing YT inline analysis %s(%s) ... done\n", funcname,
-                     m_FuncStatusList[i].get_args().c_str());
+            log_info("Performing YT inline analysis %s ... done\n", funcname,
+                     m_FuncStatusList[i].get_full_func_name().c_str());
 
             // clean up
             free(command);

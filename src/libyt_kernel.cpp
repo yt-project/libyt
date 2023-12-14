@@ -4,9 +4,9 @@
 #include <string>
 #include <xeus/xhelper.hpp>
 
-#include "define_command.h"
 #include "libyt.h"
 #include "libyt_python_shell.h"
+#include "magic_command.h"
 #include "yt_combo.h"
 
 static std::vector<std::string> split(const std::string& code, const char* c);
@@ -73,12 +73,25 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     // Find if '%' is the first non-space character, if so, redirect jobs to define command
     std::size_t found = code.find_first_not_of("\t\n\v\f\r ");
     if (found != std::string::npos && code.at(found) == '%') {
+        // call magic command
 #ifndef SERIAL_MODE
         int indicator = 2;
         MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
-        define_command command;
-        bool temp = command.run(code.substr(found, code.length() - found));
+        MagicCommand command;
+        OutputData command_output = command.run(code.substr(found, code.length() - found));
+
+        // publish result and error
+        if (command_output.output.length() > 0) {
+            nlohmann::json pub_data;
+            pub_data[command_output.mimetype.c_str()] = command_output.output.c_str();
+            publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
+        }
+        if (command_output.error.length() > 0) {
+            publish_execution_error("LibytMagicCommandError", "", split(command_output.error, "\n"));
+        }
+
+        return xeus::create_successful_reply();
     }
 
     // Make sure code is valid before continue
