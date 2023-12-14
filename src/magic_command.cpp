@@ -91,7 +91,7 @@ OutputData& MagicCommand::run(const std::string& command) {
                 } else if (arg_list[0].compare("idle") == 0) {
                     run_success = set_func_run(arg_list[1], false);
                 } else if (arg_list[0].compare("status") == 0) {
-                    run_success = get_func_status(arg_list[1].c_str());
+                    run_success = get_func_status(arg_list[1]);
                 }
                 break;
             }
@@ -144,8 +144,7 @@ int MagicCommand::exit() {
 // Class      :  MagicCommand
 // Method     :  print_status
 //
-// Notes      :  1. Print all the function status, without error msg.
-//               2. Call g_func_status_list.print_summary().
+// Notes      :  1. Get all the function status in html format, without error msg.
 //
 // Arguments  :  None
 //
@@ -166,7 +165,7 @@ int MagicCommand::get_status() {
 // Class      :  MagicCommand
 // Method     :  print_help_msg
 //
-// Notes      :  1. Print help message.
+// Notes      :  1. Get help message in readme format.
 //
 // Arguments  :  None
 //
@@ -448,46 +447,69 @@ int MagicCommand::set_func_run(const std::string& funcname, bool run, std::vecto
 //                  yt_run_Function/yt_run_FunctionArguments.
 //               3. A collective call, since it uses func_status::serial_print_error
 //
-// Arguments  :  const char *funcname : function name
+// Arguments  :  const std::string& funcname : function name
 //
 // Return     :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int MagicCommand::get_func_status(const char* funcname) {
+int MagicCommand::get_func_status(const std::string& funcname) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
 
     // check if function exist
-    int index = g_func_status_list.get_func_index(funcname);
+    int index = g_func_status_list.get_func_index(funcname.c_str());
     if (index == -1) {
-        if (g_myrank == s_Root) printf("Function %s not found\n", funcname);
+        if (g_myrank == s_Root) {
+            m_OutputData.error = std::string("Function '") + funcname + std::string("' not found\n");
+        }
         return YT_FAIL;
     }
 
-    // print function status and function body
     int status = g_func_status_list[index].get_status();
     if (g_myrank == s_Root) {
-        printf("%s ... ", g_func_status_list[index].get_func_name());
-        if (status == 1)
-            printf("success\n");
-        else if (status == 0)
-            printf("failed\n");
-        else if (status == -1)
-            printf("idle\n");
+        m_OutputData.mimetype = std::string("text/markdown");
+        m_OutputData.output = std::string("#### `") + funcname + std::string("`\n");
 
-        printf("\033[1;35m");  // bold purple
-        printf("[Function Def]\n");
-        g_func_status_list[index].print_func_body(2, 0);
+        // Execute status
+        m_OutputData.output += std::string("- **Execute status in current call:** ");
+        if (status == 1) {
+            m_OutputData.output += std::string("_Success_\n");
+        } else if (status == 0) {
+            m_OutputData.output += std::string("_Failed_\n");
+        } else if (status == -1) {
+            m_OutputData.output += std::string("_Idle_\n");
+        }
+
+        // Function call in next iteration
+        m_OutputData.output += std::string("- **Function call in next iteration:** ");
+        if (g_func_status_list[index].get_run() == 1) {
+            m_OutputData.output += std::string("`") + g_func_status_list[index].get_full_func() + std::string("`\n");
+        } else {
+            m_OutputData.output += std::string("(None)\n");
+        }
+
+        // Function definition
+        m_OutputData.output += std::string("- **Function definition:**\n");
+        m_OutputData.output += std::string("  ```python\n");
+        // TODO: get function definition
+        m_OutputData.output += std::string("  def func():\n"
+                                           "      print('PLACE HOLDER')\n");
+        m_OutputData.output += std::string("  ```\n");
+
+        // Error message if it has (status == 0)
+        if (status == 0) {
+            m_OutputData.output += std::string("- **Error message from current call:**\n");
+        }
     }
 
-    // print error msg if it failed when running in yt_run_Function/yt_run_FunctionArguments. (collective call)
+    // Call getting error message, this is a collective call
     if (status == 0) {
-        if (g_myrank == s_Root) {
-            printf("\033[1;35m");  // bold purple
-            printf("[Error Msg]\n");
-        }
-        g_func_status_list[index].serial_print_error(2, 1);
-        printf("\033[0;37m");
+        // TODO: get error message and parse it
+        m_OutputData.output += std::string("<details>\n"
+                                           "  <summary>MPI Process 1</summary>\n"
+                                           "  <p>Content 1 Content 1 Content 1 Content 1 Content 1 <br>\n"
+                                           "      Content 1 Content 1 Content 1 Content 1 Content 1</p>\n"
+                                           "</details>\n");
     }
 
     return YT_SUCCESS;

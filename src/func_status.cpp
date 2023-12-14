@@ -112,20 +112,22 @@ int func_status::get_status() {
 
     // check if key exist in libyt.interactive_mode["func_err_msg"] dict, which is to get local status
     PyObject* py_func_name = PyUnicode_FromString(m_FuncName);
-    if (PyDict_Contains(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name) == 1)
+    if (PyDict_Contains(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name) == 1) {
         m_Status = 0;
-    else
+    } else {
         m_Status = 1;
+    }
     Py_DECREF(py_func_name);
 
 #ifndef SERIAL_MODE
     // mpi reduce, if sum(m_Status) != g_mysize, then some rank must have failed. Now m_Status is global status
     int tot_status = 0;
     MPI_Allreduce(&m_Status, &tot_status, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    if (tot_status != g_mysize)
+    if (tot_status != g_mysize) {
         m_Status = 0;
-    else
+    } else {
         m_Status = 1;
+    }
 #endif
 
     return m_Status;
