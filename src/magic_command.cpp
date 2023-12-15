@@ -491,7 +491,20 @@ int MagicCommand::get_func_status(const std::string& funcname) {
         // Function definition
         m_OutputData.output += std::string("- **Current function definition:**\n");
         m_OutputData.output += std::string("  ```python\n");
-        m_OutputData.output += g_func_status_list[index].get_func_body();
+
+        std::string func_body = g_func_status_list[index].get_func_body();
+        std::size_t start_pos = 0, found;
+        while (true) {
+            found = func_body.find('\n', start_pos);
+            if (found != std::string::npos) {
+                m_OutputData.output +=
+                    std::string("  ") + func_body.substr(start_pos, found - start_pos) + std::string("\n");
+            } else {
+                m_OutputData.output += std::string("  ") + func_body.substr(start_pos) + std::string("\n");
+                break;
+            }
+            start_pos = found + 1;
+        }
         m_OutputData.output += std::string("  ```\n");
 
         // Error message if it has (status == 0)
@@ -517,7 +530,7 @@ int MagicCommand::get_func_status(const std::string& funcname) {
                         m_OutputData.output +=
                             output_error[r].substr(start_pos, found - start_pos) + std::string("<br>");
                     } else {
-                        m_OutputData.output += output_error[r].substr(start_pos, output_error[r].length() - start_pos);
+                        m_OutputData.output += output_error[r].substr(start_pos);
                         break;
                     }
                     start_pos = found + 1;
