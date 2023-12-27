@@ -2,8 +2,10 @@
 #include "yt_combo.h"
 
 #if defined(INTERACTIVE_MODE) && defined(JUPYTER_KERNEL)
+#include <chrono>
 #include <fstream>
 #include <iostream>
+#include <thread>
 #include <xeus-zmq/xserver_zmq.hpp>
 #include <xeus/xkernel.hpp>
 #include <xeus/xkernel_configuration.hpp>
@@ -75,27 +77,64 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
         file << getpid();
         file.close();
 
-        // Make context and create libyt kernel
-        auto context = xeus::make_context<zmq::context_t>();
-        std::unique_ptr<LibytKernel> interpreter = std::make_unique<LibytKernel>();
-
         if (use_connection_file) {
-            // Check if connection file exist
-            if (stat(kernel_connection_filename, &buffer) != 0) {
-                YT_ABORT("Cannot find '%s', starting libyt kernel failed ... \n", kernel_connection_filename);
+            // To prevent process abort because of faulty connection file error,
+            // put loading connection and create kernel in try and catch in while loop
+            xeus::xkernel* libyt_kernel_ptr = nullptr;
+
+            bool complete = false;
+            while (!complete) {
+                try {
+                    // Check if connection file exist
+                    if (stat(kernel_connection_filename, &buffer) != 0) {
+                        throw -1;
+                    }
+
+                    // Load configuration (ex: port, ip, ...)
+                    xeus::xconfiguration config = xeus::load_configuration(std::string(kernel_connection_filename));
+
+                    // Make context and create libyt kernel
+                    auto context = xeus::make_context<zmq::context_t>();
+                    std::unique_ptr<LibytKernel> interpreter = std::make_unique<LibytKernel>();
+
+                    libyt_kernel_ptr = new xeus::xkernel(config, xeus::get_user_name(), std::move(context),
+                                                         std::move(interpreter), xeus::make_xserver_zmq);
+
+                    complete = true;
+                } catch (int err_code) {
+                    if (err_code == -1) {
+                        log_error("Unable to find \"%s\" ...\n", kernel_connection_filename);
+                    }
+                } catch (const nlohmann::json::parse_error& e) {
+                    if (e.id == 101) {
+                        log_error("%s", e.what());
+                    }
+                } catch (const nlohmann::json::type_error& e) {
+                    if (e.id == 302) {
+                        log_error("%s", e.what());
+                    }
+                } catch (const nlohmann::json::exception& e) {
+                    log_error("%s", e.what());
+                } catch (const zmq::error_t& e) {
+                    log_error("%s", e.what());
+                }
+                std::this_thread::sleep_for(std::chrono::seconds(2));
             }
-
-            // Load configuration (ex: port, ip, ...)
-            std::string config_file = std::string(kernel_connection_filename);
-            xeus::xconfiguration config = xeus::load_configuration(config_file);
-
-            xeus::xkernel libyt_kernel(config, xeus::get_user_name(), std::move(context), std::move(interpreter),
-                                       xeus::make_xserver_zmq);
 
             // Launch kernel
             log_info("Launching libyt kernel using provided connection file \"%s\" ...\n", kernel_connection_filename);
-            libyt_kernel.start();
+            if (libyt_kernel_ptr != nullptr) {
+                libyt_kernel_ptr->start();
+            } else {
+                log_info("Launching libyt kernel using provided connection file \"%s\" ... failed\n",
+                         kernel_connection_filename);
+            }
+            delete libyt_kernel_ptr;
         } else {
+            // Make context and create libyt kernel
+            auto context = xeus::make_context<zmq::context_t>();
+            std::unique_ptr<LibytKernel> interpreter = std::make_unique<LibytKernel>();
+
             xeus::xkernel libyt_kernel(xeus::get_user_name(), std::move(context), std::move(interpreter),
                                        xeus::make_xserver_zmq);
 
