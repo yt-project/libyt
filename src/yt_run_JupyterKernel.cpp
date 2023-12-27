@@ -106,17 +106,45 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
                         log_error("Unable to find \"%s\" ...\n", kernel_connection_filename);
                     }
                 } catch (const nlohmann::json::parse_error& e) {
-                    if (e.id == 101) {
-                        log_error("%s", e.what());
+                    switch (e.id) {
+                        case 101: {
+                            log_error(
+                                "Unable to parse \"%s\". This error may be caused by not enclosing key-value pairs in "
+                                "{} bracket or not separating key-value pairs using ',' (nlohmann json err "
+                                "msg: %s)\n",
+                                kernel_connection_filename, e.what());
+                            break;
+                        }
+                        default: {
+                            log_error("Unable to parse \"%s\" (nlohmann json err msg: %s)\n",
+                                      kernel_connection_filename, e.what());
+                        }
                     }
                 } catch (const nlohmann::json::type_error& e) {
-                    if (e.id == 302) {
-                        log_error("%s", e.what());
+                    switch (e.id) {
+                        case 302: {
+                            log_error("Error occurred while reading keys in \"%s\". "
+                                      "This error may be caused by missing one of the keys (\"transport\", \"ip\", "
+                                      "\"control_port\", \"shell_port\", \"stdin_port\", \"iopub_port\", \"hb_port\", "
+                                      "\"signature_scheme\", \"key\") "
+                                      "(nlohmann json err msg: %s)\n",
+                                      kernel_connection_filename, e.what());
+                            break;
+                        }
+                        default: {
+                            log_error("Error occurred while reading keys in \"%s\" (nlohmann json err msg: %s)\n",
+                                      kernel_connection_filename, e.what());
+                        }
                     }
                 } catch (const nlohmann::json::exception& e) {
-                    log_error("%s", e.what());
+                    log_error("Other errors occurred when reading \"%s\" (nlohmann json err msg: %s)\n",
+                              kernel_connection_filename, e.what());
+                } catch (const std::out_of_range& e) {
+                    log_error("This error may be caused by not providing \"signature_scheme\" and \"key\" in \"%s\" "
+                              "(std::string err msg: %s)\n",
+                              kernel_connection_filename, e.what());
                 } catch (const zmq::error_t& e) {
-                    log_error("%s", e.what());
+                    log_error("Port address already in use, please change port number (zmq err msg: %s)\n", e.what());
                 }
                 std::this_thread::sleep_for(std::chrono::seconds(2));
             }
