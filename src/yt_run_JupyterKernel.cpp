@@ -5,6 +5,7 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <thread>
 #include <xeus-zmq/xserver_zmq.hpp>
 #include <xeus/xkernel.hpp>
