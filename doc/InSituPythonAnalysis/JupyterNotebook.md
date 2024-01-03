@@ -2,7 +2,7 @@
 layout: default
 title: Jupyter Notebook Access
 parent: In Situ Python Analysis
-nav_order: 5
+nav_order: 6
 ---
 # Jupyter Notebook Access
 {: .no_toc }

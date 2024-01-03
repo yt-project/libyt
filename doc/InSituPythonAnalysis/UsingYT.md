@@ -2,7 +2,7 @@
 layout: default
 title: Using yt
 parent: In Situ Python Analysis
-nav_order: 3
+nav_order: 4
 ---
 # Using yt for In Situ Python Analysis
 {: .no_toc }
