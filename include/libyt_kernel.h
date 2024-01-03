@@ -6,8 +6,6 @@
 #include <nlohmann/json.hpp>
 #include <xeus/xinterpreter.hpp>
 
-#include "libyt_worker.h"
-
 class LibytKernel : public xeus::xinterpreter {
 public:
     LibytKernel() = default;
