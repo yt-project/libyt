@@ -2,7 +2,7 @@
 layout: default
 title: libyt Python Module
 parent: In Situ Python Analysis
-nav_order: 2
+nav_order: 3
 ---
 # libyt Python Module
 {: .no_toc }
