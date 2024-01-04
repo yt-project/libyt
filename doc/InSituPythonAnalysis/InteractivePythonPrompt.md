@@ -61,6 +61,11 @@ These statements run in inline script's namespace, and will update and make chan
 
 > :warning: Changes is kept and maintain in user's inline script's namespace in situ analysis in the following round.
 
+### Exit Interactive Python Prompt
+Use [`%libyt exit`]({% link InSituPythonAnalysis/libytCommand.md %}#exit) to exit the prompt.
+Then it will return back to the simulation process.
+
+
 ##### How does the prompt execute Python statements and libyt defined commands?
 {: .no_toc }
 1. MPI root process is the user interface, which takes user inputs.
