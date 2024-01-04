@@ -19,6 +19,7 @@ has_toc: false
 
 - [**libyt Defined Commands**]({% link InSituPythonAnalysis/libytCommand.md %}#libyt-defined-commands): the commands allow users to load script, export history, set function to run or idle, etc.
 - [**Interactive Python Prompt**]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt): the prompt can process Python statements and give feedback instantly.
+  > :information_source: `libyt` should be compiled in [interactive mode]({% link HowToInstall.md %}#options).
 - [**Jupyter Notebook Access**]({% link InSituPythonAnalysis/JupyterNotebook.md %}#jupyter-notebook-access): this allows accessing and analyzing simulation data through JupyterLab/Jupyter Notebook.
 
 ## FAQs
