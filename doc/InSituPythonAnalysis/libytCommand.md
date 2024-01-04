@@ -1,6 +1,6 @@
 ---
 layout: default
-title: libyt Defined Command
+title: libyt Defined Commands
 parent: In Situ Python Analysis
 nav_order: 3
 ---
