@@ -32,13 +32,3 @@ Please do:
 
 > :lizard: When accessing simulation data, `libyt` requires every process to participate in this.
 > We are working on this in both `yt` and `libyt`.
-
-## Why Can't I Find the Prompt `>>> ` After I have Activated Interactive Mode?
-`>>> `  is probably immersed inside the output.
-We can hit enter again, which is to provide an empty statement, and it will come out.
-
-We can make prompt more smoothly by setting [YT_VERBOSE]({% link libytAPI/Initialize.md %}#yt_param_libyt) to YT_VERBOSE_INFO.
-
-## Where Can I Use Interactive Mode?
-Currently, `libyt` [interactive mode]({% link HowToInstall.md %}#options) only works on local machine or submit the job to HPC platforms through interactive queue like `qsub -I`.
-The reason is that the user interface is directly through the terminal. We will work on it to support Jupyter Notebook Interface, so that it is more flexible to HPC system.
