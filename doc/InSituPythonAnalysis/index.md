@@ -24,5 +24,5 @@ has_toc: false
 
 ## FAQs
 
-- [**Why Does my Program Hang and How Do I Solve It?**]({% link InSituPythonAnalysis/FAQs.md %}#why-does-my-program-hang-and-how-do-i-solve-it)
-
+- [**How Does libyt Run Python Script?**]({% link InSituPythonAnalysis/FAQs.md %}#how-does-libyt-run-python-script)
+- [**Limitations in MPI Related Python Tasks**]({% link InSituPythonAnalysis/FAQs.md %}#limitations-in-mpi-related-python-tasks)
