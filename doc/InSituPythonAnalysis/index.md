@@ -21,5 +21,7 @@ has_toc: false
 - [**Interactive Python Prompt**]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt): the prompt can process Python statements and give feedback instantly.
 - [**Jupyter Notebook Access**]({% link InSituPythonAnalysis/JupyterNotebook.md %}#jupyter-notebook-access): this allows accessing and analyzing simulation data through JupyterLab/Jupyter Notebook.
 
+## FAQs
 
+- [**Why Does my Program Hang and How Do I Solve It?**]({% link InSituPythonAnalysis/FAQs.md %}#why-does-my-program-hang-and-how-do-i-solve-it)
 
