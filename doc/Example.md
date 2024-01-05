@@ -60,7 +60,7 @@ The example initializes `libyt`, loads data to `libyt` in simulation's iterative
 ### Activate Interactive Mode
 The example assumes that `libyt` is in [**normal mode**]({% link HowToInstall.md %}#options).
 
-To try out [**interactive mode**]({% link HowToInstall.md %}#options), we need to compile `libyt` in [**interactive mode**]({% link HowToInstall.md %}#options).
+To try out [**interactive mode**]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff), we need to compile `libyt` in [**interactive mode**]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff).
 Then un-comment this block in `example.cpp` and create a file `LIBYT_STOP`. 
 `LIBYT_STOP` and the executable should be in the same folder.   
 `libyt` will enter [**interactive Python prompt**]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt) only if it detects `LIBYT_STOP` file, or an inline function failed.
