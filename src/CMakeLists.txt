@@ -10,8 +10,8 @@ add_library(yt SHARED
         yt_set_UserParameter.cpp LibytProcessControl.cpp Timer.cpp TimerControl.cpp
         libyt_python_shell.cpp libyt_kernel.cpp libyt_worker.cpp magic_command.cpp)
 
-# print options and apply compile definition -D
-function(print_option option_name)
+# set and print options and apply compile definition -D
+function(set_option option_name)
     if (${option_name})
         message(STATUS "${option_name} is ON")
         target_compile_definitions(yt PUBLIC ${option_name})
@@ -20,11 +20,10 @@ function(print_option option_name)
     endif ()
 endfunction()
 
-print_option(SERIAL_MODE)
-print_option(INTERACTIVE_MODE)
-print_option(JUPYTER_KERNEL)
-print_option(SUPPORT_TIMER)
-# TODO: make JUPYTER_KERNEL INTERACTIVE_MODE dependent
+set_option(SERIAL_MODE)
+set_option(INTERACTIVE_MODE)
+set_option(JUPYTER_KERNEL)
+set_option(SUPPORT_TIMER)
 
 # compile option
 add_library(libyt_compiler_flags INTERFACE)

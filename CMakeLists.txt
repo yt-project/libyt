@@ -4,9 +4,12 @@ cmake_minimum_required(VERSION 3.15)
 project(LIBYT_PROJECT VERSION 0.1.0 DESCRIPTION "In situ Python analysis tool using yt and Python")
 
 ## set options ##
+include(CMakeDependentOption)
 option(SERIAL_MODE       "Compile library for serial process"                                                 OFF)
 option(INTERACTIVE_MODE  "Use interactive mode"                                                               OFF)
-option(JUPYTER_KERNEL    "Use Jupyter notebook interface for interactive mode, must enable INTERACTIVE_MODE"  OFF)
+cmake_dependent_option(
+        JUPYTER_KERNEL   "Use Jupyter notebook interface for interactive mode, must enable INTERACTIVE_MODE"  OFF
+                         "INTERACTIVE_MODE" OFF)
 option(SUPPORT_TIMER     "Support timer"                                                                      OFF)
 
 ## set paths ##
@@ -34,12 +37,13 @@ find_package(Python COMPONENTS Development NumPy REQUIRED)
 ## config files ##
 if (JUPYTER_KERNEL)
     set(LIBYT_KERNELSPEC_RELATIVE_PATH "share/jupyter/kernels/libyt_kernel")
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json ./${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json COPYONLY)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json
+                   ./${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json COPYONLY)
 endif ()
 
 ## sub directory ##
 add_subdirectory(src)                       # for library
-#add_subdirectory(example)                  # for example exe
+add_subdirectory(example)                   # for example exe
 
 ### libyt INSTALLATION RULE ###
 if (JUPYTER_KERNEL)
