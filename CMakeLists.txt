@@ -7,9 +7,7 @@ project(LIBYT_PROJECT VERSION 0.1.0 DESCRIPTION "In situ Python analysis tool us
 include(CMakeDependentOption)
 option(SERIAL_MODE       "Compile library for serial process"                                                 OFF)
 option(INTERACTIVE_MODE  "Use interactive mode"                                                               OFF)
-cmake_dependent_option(
-        JUPYTER_KERNEL   "Use Jupyter notebook interface for interactive mode, must enable INTERACTIVE_MODE"  OFF
-                         "INTERACTIVE_MODE" OFF)
+option(JUPYTER_KERNEL    "Use Jupyter notebook interface for interactive mode, must enable INTERACTIVE_MODE"  OFF)
 option(SUPPORT_TIMER     "Support timer"                                                                      OFF)
 
 ## set paths ##
@@ -24,6 +22,14 @@ set(xeus-zmq_DIR      "" CACHE PATH "Path to xeus-zmqConfig.cmake (-DJUPYTER_KER
 set(ZeroMQ_DIR        "" CACHE PATH "Path to ZeroMQConfig.cmake (-DJUPYTER_KERNEL=ON)")
 
 ###### COMPILATION (DO NOT TOUCH) ######################################################################################
+## check options ##
+if (JUPYTER_KERNEL)
+    if (NOT INTERACTIVE_MODE)
+        message(STATUS "JUPYTER_KERNEL requires INTERACTIVE_MODE to be ON, INTERACTIVE_MODE is ON")
+        set(INTERACTIVE_MODE ON)
+    endif ()
+endif ()
+
 ## cpp version ##
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
