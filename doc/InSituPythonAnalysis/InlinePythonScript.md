@@ -33,7 +33,7 @@ Make sure we put the global variable wisely.
 If `libyt` is compiled in [**normal mode**]({% link HowToInstall.md %}#options), it is not fault-tolerant to Python, 
 so the whole simulation will shut down.
 
-Use [**interactive mode**]({% link HowToInstall.md %}#options) if we want our in situ Python analysis to be fault-tolerant. 
+Use [**interactive mode**]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff) if we want our in situ Python analysis to be fault-tolerant. 
 In interactive mode, the simulation will pause when some Python functions crash, or it is called to pause 
 (See more in [`yt_run_InteractiveMode`]({% link libytAPI/ActivateInteractiveMode.md %}#yt_run_interactivemode)).
 

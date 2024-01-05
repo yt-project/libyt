@@ -18,7 +18,7 @@ nav_order: 5
 
 ## Requirements
 
-- Compile `libyt` in [**interactive mode**]({% link HowToInstall.md %}#options).
+- Compile `libyt` in [**interactive mode**]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff).
 - Call libyt API [`yt_run_InteractiveMode`]({% link libytAPI/ActivateInteractiveMode.md %}#activate-interactive-mode).
 
 ## Using Interactive Python Prompt
