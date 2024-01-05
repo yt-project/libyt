@@ -24,6 +24,10 @@ set(xeus-zmq_DIR      "" CACHE PATH "Path to xeus-zmqConfig.cmake (-DJUPYTER_KER
 set(ZeroMQ_DIR        "" CACHE PATH "Path to ZeroMQConfig.cmake (-DJUPYTER_KERNEL=ON)")
 
 ###### COMPILATION (DO NOT TOUCH) ######################################################################################
+## cpp version ##
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 ## build static/shared library ##
 option(BUILD_SHARED_LIBS "Building using shared libraries"    ON )
 

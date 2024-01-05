@@ -25,10 +25,6 @@ set_option(INTERACTIVE_MODE)
 set_option(JUPYTER_KERNEL)
 set_option(SUPPORT_TIMER)
 
-# compile option
-add_library(libyt_compiler_flags INTERFACE)
-target_compile_features(libyt_compiler_flags INTERFACE cxx_std_14)
-
 # include dir
 target_include_directories(yt PRIVATE
         ${PROJECT_SOURCE_DIR}/include
@@ -45,8 +41,6 @@ target_link_libraries(yt PRIVATE
         Python::NumPy
         $<$<BOOL:${INTERACTIVE_MODE}>:readline>
         $<$<BOOL:${JUPYTER_KERNEL}>:xeus-zmq>)
-target_link_libraries(yt PUBLIC
-        libyt_compiler_flags)
 
 # set properties
 set(LIBYT_PUBLIC_HEADER
