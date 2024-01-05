@@ -59,7 +59,7 @@ endif ()
 
 ## sub directory ##
 add_subdirectory(src)                       # for library
-add_subdirectory(example)                   # for example exe
+#add_subdirectory(example)                   # for example exe
 
 ###### INSTALLATION RULE ###############################################################################################
 if (JUPYTER_KERNEL)
