@@ -13,9 +13,15 @@ cmake_dependent_option(
 option(SUPPORT_TIMER     "Support timer"                                                                      OFF)
 
 ## set paths ##
-set(PYTHON_PATH    "" CACHE PATH "Path to Python installation prefix")
-set(MPI_PATH       "" CACHE PATH "Path to MPI installation prefix")
-set(READLINE_PATH  "" CACHE PATH "Path to Readline installation prefix")
+set(PYTHON_PATH    "" CACHE PATH "Path to Python installation prefix (Always)")
+set(MPI_PATH       "" CACHE PATH "Path to MPI installation prefix (-DSERIAL_MODE=OFF)")
+set(READLINE_PATH  "" CACHE PATH "Path to Readline installation prefix (-DINTERACTIVE_MODE=ON)")
+set(nlohmann_json_DIR "" CACHE PATH "Path to nlohmann_jsonConfig.cmake (-DJUPYTER_KERNEL=ON)")
+set(cppzmq_DIR        "" CACHE PATH "Path to cppzmqConfig.cmake (-DJUPYTER_KERNEL=ON)")
+set(xtl_DIR           "" CACHE PATH "Path to xtlConfig.cmake (-DJUPYTER_KERNEL=ON)")
+set(xeus_DIR          "" CACHE PATH "Path to xeusConfig.cmake (-DJUPYTER_KERNEL=ON)")
+set(xeus-zmq_DIR      "" CACHE PATH "Path to xeus-zmqConfig.cmake (-DJUPYTER_KERNEL=ON)")
+set(ZeroMQ_DIR        "" CACHE PATH "Path to ZeroMQConfig.cmake (-DJUPYTER_KERNEL=ON)")
 
 ###### COMPILATION (DO NOT TOUCH) ######################################################################################
 ## build static/shared library ##
