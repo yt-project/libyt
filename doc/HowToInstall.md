@@ -68,9 +68,9 @@ The options are mutually independent to each other.
 
 ##### -DJUPYTER_KERNEL=ON/OFF (Default=OFF)
 
-|  | Notes | Required Paths |
-|---|---|---|
-| Jupyter Kernel (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebook.md %}#jupyter-notebook-access)) | - `READLINE_PATH` <br> - `nlohmann_json_DIR` <br> - `cppzmq_DIR` <br> - `xtl_DIR` <br> - `xeus_DIR` <br> - `xeus-zmq_DIR` <br> - `ZeroMQ_DIR` <br> |
+|  | Notes | Required Paths | Required Python Package|
+|---|---|---|---|
+| Jupyter Kernel (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebook.md %}#jupyter-notebook-access)) | - `READLINE_PATH` <br> - `nlohmann_json_DIR` <br> - `cppzmq_DIR` <br> - `xtl_DIR` <br> - `xeus_DIR` <br> - `xeus-zmq_DIR` <br> - `ZeroMQ_DIR` <br> | - [`jupyter_libyt`](#jupyter_libyt)|
 
 - `READLINE_PATH`: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) path, under this folder, there should contain `include`, `lib` etc.
 - `nlohmann_json_DIR` (>=3.2.0, <4.0.0): Path to `nlohmann_jsonConfig.cmake` after installing [`nlohmann_json`](https://github.com/nlohmann/json).
