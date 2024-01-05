@@ -19,21 +19,65 @@ nav_order: 2
 
 There are two ways to install `libyt`:
 - [CMake](#cmake)
-- [Make](#make)
+- [Make](#make) -- does not support [`-DJUPYTER_KERNEL=ON`](#-djupyter_kernelonoff-defaultoff)
 
-> :information_source: `libyt` will rely more on CMake and drop support for Make in the future.
+> :warning: We will drop the support of Make.
 
-### Options
-The options are all independent of each other.
+### Basic Requirements
+- `PYTHON_PATH` (>=3.7): Python installation prefix, under this folder, there should be folders like `include`, `lib` etc. Python should have NumPy installed.
 
-- **`-DSERIAL_MODE` (OFF/ON)**
-  - **Parallel Mode (OFF)**: compile `libyt` using MPI and run `libyt` in parallel.
-  - **Serial Mode (ON)**: compile `libyt` using GCC and run `libyt` in serial.
-- **`-DINTERACTIVE_MODE` (OFF/ON)**
-  - **Normal Mode (OFF)**: shut down and terminate all the processes including simulation, if there are errors during in situ analysis using Python.
-  - **Interactive Mode (ON)**: will not terminate the processes if errors occur while using Python for in situ analysis. It supports interactive Python prompt. This is like normal Python prompt with access to simulation data.
-- **`-DSUPPORT_TIMER` (OFF/ON)**
-  - **(ON)**: support time profiling. (See [Time Profiling]({% link DebugAndTimeProfiling/TimeProfiling.md %}#time-profiling))
+The following is only needed for [Make](#make), skip this if you are using [CMake](#cmake).
+- `PYTHON_VERSION` (>=3.7): Python `x.y` version, put `x.y` only.
+- `NUMPY_PATH`: Path to where `numpy` is installed. We can use `pip` to look up, and NUMPY_PATH is `<path>/numpy`.
+  ```bash
+  $ pip list -v | grep numpy
+  Package   Version       Location   Installer
+  --------- ------------- ---------- -----------
+  numpy     <version>     <path>     pip
+  ```
+
+### Options 
+The options are mutually independent to each other. 
+
+##### -DSERIAL_MODE=ON/OFF (Default=OFF)
+
+|                     | Notes                      | Required Paths | Required Python Package |
+|---------------------|----------------------------|----------------|-------------------------|
+| Parallel Mode (OFF) | compile `libyt` using MPI. | - `MPI_PATH`   | - [`mpi4py`](#mpi4py)   |
+| Serial Mode (ON)    | compile `libyt` using GCC. |                |                         |
+
+- `MPI_PATH`: MPI installation prefix, under this folder, there should be folders like `include`, `lib` etc.
+
+##### -DINTERACTIVE_MODE=ON/OFF (Default=OFF)
+
+|                       | Notes                                                                                                                                                                                                                                          | Required Paths   |
+|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
+| Normal Mode (OFF)     | Shut down and terminate all the processes including simulation, if error occurs during in situ analysis.                                                                                                                                       |                  |
+| Interactive Mode (ON) | Will not terminate the processes if error occurs while doing in situ analysis and supports interactive Python prompt. (See  [Interactive Python Prompt]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt)) | - `READLINE_PATH` |
+
+- `READLINE_PATH`: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) path, under this folder, there should contain `include`, `lib` etc.
+
+##### -DJUPYTER_KERNEL=ON/OFF (Default=OFF)
+
+|  | Notes | Required Paths |
+|---|---|---|
+| Jupyter Kernel (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebook.md %}#jupyter-notebook-access)) | - `READLINE_PATH` <br> - `nlohmann_json_DIR` <br> - `cppzmq_DIR` <br> - `xtl_DIR` <br> - `xeus_DIR` <br> - `xeus-zmq_DIR` <br> - `ZeroMQ_DIR` <br> |
+
+- `READLINE_PATH`: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) path, under this folder, there should contain `include`, `lib` etc.
+- `nlohmann_json_DIR` (>=3.2.0, <4.0.0): Path to `nlohmann_jsonConfig.cmake` after installing [`nlohmann_json`](https://github.com/nlohmann/json).
+- `cppzmq_DIR` (>=4.8.1, <5.0.0): Path to `cppzmqConfig.cmake` after installing [`cppzmq`](https://github.com/zeromq/cppzmq).
+- `xtl_DIR` (>=0.7.0, <0.8.0): Path to `xtlConfig.cmake` after installing [`xtl`](https://github.com/xtensor-stack/xtl).
+- `xeus_DIR` (>=3.0.0, <4.0.0): Path to `xeusConfig.cmake` after installing [`xeus`](https://github.com/jupyter-xeus/xeus).
+- `xeus-zmq_DIR` (1.x release): Path to `xeus-zmqConfig.cmake` after installing [`xeus-zmq`](https://github.com/jupyter-xeus/xeus-zmq).
+- `ZeroMQ_DIR` (>=4.2.5, <5.0.0): Path to `ZeroMQConfig.cmake` after installing [`ZeroMQ`](https://github.com/zeromq/libzmq). (Some system may already have ZeroMQ installed, which doesn't need to provide the path explicitly.)
+
+> :information_source: `nlohmann_json`, `cppzmq`, `xtl`, `xeus`, and `ZeroMQ` are all `xeus-zmq`'s dependencies. Check [here](https://github.com/jupyter-xeus/xeus-zmq?tab=readme-ov-file#building-from-sources) for how to install `xeus-zmq`.
+
+##### -DSUPPORT_TIMER=ON/OFF (Default=OFF)
+
+|                     | Notes                                                                                                             | Required Paths |
+|---------------------|-------------------------------------------------------------------------------------------------------------------|----------------|
+| Time Profiling (ON) | support time profiling. (See  [Time Profiling]({% link DebugAndTimeProfiling/TimeProfiling.md %}#time-profiling)) |                |
 
 ### CMake
 1. Toggle options, set paths and generate files to build the project. This can be done through either (a) or (b):
@@ -148,18 +192,22 @@ make install
 - `include`: Contain `libyt.h`. This is the header file for `libyt` API.
 - `lib`: Contain the shared library for simulation to link to.
 
-## Python Package -- yt_libyt
-To use `yt` as the core analytic tool, we need to install `yt_libyt`, a `yt` frontend for `libyt`. 
-The frontend will work with any version of [`yt`](https://yt-project.org/) with Python version >= 3.6.
+## Required Python Package
+To use [`yt`](https://yt-project.org/) as the core analytic tool, we need to install `yt_libyt`, a `yt` frontend for `libyt`.
 
-### Requirements
-- `Python` >= 3.7
-- `yt`
-- `mpi4py`
-
+### mpi4py
+- Project website: [https://mpi4py.readthedocs.io/](https://mpi4py.readthedocs.io/)
 > :warning: Please make sure `mpi4py` used in Python and MPI used in simulation are matched. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
 
-### Install yt_libyt
+### yt
+- Project website: [https://yt-project.org/](https://yt-project.org/)
+- Install from PyPI:
+```bash
+pip install yt
+```
+
+### yt_libyt
+- Project website: [https://github.com/data-exp-lab/yt_libyt](https://github.com/data-exp-lab/yt_libyt)
 - Install from source:
 ```bash
 git clone https://github.com/data-exp-lab/yt_libyt.git
@@ -170,4 +218,14 @@ pip install .
 - Install from PyPI:
 ```bash
 pip install yt-libyt
+```
+
+
+### jupyter_libyt
+- Project website: [https://github.com/yt-project/jupyter_libyt](https://github.com/yt-project/jupyter_libyt)
+- Install from source:
+```bash
+git clone https://github.com/yt-project/jupyter_libyt.git
+cd jupyter_libyt
+pip install .
 ```
