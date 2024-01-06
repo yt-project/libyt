@@ -31,7 +31,7 @@ We need another process to start Jupyter Notebook/JupyterLab and connect to liby
 
 ### Starting Jupyter Notebook / JupyterLab
 
-> :information_source: The process of starting Jupyter Notebook/JupyterLab and running simulation are different. 
+> :information_source: The process of starting Jupyter Notebook/JupyterLab and running simulation are independent.
 
 1. Get [`jupyter_libyt`]({% link HowToInstall.md %}#jupyter_libyt) and [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html).
 2. After installing `libyt`, add `<libyt-install-dir>/share/jupyter` to `JUPYTER_PATH`.
