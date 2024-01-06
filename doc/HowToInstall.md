@@ -48,14 +48,20 @@ The options are mutually independent to each other.
 
 ##### -DSERIAL_MODE=ON/OFF (Default=OFF)
 
-|                     | Notes                      | Required Paths | Required Python Package |
-|---------------------|----------------------------|----------------|-------------------------|
-| Parallel Mode (OFF) | Compile `libyt` using MPI. | - `MPI_PATH`   | - [`mpi4py`](#mpi4py)   |
-| Serial Mode (ON)    | Compile `libyt` using GCC. |                |                         |
+|                     | Notes                      | Required Paths | Required Python Packages                     |
+|---------------------|----------------------------|----------------|----------------------------------------------|
+| Parallel Mode (OFF) | Compile `libyt` using MPI. | - `MPI_PATH`   | - [`mpi4py`](https://mpi4py.readthedocs.io/) |
+| Serial Mode (ON)    | Compile `libyt` using GCC. |                |                                              |
 
+###### Required Paths
+{: .no_toc }
 - `MPI_PATH`: MPI installation prefix, under this folder, there should be folders like `include`, `lib` etc.
   > :warning: Make sure you are using the same MPI to compile `libyt` and your simulation code.
 
+###### Required Python Packages
+{: .no_toc }
+- `mpi4py`: This is Python bindings for the Message Passing Interface (MPI) standard.
+  > :warning: Please make sure `mpi4py` used in Python and MPI used in simulation are matched. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
 
 ##### -DINTERACTIVE_MODE=ON/OFF (Default=OFF)
 
@@ -68,10 +74,12 @@ The options are mutually independent to each other.
 
 ##### -DJUPYTER_KERNEL=ON/OFF (Default=OFF)
 
-|  | Notes                                                                                                                                                                                | Required Paths | Required Python Package|
-|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|---|
-| Jupyter Kernel (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access)) | - `READLINE_PATH` <br> - `nlohmann_json_DIR` <br> - `cppzmq_DIR` <br> - `xtl_DIR` <br> - `xeus_DIR` <br> - `xeus-zmq_DIR` <br> - `ZeroMQ_DIR` <br> | - [`jupyter_libyt`](#jupyter_libyt)|
+|  | Notes                                                                                                                                                                                | Required Paths | Required Python Packages                                                                                                                                                                    |
+|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Jupyter Kernel (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access)) | - `READLINE_PATH` <br> - `nlohmann_json_DIR` <br> - `cppzmq_DIR` <br> - `xtl_DIR` <br> - `xeus_DIR` <br> - `xeus-zmq_DIR` <br> - `ZeroMQ_DIR` <br> | - [`jupyter_libyt`](#jupyter_libyt) <br> - [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html) <br> - (Optional)[`jedi`](https://jedi.readthedocs.io/en/latest/) |
 
+###### Required Paths
+{: .no_toc }
 - `READLINE_PATH`: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) path, under this folder, there should contain `include`, `lib` etc.
 - `nlohmann_json_DIR` (>=3.2.0, <4.0.0): Path to `nlohmann_jsonConfig.cmake` after installing [`nlohmann_json`](https://github.com/nlohmann/json).
 - `cppzmq_DIR` (>=4.8.1, <5.0.0): Path to `cppzmqConfig.cmake` after installing [`cppzmq`](https://github.com/zeromq/cppzmq).
@@ -81,6 +89,13 @@ The options are mutually independent to each other.
 - `ZeroMQ_DIR` (>=4.2.5, <5.0.0): Path to `ZeroMQConfig.cmake` after installing [`ZeroMQ`](https://github.com/zeromq/libzmq). (Some system may already have ZeroMQ installed, which doesn't need to provide the path explicitly.)
 
 > :information_source: `nlohmann_json`, `cppzmq`, `xtl`, `xeus`, and `ZeroMQ` are all `xeus-zmq`'s dependencies. Check [here](https://github.com/jupyter-xeus/xeus-zmq?tab=readme-ov-file#building-from-sources) for how to install `xeus-zmq`.
+
+###### Required Python Packages
+{: .no_toc }
+- `jupyter_libyt`: Customized kernel provisioner for libyt Jupyter kernel.
+- `jupyter-client`: Jupyter client.
+- `jedi`: Support auto-completion in Jupyter Notebook and JupyterLab. This is optional. (If you have IPython installed, you might already have this.)
+
 
 ##### -DSUPPORT_TIMER=ON/OFF (Default=OFF)
 
@@ -167,10 +182,6 @@ cmake --install build --prefix /home/user/softwares/libyt
 
 ## Required Python Package
 To use [`yt`](https://yt-project.org/) as the core analytic tool, we need to install `yt_libyt`, a `yt` frontend for `libyt`.
-
-### mpi4py
-- Project website: [https://mpi4py.readthedocs.io/](https://mpi4py.readthedocs.io/)
-> :warning: Please make sure `mpi4py` used in Python and MPI used in simulation are matched. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
 
 ### yt
 - Project website: [https://yt-project.org/](https://yt-project.org/)
