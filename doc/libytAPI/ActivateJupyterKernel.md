@@ -20,17 +20,17 @@ nav_order: 11
 ```cpp
 int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file);
 ```
-- Usage: Activate [Jupyter kernel]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access) if file `flag_file_name` is detected. `libyt` uses user provided connection file if `use_connection_file` is `true`. If it is false, it will pick and bind to ports and generate the connection file. The connection file name is always `libyt_kernel_connection.json`.
+- Usage: Activate Jupyter kernel if file `flag_file_name` is detected. `libyt` uses user provided connection file if `use_connection_file` is `true`. If `false`, it will pick and bind to ports and generate the connection file itself. The connection file name must be `libyt_kernel_connection.json`.
 - Return:
     - `YT_SUCCESS`
-    - `YT_FAIL`: When `libyt` is not compiled with `-DJUPYTER_KERNEL`, it returns `YT_FAIL`.
+    - `YT_FAIL`: When `libyt` is not compiled with `-DJUPYTER_KERNEL=ON`, it returns `YT_FAIL`.
 
-> :information_source: Must compile `libyt` with `-DJUPYTER_KERNEL`. See [How to Install]({% link HowToInstall.md %}#-djupyter_kernelonoff-defaultoff).
+> :information_source: Must compile `libyt` with [`-DJUPYTER_KERNEL=ON`]({% link HowToInstall.md %}#-djupyter_kernelonoff-defaultoff). See [How to Install]({% link HowToInstall.md %}#how-to-install).
 
 > :information_source: The API only launches a Jupyter kernel that exposes simulation data. For how to connect to the kernel, please go to [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access). 
 
 ## Connection File
-The connection file name must be `libyt_kernel_connection.json`. This is the same connection file used in Jupyter with different file name.
+The connection file name must be `libyt_kernel_connection.json`. This is the same connection file used in Jupyter but with different file name. `libyt` use this connection file to bind to ports and construct kernel.
 
 For example:
 ```json
