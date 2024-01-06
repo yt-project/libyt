@@ -5,7 +5,7 @@ parent: Jupyter Notebook Access
 grand_parent: In Situ Python Analysis
 nav_order: 3
 ---
-# Example -- Connecting to Kernel on HPC Cluster
+# Connecting to Kernel on HPC Cluster
 {: .no_toc }
 <details open markdown="block">
   <summary>

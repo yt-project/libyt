@@ -93,7 +93,7 @@ The options are mutually independent to each other.
 ###### Required Python Packages
 {: .no_toc }
 - `jupyter_libyt`: Customized kernel provisioner for libyt Jupyter kernel.
-- `jupyter-client`: Jupyter client.
+- `jupyter-client` (>=8.0.0): Jupyter client.
 - `jedi`: Support auto-completion in Jupyter Notebook and JupyterLab. This is optional. (If you have IPython installed, you might already have this.)
 
 
