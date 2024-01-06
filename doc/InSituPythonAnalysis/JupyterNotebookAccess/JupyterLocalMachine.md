@@ -5,7 +5,7 @@ parent: Jupyter Notebook Access
 grand_parent: In Situ Python Analysis
 nav_order: 2
 ---
-# Example -- Connecting to Kernel on Local Machine
+# Connecting to Kernel on Local Machine
 {: .no_toc }
 <details open markdown="block">
   <summary>
