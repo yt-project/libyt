@@ -22,8 +22,8 @@ The inline Python script and the simulation executable should be placed in the s
 Each MPI process runs the same Python script. The imported script will also serve as the namespace. 
 All of our in situ Python analysis are done inside this namespace. 
 
-The namespace contains function objects in the script. We can use [`yt_run_Function`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_Functions) 
-and [`yt_run_FunctionArguments`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_FunctionArguments) to call them in simulation.
+The namespace contains function objects in the script. We can use [`yt_run_Function`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_function) 
+and [`yt_run_FunctionArguments`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_functionarguments) to call them in simulation.
 
 Every new added objects in this namespace will be kept and brought to next round of analysis. 
 Objects created when running Python function get freed once they leave the function.
@@ -33,9 +33,9 @@ Make sure we put the global variable wisely.
 If `libyt` is compiled in [**normal mode**]({% link HowToInstall.md %}#options), it is not fault-tolerant to Python, 
 so the whole simulation will shut down.
 
-Use [**interactive mode**]({% link HowToInstall.md %}#options) if we want our in situ Python analysis to be fault-tolerant. 
+Use [**interactive mode**]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff) if we want our in situ Python analysis to be fault-tolerant. 
 In interactive mode, the simulation will pause when some Python functions crash, or it is called to pause 
-(See more in [`yt_run_InteractiveMode`]({% link libytAPI/ActivateInteractiveMode.md %}#yt_run_InteractiveMode)).
+(See more in [`yt_run_InteractiveMode`]({% link libytAPI/ActivateInteractiveMode.md %}#yt_run_interactivemode)).
 
 ## Can I Update Python Functions Defined in the Script?
 We can only update Python functions in [**interactive mode**]({% link HowToInstall.md %}#options).

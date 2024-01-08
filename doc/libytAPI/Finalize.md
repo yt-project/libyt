@@ -2,7 +2,7 @@
 layout: default
 title: yt_finalize -- Finalize libyt
 parent: libyt API
-nav_order: 12
+nav_order: 13
 ---
 # Finalize
 {: .no_toc }
