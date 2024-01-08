@@ -60,12 +60,6 @@ These statements run in inline script's namespace, and will update and make chan
 
 > :information_source: To make interactive prompt more smoothly, set lower [YT_VERBOSE]({% link libytAPI/Initialize.md %}#yt_param_libyt).
 
-> :warning: Changes is kept and maintain in user's inline script's namespace in situ analysis in the following round.
-
-### Exit Interactive Python Prompt
-Use [`%libyt exit`]({% link InSituPythonAnalysis/libytCommand.md %}#exit) to exit the prompt.
-Then it will return back to the simulation process.
-
 
 ##### How does the prompt execute Python statements and libyt defined commands?
 {: .no_toc }
@@ -74,8 +68,16 @@ Then it will return back to the simulation process.
 3. Every other MPI process executes the same piece of input synchronously.
 4. Print feedbacks to the terminal.
 
+> :warning: Changes is kept and maintain in user's inline script's namespace in situ analysis in the following round.
+
+### Exit Interactive Python Prompt
+Use [`%libyt exit`]({% link InSituPythonAnalysis/libytCommand.md %}#exit) to exit the prompt.
+Then it will return back to the simulation process.
+
+
 ## Known Limitations
 - Cannot use arrow keys or `Crtl+D` in interactive mode.
+- See [Limitations in MPI Related Python Tasks]({% link InSituPythonAnalysis/Limitations.md %}#limitations-in-mpi-related-python-tasks).
 
 ## FAQs
 ### Why Can't I Find the Prompt `>>>` After I have Activated Interactive Mode?
