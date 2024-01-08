@@ -38,7 +38,7 @@ We need another process to start Jupyter Notebook/JupyterLab and connect to liby
    ```bash
    export JUPYTER_PATH=<libyt-install-dir>/share/jupyter:$JUPYTER_PATH
    ```
-   Check if `libyt_kernel` is available in Jupyter:
+   Check if `libyt_kernel` is listed:
    ```bash
    jupyter kernelspec list
    ```
