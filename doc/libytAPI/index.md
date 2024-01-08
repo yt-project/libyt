@@ -61,6 +61,10 @@ Currently, `libyt` only supports loading simulation data with adaptive mesh refi
       <td>Activate interactive prompt. This is only available in interactive mode.</td>
     </tr>
     <tr>
+      <td><code>yt_run_JupyterKernel</code></td>
+      <td>Activate interactive prompt. This is only available in Jupyter kernel mode.</td>
+    </tr>
+    <tr>
       <td><code>yt_free</code></td>
       <td>Free resources for in situ analysis.</td>
     </tr>

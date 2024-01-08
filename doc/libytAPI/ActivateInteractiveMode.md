@@ -16,7 +16,7 @@ nav_order: 10
 </details>
 ---
 
-## yt\_run\_InteractiveMode
+## yt_run_InteractiveMode
 ```cpp
 int yt_run_InteractiveMode(const char* flag_file_name);
 ```

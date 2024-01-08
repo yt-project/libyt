@@ -2,7 +2,7 @@
 layout: default
 title: libyt Python Module
 parent: In Situ Python Analysis
-nav_order: 2
+nav_order: 3
 ---
 # libyt Python Module
 {: .no_toc }
@@ -116,7 +116,11 @@ import libyt
 ### get_field_remote(fname_list : list, fname_list_len : int, prepare_list : list, prepare_list_len : int, fetch_gid_list : list, fetch_process_list : list, fetch_gid_list_len : int) -> dict
 - Usage: Return a dictionary that contains requested field data from remote rank.
 
+> :warning: This is a collective operation, and it requires every MPI process to participate.
+
 ### get_particle_remote(par_dict : dict, par_dict : dict_keys, prepare_list : list, prepare_list_len : int, fetch_gid_list : list, fetch_process_list : list, fetch_gid_list_len : int) -> dict
 - Usage: Return a dictionary that contains requested particle data from remote rank.
+
+> :warning: This is a collective operation, and it requires every MPI process to participate.
 
 > :lizard: `get_field_remote` and `get_particle_remote` may be hard to use in general case, since we have to prepare those list by ourselves. We will improve this and make it general in the future.
