@@ -24,24 +24,30 @@ nav_order: 3
        // some error message
    }
    ```
+   It will launch libyt Jupyter kernel once it detects `LIBYT_STOP`. 
    Remember to make `libyt` to use user provided connection file by setting `true`.
 2. Submit the job to HPC cluster, your simulation should be running by now.
-3. Set the connection file:
-
-We need to make set `ip` to MPI root process's local ip, so use user provided connection file (`libyt_kernel_connection.json`):
-```json
-{
-  "transport": "tcp",  
-  "ip": "192.168.0.150+x",  
-  "control_port": 53545,  
-  "shell_port": 63994,  
-  "stdin_port": 58177,  
-  "iopub_port": 51243,  
-  "hb_port": 61501,  
-  "signature_scheme": "hmac-sha256",  
-  "key": "64e13a6faaf1470eb1f86df565543923"
-}
-```
+3. Create connection file `libyt_kernel_connection.json` in the same folder where simulation executable is, for example:
+   ```json
+   {
+     "transport": "tcp",  
+     "ip": "192.168.0.151",  
+     "control_port": 53545,  
+     "shell_port": 63994,  
+     "stdin_port": 58177,  
+     "iopub_port": 51243,  
+     "hb_port": 61501,  
+     "signature_scheme": "hmac-sha256",  
+     "key": "64e13a6faaf1470eb1f86df565543923"
+   }
+   ```
+   - `ip` should be the internal ip of the computing node, where MPI root process is. Normally, we can find it in `/etc/hosts`:
+     ```bash
+     cat /etc/hosts
+     ```
+   - Ports should be unused.
+4. Wait for connection from Jupyter Notebook / JupyterLab (See below [Connecting to Kernel](#connecting-to-kernel))
+5. Shutdown the kernel. ([How to Exit]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#how-to-exit))
 
 ## Connecting to Kernel
 
