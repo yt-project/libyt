@@ -2,7 +2,7 @@
 layout: default
 title: yt_free -- Free resources
 parent: libyt API
-nav_order: 11
+nav_order: 12
 ---
 # Free Resources Allocated by libyt
 {: .no_toc }
