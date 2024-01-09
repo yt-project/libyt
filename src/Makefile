@@ -23,7 +23,7 @@ OPTIONS :=
 #OPTIONS += -DINTERACTIVE_MODE
 
 # Supports Jupyter Notebook UI for interactive mode, must enable INTERACTIVE_MODE
-# TODO: not supported this option in Makefile yet.
+# (Use CMake for this option)
 #OPTIONS += -DJUPYTER_KERNEL
 
 # Timer: measure time each libyt substep. Should switch to off in production run.
