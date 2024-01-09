@@ -16,10 +16,14 @@ nav_order: 5
 </details>
 ---
 
+
 ## Requirements
 
 - Compile `libyt` in [**interactive mode**]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff).
 - Call libyt API [`yt_run_InteractiveMode`]({% link libytAPI/ActivateInteractiveMode.md %}#activate-interactive-mode).
+
+> :information_source: Interactive mode only works on local machine or submit the job to HPC platforms through interactive queue like `qsub -I`.
+> The reason is that the prompt is exposed through the terminal. Use [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access) to avoid this.
 
 ## Using Interactive Python Prompt
 
