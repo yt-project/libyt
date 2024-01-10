@@ -30,7 +30,9 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file);
 > :information_source: The API only launches a Jupyter kernel that exposes simulation data. For how to connect to the kernel, please go to [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access). 
 
 ## Connection File
-The connection file name must be `libyt_kernel_connection.json`. This is the same connection file used in Jupyter but with different file name. `libyt` use this connection file to bind to ports and construct kernel.
+The connection file name must be `libyt_kernel_connection.json`. This is the same connection file used in Jupyter but with different file name.
+(Please refer to [Jupyter Client -- Connection files](https://jupyter-client.readthedocs.io/en/stable/kernels.html#connection-files))
+`libyt` use this connection file to bind to ports and construct kernel.
 
 For example:
 ```json

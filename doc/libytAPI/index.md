@@ -8,22 +8,16 @@ has_toc: false
 ---
 
 # libyt API
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
 
 ## Procedure
-It can break down into three stages, initialization, loading simulation data into Python and do in situ analysis during the iterative process in simulation, 
-and finalization.
+It can break down into five stages: 
+  - initialization, 
+  - loading simulation data into Python[^1], 
+  - do in situ analysis, 
+  - reset, 
+  - and finalization.
 
-Currently, `libyt` only supports loading simulation data with adaptive mesh refinement grid structure (AMR grid) to Python.[^1]
+## libyt API
 
 <table>
   <thead>
@@ -40,7 +34,7 @@ Currently, `libyt` only supports loading simulation data with adaptive mesh refi
       <td>Initialize embedded Python and import inline Python script.</td>
     </tr>
     <tr>
-      <td rowspan=6><strong>Iteration</strong></td>
+      <td rowspan=3><strong>Loading data</strong></td>
       <td><code>yt_set_Parameters</code>, <code>yt_set_UserParameter*</code></td>
       <td>Set yt parameters and user specific parameters.</td>
     </tr>
@@ -53,6 +47,7 @@ Currently, `libyt` only supports loading simulation data with adaptive mesh refi
       <td>Tell libyt you're done.</td>
     </tr>
     <tr>
+      <td rowspan=3><strong>In situ analysis</strong></td>
       <td><code>yt_run_Function</code>, <code>yt_run_FunctionArguments</code></td>
       <td>Run Python functions.</td>
     </tr>
@@ -65,6 +60,7 @@ Currently, `libyt` only supports loading simulation data with adaptive mesh refi
       <td>Activate interactive prompt. This is only available in Jupyter kernel mode.</td>
     </tr>
     <tr>
+      <td rowspan=1><strong>Reset</strong></td>
       <td><code>yt_free</code></td>
       <td>Free resources for in situ analysis.</td>
     </tr>
@@ -78,6 +74,7 @@ Currently, `libyt` only supports loading simulation data with adaptive mesh refi
 
 
 ----
-[^1]: :lizard: Even though we can still activate Python prompt and run in situ Python script with no data loaded ahead in non-AMR grid simulation with just `yt_initialize`, `yt_run_Function`, `yt_run_FunctionArguments`, `yt_run_InteractiveMode`, and `yt_finalize`. We are trying to make `libyt` works with more data structure.
+[^1]: :lizard: Currently, `libyt` only supports loading simulation data with adaptive mesh refinement grid structure (AMR grid) to Python. We are trying to make `libyt` works with more data structure.
+
 
 
