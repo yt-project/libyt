@@ -11,23 +11,47 @@
 #include "libyt_python_shell.h"
 #include "yt_combo.h"
 
-int define_command::s_Root = 0;
+int define_command::s_Root = g_myroot;
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  define_command
 // Method      :  run
 //
-// Notes       :  1. Parst m_Command, and call according method.
+// Notes       :  1. This is a collective operation and an entry point for yt_run_InteractiveMode or
+//                   yt_run_JupyterKernel to call libyt defined command.
 //                2. stringstream is slow and string copying is slow, but ..., too lazy to do that.
-//                3. Update successfully executed libyt command to history on root rank.
-//                4. Will always ignore "%libyt exit", it will only clear prompt history.
+//                3. Will always ignore "%libyt exit", it will only clear prompt history.
 //
-// Arguments   :  None
+// Arguments   :  const std::string& command : command to run (default is "", which will get command from root).
 //
-// Return      : true / false   : whether or not to exit interactive loop.
+// Return      : true / false   : whether to exit interactive loop.
 //-------------------------------------------------------------------------------------------------------
-bool define_command::run() {
+bool define_command::run(const std::string& command) {
     SET_TIMER(__PRETTY_FUNCTION__);
+
+    // get m_Command from s_Root
+#ifndef SERIAL_MODE
+    if (g_myrank == s_Root) {
+        int code_len = (int)command.length();
+        MPI_Bcast(&code_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+        MPI_Bcast((void*)command.c_str(), code_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
+
+        m_Command = command;
+    } else {
+        int code_len;
+        MPI_Bcast(&code_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+
+        char* code;
+        code = (char*)malloc((code_len + 1) * sizeof(char));
+        MPI_Bcast(code, code_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
+        code[code_len] = '\0';
+
+        m_Command = std::string(code);
+        free(code);
+    }
+#else
+    m_Command = command;
+#endif
 
     std::stringstream ss(m_Command);
     std::string arg;
@@ -156,16 +180,15 @@ int define_command::load_script(const char* filename) {
 
     m_Undefine = false;
 
-    // root rank reads script and broadcast to other ranks if compile successfully
-    PyObject* src;
+    // root rank checks the script, if worked, call execute_file
     if (g_myrank == s_Root) {
-        // read file
+        // make sure file exist and read the file
         std::ifstream stream;
         stream.open(filename);
         if (!stream) {
 #ifndef SERIAL_MODE
-            int temp = -1;
-            MPI_Bcast(&temp, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+            int indicator = -1;
+            MPI_Bcast(&indicator, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
             printf("File %s doesn't exist.\n", filename);
             printf("Loading script %s ... failed\n", filename);
 #endif
@@ -178,53 +201,50 @@ int define_command::load_script(const char* filename) {
         }
         stream.close();
 
-        // check compilation, if failed return directly, so no need to allocate script.
-        src = Py_CompileString(ss.str().c_str(), filename, Py_file_input);
-        if (src == NULL) {
-            PyErr_Print();
-            PyRun_SimpleString("sys.stderr.flush()");
+        // check code validity
+        CodeValidity code_validity = LibytPythonShell::check_code_validity(ss.str(), false, filename);
+        if (code_validity.is_valid.compare("complete") == 0) {
 #ifndef SERIAL_MODE
-            int temp = -1;
-            MPI_Bcast(&temp, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+            int indicator = 1;
+            MPI_Bcast(&indicator, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
 #endif
+            std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_file(ss.str(), filename);
+            for (int i = 0; i < 2; i++) {
+                if (output[i].output_string.length() > 0) {
+                    int offset = 0;
+                    for (int r = 0; r < g_mysize; r++) {
+                        printf("\033[1;34m[MPI Process %d]\033[0;37m\n", r);
+                        if (output[i].output_length[r] == 0) {
+                            printf("(None)\n");
+                        }
+                        printf("%s\n", output[i].output_string.substr(offset, output[i].output_length[r]).c_str());
+                        offset += output[i].output_length[r];
+                    }
+                }
+            }
+        } else {
+#ifndef SERIAL_MODE
+            int indicator = -1;
+            MPI_Bcast(&indicator, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+#endif
+            printf("%s\n", code_validity.error_msg.c_str());
             printf("Loading script %s ... failed\n", filename);
             return YT_FAIL;
         }
-
-#ifndef SERIAL_MODE
-        // broadcast when compile successfully
-        int script_len = (int)ss.str().length();
-        MPI_Bcast(&script_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
-        MPI_Bcast(const_cast<char*>(ss.str().c_str()), script_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
-#endif
     }
 #ifndef SERIAL_MODE
     else {
-        // get script from file read by root rank, return YT_FAIL if script_len < 0
-        int script_len;
-        MPI_Bcast(&script_len, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
-        if (script_len < 0) return YT_FAIL;
+        // return YT_FAIL if no file found or file cannot compile
+        int indicator;
+        MPI_Bcast(&indicator, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
 
-        char* script;
-        script = (char*)malloc((script_len + 1) * sizeof(char));
-        MPI_Bcast(script, script_len, MPI_CHAR, s_Root, MPI_COMM_WORLD);
-        script[script_len] = '\0';
-
-        // compile code
-        src = Py_CompileString(script, filename, Py_file_input);
-
-        free(script);
+        if (indicator < 0) {
+            return YT_FAIL;
+        } else {
+            std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_file();
+        }
     }
 #endif
-
-    // execute src in script's namespace
-    PyObject* global_var = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
-    PyObject* dum = PyEval_EvalCode(src, global_var, global_var);
-    PyRun_SimpleString("sys.stdout.flush()");
-    if (PyErr_Occurred()) {
-        PyErr_Print();
-        PyRun_SimpleString("sys.stderr.flush()");
-    }
 
     // update libyt.interactive_mode["func_body"]
     LibytPythonShell::load_file_func_body(filename);
@@ -235,10 +255,6 @@ int define_command::load_script(const char* filename) {
     for (int i = 0; i < (int)func_list.size(); i++) {
         g_func_status_list.add_new_func(func_list[i].c_str(), 0);
     }
-
-    // clean up
-    Py_XDECREF(src);
-    Py_XDECREF(dum);
 
     if (g_myrank == s_Root) printf("Loading script %s ... done\n", filename);
 
@@ -306,7 +322,7 @@ int define_command::set_func_run(const char* funcname, bool run) {
 
         // print args if function is set to run
         if (g_myrank == s_Root && run)
-            printf("Run %s(%s) in next iteration\n", funcname, g_func_status_list[index].get_args().c_str());
+            printf("Run %s in next iteration\n", g_func_status_list[index].get_full_func_name().c_str());
 
         return YT_SUCCESS;
     }
@@ -360,7 +376,7 @@ int define_command::set_func_run(const char* funcname, bool run, std::vector<std
         g_func_status_list[index].set_run(run);
         if (g_myrank == s_Root) {
             printf("Function %s set to run ... done\n", funcname);
-            printf("Run %s(%s) in next iteration\n", funcname, g_func_status_list[index].get_args().c_str());
+            printf("Run %s in next iteration\n", g_func_status_list[index].get_full_func_name().c_str());
         }
         return YT_SUCCESS;
     }

@@ -6,6 +6,8 @@
 #include <readline/readline.h>
 #include <sys/stat.h>
 
+#include <string>
+
 #include "LibytProcessControl.h"
 #include "define_command.h"
 #endif
@@ -22,6 +24,7 @@
 //                   (2) libyt command
 //                   (3) Execute characters should be less than INT_MAX.
 //                4. Let user add and decide what inline function to run in the follow process.
+//                5. This API deals with user inputs, and direct jobs to other functions.
 //
 // Parameter   :  const char *flag_file_name : once this file is detected, it enters interactive mode
 //
@@ -72,18 +75,11 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     const char* ps2 = "... ";
     const char* prompt = ps1;
     bool done = false;
-    int root = 0;
+    int root = g_myroot;
 
     // input line and error msg
     int input_len, code_len;
     char *input_line, *code = NULL;
-
-    // get inline script's namespace, globals and locals are the same.
-    PyObject* global_var;
-    global_var = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
-
-    // python object for interactive loop, parsing syntax error for code not yet done
-    PyObject *src, *dum;
 
     // make sure every rank has reach here
     fflush(stdout);
@@ -117,15 +113,13 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                 // assume it was libyt defined command if the first char is '%'
                 if (input_line[first_char] == '%') {
 #ifndef SERIAL_MODE
-                    // tell other ranks no matter if it is valid, even though not all libyt command are collective
-                    input_len = (int)strlen(input_line) - first_char;
-                    MPI_Bcast(&input_len, 1, MPI_INT, root, MPI_COMM_WORLD);
-                    MPI_Bcast(&(input_line[first_char]), input_len, MPI_CHAR, root, MPI_COMM_WORLD);
+                    // Send call libyt define command code (indicator = 0)
+                    int indicator = 0;
+                    MPI_Bcast(&indicator, 1, MPI_INT, root, MPI_COMM_WORLD);
 #endif
-
                     // run libyt command
-                    define_command command(&(input_line[first_char]));
-                    done = command.run();
+                    define_command command;
+                    done = command.run(&(input_line[first_char]));
 #ifndef SERIAL_MODE
                     MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -138,109 +132,87 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
 
             // dealing with Python input
             input_len = strlen(input_line);
-            if (code == NULL)
+            if (code == NULL) {
                 code_len = 0;
-            else
+            } else {
                 code_len = strlen(code);
+            }
 
-            // append input to code, additional 2 for '\n' and '\0'
+            // append input to code, additional 2 for '\n' and '\0', no longer need input_line
             code = (char*)realloc(code, input_len + code_len + 2);
             if (code_len == 0) code[0] = '\0';
             strncat(code, input_line, input_len);
             code[code_len + input_len] = '\n';
             code[code_len + input_len + 1] = '\0';
+            free(input_line);
 
-            // compile and check if this code is complete yet
-            src = Py_CompileString(code, "<libyt-stdin>", Py_single_input);
-            // case 1: it works fine, ready to run
-            if (src != NULL) {
+            // check validity
+            CodeValidity code_validity = LibytPythonShell::check_code_validity(std::string(code), true);
+            if (code_validity.is_valid.compare("complete") == 0) {
+                // is complete and is a single-line statement or second \n for multi-line statement
                 if (prompt == ps1 || code[code_len + input_len - 1] == '\n') {
 #ifndef SERIAL_MODE
-                    // broadcast to other ranks, code character num no longer than INT_MAX
-                    int temp = (int)strlen(code);
-                    MPI_Bcast(&temp, 1, MPI_INT, root, MPI_COMM_WORLD);
-                    MPI_Bcast(code, strlen(code), MPI_CHAR, root, MPI_COMM_WORLD);
+                    // Send call libyt execute code (indicator = 1)
+                    int indicator = 1;
+                    MPI_Bcast(&indicator, 1, MPI_INT, root, MPI_COMM_WORLD);
 #endif
 
-                    // run code
-                    dum = PyEval_EvalCode(src, global_var, global_var);
-                    PyRun_SimpleString("sys.stdout.flush()");
-                    if (PyErr_Occurred()) {
-                        PyErr_Print();
-                        PyRun_SimpleString("sys.stderr.flush()");
-                    } else {
-                        // if it worked successfully, write to prompt history (only on root)
-                        g_libyt_python_shell.update_prompt_history(std::string(code));
+                    // Execute code and print result
+                    std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_prompt(std::string(code));
+                    for (int i = 0; i < 2; i++) {
+                        if (output[i].output_string.length() > 0) {
+                            int offset = 0;
+                            for (int r = 0; r < g_mysize; r++) {
+                                printf("\033[1;34m[MPI Process %d]\033[0;37m\n", r);
+                                if (output[i].output_length[r] == 0) {
+                                    printf("(None)\n");
+                                }
+                                printf("%s\n",
+                                       output[i].output_string.substr(offset, output[i].output_length[r]).c_str());
+                                offset += output[i].output_length[r];
+                            }
+                        }
                     }
 
-                    // detect callables and their function definition
-                    LibytPythonShell::load_input_func_body(code);
-
-                    // clean up
-                    Py_XDECREF(dum);
+                    // Reset
                     free(code);
                     code = NULL;
                     prompt = ps1;
-
-                    // wait till every rank is done
                     fflush(stdout);
                     fflush(stderr);
 #ifndef SERIAL_MODE
                     MPI_Barrier(MPI_COMM_WORLD);
 #endif
                 }
-            }
-            // case 2: not finish yet
-            else if (LibytPythonShell::is_not_done_err_msg(code)) {
-                // code not complete yet, switch prompt to ps2
+            } else if (code_validity.is_valid.compare("incomplete") == 0) {
                 prompt = ps2;
-            }
-            // case 3: real errors in code
-            else {
-                PyErr_Print();
-                PyRun_SimpleString("sys.stderr.flush()");
+            } else {
+                // Print error
+                printf("%s\n", code_validity.error_msg.c_str());
 
-                // clean up
+                // Reset
                 free(code);
                 code = NULL;
                 prompt = ps1;
             }
-
-            // clean up
-            Py_XDECREF(src);
-            free(input_line);
         }
 #ifndef SERIAL_MODE
         // other ranks: get and execute python line from root
         else {
-            // get code; additional 1 for '\0'
-            MPI_Bcast(&code_len, 1, MPI_INT, root, MPI_COMM_WORLD);
-            code = (char*)malloc((code_len + 1) * sizeof(char));
-            MPI_Bcast(code, code_len, MPI_CHAR, root, MPI_COMM_WORLD);
-            code[code_len] = '\0';
+            // TODO: (this is a bad practice.) Get code for further instructions
+            int indicator = -1;
+            MPI_Bcast(&indicator, 1, MPI_INT, root, MPI_COMM_WORLD);
 
-            // call libyt command, if the first char is '%'
-            if (code[0] == '%') {
-                define_command command(code);
+            if (indicator == 0) {
+                // call libyt command, if indicator is 0
+                define_command command;
                 done = command.run();
             } else {
-                // compile and execute code, and detect functors.
-                src = Py_CompileString(code, "<libyt-stdin>", Py_single_input);
-                dum = PyEval_EvalCode(src, global_var, global_var);
-                PyRun_SimpleString("sys.stdout.flush()");
-                if (PyErr_Occurred()) {
-                    PyErr_Print();
-                    PyRun_SimpleString("sys.stderr.flush()");
-                }
-                LibytPythonShell::load_input_func_body(code);
-
-                // clean up
-                Py_XDECREF(dum);
-                Py_XDECREF(src);
+                // Execute code, the code must be a vaild code and successfully compile now
+                std::array<AccumulatedOutputString, 2> temp_output = LibytPythonShell::execute_prompt();
             }
 
             // clean up and wait
-            free(code);
             fflush(stdout);
             fflush(stderr);
             MPI_Barrier(MPI_COMM_WORLD);
