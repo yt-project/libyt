@@ -2,7 +2,7 @@
 layout: default
 title: Using yt
 parent: In Situ Python Analysis
-nav_order: 4
+nav_order: 2
 ---
 # Using yt for In Situ Python Analysis
 {: .no_toc }
@@ -15,6 +15,9 @@ nav_order: 4
 {:toc}
 </details>
 ---
+
+## Requirements
+- Python package [`yt`](https://yt-project.org/) and [`yt_libyt`]({% link HowToInstall.md %}#yt_libyt).
 
 ## Use yt for In Situ Python Analysis under Parallel Computation
 `libyt` directly borrows parallel computation feature in `yt` using `mpi4py`. You can also refer to [**Parallel Computation With yt**](https://yt-project.org/doc/analyzing/parallel_computation.html#parallel-computation-with-yt).

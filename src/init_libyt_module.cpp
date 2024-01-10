@@ -794,8 +794,8 @@ int init_libyt_module() {
     free(command);
 
     std::string filename = std::string(g_param_libyt.script) + ".py";
-    func_status_list::load_file_func_body(filename.c_str());
-    std::vector<std::string> func_list = func_status_list::get_funcname_defined(filename.c_str());
+    LibytPythonShell::load_file_func_body(filename.c_str());
+    std::vector<std::string> func_list = LibytPythonShell::get_funcname_defined(filename.c_str());
     for (int i = 0; i < (int)func_list.size(); i++) {
         g_func_status_list.add_new_func(func_list[i].c_str(), -1);
     }

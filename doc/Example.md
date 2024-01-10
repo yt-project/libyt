@@ -35,7 +35,7 @@ The example initializes `libyt`, loads data to `libyt` in simulation's iterative
 
 ## How to Compile and Run
 
-1. Follow [**How to Install**]({% link HowToInstall.md %}#how-to-install) to install `libyt` and `yt_libyt`.
+1. Install `libyt` with [`-DSERIAL_MODE=OFF`]({% link HowToInstall.md %}#-dserial_modeonoff-defaultoff) and install Python package [`yt_libyt`]({% link HowToInstall.md %}#yt_libyt).
 2. Install [`yt`](https://yt-project.org/). This example uses `yt` as the core analytic method.
   ```bash
   pip install yt
@@ -58,18 +58,14 @@ The example initializes `libyt`, loads data to `libyt` in simulation's iterative
 ## Playground
 
 ### Activate Interactive Mode
-The example assumes that `libyt` is in [**normal mode**]({% link HowToInstall.md %}#options).
 
-To try out [**interactive mode**]({% link HowToInstall.md %}#options), we need to compile `libyt` in [**interactive mode**]({% link HowToInstall.md %}#options).
-Then un-comment this block in `example.cpp` and create a file `LIBYT_STOP`. 
-`LIBYT_STOP` and the executable should be in the same folder.   
-`libyt` will enter [**interactive Python prompt**]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt) only if it detects `LIBYT_STOP` file, or an inline function failed.
+To try out [**interactive mode**]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff), compile `libyt` with [`-DINTERACTIVE_MODE=ON`]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff).
 
-
+Then un-comment this block in `example.cpp`:
 ```c++
 // file: example/example.cpp
 // =======================================================================================================
-// libyt: 9. activate python prompt in interactive mode, should call it in situ function call using API
+// libyt: 9. activate python prompt in interactive mode
 // =======================================================================================================
 // Only supports when compile libyt in interactive mode (-DINTERACTIVE_MODE)
 // Interactive prompt will start only if it detects "LIBYT_STOP" file, or an inline function failed.
@@ -78,6 +74,31 @@ if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
     exit(EXIT_FAILURE);
 }
 ```
+Create `LIBYT_STOP` and put it in the same folder where example executable is. 
+`libyt` will enter [**interactive Python prompt**]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt) only if it detects `LIBYT_STOP` file, or when an inline function failed.
+
+### Activate libyt Jupyter Kernel
+
+To try out [**jupyter kernel mode**]({% link HowToInstall.md %}#-djupyter_kernelonoff-defaultoff), compile `libyt` with [`-DJUPYTER_KERNEL=ON`]({% link HowToInstall.md %}#-djupyter_kernelonoff-defaultoff).
+
+Then un-comment this block in `example.cpp`:
+```c++
+// file: example/example.cpp
+// =======================================================================================================
+// libyt: 9. activate libyt Jupyter kernel for Jupyter Notebook / JupyterLab access
+// =======================================================================================================
+// Only supports in CMake (-DJUPYTER_KERNEL enabled)
+// Activate libyt kernel when detects "LIBYT_STOP" file.
+// False for making libyt find empty port to bind to by itself.
+// True for using connection file provided by user, file name must be "libyt_kernel_connection.json".
+if (yt_run_JupyterKernel("LIBYT_STOP", false) != YT_SUCCESS) {
+    fprintf(stderr, "ERROR: yt_run_JupyterKernel failed!\n");
+    exit(EXIT_FAILURE);
+}
+```
+
+Create `LIBYT_STOP` and put it in the same folder where example executable is.
+`libyt` will launch libyt Jupyter kernel and bind to unused ports automatically. See [**Jupyter Notebook Access**]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access).
 
 ### Update Python Script
 The example uses `inline_script.py` for in situ Python analysis. 
@@ -91,5 +112,5 @@ param_libyt.script = "inline_script";    // inline python script, excluding ".py
 param_libyt.check_data = false;          // check passed in data or not
 ```
 
-To know more about writing inline Python script, you can refer to [**In Situ Python Analysis**]({% link InSituPythonAnalysis/index.md %}#in-situ-python-analysis).
+To know more about writing inline Python script, you can refer to [**Using Python for In Situ Analysis in libyt**]({% link InSituPythonAnalysis/index.md %}#using-python-for-in-situ-analysis-in-libyt).
 

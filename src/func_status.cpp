@@ -47,7 +47,7 @@ func_status::func_status(const char* func_name, int run) : m_Args(""), m_Wrapper
 // Class       :  func_status
 // Method      :  Copy Constructor
 //
-// Notes       :  1. It is unefficient to do it this way, but we are adding func_status class to
+// Notes       :  1. It is inefficient to do it this way, but we are adding func_status class to
 //                   g_func_status_list vector, which makes a copy.
 //                   Although we can replace it to store class's pointer, I don't want to access through
 //                   arrow.
@@ -55,7 +55,11 @@ func_status::func_status(const char* func_name, int run) : m_Args(""), m_Wrapper
 // Arguments   :  const func_status& other
 //-------------------------------------------------------------------------------------------------------
 func_status::func_status(const func_status& other)
-    : m_Args(other.m_Args), m_Wrapper(other.m_Wrapper), m_Run(other.m_Run), m_Status(-1) {
+    : m_Args(other.m_Args),
+      m_Wrapper(other.m_Wrapper),
+      m_Run(other.m_Run),
+      m_Status(-1),
+      m_FullErrorMsg(std::move(other.m_FullErrorMsg)) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // copy m_FuncName;
@@ -65,6 +69,25 @@ func_status::func_status(const func_status& other)
 }
 
 func_status::~func_status() { delete[] m_FuncName; }
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  func_status
+// Method      :  get_full_func_name
+//
+// Notes       :  1. Return the string of how Python call this function, including arguments.
+//
+// Arguments   :  None
+//
+// Return      :  std::string function_call : how python will call this function, including args.
+//-------------------------------------------------------------------------------------------------------
+std::string func_status::get_full_func_name() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    std::string function_call = std::string(m_FuncName);
+    function_call += std::string("(") + m_Args + std::string(")");
+
+    return function_call;
+}
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status
@@ -93,20 +116,22 @@ int func_status::get_status() {
 
     // check if key exist in libyt.interactive_mode["func_err_msg"] dict, which is to get local status
     PyObject* py_func_name = PyUnicode_FromString(m_FuncName);
-    if (PyDict_Contains(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name) == 1)
+    if (PyDict_Contains(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name) == 1) {
         m_Status = 0;
-    else
+    } else {
         m_Status = 1;
+    }
     Py_DECREF(py_func_name);
 
 #ifndef SERIAL_MODE
     // mpi reduce, if sum(m_Status) != g_mysize, then some rank must have failed. Now m_Status is global status
     int tot_status = 0;
     MPI_Allreduce(&m_Status, &tot_status, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    if (tot_status != g_mysize)
+    if (tot_status != g_mysize) {
         m_Status = 0;
-    else
+    } else {
         m_Status = 1;
+    }
 #endif
 
     return m_Status;
@@ -213,6 +238,91 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status
+// Method      :  get_error_msg
+//
+// Notes       :  1. This is a collective call. Must call by every rank.
+//                2. Unlike serial_print_error, this stores the buffer, so it uses MPI_Gather/MPI_Gatherv
+//                   to gather string.
+//                3. Assert that every err msg line ends with newline \n.
+//                4. Cache error message, every root rank will cache it.
+//
+// Arguments   :  (None)
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+std::vector<std::string>& func_status::get_error_msg() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    if (!m_FullErrorMsg.empty()) {
+        return m_FullErrorMsg;
+    }
+
+    // get my err msg at each process
+    PyObject* py_func_name = PyUnicode_FromString(m_FuncName);
+    PyObject* py_err_msg = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name);
+    const char* err_msg;
+    if (py_err_msg != NULL) {
+        err_msg = PyUnicode_AsUTF8(py_err_msg);
+    } else {
+        err_msg = "";
+    }
+    Py_DECREF(py_func_name);
+
+#ifndef SERIAL_MODE
+    // all gather error, each rank will have full error buffer
+    int error_len = strlen(err_msg);
+    int* all_error_len = new int[g_mysize];
+    MPI_Allgather(&error_len, 1, MPI_INT, all_error_len, 1, MPI_INT, MPI_COMM_WORLD);
+
+    long sum_output_len = 0;
+    int* displace = new int[g_mysize];
+    for (int r = 0; r < g_mysize; r++) {
+        displace[r] = 0;
+        sum_output_len += all_error_len[r];
+        for (int r1 = 0; r1 < r; r1++) {
+            displace[r] += all_error_len[r1];
+        }
+    }
+    char* all_error = new char[sum_output_len + 1];
+    MPI_Allgatherv(err_msg, all_error_len[g_myrank], MPI_CHAR, all_error, all_error_len, displace, MPI_CHAR,
+                   MPI_COMM_WORLD);
+
+    for (int r = 0; r < g_mysize; r++) {
+        m_FullErrorMsg.emplace_back(std::string(all_error).substr(displace[r], all_error_len[r]));
+    }
+
+    delete[] all_error_len;
+    delete[] displace;
+    delete[] all_error;
+#else
+    m_FullErrorMsg.emplace_back(std::string(err_msg));
+#endif
+
+    return m_FullErrorMsg;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  func_status
+// Method      :  clear_error_msg
+//
+// Notes       :  1. Must call by every rank. Since this cache is empty, then get_error_msg will gather
+//                   errors from other ranks.
+//                2. Cache error message, every root rank will cache it, so every rank must call it.
+//
+// Arguments   :  (None)
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int func_status::clear_error_msg() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    m_FullErrorMsg.clear();
+
+    return YT_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  func_status
 // Method      :  print_func_body
 //
 // Notes       :  1. Only root will print funtion body.
@@ -227,31 +337,22 @@ int func_status::print_func_body(int indent_size, int indent_level) {
 
     int root = 0;
     if (g_myrank == root) {
-        // get function body
-        PyObject* py_func_name = PyUnicode_FromString(m_FuncName);
-        PyObject* py_func_body = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_body"), py_func_name);
-        const char* func_body;
-        if (py_func_body != NULL)
-            func_body = PyUnicode_AsUTF8(py_func_body);
-        else
-            func_body = "";
-        Py_DECREF(py_func_name);
+        std::string func_body = get_func_body();
 
         // print function body with indent
         printf("\033[0;37m");
-        if (strcmp(func_body, "") == 0) {
+        if (func_body.length() <= 0) {
             printf("%*s", indent_size * (indent_level + 1), "");
             printf("(not defined)\n");
         } else {
-            std::string str_func_body(func_body);
             std::size_t start_pos = 0;
             std::size_t found;
-            while (str_func_body.length() > 0) {
-                found = str_func_body.find("\n", start_pos);
+            while (func_body.length() > 0) {
+                found = func_body.find("\n", start_pos);
                 if (found != std::string::npos) {
                     printf("%*s", indent_size * (indent_level + 1), "");
                     for (std::size_t c = start_pos; c < found; c++) {
-                        printf("%c", str_func_body[c]);
+                        printf("%c", func_body[c]);
                     }
                     printf("\n");
                 } else
@@ -264,6 +365,31 @@ int func_status::print_func_body(int indent_size, int indent_level) {
     }
 
     return YT_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  func_status
+// Method      :  get_func_body
+//
+// Notes       :  1. Get function body by querying libyt.interactive_mode["func_body"][m_FuncName]
+//
+// Arguments   :  (None)
+//
+// Return      :  std::string func_body : function body
+//-------------------------------------------------------------------------------------------------------
+std::string func_status::get_func_body() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    // get function body
+    PyObject* py_func_name = PyUnicode_FromString(m_FuncName);
+    PyObject* py_func_body = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_body"), py_func_name);
+    std::string func_body("");
+    if (py_func_body != NULL) {
+        func_body = std::string(PyUnicode_AsUTF8(py_func_body));
+    }
+    Py_DECREF(py_func_name);
+
+    return func_body;
 }
 
 #endif  // #ifdef INTERACTIVE_MODE
