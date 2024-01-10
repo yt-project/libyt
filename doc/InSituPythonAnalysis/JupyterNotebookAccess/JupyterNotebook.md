@@ -115,4 +115,3 @@ We can press "Restart" button (:arrows_counterclockwise:) to reconnect to libyt 
 - The functionality is limited to taking Python inputs and printing outputs from all the MPI processes only. `libyt` hasn't done implementing Jupyter's full feature, like data streaming, supporting `ipwidgets` yet.
 - See [Limitations in MPI Related Python Tasks]({% link InSituPythonAnalysis/Limitations.md %}#limitations-in-mpi-related-python-tasks).
 
-## FAQs
