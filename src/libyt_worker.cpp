@@ -3,8 +3,7 @@
 
 #include <mpi.h>
 
-#include <iostream>
-
+#include "magic_command.h"
 #include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -47,7 +46,12 @@ void LibytWorker::start() {
                 break;
             }
             case 1: {
-                std::array<std::string, 2> temp_string = LibytPythonShell::execute_cell();
+                std::array<AccumulatedOutputString, 2> temp_string = LibytPythonShell::execute_cell();
+                break;
+            }
+            case 2: {
+                MagicCommand command;
+                OutputData temp = command.run();
                 break;
             }
             default: {

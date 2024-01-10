@@ -6,17 +6,11 @@
 
 #include "libyt.h"
 #include "libyt_python_shell.h"
+#include "magic_command.h"
 #include "yt_combo.h"
-
-struct CodeValidity {
-    std::string is_valid;
-    std::string error_msg;
-};
 
 static std::vector<std::string> split(const std::string& code, const char* c);
 static std::array<std::string, 2> split_on_line(const std::string& code, unsigned int lineno);
-static CodeValidity code_is_valid(const std::string& code, bool prompt_env = false,
-                                  const char* cell_name = "<libyt-stdin>");
 static std::array<int, 2> find_lineno_columno(const std::string& code, int pos);
 
 //-------------------------------------------------------------------------------------------------------
@@ -58,7 +52,8 @@ void LibytKernel::configure_impl() {
 //                2. Code will not be empty, it must contain characters other than newline or space.
 //                3. Always return "xeus::create_successful_reply()", though I don't know what it is for.
 //                4. Run the last statement using Py_single_input, so that it displays value.
-//                5. TODO: Support libyt defined commands and display
+//                5. libyt defined commands and magic commands (though currently not supported yet), should
+//                   start with %, and should be single line.
 //
 // Arguments   :  int   execution_counter  : cell number
 //                const std::string& code  : raw code, will not be empty
@@ -75,8 +70,32 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
 
     std::string cell_name = std::string("In [") + std::to_string(execution_counter) + std::string("]");
 
+    // Find if '%' is the first non-space character, if so, redirect jobs to define command
+    std::size_t found = code.find_first_not_of("\t\n\v\f\r ");
+    if (found != std::string::npos && code.at(found) == '%') {
+        // call magic command
+#ifndef SERIAL_MODE
+        int indicator = 2;
+        MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+#endif
+        MagicCommand command;
+        OutputData command_output = command.run(code.substr(found, code.length() - found));
+
+        // publish result and error
+        if (command_output.output.length() > 0) {
+            nlohmann::json pub_data;
+            pub_data[command_output.mimetype.c_str()] = command_output.output.c_str();
+            publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
+        }
+        if (command_output.error.length() > 0) {
+            publish_execution_error("LibytMagicCommandError", "", split(command_output.error, "\n"));
+        }
+
+        return xeus::create_successful_reply();
+    }
+
     // Make sure code is valid before continue
-    CodeValidity code_validity = code_is_valid(code, false, cell_name.c_str());
+    CodeValidity code_validity = LibytPythonShell::check_code_validity(code, false, cell_name.c_str());
     if (code_validity.is_valid.compare("complete") != 0) {
         publish_execution_error("", "", split(code_validity.error_msg, "\n"));
         return xeus::create_successful_reply();
@@ -97,6 +116,11 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
         PyLong_AsLong(PyObject_GetAttrString(PyList_GET_ITEM(py_result_body, num_statements - 1), "lineno"));
     std::array<std::string, 2> code_split = split_on_line(code, last_statement_lineno - 1);
 
+    // Append newline at the end of the last statement, so that Python won't produce EOF error
+    if (code_split[1].length() > 0) {
+        code_split[1].append("\n");
+    }
+
     // Append newline at the front of the last statement, so that Python error buffer can catch the correct lineno
     if (last_statement_lineno >= 1) {
         code_split[1].insert(0, std::string(last_statement_lineno - 1, '\n'));
@@ -107,22 +131,38 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     Py_DECREF(py_result);
     Py_DECREF(py_result_body);
 
-    // Call execute cell
+    // Call execute cell, and concatenate the string
     // TODO: It is a bad practice to send execute signal msg to other ranks like this, should wrap in function.
 #ifndef SERIAL_MODE
     int indicator = 1;
     MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
-    std::array<std::string, 2> output = LibytPythonShell::execute_cell(code_split, execution_counter);
+    std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_cell(code_split, cell_name);
+
+    // Insert header to string
+    for (int i = 0; i < 2; i++) {
+        if (output[i].output_string.length() > 0) {
+            int offset = 0;
+            for (int r = 0; r < g_mysize; r++) {
+                std::string head =
+                    std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\n\033[0;30m");
+                if (output[i].output_length[r] == 0) {
+                    head += std::string("(None)\n");
+                }
+                output[i].output_string.insert(offset, head);
+                offset = offset + head.length() + output[i].output_length[r];
+            }
+        }
+    }
 
     // Publish results
-    nl::json pub_data;
-    if (output[0].length() > 0) {
-        pub_data["text/plain"] = output[0].c_str();
+    if (output[0].output_string.length() > 0) {
+        nl::json pub_data;
+        pub_data["text/plain"] = output[0].output_string.c_str();
         publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
     }
-    if (output[1].length() > 0) {
-        publish_execution_error("", "", split(output[1], "\n"));
+    if (output[1].output_string.length() > 0) {
+        publish_execution_error("", "", split(output[1].output_string, "\n"));
     }
 
     return xeus::create_successful_reply();
@@ -237,7 +277,7 @@ nl::json LibytKernel::inspect_request_impl(const std::string& code, int cursor_p
 nl::json LibytKernel::is_complete_request_impl(const std::string& code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    CodeValidity code_validity = code_is_valid(code, true);
+    CodeValidity code_validity = LibytPythonShell::check_code_validity(code, true);
     if (code_validity.is_valid.compare("complete") == 0) {
         return xeus::create_is_complete_reply("complete");
     } else {
@@ -252,7 +292,7 @@ nl::json LibytKernel::is_complete_request_impl(const std::string& code) {
 //
 // Notes       :  1. It needs PY_VERSION (defined in Python header).
 //                2. Check https://jupyter-client.readthedocs.io/en/stable/messaging.html#kernel-info
-//                3. TODO: Probably need to add protocol version, but not sure what is it for.
+//                3. Not sure what 'protocol_version' is for.
 //                4. TODO: When there is a specific class for controlling libyt info, update helper links.
 //
 // Arguments   :  (None)
@@ -388,55 +428,6 @@ static std::array<std::string, 2> split_on_line(const std::string& code, unsigne
         line += 1;
     }
     return code_split;
-}
-
-//-------------------------------------------------------------------------------------------------------
-// Method      :  code_is_valid
-// Description :  Check code validity.
-//
-// Notes       :  1. Test if it can compile based on Py_file_input.
-//                2. I separated this function because code passed in can have multi-statement, and we
-//                   want the last statement to use Py_single_input, which is different from here.
-//
-// Arguments   :  const std::string&  code : code to check
-//                bool          prompt_env : if it is in prompt environment
-//                const char    *cell_name : cell name
-//
-// Return      :  CodeValidity.is_valid : "complete", "incomplete", "invalid", "unknown"
-//                             error_msg: error message from Python if it failed.
-//-------------------------------------------------------------------------------------------------------
-static CodeValidity code_is_valid(const std::string& code, bool prompt_env, const char* cell_name) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
-    CodeValidity code_validity;
-
-    PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
-
-    PyObject* py_test_compile = Py_CompileString(code.c_str(), cell_name, Py_file_input);
-
-    if (py_test_compile != NULL) {
-        code_validity.is_valid = "complete";
-    } else if (prompt_env && LibytPythonShell::is_not_done_err_msg(code.c_str())) {
-        code_validity.is_valid = "incomplete";
-    } else {
-        code_validity.is_valid = "invalid";
-
-        PyErr_Print();
-        PyRun_SimpleString("sys.stderr.flush()\n");
-        PyRun_SimpleString("sys.OUTPUT_STDERR=stderr_buf.getvalue()\n");
-        PyObject* py_module_sys = PyImport_ImportModule("sys");
-        PyObject* py_stderr_buf = PyObject_GetAttrString(py_module_sys, "OUTPUT_STDERR");
-        code_validity.error_msg = std::string(PyUnicode_AsUTF8(py_stderr_buf));
-
-        Py_DECREF(py_module_sys);
-        Py_DECREF(py_stderr_buf);
-    }
-
-    // Clear buffer and dereference
-    PyRun_SimpleString("stderr_buf.close()\nsys.stderr=sys.__stderr__\n");
-    Py_XDECREF(py_test_compile);
-
-    return code_validity;
 }
 
 //-------------------------------------------------------------------------------------------------------
