@@ -15,7 +15,7 @@
     steps (step 4~6).
 
     Initialization        1.  initialize libyt
-    ----------------------------------------------------------------------------------
+    ----------------------------------------------------------------------------------------
                           2.  provide YT-specific parameters
                           3.  add code-specific parameters
                           4.  set field information
@@ -24,9 +24,11 @@
                           7.  done loading information
                           8.  call inline python function
                           9.  [optional] activate python prompt in interactive mode
-                              (Need to compile libyt with -DINTERACTIVE_MODE)
+                                         (Need to compile libyt with -DINTERACTIVE_MODE)
+                              [optional] activate Jupyter kernel for Jupyter Notebook access
+                                         (Need to compile libyt with -DJUPYTER_KERNEL)
                           10. finish in-situ analysis, clean up libyt
-    ----------------------------------------------------------------------------------
+    ----------------------------------------------------------------------------------------
     Finalization          11. finalize libyt
 
 [Compile and Run]
@@ -434,12 +436,24 @@ int main(int argc, char* argv[]) {
         }
 
         // =======================================================================================================
-        // libyt: 9. activate python prompt in interactive mode, should call it in situ function call using API
+        // libyt: 9. activate python prompt in interactive mode
         // =======================================================================================================
         // Only supports when compile libyt in interactive mode (-DINTERACTIVE_MODE)
         // Interactive prompt will start only if it detects "LIBYT_STOP" file, or an inline function failed.
         // if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
         //     fprintf(stderr, "ERROR: yt_run_InteractiveMode failed!\n");
+        //     exit(EXIT_FAILURE);
+        // }
+
+        // =======================================================================================================
+        // libyt: 9. activate libyt Jupyter kernel for Jupyter Notebook / JupyterLab access
+        // =======================================================================================================
+        // Only supports in CMake (-DJUPYTER_KERNEL enabled)
+        // Activate libyt kernel when detects "LIBYT_STOP" file.
+        // False for making libyt find empty port to bind to by itself.
+        // True for using connection file provided by user, file name must be "libyt_kernel_connection.json".
+        // if (yt_run_JupyterKernel("LIBYT_STOP", false) != YT_SUCCESS) {
+        //     fprintf(stderr, "ERROR: yt_run_JupyterKernel failed!\n");
         //     exit(EXIT_FAILURE);
         // }
 

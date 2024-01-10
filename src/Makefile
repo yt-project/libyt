@@ -22,6 +22,10 @@ OPTIONS :=
 # error occurs. Require readline library, add READLINE_PATH if it is not inside include search path.
 #OPTIONS += -DINTERACTIVE_MODE
 
+# Supports Jupyter Notebook UI for interactive mode, must enable INTERACTIVE_MODE
+# (Use CMake for this option)
+#OPTIONS += -DJUPYTER_KERNEL
+
 # Timer: measure time each libyt substep. Should switch to off in production run.
 #OPTIONS += -DSUPPORT_TIMER
 
@@ -41,11 +45,12 @@ LIB_SONAME   := libyt.so.$(LIBYT_MAJOR_VERSION)
 # libyt
 CC_FILE := yt_initialize.cpp  yt_finalize.cpp  yt_set_Parameters.cpp  yt_run.cpp  yt_set_UserParameter.cpp \
            yt_commit.cpp yt_get_GridsPtr.cpp yt_get_FieldsPtr.cpp yt_get_ParticlesPtr.cpp yt_free.cpp      \
-           yt_getGridInfo.cpp yt_rma_field.cpp yt_rma_particle.cpp yt_run_InteractiveMode.cpp
+           yt_getGridInfo.cpp yt_rma_field.cpp yt_rma_particle.cpp yt_run_InteractiveMode.cpp              \
+           yt_run_JupyterKernel.cpp
 CC_FILE += logging.cpp  init_python.cpp  init_libyt_module.cpp  add_dict.cpp  allocate_hierarchy.cpp       \
 		   check_data.cpp append_grid.cpp get_dtype_property.cpp func_status.cpp                           \
 		   func_status_list.cpp define_command.cpp LibytProcessControl.cpp print_data.cpp                  \
-		   Timer.cpp TimerControl.cpp
+		   Timer.cpp TimerControl.cpp libyt_python_shell.cpp
 
 
 # flags
