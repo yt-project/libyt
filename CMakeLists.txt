@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.15)
 project(LIBYT_PROJECT VERSION 0.1.0 DESCRIPTION "In situ Python analysis tool using yt and Python")
 
 ## set options ##
-include(CMakeDependentOption)
 option(SERIAL_MODE       "Compile library for serial process"                                                 OFF)
 option(INTERACTIVE_MODE  "Use interactive mode"                                                               OFF)
 option(JUPYTER_KERNEL    "Use Jupyter notebook interface"                                                     OFF)
