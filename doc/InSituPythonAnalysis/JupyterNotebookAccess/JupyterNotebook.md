@@ -63,7 +63,7 @@ We need another process to start Jupyter Notebook/JupyterLab and connect to liby
 ### Example
 
 - [Connecting to kernel on local machine]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterLocalMachine.md %}#connecting-to-kernel-on-local-machine)
-- [Connecting to kernel on HPC cluster]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterLocalMachine.md %}#connecting-to-kernel-on-hpc-cluster)
+- [Connecting to kernel on HPC cluster]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterRemote.md %}#connecting-to-kernel-on-hpc-cluster)
 
 ## Using Jupyter Notebook / JupyterLab
 
