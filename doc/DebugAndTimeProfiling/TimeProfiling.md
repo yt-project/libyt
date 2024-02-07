@@ -25,7 +25,9 @@ Compile `libyt` with `-DSUPPORT_TIMER` option. (See [How to Install]({% link How
    ```bash
    cat `ls libytTimeProfile_MPI*` >> TimeProfile.json
    ```
-2. Open Google Chrome and enter `chrome://tracing`, or go [Perfetto](https://ui.perfetto.dev/).
-3. Load the time profile `TimeProfile.json`.
+2. Add `]}` at the end of `TimeProfile.json`.
+   > :information_source: This is optional, and we only need to add `]}` if [Perfetto](https://ui.perfetto.dev/) doesn't recognize the file.
+3. Open Google Chrome and enter `chrome://tracing`, or go [Perfetto](https://ui.perfetto.dev/).
+4. Load the time profile `TimeProfile.json`.
    
    ![](../assets/imgs/TracingTimeProfile.png)
