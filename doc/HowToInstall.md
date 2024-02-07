@@ -17,31 +17,17 @@ nav_order: 2
 
 ## C Library -- libyt
 
-Go through [basic requirements](#basic-requirements) and [options](#options) and set the dependencies paths. Then compile and install `libyt`.
+Go through [basic requirements](#basic-requirements) and [options](#options) and set the dependencies paths. Then compile and install `libyt` using CMake.
 
-There are two ways to install `libyt`:
-- [CMake](#cmake)
-- [Make](#make) -- does not support [`-DJUPYTER_KERNEL=ON`](#-djupyter_kernelonoff-defaultoff)
-
-> :warning: We will drop the support of Make.
 
 ### Basic Requirements
+- CMake (>=3.15)
 - GCC compiler (>4.8): Should be able to support `c++14`.
-  - `GCC_PATH` (Make): GCC installation prefix, under this folder, there should be folders like `include`, `lib` etc.
-  - Environment variable `CXX` and `CC` (CMake): Absolute path to `g++` compiler and `gcc` compiler.
-> :warning: Make sure GCC compiler > 4.8 and supports `c++14` in both mode.
-- `PYTHON_PATH` (>=3.7): Python installation prefix, under this folder, there should be folders like `include`, `lib` etc.
-- `NumPy`
-
-The following is only needed for [Make](#make), skip this if you are using [CMake](#cmake).
-- `PYTHON_VERSION` (>=3.7): Python `x.y` version, put `x.y` only.
-- `NUMPY_PATH`: Path to where `numpy` is installed. We can use `pip` to look up, and NUMPY_PATH is `<path>/numpy`.
-  ```bash
-  $ pip list -v | grep numpy
-  Package   Version       Location   Installer
-  --------- ------------- ---------- -----------
-  numpy     <version>     <path>     pip
-  ```
+  - `CXX`: Path to `g++` compiler.
+  - `CC`: Path to `gcc` compiler.
+- Python (>=3.7): 
+  - `PYTHON_PATH`: Python installation prefix, the path should contain folders like `include`, `lib` etc. 
+  - `NumPy`: Should have `NumPy` installed.
 
 ### Options 
 The options are mutually independent to each other. 
@@ -55,7 +41,7 @@ The options are mutually independent to each other.
 
 ###### Required Paths
 {: .no_toc }
-- `MPI_PATH`: MPI installation prefix, under this folder, there should be folders like `include`, `lib` etc.
+- `MPI_PATH`: MPI installation prefix, the path should contain folders like `include`, `lib` etc.
   > :warning: Make sure you are using the same MPI to compile `libyt` and your simulation code.
 
 ###### Required Python Packages
@@ -70,7 +56,7 @@ The options are mutually independent to each other.
 | Normal Mode (OFF)     | Shut down and terminate all the processes including simulation, if error occurs during in situ analysis.                                                                                                                                       |                  |
 | Interactive Mode (ON) | Will not terminate the processes if error occurs while doing in situ analysis and supports interactive Python prompt. (See  [Interactive Python Prompt]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt)) | - `READLINE_PATH` |
 
-- `READLINE_PATH`: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) path, under this folder, there should contain `include`, `lib` etc.
+- `READLINE_PATH`: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) installation prefix, the path should contain folders like `include`, `lib` etc.
 
 ##### -DJUPYTER_KERNEL=ON/OFF (Default=OFF)
 
@@ -80,7 +66,7 @@ The options are mutually independent to each other.
 
 ###### Required Paths
 {: .no_toc }
-- `READLINE_PATH`: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) path, under this folder, there should contain `include`, `lib` etc.
+- `READLINE_PATH`: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) installation prefix, the path should contain folders like `include`, `lib` etc.
 - `nlohmann_json_DIR` (>=3.2.0, <4.0.0): Path to `nlohmann_jsonConfig.cmake` after installing [`nlohmann_json`](https://github.com/nlohmann/json).
 - `cppzmq_DIR` (>=4.8.1, <5.0.0): Path to `cppzmqConfig.cmake` after installing [`cppzmq`](https://github.com/zeromq/cppzmq).
 - `xtl_DIR` (>=0.7.0, <0.8.0): Path to `xtlConfig.cmake` after installing [`xtl`](https://github.com/xtensor-stack/xtl).
@@ -112,7 +98,7 @@ The options are mutually independent to each other.
    set(MPI_PATH "<path-to-mpi-prefix>" CACHE PATH "Path to MPI installation prefix (-DSERIAL_MODE=OFF)")
    ```
 
-   (b) Set the options and paths through command line. For example, the flags are equivalent to the above:
+   (b) Set the options and paths through command line. For example, the flags here are equivalent to the above:
    ```bash
    -DSERIAL_MODE=OFF -DMPI_PATH=<path-to-mpi-prefix>
    ```
@@ -122,8 +108,9 @@ The options are mutually independent to each other.
    export CC=/software/gcc/bin/gcc
    export CXX=/software/gcc/bin/g++
    ```
+   > :information_source: It should support `c++14`.
    
-3. Generate files for project:
+3. Generate files for project, `<1-(b)>` contains the flags in step 1-(b):
    ```bash
    cd libyt # go to the root of the project
    cmake -B <build-dir-name> -S . <1-(b)>
@@ -158,27 +145,6 @@ cmake -B build -S . -DSERIAL_MODE=OFF -DMPI_PATH=/software/openmpi/4.1.1-gnu
 cmake --build build
 cmake --install build --prefix /home/user/softwares/libyt
 ```
-
-### Make
-1. Comment or uncomment options to switch on or off and set paths in `src/Makefile`. For example, this uses option [`-DSERIAL_MODE=OFF`](#-dserial_modeonoff-defaultoff) and provides `MPI_PATH`:
-   ```makefile
-   MPI_PATH := <path-to-mpi-prefix>
-   #OPTIONS += -DSERIAL_MODE
-   ```
-2. Set installation prefix if you wish to install `libyt` to other location besides this repository. Set `INSTALL_PREFIX` in `src/Makefile`:
-   ```makefile
-   INSTALL_PREFIX := $(YOUR_INSTALL_PREFIX)
-   ```
-3. Compile and install:
-   ```bash
-   cd libyt/src  # go to src folder
-   make clean
-   make
-   make install
-   ```
-`libyt` is now installed in `$(INSTALL_PREFIX)` if it is set, otherwise, it will install under this repository: 
-- `include`: Contain `libyt.h`. This is the header file for `libyt` API.
-- `lib`: Contain the shared library for simulation to link to.
 
 ## Required Python Package
 To use [`yt`](https://yt-project.org/) as the core analytic tool, we need to install `yt_libyt`, a `yt` frontend for `libyt`.
