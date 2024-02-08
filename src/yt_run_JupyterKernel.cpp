@@ -1,7 +1,7 @@
 #include "libyt.h"
 #include "yt_combo.h"
 
-#if defined(INTERACTIVE_MODE) && defined(JUPYTER_KERNEL)
+#ifdef JUPYTER_KERNEL
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -22,14 +22,12 @@
 // Function    :  yt_run_JupyterKernel
 // Description :  Start libyt kernel for Jupyter Notebook access
 //
-// Notes       :  1. Must enable -DINTERACTIVE_MODE and -DJUPYTER_KERNEL.
+// Notes       :  1. Must enable -DJUPYTER_KERNEL.
 //                2. Must install jupyter_libyt for jupyter client.
-//                3. This API is like interactive mode, but with Jupyter Notebook access for better UI.
+//                3. This API provides an access point for Jupyter Notebook.
 //                4. This API forces kernel to be on MPI process 0 (root).
 //                5. Simulation + libyt processes and Jupyter server are launch in separate process.
-//                6. Currently, this API is tested on local computing resources. Need further improvement
-//                   when libyt kernel is launch on remote nodes.
-//                7. Connection file must be "libyt_kernel_connection.json" is use_connection_file = true.
+//                6. Connection file must be "libyt_kernel_connection.json" is use_connection_file = true.
 //
 // Parameter   :  const char *flag_file_name       : once this file is detected, it will activate libyt kernel.
 //                bool        use_connection_file  : use connection file set by user
@@ -39,9 +37,8 @@
 int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-#if !defined(INTERACTIVE_MODE) || !defined(JUPYTER_KERNEL)
-    log_error(
-        "Cannot start libyt kernel for Jupyter. Please compile libyt with -DINTERACTIVE_MODE and -DJUPYTER_KERNEL.\n");
+#ifndef JUPYTER_KERNEL
+    log_error("Cannot start libyt kernel for Jupyter. Please compile libyt with -DJUPYTER_KERNEL.\n");
     return YT_FAIL;
 #else
     // check if libyt has been initialized
@@ -203,5 +200,5 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
 #endif
 
     return YT_SUCCESS;
-#endif  // #if !defined(INTERACTIVE_MODE) && !defined(JUPYTER_KERNEL)
+#endif  // #ifndef JUPYTER_KERNEL
 }
