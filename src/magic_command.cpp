@@ -1,4 +1,4 @@
-#if defined(INTERACTIVE_MODE) && defined(JUPYTER_KERNEL)
+#ifdef JUPYTER_KERNEL
 #include "magic_command.h"
 
 #include <fstream>
@@ -544,4 +544,4 @@ int MagicCommand::get_func_status(const std::string& funcname) {
     return YT_SUCCESS;
 }
 
-#endif
+#endif  // #ifdef JUPYTER_KERNEL
