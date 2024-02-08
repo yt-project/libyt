@@ -24,9 +24,9 @@
                           7.  done loading information
                           8.  call inline python function
                           9.  [optional] activate python prompt in interactive mode
-                                         (Need to compile libyt with -DINTERACTIVE_MODE)
+                                         (Need to compile libyt with -DINTERACTIVE_MODE=ON)
                               [optional] activate Jupyter kernel for Jupyter Notebook access
-                                         (Need to compile libyt with -DJUPYTER_KERNEL)
+                                         (Need to compile libyt with -DJUPYTER_KERNEL=ON)
                           10. finish in-situ analysis, clean up libyt
     ----------------------------------------------------------------------------------------
     Finalization          11. finalize libyt
@@ -448,7 +448,7 @@ int main(int argc, char* argv[]) {
         // =======================================================================================================
         // libyt: 9. activate libyt Jupyter kernel for Jupyter Notebook / JupyterLab access
         // =======================================================================================================
-        // Only supports in CMake (-DJUPYTER_KERNEL enabled)
+        // Only supports when compile libyt in jupyter kernel mode (-DJUPYTER_KERNEL enabled)
         // Activate libyt kernel when detects "LIBYT_STOP" file.
         // False for making libyt find empty port to bind to by itself.
         // True for using connection file provided by user, file name must be "libyt_kernel_connection.json".
