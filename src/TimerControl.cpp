@@ -30,7 +30,7 @@ void TimerControl::CreateFile(const char* filename, int rank) {
         file_out << "{\"otherData\": {"
                  << "\"version\": \"" << LIBYT_MAJOR_VERSION << "." << LIBYT_MINOR_VERSION << "." << LIBYT_MICRO_VERSION
                  << "\","
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
                  << "\"mode\": "
                  << "\"interactive_mode\""
 #else

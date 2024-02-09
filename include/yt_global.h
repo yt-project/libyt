@@ -27,7 +27,7 @@
 
 // include relevant headers
 #include "yt_type.h"
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
 #include "func_status_list.h"
 #include "libyt_python_shell.h"
 #endif
@@ -38,7 +38,7 @@ SET_GLOBAL(yt_param_yt, g_param_yt);        // YT parameters
 SET_GLOBAL(int, g_myrank);                  // MPI rank
 SET_GLOBAL(int, g_mysize);                  // MPI size
 SET_GLOBAL(int, g_myroot);                  // MPI root rank
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
 SET_GLOBAL(func_status_list, g_func_status_list, func_status_list(10));  // Inline function status list (default 10)
 SET_GLOBAL(LibytPythonShell, g_libyt_python_shell);
 #endif
@@ -51,7 +51,7 @@ SET_GLOBAL(PyObject, *g_py_hierarchy, NULL);      // Python dictionary to store 
 SET_GLOBAL(PyObject, *g_py_param_yt, NULL);       // Python dictionary to store YT parameters
 SET_GLOBAL(PyObject, *g_py_param_user, NULL);     // Python dictionary to store code-specific parameters
 SET_GLOBAL(PyObject, *g_py_libyt_info, NULL);     // Python dictionary to store libyt info, ex: version
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
 SET_GLOBAL(PyObject, *g_py_interactive_mode, NULL);  // Python dictionary to store interactive_mode stuff
 #endif
 #endif

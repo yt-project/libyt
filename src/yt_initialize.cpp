@@ -82,7 +82,7 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
 #endif
 
     // set python exception hook and set not-yet-done error msg
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     if (LibytPythonShell::set_exception_hook() != YT_SUCCESS) return YT_FAIL;
     if (LibytPythonShell::init_not_done_err_msg() != YT_SUCCESS) return YT_FAIL;
     if (LibytPythonShell::init_script_namespace() != YT_SUCCESS) return YT_FAIL;
