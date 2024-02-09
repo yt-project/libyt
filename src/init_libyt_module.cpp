@@ -676,12 +676,27 @@ static PyObject* PyInit_libyt(void) {
     // set libyt info
     PyObject* py_version = Py_BuildValue("(iii)", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION, LIBYT_MICRO_VERSION);
     PyDict_SetItemString(g_py_libyt_info, "version", py_version);
-#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    PyDict_SetItemString(g_py_libyt_info, "interactive_mode", Py_True);
-#else
-    PyDict_SetItemString(g_py_libyt_info, "interactive_mode", Py_False);
-#endif
     Py_DECREF(py_version);
+#ifdef SERIAL_MODE
+    PyDict_SetItemString(g_py_libyt_info, "SERIAL_MODE", Py_True);
+#else
+    PyDict_SetItemString(g_py_libyt_info, "SERIAL_MODE", Py_False);
+#endif
+#ifdef INTERACTIVE_MODE
+    PyDict_SetItemString(g_py_libyt_info, "INTERACTIVE_MODE", Py_True);
+#else
+    PyDict_SetItemString(g_py_libyt_info, "INTERACTIVE_MODE", Py_False);
+#endif
+#ifdef JUPYTER_KERNEL
+    PyDict_SetItemString(g_py_libyt_info, "JUPYTER_KERNEL", Py_True);
+#else
+    PyDict_SetItemString(g_py_libyt_info, "JUPYTER_KERNEL", Py_False);
+#endif
+#ifdef SUPPORT_TIMER
+    PyDict_SetItemString(g_py_libyt_info, "SUPPORT_TIMER", Py_True);
+#else
+    PyDict_SetItemString(g_py_libyt_info, "SUPPORT_TIMER", Py_False);
+#endif
 
     // add dict object to libyt python module
     PyModule_AddObject(libyt_module, "grid_data", g_py_grid_data);
