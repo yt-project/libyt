@@ -103,7 +103,7 @@ import libyt
 
 ### interactive_mode
 
-> :warning: Do not touch, it is for internal `libyt` process, and it only exists in interactive mode.
+> :warning: Do not touch, it is for internal `libyt` process, and it only exists in interactive mode and jupyter kernel mode.
 
 ## Methods
 

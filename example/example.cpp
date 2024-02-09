@@ -4,11 +4,14 @@
     We assign grids to MPI processes randomly to simulate the actual code of having grid
     data on different ranks.
 
-    libyt has two modes, normal and interactive mode. Normal mode will shut down all the
-    process if there are errors during in situ analysis, while in interactive mode will
-    not. Interactive mode also supports python prompt, where you can type in python
-    statement and get feedback instantly. To use interactive mode, you need to compile
-    libyt with -DINTERACTIVE_MODE flag.
+    libyt provides several options, and each option is independent to each other.
+        - Normal mode will shut down all the process if there are errors during in situ
+          analysis.
+        - Interactive mode will not shut down the process if there are errors, and it also
+          supports python prompt feature where you can type in python statement and get
+          feedback instantly.
+        - Jupyter kernel mode will activate a libyt kernel and lets Jupyter Notebook/JupyterLab
+          connect to it.
 
     This is the procedure of libyt in situ analysis process for both normal and interactive
     mode. If there is no fields, particles, or grids information to set, we can skip those

@@ -75,12 +75,12 @@ int yt_free() {
     PyDict_Clear(g_py_hierarchy);
     PyDict_Clear(g_py_param_yt);
     PyDict_Clear(g_py_param_user);
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     PyDict_Clear(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"));
 #endif
     PyRun_SimpleString("gc.collect()");
 
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // Reset g_func_status_list status
     g_func_status_list.reset();
 #endif
