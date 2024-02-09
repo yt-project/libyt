@@ -9,6 +9,7 @@
 #include "libyt.h"
 
 static void init_general_info();
+static void print_libyt_info();
 #ifndef SERIAL_MODE
 static void init_yt_long_mpi_type();
 static void init_yt_hierarchy_mpi_type();
@@ -56,6 +57,7 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
 
     log_info("******libyt version******\n");
     log_info("         %d.%d.%d\n", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION, LIBYT_MICRO_VERSION);
+    print_libyt_info();
     log_info("*************************\n");
 
     log_info("Initializing libyt ...\n");
@@ -93,6 +95,32 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
     return YT_SUCCESS;
 
 }  // FUNCTION : yt_initialize
+
+static void print_libyt_info() {
+#ifdef SERIAL_MODE
+    log_info("  SERIAL_MODE: ON\n");
+#else
+    log_info("  SERIAL_MODE: OFF\n");
+#endif
+
+#ifdef INTERACTIVE_MODE
+    log_info("  INTERACTIVE_MODE: ON\n");
+#else
+    log_info("  INTERACTIVE_MODE: OFF\n");
+#endif
+
+#ifdef JUPYTER_KERNEL
+    log_info("  JUPYTER_KERNEL: ON\n");
+#else
+    log_info("  JUPYTER_KERNEL: OFF\n");
+#endif
+
+#ifdef SUPPORT_TIMER
+    log_info("  SUPPORT_TIMER: ON\n");
+#else
+    log_info("  SUPPORT_TIMER: OFF\n");
+#endif
+}
 
 static void init_general_info() {
     SET_TIMER(__PRETTY_FUNCTION__);
