@@ -669,19 +669,34 @@ static PyObject* PyInit_libyt(void) {
     g_py_param_yt = PyDict_New();
     g_py_param_user = PyDict_New();
     g_py_libyt_info = PyDict_New();
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     g_py_interactive_mode = PyDict_New();
 #endif
 
     // set libyt info
     PyObject* py_version = Py_BuildValue("(iii)", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION, LIBYT_MICRO_VERSION);
     PyDict_SetItemString(g_py_libyt_info, "version", py_version);
-#ifdef INTERACTIVE_MODE
-    PyDict_SetItemString(g_py_libyt_info, "interactive_mode", Py_True);
-#else
-    PyDict_SetItemString(g_py_libyt_info, "interactive_mode", Py_False);
-#endif
     Py_DECREF(py_version);
+#ifdef SERIAL_MODE
+    PyDict_SetItemString(g_py_libyt_info, "SERIAL_MODE", Py_True);
+#else
+    PyDict_SetItemString(g_py_libyt_info, "SERIAL_MODE", Py_False);
+#endif
+#ifdef INTERACTIVE_MODE
+    PyDict_SetItemString(g_py_libyt_info, "INTERACTIVE_MODE", Py_True);
+#else
+    PyDict_SetItemString(g_py_libyt_info, "INTERACTIVE_MODE", Py_False);
+#endif
+#ifdef JUPYTER_KERNEL
+    PyDict_SetItemString(g_py_libyt_info, "JUPYTER_KERNEL", Py_True);
+#else
+    PyDict_SetItemString(g_py_libyt_info, "JUPYTER_KERNEL", Py_False);
+#endif
+#ifdef SUPPORT_TIMER
+    PyDict_SetItemString(g_py_libyt_info, "SUPPORT_TIMER", Py_True);
+#else
+    PyDict_SetItemString(g_py_libyt_info, "SUPPORT_TIMER", Py_False);
+#endif
 
     // add dict object to libyt python module
     PyModule_AddObject(libyt_module, "grid_data", g_py_grid_data);
@@ -690,7 +705,7 @@ static PyObject* PyInit_libyt(void) {
     PyModule_AddObject(libyt_module, "param_yt", g_py_param_yt);
     PyModule_AddObject(libyt_module, "param_user", g_py_param_user);
     PyModule_AddObject(libyt_module, "libyt_info", g_py_libyt_info);
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     PyModule_AddObject(libyt_module, "interactive_mode", g_py_interactive_mode);
 #endif
 
@@ -775,7 +790,7 @@ int init_libyt_module() {
 
     free(command);
 
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // add imported script's namespace under in libyt.interactive_mode["script_globals"]
     command_width = 200 + strlen(g_param_libyt.script);
     command = (char*)malloc(command_width * sizeof(char));
@@ -799,7 +814,7 @@ int init_libyt_module() {
     for (int i = 0; i < (int)func_list.size(); i++) {
         g_func_status_list.add_new_func(func_list[i].c_str(), -1);
     }
-#endif  // #ifdef INTERACTIVE_MODE
+#endif
 
     return YT_SUCCESS;
 
