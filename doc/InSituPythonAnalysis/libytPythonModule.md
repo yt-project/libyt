@@ -28,10 +28,13 @@ import libyt
 
 ### libyt_info
 
-|               Key                |          Value          | Loaded by `libyt` API | Notes                               |
-|:--------------------------------:|:-----------------------:|:---------------------:|-------------------------------------|
-|     `libyt_info["version"]`      | `(major, minor, micro)` |    `yt_initialize`    | - `libyt` version.                  |
-| `libyt_info["interactive_mode"]` |      `True/False`       |    `yt_initialize`    | - Is it in interactive mode or not. |
+|               Key                |          Value          | Loaded by `libyt` API | Notes                                             |
+|:--------------------------------:|:-----------------------:|:---------------------:|---------------------------------------------------|
+|     `libyt_info["version"]`      | `(major, minor, micro)` |    `yt_initialize`    | - `libyt` version.                                |
+|   `libyt_info["SERIAL_MODE"]`    |      `True/False`       |    `yt_initialize`    | - Compile with `-DSERIAL_MODE` or not      |
+| `libyt_info["INTERACTIVE_MODE"]` |      `True/False`       |    `yt_initialize`    | - Compile with `-DINTERACTIVE_MODE` or not |
+|  `libyt_info["JUPYTER_KERNEL"]`  |      `True/False`       |    `yt_initialize`    | - Compile with `-DJUPYTER_KERNELF` or not   |
+|  `libyt_info["SUPPORT_TIMER"]`   |      `True/False`       |    `yt_initialize`    | - Compile with `-DSUPPORT_TIMER` or not    |
 
 ### param_yt
 
@@ -103,7 +106,7 @@ import libyt
 
 ### interactive_mode
 
-> :warning: Do not touch, it is for internal `libyt` process, and it only exists in interactive mode.
+> :warning: Do not touch, it is for internal `libyt` process, and it only exists in interactive mode and jupyter kernel mode.
 
 ## Methods
 

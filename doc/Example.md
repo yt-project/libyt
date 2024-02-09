@@ -87,7 +87,7 @@ Then un-comment this block in `example.cpp`:
 // =======================================================================================================
 // libyt: 9. activate libyt Jupyter kernel for Jupyter Notebook / JupyterLab access
 // =======================================================================================================
-// Only supports in CMake (-DJUPYTER_KERNEL enabled)
+// Only supports when compile libyt in jupyter kernel mode (-DJUPYTER_KERNEL enabled)
 // Activate libyt kernel when detects "LIBYT_STOP" file.
 // False for making libyt find empty port to bind to by itself.
 // True for using connection file provided by user, file name must be "libyt_kernel_connection.json".

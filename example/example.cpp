@@ -4,11 +4,14 @@
     We assign grids to MPI processes randomly to simulate the actual code of having grid
     data on different ranks.
 
-    libyt has two modes, normal and interactive mode. Normal mode will shut down all the
-    process if there are errors during in situ analysis, while in interactive mode will
-    not. Interactive mode also supports python prompt, where you can type in python
-    statement and get feedback instantly. To use interactive mode, you need to compile
-    libyt with -DINTERACTIVE_MODE flag.
+    libyt provides several options, and each option is independent to each other.
+        - Normal mode will shut down all the process if there are errors during in situ
+          analysis.
+        - Interactive mode will not shut down the process if there are errors, and it also
+          supports python prompt feature where you can type in python statement and get
+          feedback instantly.
+        - Jupyter kernel mode will activate a libyt kernel and lets Jupyter Notebook/JupyterLab
+          connect to it.
 
     This is the procedure of libyt in situ analysis process for both normal and interactive
     mode. If there is no fields, particles, or grids information to set, we can skip those
@@ -24,9 +27,9 @@
                           7.  done loading information
                           8.  call inline python function
                           9.  [optional] activate python prompt in interactive mode
-                                         (Need to compile libyt with -DINTERACTIVE_MODE)
+                                         (Need to compile libyt with -DINTERACTIVE_MODE=ON)
                               [optional] activate Jupyter kernel for Jupyter Notebook access
-                                         (Need to compile libyt with -DJUPYTER_KERNEL)
+                                         (Need to compile libyt with -DJUPYTER_KERNEL=ON)
                           10. finish in-situ analysis, clean up libyt
     ----------------------------------------------------------------------------------------
     Finalization          11. finalize libyt
@@ -448,7 +451,7 @@ int main(int argc, char* argv[]) {
         // =======================================================================================================
         // libyt: 9. activate libyt Jupyter kernel for Jupyter Notebook / JupyterLab access
         // =======================================================================================================
-        // Only supports in CMake (-DJUPYTER_KERNEL enabled)
+        // Only supports when compile libyt in jupyter kernel mode (-DJUPYTER_KERNEL enabled)
         // Activate libyt kernel when detects "LIBYT_STOP" file.
         // False for making libyt find empty port to bind to by itself.
         // True for using connection file provided by user, file name must be "libyt_kernel_connection.json".

@@ -1,8 +1,6 @@
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
 
 #include "func_status_list.h"
-
-#include <string.h>
 
 #include <iostream>
 
@@ -289,4 +287,4 @@ int func_status_list::run_func() {
     return YT_SUCCESS;
 }
 
-#endif  // #ifdef INTERACTIVE_MODE
+#endif  // #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)

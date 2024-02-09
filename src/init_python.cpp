@@ -51,7 +51,7 @@ int init_python(int argc, char* argv[]) {
     }
 
 // add the current location to the module search path
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     if (PyRun_SimpleString("import sys, traceback, inspect; sys.path.insert(0,'.')") == 0)
 #else
     if (PyRun_SimpleString("import sys; sys.path.insert(0,'.')") == 0)
@@ -63,7 +63,7 @@ int init_python(int argc, char* argv[]) {
         // set up yt config
         // (sys._parallel = True --> run yt in parallel )
         // (sys._interactive_mode = True --> mpi does not abort when there is error)
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     if (PyRun_SimpleString("sys._parallel = True; sys._interactive_mode = True") == 0)
 #else
     if (PyRun_SimpleString("sys._parallel = True") == 0)

@@ -1,10 +1,7 @@
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
 
 #include "func_status.h"
 
-#include <string.h>
-
-#include <iostream>
 #include <string>
 
 #include "yt_combo.h"
@@ -392,4 +389,4 @@ std::string func_status::get_func_body() {
     return func_body;
 }
 
-#endif  // #ifdef INTERACTIVE_MODE
+#endif  // #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)

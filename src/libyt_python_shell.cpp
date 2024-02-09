@@ -1,4 +1,4 @@
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
 
 #include "libyt_python_shell.h"
 
@@ -729,4 +729,4 @@ static bool check_colon_exist(const char* code) {
     return last_line_has_colon;
 }
 
-#endif  // #ifdef INTERACTIVE_MODE
+#endif  // #if defined( INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)

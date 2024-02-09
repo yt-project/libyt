@@ -1,4 +1,4 @@
-#if defined(INTERACTIVE_MODE) && defined(JUPYTER_KERNEL)
+#ifdef JUPYTER_KERNEL
 #include "libyt_kernel.h"
 
 #include <string>
@@ -474,4 +474,4 @@ static std::array<int, 2> find_lineno_columno(const std::string& code, int pos) 
     return {lineno, columno};
 }
 
-#endif
+#endif  // #ifdef JUPYTER_KERNEL
