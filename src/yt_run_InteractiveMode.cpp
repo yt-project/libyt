@@ -56,6 +56,8 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     if (stat(flag_file_name, &buffer) != 0) {
         log_info("Flag file '%s' is not detected ... leaving interactive mode\n", flag_file_name);
         return YT_SUCCESS;
+    } else {
+        log_info("Flag file '%s' is detected ... entering interactive mode\n", flag_file_name);
     }
 
     // create prompt interface
