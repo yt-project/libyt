@@ -75,7 +75,7 @@ if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
 }
 ```
 Create `LIBYT_STOP` and put it in the same folder where example executable is. 
-`libyt` will enter [**interactive Python prompt**]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt) only if it detects `LIBYT_STOP` file, or when an inline function failed.
+`libyt` will enter [**interactive Python prompt**]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt) only if it detects `LIBYT_STOP` file.
 
 ### Activate libyt Jupyter Kernel
 
