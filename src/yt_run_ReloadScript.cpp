@@ -125,9 +125,10 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
 
             // broadcast reload/exit instruction
             if (done) {
+#ifndef SERIAL_MODE
                 int indicator = -1;
                 MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
-
+#endif
                 log_info("Detect '%s' file ... exiting reload script\n", reload_exit_filename.c_str());
                 if (detect_file(reload_exit_filename.c_str())) {
                     std::remove(reload_exit_filename.c_str());
