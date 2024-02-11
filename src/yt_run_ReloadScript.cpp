@@ -143,7 +143,16 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
             std::ofstream reload_result_file(reloading_filename.c_str());
             reload_result_file.close();
 
-            // start reloading script
+            // make sure file exists then reload
+            std::ifstream stream;
+            stream.open(script_name);
+            if (!stream) {
+                reload_success = false;
+                reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
+                reload_result_file << "Unable to find file '" << script_name << "' ... reload failed" << std::endl;
+                reload_result_file.close();
+            }
+            stream.close();
 
             // remove previous <reload_file_name>_SUCCESS or <reload_file_name>_FAILED and
             if (detect_file(reload_success_filename.c_str())) std::remove(reload_success_filename.c_str());
