@@ -29,7 +29,8 @@ static bool detect_file(const char* flag_file);
 //                3. It stops and enters the API if flag file is detected or there is an error in in situ
 //                   analysis. In the latter case, it will generate the flag file to indicate it enters
 //                   the mode, and will remove the flag file once it exits the API.
-//                4. Using <reload> and <reload>_EXIT to control.
+//                4. Using <reload> and <reload>_EXIT to instruct it to reload or to exit the API. Try to avoid
+//                   these instruction file names.
 //
 // Parameter   :  const char *flag_file_name : indicates if it will enter reload script mode or not (see 3.)
 //                const char *reload         : a series of flag file for reload (ex: <reload>_EXIT/SUCCESS/FAILED)
@@ -75,8 +76,10 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload, const ch
             log_info("No failed inline functions ... leaving reload script mode\n");
             return YT_SUCCESS;
         } else {
-            std::ofstream generate_flag_file(flag_file_name);
-            generate_flag_file.close();
+            if (g_myrank == g_myroot) {
+                std::ofstream generate_flag_file(flag_file_name);
+                generate_flag_file.close();
+            }
             remove_flag_file = true;
             log_info("Generating '%s' because there are errors in inline functions ... entering reload script mode\n",
                      flag_file_name);
@@ -94,51 +97,74 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload, const ch
 
     // setting up reading file
     bool done = false;
-    int root = g_myroot;
     std::string reload_exit = std::string(reload) + std::string("_EXIT");
+    std::string reload_output_filename = std::string(".") + std::string(reload) + std::string("_RELOADING");
 
     // enter reloading loop
     while (!done) {
-        // block and detect <reload> or <reload>_EXIT every 2 sec
-        bool get_reload_state = false;
-        while (!get_reload_state) {
+        // responsible for getting reload instruction and broadcast to non-root rank
+        if (g_myrank == g_myroot) {
+            // block and detect <reload> or <reload>_EXIT every 2 sec
+            bool get_reload_state = false;
+            while (!get_reload_state) {
+                if (detect_file(reload)) {
+                    get_reload_state = true;
+                } else if (detect_file(reload_exit.c_str())) {
+                    get_reload_state = true;
+                    done = true;
+                }
+
+                log_info("Create '%s' file to reload script, or create '%s' file to exit.\n", reload,
+                         reload_exit.c_str());
+                std::this_thread::sleep_for(std::chrono::seconds(2));
+            }
+
+            // broadcast reload/exit instruction
+            if (done) {
+                int indicator = -1;
+                MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+
+                log_info("Detect '%s' file ... exiting reload script\n", reload_exit.c_str());
+                if (g_myrank == g_myroot && detect_file(reload_exit.c_str())) {
+                    std::remove(reload_exit.c_str());
+                }
+                break;
+            } else {
+                log_info("Detect '%s' file ... reloading '%s' script\n", reload, script_name);
+            }
+
+            // create and overwrite dumped results temporary file for reloading file
+            //            std::ofstream reload_result_file(reload_output_filename.c_str());
+            //            reload_result_file.close();
+
+            // remove reload flag file when done
             if (detect_file(reload)) {
-                get_reload_state = true;
-            } else if (detect_file(reload_exit.c_str())) {
-                get_reload_state = true;
-                done = true;
+                std::remove(reload);
             }
-
-            log_info("Create '%s' file to reload script, or create '%s' file to exit.\n", reload, reload_exit.c_str());
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-        }
-
-        if (done) {
-            log_info("Detect '%s' file ... exiting reload script\n", reload_exit.c_str());
-            if (detect_file(reload_exit.c_str())) {
-                std::remove(reload_exit.c_str());
-            }
-            break;
-        } else {
-            log_info("Detect '%s' file ... reloading '%s' script\n", reload, script_name);
-        }
-
-        // reloading file
-        if (g_myrank == root) {
         }
 #ifndef SERIAL_MODE
         else {
+            // TODO: (this is a bad practice.) Get code for further instructions
+            int indicator = -2;
+            MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+
+            switch (indicator) {
+                case -1:
+                    done = true;
+                    break;
+                case 0:
+                    // define command
+                    break;
+                case 1:
+                    // reload script
+                    break;
+            }
         }
 #endif
-
-        // remove reload flag file when done
-        if (detect_file(reload)) {
-            std::remove(reload);
-        }
     }
 
     // remove flag file if it is generated by libyt because of error occurred in inline functions
-    if (remove_flag_file && detect_file(flag_file_name)) {
+    if (g_myrank == g_myroot && remove_flag_file && detect_file(flag_file_name)) {
         std::remove(flag_file_name);
     }
 
