@@ -33,10 +33,11 @@ static bool detect_file(const char* flag_file);
 //                4. Using <reload_file_name>_EXIT/SUCCESS/FAILED for a series of instructions.
 //                   Try to avoid these instruction file names.
 //                5. Run reload script in file, forcing every libyt command needs to be commented and put at
-//                   the end.
+//                   the end and use #LIBYT_COMMANDS at the start.
 //                   Ex:
-//                   # python code ...
-//                   # %libyt status
+//                     # python code ...
+//                     #LIBYT_COMMANDS
+//                     # %libyt status
 //
 // Parameter   :  const char *flag_file_name  : indicates if it will enter reload script mode or not (see 3.)
 //                const char *reload_file_name: a series of flag file for reload instructions
@@ -159,9 +160,27 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 std::ifstream reload_stream;
                 reload_stream.open(script_name);
                 std::string line;
-                std::stringstream python_code_buffer;
+                std::stringstream python_code_buffer, libyt_command_buffer;
+                bool libyt_command_block = false;
                 while (getline(reload_stream, line)) {
+                    if (line.find("#LIBYT_COMMANDS") != std::string::npos) {
+                        libyt_command_block = true;
+                    }
+
                     python_code_buffer << line << "\n";
+
+                    if (libyt_command_block) {
+                        // store in libyt_command_buffer if it is libyt command and ignore pound keys
+                        std::size_t found_first_char = line.find_first_not_of("\t\n\v\f\r ");
+                        if (found_first_char != std::string::npos && line.at(found_first_char) == '#') {
+                            std::size_t found_second_char = line.find_first_not_of("\t\n\v\f\r ", found_first_char + 1);
+                            if (found_second_char != std::string::npos &&
+                                line.substr(found_second_char, 6) == "%libyt") {
+                                libyt_command_buffer
+                                    << line.substr(found_second_char, line.length() - found_second_char) << "\n";
+                            }
+                        }
+                    }
                 }
                 reload_stream.close();
 
