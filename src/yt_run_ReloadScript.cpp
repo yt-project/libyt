@@ -184,7 +184,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 }
                 reload_stream.close();
 
-                // check code validity then reload file
+                // check code validity then load python code
                 CodeValidity code_validity =
                     LibytPythonShell::check_code_validity(python_code_buffer.str(), false, script_name);
                 if (code_validity.is_valid.compare("complete") == 0) {
@@ -222,6 +222,16 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
                     reload_result_file << code_validity.error_msg.c_str() << std::endl;
                     reload_result_file.close();
+                }
+
+                // Loading libyt commands
+                while (std::getline(libyt_command_buffer, line, '\n')) {
+#ifndef SERIAL_MODE
+                    int indicator = 0;
+                    MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+#endif
+                    define_command command;
+                    command.run(line);
                 }
             }
 
@@ -264,7 +274,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 }
                 case 0: {
                     define_command command;
-                    done = command.run();
+                    command.run();
                     break;
                 }
                 case 1: {
