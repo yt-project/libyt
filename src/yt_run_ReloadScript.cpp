@@ -168,7 +168,35 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 CodeValidity code_validity =
                     LibytPythonShell::check_code_validity(python_code_buffer.str(), false, script_name);
                 if (code_validity.is_valid.compare("complete") == 0) {
-                    reload_success = true;  // todo: implement executing logic.
+#ifndef SERIAL_MODE
+                    int indicator = 1;
+                    MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+#endif
+                    std::array<AccumulatedOutputString, 2> output =
+                        LibytPythonShell::execute_file(python_code_buffer.str(), script_name);
+                    reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
+                    for (int i = 0; i < 2; i++) {
+                        if (output[i].output_string.length() > 0) {
+                            int offset = 0;
+                            for (int r = 0; r < g_mysize; r++) {
+                                reload_result_file << "====== MPI Process " << r << (i == 0 ? "" : " - ErrorMsg")
+                                                   << " ======\n";
+                                if (output[i].output_length[r] == 0) {
+                                    reload_result_file << "(None)\n";
+                                }
+                                reload_result_file
+                                    << output[i].output_string.substr(offset, output[i].output_length[r]).c_str()
+                                    << "\n";
+                                offset += output[i].output_length[r];
+                            }
+                        } else {
+                            // error output[1] length == 0, which means there is no error msg
+                            if (i == 1) {
+                                reload_success = true;
+                            }
+                        }
+                    }
+                    reload_result_file.close();
                 } else {
                     reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
                     reload_result_file << code_validity.error_msg.c_str() << std::endl;
@@ -218,7 +246,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     break;
                 }
                 case 1: {
-                    // reload_file_name statement in blocks
+                    std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_file();
                     break;
                 }
             }
