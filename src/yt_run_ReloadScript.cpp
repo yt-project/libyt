@@ -133,6 +133,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 int indicator = -1;
                 MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
+                g_libyt_python_shell.clear_prompt_history();
                 log_info("Detect '%s' file ... exiting reload script\n", reload_exit_filename.c_str());
                 if (detect_file(reload_exit_filename.c_str())) {
                     std::remove(reload_exit_filename.c_str());
@@ -239,6 +240,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
             switch (indicator) {
                 case -1: {
                     done = true;
+                    g_libyt_python_shell.clear_prompt_history();
                     break;
                 }
                 case 0: {
