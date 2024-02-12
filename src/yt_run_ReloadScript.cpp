@@ -193,6 +193,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                             // error output[1] length == 0, which means there is no error msg
                             if (i == 1) {
                                 reload_success = true;
+                                LibytPythonShell::load_file_func_body(script_name);
                             }
                         }
                     }
@@ -247,6 +248,9 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 }
                 case 1: {
                     std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_file();
+                    if (output[1].output_string.length() <= 0) {
+                        LibytPythonShell::load_file_func_body(script_name);
+                    }
                     break;
                 }
             }
