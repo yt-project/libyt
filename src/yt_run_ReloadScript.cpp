@@ -9,6 +9,7 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <thread>
 
@@ -31,8 +32,11 @@ static bool detect_file(const char* flag_file);
 //                   the mode, and will remove the flag file once it exits the API.
 //                4. Using <reload_file_name>_EXIT/SUCCESS/FAILED for a series of instructions.
 //                   Try to avoid these instruction file names.
-//                5. Run reload script in file, so every libyt command needs to be commented.
-//                   Ex: # %libyt status
+//                5. Run reload script in file, forcing every libyt command needs to be commented and put at
+//                   the end.
+//                   Ex:
+//                   # python code ...
+//                   # %libyt status
 //
 // Parameter   :  const char *flag_file_name  : indicates if it will enter reload script mode or not (see 3.)
 //                const char *reload_file_name: a series of flag file for reload instructions
@@ -144,15 +148,33 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
             reload_result_file.close();
 
             // make sure file exists then reload
-            std::ifstream stream;
-            stream.open(script_name);
-            if (!stream) {
+            if (!detect_file(script_name)) {
                 reload_success = false;
                 reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
                 reload_result_file << "Unable to find file '" << script_name << "' ... reload failed" << std::endl;
                 reload_result_file.close();
+            } else {
+                // read file line-by-line
+                std::ifstream reload_stream;
+                reload_stream.open(script_name);
+                std::string line;
+                std::stringstream python_code_buffer;
+                while (getline(reload_stream, line)) {
+                    python_code_buffer << line << "\n";
+                }
+                reload_stream.close();
+
+                // check code validity then reload file
+                CodeValidity code_validity =
+                    LibytPythonShell::check_code_validity(python_code_buffer.str(), false, script_name);
+                if (code_validity.is_valid.compare("complete") == 0) {
+                    reload_success = true;  // todo: implement executing logic.
+                } else {
+                    reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
+                    reload_result_file << code_validity.error_msg.c_str() << std::endl;
+                    reload_result_file.close();
+                }
             }
-            stream.close();
 
             // remove previous <reload_file_name>_SUCCESS or <reload_file_name>_FAILED and
             if (detect_file(reload_success_filename.c_str())) std::remove(reload_success_filename.c_str());
