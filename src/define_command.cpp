@@ -213,7 +213,7 @@ int define_command::load_script(const char* filename) {
                 if (output[i].output_string.length() > 0) {
                     int offset = 0;
                     for (int r = 0; r < g_mysize; r++) {
-                        printf("\033[1;34m[MPI Process %d]\033[0;37m\n", r);
+                        printf("\033[1;34m[MPI Process %d%s]\033[0;37m\n", r, (i == 0) ? "" : " - ErrorMsg");
                         if (output[i].output_length[r] == 0) {
                             printf("(None)\n");
                         }
