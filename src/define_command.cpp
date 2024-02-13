@@ -58,6 +58,11 @@ std::array<bool, 2> define_command::run(const std::string& command) {
     std::string arg;
     std::vector<std::string> arg_list;
 
+    if (!m_OutputFileName.empty() && g_myrank == s_Root) {
+        write_to_file(std::string(10, '-') + std::string("\n") + m_Command + std::string("\n") + std::string(10, '-') +
+                      std::string("\n"));
+    }
+
     bool run_success = false;
 
     // Mapping %libyt defined commands to methods
@@ -107,6 +112,7 @@ std::array<bool, 2> define_command::run(const std::string& command) {
 
     fflush(stdout);
     fflush(stderr);
+    m_Undefine = true;
 
     return {false, run_success};
 }
@@ -436,6 +442,26 @@ int define_command::get_func_status(const char* funcname) {
     }
 
     return YT_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class      :  define_command
+// Method     :  write_to_file
+//
+// Notes      :  1. Append lines to m_OutputFileName file.
+//               2. Not thread-safe, and don't let multi-processes write at the same time.
+//
+// Arguments  :  const std::string& lines : lines to write to file
+//
+// Return     :  (none)
+//-------------------------------------------------------------------------------------------------------
+void define_command::write_to_file(const std::string& lines) {
+    if (!m_OutputFileName.empty()) {
+        std::ofstream dumped_file;
+        dumped_file.open(m_OutputFileName.c_str(), std::ostream::out | std::ostream::app);
+        dumped_file << lines << "\n";
+        dumped_file.close();
+    }
 }
 
 #endif  // #ifdef INTERACTIVE_MODE
