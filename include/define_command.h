@@ -19,7 +19,7 @@ private:
     int set_func_run(const char* funcname, bool run);
     int set_func_run(const char* funcname, bool run, std::vector<std::string>& arg_list);
     int get_func_status(const char* funcname);
-    void write_to_file(const std::string& lines);
+    void write_to_file(const char* format, ...);
 
 public:
     define_command() : m_Undefine(true){};
