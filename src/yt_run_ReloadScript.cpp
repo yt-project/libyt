@@ -228,7 +228,8 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     reload_result_file.close();
                 }
 
-                // Loading libyt commands
+                // Loading libyt commands, continue loading even if one of the command failed,
+                // because they are independent.
                 define_command command(reloading_filename);
                 while (std::getline(libyt_command_buffer, line, '\n')) {
 #ifndef SERIAL_MODE
@@ -278,7 +279,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     break;
                 }
                 case 0: {
-                    define_command command;
+                    define_command command(reloading_filename);
                     std::array<bool, 2> command_result = command.run();
                     break;
                 }

@@ -22,6 +22,8 @@ int define_command::s_Root = g_myroot;
 //                   yt_run_JupyterKernel to call libyt defined command.
 //                2. stringstream is slow and string copying is slow, but ..., too lazy to do that.
 //                3. Will always ignore "%libyt exit", it will only clear prompt history.
+//                4. Also write results to m_OutputFileName, if the string is not empty. This is used in
+//                   reloading script.
 //
 // Arguments   :  const std::string& command : command to run (default is "", which will get command from root).
 //
@@ -104,6 +106,11 @@ std::array<bool, 2> define_command::run(const std::string& command) {
             printf("[YT_ERROR  ] Unkown libyt command : %s\n"
                    "(Type %%libyt help for help ...)\n",
                    m_Command.c_str());
+            if (!m_OutputFileName.empty()) {
+                write_to_file("[YT_ERROR  ] Unkown libyt command : %s\n\n"
+                              "(Type %%libyt help for help ...)\n\n",
+                              m_Command.c_str());
+            }
         }
         if (run_success) {
             g_libyt_python_shell.update_prompt_history(std::string("# ") + m_Command + std::string("\n"));
@@ -123,6 +130,7 @@ std::array<bool, 2> define_command::run(const std::string& command) {
 //
 // Notes      :  1. Print all the function status, without error msg.
 //               2. Call g_func_status_list.print_summary().
+//               3. Write to file if m_OutputFileName is not empty, this is used in reloading script.
 //
 // Arguments  :  None
 //
@@ -132,8 +140,14 @@ int define_command::print_status() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
-    g_func_status_list.print_summary();
-    return YT_SUCCESS;
+
+    bool run_success = g_func_status_list.print_summary();
+
+    if (g_myrank == s_Root && !m_OutputFileName.empty()) {
+        run_success &= g_func_status_list.print_summary_to_file(m_OutputFileName);
+    }
+
+    return run_success;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -141,6 +155,7 @@ int define_command::print_status() {
 // Method     :  print_help_msg
 //
 // Notes      :  1. Print help message.
+//               2. Write to file if m_OutputFileName is not empty, this is used in reloading script.
 //
 // Arguments  :  None
 //
@@ -150,6 +165,7 @@ int define_command::print_help_msg() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
+
     if (g_myrank == s_Root) {
         printf("Usage:  %%libyt COMMAND\n");
         printf("Commands:\n");
@@ -165,7 +181,20 @@ int define_command::print_help_msg() {
         printf("  %-6s  %-11s  %-8s  %s\n", "idle", "<func name>", "", "function will idle in next iteration");
     }
 
-    if (!m_OutputFileName.empty() && g_myrank == s_Root) {
+    if (g_myrank == s_Root && !m_OutputFileName.empty()) {
+        write_to_file("Usage:  %%libyt COMMAND\n");
+        write_to_file("Commands:\n");
+        write_to_file("  %-6s  %-11s  %-8s  %s\n", "help", "", "", "print help message");
+        write_to_file("  %-6s  %-11s  %-8s  %s\n", "exit", "", "", "exit and continue simulation");
+        write_to_file("  %-6s  %-11s  %-8s  %s\n", "load", "<file name>", "", "load file to original script's");
+        write_to_file("  %-6s  %-11s  %-8s  %s\n", "", "", "", "namespace");
+        write_to_file("  %-6s  %-11s  %-8s  %s\n", "export", "<file name>", "", "export input in prompt to file");
+        write_to_file("  %-6s  %-11s  %-8s  %s\n", "status", "", "", "get overall function status");
+        write_to_file("  %-6s  %-11s  %-8s  %s\n", "status", "<func name>", "", "get function status");
+        write_to_file("  %-6s  %-11s  %-8s  %s\n", "run", "<func name>", "[arg1 ]",
+                      "function will run in next iteration");
+        write_to_file("  %-6s  %-11s  %-8s  %s\n", "", "", "", "using args, ex: func(arg1, arg2)");
+        write_to_file("  %-6s  %-11s  %-8s  %s\n", "idle", "<func name>", "", "function will idle in next iteration");
     }
 
     return YT_SUCCESS;
@@ -182,6 +211,7 @@ int define_command::print_help_msg() {
 //                  exists in the list, the source code in libyt.interactive_mode["func_body"] will
 //                  be rewritten.
 //               4. Character in the file loaded cannot exceed INT_MAX.
+//               5. Write to file if m_OutputFileName is not empty, this is used in reloading script.
 //
 // Arguments  :  const char *filename : file name to reload
 //
@@ -312,6 +342,7 @@ int define_command::load_script(const char* filename) {
 // Notes      :  1. Export input during this step's interactive loop.
 //               2. Let user maintain their script imported.
 //               3. Overwriting existing file.
+//               4. Write to file if m_OutputFileName is not empty, this is used in reloading script.
 //
 // Arguments  :  const char *filename : output file name
 //
@@ -328,6 +359,9 @@ int define_command::export_script(const char* filename) {
         dump_file << g_libyt_python_shell.get_prompt_history();
         dump_file.close();
         printf("Exporting script %s ... done\n", filename);
+        if (!m_OutputFileName.empty()) {
+            write_to_file("Exporting script %s ... done\n", filename);
+        }
     }
 
     return YT_SUCCESS;
@@ -340,6 +374,7 @@ int define_command::export_script(const char* filename) {
 // Notes      :  1. Determine which function will run or idle in next step.
 //               2. arg_list is optional. If arg_list is passed in, then libyt will definitely set it to
 //                  run.
+//               3. Write to file if m_OutputFileName is not empty, this is used in reloading script.
 //
 // Arguments  :  const char               *funcname : function name
 //               bool                      run      : run in next inline process or not
@@ -351,25 +386,41 @@ int define_command::set_func_run(const char* funcname, bool run) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
+    bool set_success;
 
     int index = g_func_status_list.get_func_index(funcname);
     if (index == -1) {
-        if (g_myrank == s_Root) printf("Function %s not found\n", funcname);
-        return YT_FAIL;
+        set_success = false;
+        if (g_myrank == s_Root) {
+            printf("Function %s not found\n", funcname);
+            if (!m_OutputFileName.empty()) {
+                write_to_file("Function %s not found\n", funcname);
+            }
+        }
     } else {
+        set_success = true;
         g_func_status_list[index].set_run(run);
-        if (g_myrank == s_Root) printf("Function %s set to %s ... done\n", funcname, run ? "run" : "idle");
+        if (g_myrank == s_Root) {
+            printf("Function %s set to %s ... done\n", funcname, run ? "run" : "idle");
+            if (!m_OutputFileName.empty()) {
+                write_to_file("Function %s set to %s ... done\n", funcname, run ? "run" : "idle");
+            }
+        }
 
         // update input args to empty string
         std::string args("");
         g_func_status_list[index].set_args(args);
 
         // print args if function is set to run
-        if (g_myrank == s_Root && run)
+        if (g_myrank == s_Root && run) {
             printf("Run %s in next iteration\n", g_func_status_list[index].get_full_func_name().c_str());
-
-        return YT_SUCCESS;
+            if (!m_OutputFileName.empty()) {
+                printf("Run %s in next iteration\n", g_func_status_list[index].get_full_func_name().c_str());
+            }
+        }
     }
+
+    return set_success;
 }
 
 int define_command::set_func_run(const char* funcname, bool run, std::vector<std::string>& arg_list) {
@@ -380,7 +431,12 @@ int define_command::set_func_run(const char* funcname, bool run, std::vector<std
     // get function index
     int index = g_func_status_list.get_func_index(funcname);
     if (index == -1) {
-        if (g_myrank == s_Root) printf("Function %s not found\n", funcname);
+        if (g_myrank == s_Root) {
+            printf("Function %s not found\n", funcname);
+            if (!m_OutputFileName.empty()) {
+                write_to_file("Function %s not found\n", funcname);
+            }
+        }
         return YT_FAIL;
     }
 
@@ -413,7 +469,12 @@ int define_command::set_func_run(const char* funcname, bool run, std::vector<std
     args.pop_back();
 
     if (unable_to_wrapped) {
-        if (g_myrank == s_Root) printf("[YT_ERROR  ] Please avoid using both \"\"\" and ''' for triple quotes\n");
+        if (g_myrank == s_Root) {
+            printf("[YT_ERROR  ] Please avoid using both \"\"\" and ''' for triple quotes\n");
+            if (!m_OutputFileName.empty()) {
+                write_to_file("[YT_ERROR  ] Please avoid using both \"\"\" and ''' for triple quotes\n");
+            }
+        }
         return YT_FAIL;
     } else {
         g_func_status_list[index].set_args(args);
@@ -421,6 +482,10 @@ int define_command::set_func_run(const char* funcname, bool run, std::vector<std
         if (g_myrank == s_Root) {
             printf("Function %s set to run ... done\n", funcname);
             printf("Run %s in next iteration\n", g_func_status_list[index].get_full_func_name().c_str());
+            if (!m_OutputFileName.empty()) {
+                write_to_file("Function %s set to run ... done\n", funcname);
+                write_to_file("Run %s in next iteration\n", g_func_status_list[index].get_full_func_name().c_str());
+            }
         }
         return YT_SUCCESS;
     }
@@ -434,6 +499,7 @@ int define_command::set_func_run(const char* funcname, bool run, std::vector<std
 //               2. libyt.interactive_mode["func_err_msg"] only stores function's error msg when using
 //                  yt_run_Function/yt_run_FunctionArguments.
 //               3. A collective call, since it uses func_status::serial_print_error
+//               4. Write to file if m_OutputFileName is not empty, this is used in reloading script.
 //
 // Arguments  :  const char *funcname : function name
 //
@@ -447,7 +513,12 @@ int define_command::get_func_status(const char* funcname) {
     // check if function exist
     int index = g_func_status_list.get_func_index(funcname);
     if (index == -1) {
-        if (g_myrank == s_Root) printf("Function %s not found\n", funcname);
+        if (g_myrank == s_Root) {
+            printf("Function %s not found\n", funcname);
+            if (!m_OutputFileName.empty()) {
+                write_to_file("Function %s not found\n", funcname);
+            }
+        }
         return YT_FAIL;
     }
 
@@ -465,6 +536,24 @@ int define_command::get_func_status(const char* funcname) {
         printf("\033[1;35m");  // bold purple
         printf("[Function Def]\n");
         g_func_status_list[index].print_func_body(2, 0);
+
+        if (!m_OutputFileName.empty()) {
+            write_to_file("%s ... ", g_func_status_list[index].get_func_name());
+            if (status == 1)
+                write_to_file("success\n");
+            else if (status == 0)
+                write_to_file("failed\n");
+            else if (status == -1)
+                write_to_file("idle\n");
+
+            write_to_file("[Function Def]\n");
+            std::string func_body = g_func_status_list[index].get_func_body();
+            if (func_body.empty()) {
+                write_to_file("(not defined)\n");
+            } else {
+                write_to_file("%s\n", func_body.c_str());
+            }
+        }
     }
 
     // print error msg if it failed when running in yt_run_Function/yt_run_FunctionArguments. (collective call)
@@ -475,6 +564,22 @@ int define_command::get_func_status(const char* funcname) {
         }
         g_func_status_list[index].serial_print_error(2, 1);
         printf("\033[0;37m");
+
+        // get error message and write to file (in reloaing script), it's a collective call
+        if (!m_OutputFileName.empty()) {
+            std::vector<std::string> error_msg_all = g_func_status_list[index].get_error_msg();
+
+            if (g_myrank == s_Root) {
+                for (int r = 0; r < (int)error_msg_all.size(); r++) {
+                    write_to_file("[Error Msg - MPI %d]\n", r);
+                    if (error_msg_all[r].empty()) {
+                        write_to_file("%s\n", "(none)");
+                    } else {
+                        write_to_file("%s\n", error_msg_all[r].c_str());
+                    }
+                }
+            }
+        }
     }
 
     return YT_SUCCESS;
