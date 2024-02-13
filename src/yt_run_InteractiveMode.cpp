@@ -109,7 +109,8 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
 #endif
                     // run libyt command
                     define_command command;
-                    done = command.run(&(input_line[first_char]));
+                    std::array<bool, 2> command_result = command.run(&(input_line[first_char]));
+                    done = command_result[0];
 #ifndef SERIAL_MODE
                     MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -196,7 +197,8 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
             if (indicator == 0) {
                 // call libyt command, if indicator is 0
                 define_command command;
-                done = command.run();
+                std::array<bool, 2> command_result = command.run();
+                done = command_result[0];
             } else {
                 // Execute code, the code must be a vaild code and successfully compile now
                 std::array<AccumulatedOutputString, 2> temp_output = LibytPythonShell::execute_prompt();

@@ -24,9 +24,10 @@ int define_command::s_Root = g_myroot;
 //
 // Arguments   :  const std::string& command : command to run (default is "", which will get command from root).
 //
-// Return      : true / false   : whether to exit interactive loop.
+// Return      :  std::array<bool, 2> [0] : whether to exit
+//                                    [1] : successfully run the command or not
 //-------------------------------------------------------------------------------------------------------
-bool define_command::run(const std::string& command) {
+std::array<bool, 2> define_command::run(const std::string& command) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // get m_Command from s_Root
@@ -71,7 +72,8 @@ bool define_command::run(const std::string& command) {
         if (arg_list.size() == 1) {
             if (arg_list[0].compare("exit") == 0) {
                 g_libyt_python_shell.clear_prompt_history();
-                return true;
+                run_success = true;
+                return {true, run_success};
             } else if (arg_list[0].compare("status") == 0)
                 run_success = print_status();
             else if (arg_list[0].compare("help") == 0)
@@ -106,7 +108,7 @@ bool define_command::run(const std::string& command) {
     fflush(stdout);
     fflush(stderr);
 
-    return false;
+    return {false, run_success};
 }
 
 //-------------------------------------------------------------------------------------------------------

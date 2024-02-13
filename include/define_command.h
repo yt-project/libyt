@@ -1,6 +1,7 @@
 #ifndef __DEFINE_COMMAND_H__
 #define __DEFINE_COMMAND_H__
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -12,7 +13,7 @@ private:
 
 public:
     define_command() : m_Command(""), m_Undefine(true){};
-    bool run(const std::string& command = std::string(""));
+    std::array<bool, 2> run(const std::string& command = std::string(""));
 
     int print_status();
     int print_help_msg();
