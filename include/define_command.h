@@ -8,6 +8,7 @@
 class define_command {
 private:
     std::string m_Command;
+    std::string m_OutputFileName;
     bool m_Undefine;
     static int s_Root;
 
@@ -18,9 +19,11 @@ private:
     int set_func_run(const char* funcname, bool run);
     int set_func_run(const char* funcname, bool run, std::vector<std::string>& arg_list);
     int get_func_status(const char* funcname);
+    void write_to_file(const std::string& lines);
 
 public:
-    define_command() : m_Command(""), m_Undefine(true){};
+    define_command() : m_Undefine(true){};
+    define_command(const std::string& output_filename) : m_OutputFileName(output_filename), m_Undefine(true){};
     std::array<bool, 2> run(const std::string& command = std::string(""));
 };
 
