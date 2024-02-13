@@ -231,7 +231,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
                     define_command command;
-                    command.run(line);
+                    std::array<bool, 2> command_result = command.run(line);
                 }
             }
 
@@ -274,7 +274,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 }
                 case 0: {
                     define_command command;
-                    command.run();
+                    std::array<bool, 2> command_result = command.run();
                     break;
                 }
                 case 1: {
