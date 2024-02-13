@@ -5,7 +5,6 @@
 #include <readline/readline.h>
 #include <sys/stat.h>
 
-#include <cctype>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -145,7 +144,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
             }
 
             // create new dumped results temporary file for reloading file
-            bool reload_success = false;
+            bool reload_success = true;
             std::ofstream reload_result_file(reloading_filename.c_str());
             reload_result_file.close();
 
@@ -163,12 +162,11 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 std::stringstream python_code_buffer, libyt_command_buffer;
                 bool libyt_command_block = false;
                 while (getline(reload_stream, line)) {
+                    python_code_buffer << line << "\n";
+
                     if (line.find("#LIBYT_COMMANDS") != std::string::npos) {
                         libyt_command_block = true;
                     }
-
-                    python_code_buffer << line << "\n";
-
                     if (libyt_command_block) {
                         // store in libyt_command_buffer if it is libyt command and ignore pound keys
                         std::size_t found_first_char = line.find_first_not_of("\t\n\v\f\r ");
@@ -209,6 +207,11 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                                     << "\n";
                                 offset += output[i].output_length[r];
                             }
+
+                            // error output[1] length > 0, which means there is an error
+                            if (i == 1) {
+                                reload_success = false;
+                            }
                         } else {
                             // error output[1] length == 0, which means there is no error msg
                             if (i == 1) {
@@ -219,19 +222,21 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     }
                     reload_result_file.close();
                 } else {
+                    reload_success = false;
                     reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
                     reload_result_file << code_validity.error_msg.c_str() << std::endl;
                     reload_result_file.close();
                 }
 
                 // Loading libyt commands
+                define_command command(reloading_filename);
                 while (std::getline(libyt_command_buffer, line, '\n')) {
 #ifndef SERIAL_MODE
                     int indicator = 0;
                     MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
-                    define_command command;
                     std::array<bool, 2> command_result = command.run(line);
+                    reload_success = reload_success & command_result[1];
                 }
             }
 
