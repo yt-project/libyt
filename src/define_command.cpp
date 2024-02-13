@@ -191,6 +191,7 @@ int define_command::load_script(const char* filename) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     m_Undefine = false;
+    bool python_run_success = true;
 
     // root rank checks the script, if worked, call execute_file
     if (g_myrank == s_Root) {
@@ -201,10 +202,15 @@ int define_command::load_script(const char* filename) {
 #ifndef SERIAL_MODE
             int indicator = -1;
             MPI_Bcast(&indicator, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
+#endif
+            python_run_success = false;
             printf("File %s doesn't exist.\n", filename);
             printf("Loading script %s ... failed\n", filename);
-#endif
-            return YT_FAIL;
+            if (!m_OutputFileName.empty()) {
+                write_to_file("File %s doesn't exist.\n", filename);
+                write_to_file("Loading script %s ... failed\n", filename);
+            }
+            return python_run_success;
         }
         std::string line;
         std::stringstream ss;
@@ -232,6 +238,16 @@ int define_command::load_script(const char* filename) {
                         printf("%s\n", output[i].output_string.substr(offset, output[i].output_length[r]).c_str());
                         offset += output[i].output_length[r];
                     }
+
+                    // error msg length > 0, has error
+                    if (i == 1) {
+                        python_run_success = false;
+                    }
+                } else {
+                    // error msg length <= 0, no error
+                    if (i == 1) {
+                        python_run_success = true;
+                    }
                 }
             }
         } else {
@@ -239,9 +255,11 @@ int define_command::load_script(const char* filename) {
             int indicator = -1;
             MPI_Bcast(&indicator, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
 #endif
+            python_run_success = false;
             printf("%s\n", code_validity.error_msg.c_str());
-            printf("Loading script %s ... failed\n", filename);
-            return YT_FAIL;
+            if (!m_OutputFileName.empty()) {
+                write_to_file("%s\n", code_validity.error_msg.c_str());
+            }
         }
     }
 #ifndef SERIAL_MODE
@@ -251,26 +269,40 @@ int define_command::load_script(const char* filename) {
         MPI_Bcast(&indicator, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
 
         if (indicator < 0) {
-            return YT_FAIL;
+            python_run_success = false;
         } else {
             std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_file();
+
+            // if error msg string is empty, then it has successfully done the run.
+            if (output[1].output_string.empty()) {
+                python_run_success = true;
+            } else {
+                python_run_success = false;
+            }
         }
     }
 #endif
 
-    // update libyt.interactive_mode["func_body"]
-    LibytPythonShell::load_file_func_body(filename);
+    if (python_run_success) {
+        // update libyt.interactive_mode["func_body"]
+        LibytPythonShell::load_file_func_body(filename);
 
-    // get function list defined inside the script, add the function name to list if it doesn't exist
-    // and set to idle
-    std::vector<std::string> func_list = LibytPythonShell::get_funcname_defined(filename);
-    for (int i = 0; i < (int)func_list.size(); i++) {
-        g_func_status_list.add_new_func(func_list[i].c_str(), 0);
+        // get function list defined inside the script, add the function name to list if it doesn't exist
+        // and set to idle
+        std::vector<std::string> func_list = LibytPythonShell::get_funcname_defined(filename);
+        for (int i = 0; i < (int)func_list.size(); i++) {
+            g_func_status_list.add_new_func(func_list[i].c_str(), 0);
+        }
     }
 
-    if (g_myrank == s_Root) printf("Loading script %s ... done\n", filename);
+    if (g_myrank == s_Root) {
+        printf("Loading script %s ... %s\n", filename, python_run_success ? "done" : "failed");
+        if (!m_OutputFileName.empty()) {
+            write_to_file("Loading script %s ... %s\n", filename, python_run_success ? "done" : "failed");
+        }
+    }
 
-    return YT_SUCCESS;
+    return python_run_success;
 }
 
 //-------------------------------------------------------------------------------------------------------
