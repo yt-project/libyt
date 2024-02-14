@@ -113,6 +113,8 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
         // responsible for getting reload instruction and broadcast to non-root rank
         if (g_myrank == g_myroot) {
             // block and detect <reload_file_name> or <reload_file_name>_EXIT every 2 sec
+            log_info("Create '%s' file to reload script, or create '%s' file to exit.\n", reload_file_name,
+                     reload_exit_filename.c_str());
             bool get_reload_state = false;
             while (!get_reload_state) {
                 if (detect_file(reload_file_name)) {
@@ -121,9 +123,6 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     get_reload_state = true;
                     done = true;
                 }
-
-                log_info("Create '%s' file to reload script, or create '%s' file to exit.\n", reload_file_name,
-                         reload_exit_filename.c_str());
                 std::this_thread::sleep_for(std::chrono::seconds(2));
             }
 
