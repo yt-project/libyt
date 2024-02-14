@@ -441,7 +441,7 @@ int main(int argc, char* argv[]) {
         // =======================================================================================================
         // libyt: 9. activate python prompt in interactive mode
         // =======================================================================================================
-        // Only supports when compile libyt in interactive mode (-DINTERACTIVE_MODE)
+        // Only supports when compiling libyt in interactive mode (-DINTERACTIVE_MODE)
         // Start reloading script if error occurred when running inline functions, or it detects "LIBYT_STOP" file.
         // if (yt_run_ReloadScript("LIBYT_STOP", "RELOAD", "test_reload.py") != YT_SUCCESS) {
         //     fprintf(stderr, "ERROR: yt_run_ReloadScript failed!\n");
@@ -457,7 +457,7 @@ int main(int argc, char* argv[]) {
         // =======================================================================================================
         // libyt: 9. activate libyt Jupyter kernel for Jupyter Notebook / JupyterLab access
         // =======================================================================================================
-        // Only supports when compile libyt in jupyter kernel mode (-DJUPYTER_KERNEL enabled)
+        // Only supports when compiling libyt in jupyter kernel mode (-DJUPYTER_KERNEL)
         // Activate libyt kernel when detects "LIBYT_STOP" file.
         // False for making libyt find empty port to bind to by itself.
         // True for using connection file provided by user, file name must be "libyt_kernel_connection.json".
