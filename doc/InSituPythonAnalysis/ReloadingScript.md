@@ -23,7 +23,7 @@ nav_order: 6
 - Call libyt API [`yt_run_ReloadScript`]({% link libytAPI/ActivateReloadingScript.md %}#reload-script). 
 
 ## Reloading Script
-Reloading script feature is the same as [interactive Python prompt]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt), except that it uses file-based instructions to reload script and get outputs.
+Reloading script feature is a file-based [interactive Python prompt]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt), such that user creates specific file name to send instructions to libyt and gets output from specific file.
 
 ### The Workflow -- Reload and Exit
 The API:
