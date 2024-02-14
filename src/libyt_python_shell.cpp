@@ -449,8 +449,7 @@ CodeValidity LibytPythonShell::check_code_validity(const std::string& code, bool
 //                2. Root rank will gather stdout and stderr from non-root rank, so the string returned
 //                   contains each ranks dumped output in root, and non-root rank only returns output from
 //                   itself.
-//                3. This method is called by LibytWorker::start and LibytKernel::execute_request_impl,
-//                   It is used by Jupyter Notebook access.
+//                3. This method is the based method for python code execution. It updates function def.
 //                4. Root rank will pass in code, cell name; Non-root ranks only need to wait.
 //
 // Arguments   :  const std::array<std::string, 2>& code_split : code with upper and lower half

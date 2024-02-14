@@ -51,10 +51,10 @@ The options are mutually independent to each other.
 
 ##### -DINTERACTIVE_MODE=ON/OFF (Default=OFF)
 
-|                       | Notes                                                                                                                                                                                                                                          | Required Paths   |
-|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
-| Normal Mode (OFF)     | Shut down and terminate all the processes including simulation, if error occurs during in situ analysis.                                                                                                                                       |                  |
-| Interactive Mode (ON) | Will not terminate the processes if error occurs while doing in situ analysis and supports interactive Python prompt. (See  [Interactive Python Prompt]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt)) | - `READLINE_PATH` |
+|                       | Notes                                                                                                                                                                                                                                  | Required Paths   |
+|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
+| Normal Mode (OFF)     | Shut down and terminate all the processes including simulation, if error occurs during in situ analysis.                                                                                                                               |                  |
+| Interactive Mode (ON) | Will not terminate the processes if error occurs while doing in situ analysis and supports [interactive Python prompt]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt) and [reloading script]({% link InSituPythonAnalysis/ReloadingScript.md %}#reloading-script). | - `READLINE_PATH` |
 
 - `READLINE_PATH`: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) installation prefix, the path should contain folders like `include`, `lib` etc.
 

@@ -241,7 +241,7 @@ int func_status::serial_print_error(int indent_size, int indent_level) {
 //                2. Unlike serial_print_error, this stores the buffer, so it uses MPI_Gather/MPI_Gatherv
 //                   to gather string.
 //                3. Assert that every err msg line ends with newline \n.
-//                4. Cache error message, every root rank will cache it.
+//                4. Cache error message, every rank will cache it.
 //
 // Arguments   :  (None)
 //

@@ -2,7 +2,7 @@
 layout: default
 title: yt_run_JupyterKernel -- Activate Jupyter Kernel
 parent: libyt API
-nav_order: 11
+nav_order: 12
 ---
 # Activate Jupyter Kernel
 {: .no_toc }
