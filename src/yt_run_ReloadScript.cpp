@@ -305,6 +305,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
 #endif  // #ifndef INTERACTIVE_MODE
 }
 
+#ifdef INTERACTIVE_MODE
 //-------------------------------------------------------------------------------------------------------
 // Function    :  detect_file
 // Description :  A private function for detecting if file exists.
@@ -321,3 +322,4 @@ static bool detect_file(const char* flag_file) {
         return true;
     }
 }
+#endif
