@@ -442,7 +442,13 @@ int main(int argc, char* argv[]) {
         // libyt: 9. activate python prompt in interactive mode
         // =======================================================================================================
         // Only supports when compile libyt in interactive mode (-DINTERACTIVE_MODE)
-        // Interactive prompt will start only if it detects "LIBYT_STOP" file, or an inline function failed.
+        // Start reloading script if error occurred when running inline functions, or it detects "LIBYT_STOP" file.
+        // if (yt_run_ReloadScript("LIBYT_STOP", "RELOAD", "test_reload.py") != YT_SUCCESS) {
+        //     fprintf(stderr, "ERROR: yt_run_ReloadScript failed!\n");
+        //     exit(EXIT_FAILURE);
+        // }
+
+        // Interactive prompt will start only if it detects "LIBYT_STOP" file.
         // if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
         //     fprintf(stderr, "ERROR: yt_run_InteractiveMode failed!\n");
         //     exit(EXIT_FAILURE);
