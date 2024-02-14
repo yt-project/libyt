@@ -1,6 +1,6 @@
 ---
 layout: default
-title: yt_run_ReloadScript -- Reloading Script
+title: yt_run_ReloadScript -- Reload Script
 parent: libyt API
 nav_order: 11
 ---

@@ -31,7 +31,7 @@ Print help messages.
 ```
 Exit interactive mode, and continue the iterative process in simulation. 
 
-> :information_source: `exit` only works in interactive mode. If `libyt` runs in Jupyter Kernel mode, please use the notebook's UI to exit the in situ analysis and return to simulation process.
+> :information_source: `exit` only works in interactive Python prompt.
 
 ### load
 ```
