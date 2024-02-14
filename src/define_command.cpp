@@ -330,15 +330,17 @@ int define_command::load_script(const char* filename) {
         g_func_status_list.add_new_func(func_list[i].c_str(), 0);
     }
 
+    // TODO: Only root rank gets an overall results now, this requires execute_cell to also broadcast results,
+    //       will fix this later
     if (g_myrank == s_Root) {
-        printf("Loading script %s ... %s\n", filename, "done");
+        printf("Loading script %s ... %s\n", filename, python_run_success ? "done" : "failed");
         if (!m_OutputFileName.empty()) {
-            write_to_file("Loading script %s ... %s\n", filename, "done");
+            write_to_file("Loading script %s ... %s\n", filename, python_run_success ? "done" : "failed");
         }
     }
 
     // This returns if itself runs successfully, and does not guarantee every process works successfully.
-    // (Only root rank is using this return now, so will fix it later)
+    // (TODO: Only root rank is using this return now, so will fix it later)
     return python_run_success;
 }
 
