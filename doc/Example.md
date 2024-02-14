@@ -60,15 +60,22 @@ The example initializes `libyt`, loads data to `libyt` in simulation's iterative
 ### Activate Interactive Mode
 
 To try out [**interactive mode**]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff), compile `libyt` with [`-DINTERACTIVE_MODE=ON`]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff).
+Interactive mode supports [reloading script]({% link InSituPythonAnalysis/ReloadingScript.md %}#reloading-script) and [interactive Python prompt]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt) features.
 
-Then un-comment this block in `example.cpp`:
+Un-comment these blocks in `example.cpp`:
 ```c++
 // file: example/example.cpp
 // =======================================================================================================
 // libyt: 9. activate python prompt in interactive mode
 // =======================================================================================================
 // Only supports when compile libyt in interactive mode (-DINTERACTIVE_MODE)
-// Interactive prompt will start only if it detects "LIBYT_STOP" file, or an inline function failed.
+// Start reloading script if error occurred when running inline functions, or it detects "LIBYT_STOP" file.
+if (yt_run_ReloadScript("LIBYT_STOP", "RELOAD", "test_reload.py") != YT_SUCCESS) {
+    fprintf(stderr, "ERROR: yt_run_ReloadScript failed!\n");
+    exit(EXIT_FAILURE);
+}
+
+// Interactive prompt will start only if it detects "LIBYT_STOP" file.
 if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
     fprintf(stderr, "ERROR: yt_run_InteractiveMode failed!\n");
     exit(EXIT_FAILURE);
@@ -76,6 +83,7 @@ if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
 ```
 Create `LIBYT_STOP` and put it in the same folder where example executable is. 
 `libyt` will enter [**interactive Python prompt**]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt) only if it detects `LIBYT_STOP` file.
+And `libyt` will enter [**reloading script**]({% link InSituPythonAnalysis/ReloadingScript.md %}#reloading-script) when `LIBYT_STOP` file is detected or there are errors occurred in inline functions.
 
 ### Activate libyt Jupyter Kernel
 
