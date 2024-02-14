@@ -62,7 +62,7 @@ std::array<bool, 2> define_command::run(const std::string& command) {
     std::vector<std::string> arg_list;
 
     if (!m_OutputFileName.empty() && g_myrank == s_Root) {
-        write_to_file("%s\n%s\n%s\n", "==========", m_Command.c_str(), "----------");
+        write_to_file("\n%s\n%s\n%s\n", "==========", m_Command.c_str(), "----------");
     }
 
     bool run_success = false;
@@ -107,8 +107,8 @@ std::array<bool, 2> define_command::run(const std::string& command) {
                    "(Type %%libyt help for help ...)\n",
                    m_Command.c_str());
             if (!m_OutputFileName.empty()) {
-                write_to_file("[YT_ERROR  ] Unkown libyt command : %s\n\n"
-                              "(Type %%libyt help for help ...)\n\n",
+                write_to_file("[YT_ERROR  ] Unkown libyt command : %s\n"
+                              "(Type %%libyt help for help ...)\n",
                               m_Command.c_str());
             }
         }
@@ -212,6 +212,9 @@ int define_command::print_help_msg() {
 //                  be rewritten.
 //               4. Character in the file loaded cannot exceed INT_MAX.
 //               5. Write to file if m_OutputFileName is not empty, this is used in reloading script.
+//               6. CAUTION: because execute_file only returns full error msg at root rank, which means
+//                  other ranks have no idea if the script had successfully run. Right now, it is ok,
+//                  because only root rank needs the actual states.
 //
 // Arguments  :  const char *filename : file name to reload
 //
@@ -233,14 +236,13 @@ int define_command::load_script(const char* filename) {
             int indicator = -1;
             MPI_Bcast(&indicator, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
 #endif
-            python_run_success = false;
             printf("File %s doesn't exist.\n", filename);
             printf("Loading script %s ... failed\n", filename);
             if (!m_OutputFileName.empty()) {
                 write_to_file("File %s doesn't exist.\n", filename);
                 write_to_file("Loading script %s ... failed\n", filename);
             }
-            return python_run_success;
+            return YT_FAIL;
         }
         std::string line;
         std::stringstream ss;
@@ -266,15 +268,25 @@ int define_command::load_script(const char* filename) {
                             printf("(None)\n");
                         }
                         printf("%s\n", output[i].output_string.substr(offset, output[i].output_length[r]).c_str());
+
+                        if (!m_OutputFileName.empty()) {
+                            write_to_file("[MPI Process %d%s]\n", r, (i == 0) ? "" : " - ErrorMsg");
+                            if (output[i].output_length[r] == 0) {
+                                write_to_file("(None)\n");
+                            }
+                            write_to_file("%s\n",
+                                          output[i].output_string.substr(offset, output[i].output_length[r]).c_str());
+                        }
+
                         offset += output[i].output_length[r];
                     }
 
-                    // error msg length > 0, has error
+                    // if error msg length > 0, has error
                     if (i == 1) {
                         python_run_success = false;
                     }
                 } else {
-                    // error msg length <= 0, no error
+                    // if error msg length <= 0, no error
                     if (i == 1) {
                         python_run_success = true;
                     }
@@ -285,11 +297,13 @@ int define_command::load_script(const char* filename) {
             int indicator = -1;
             MPI_Bcast(&indicator, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
 #endif
-            python_run_success = false;
             printf("%s\n", code_validity.error_msg.c_str());
+            printf("Loading script %s ... failed\n", filename);
             if (!m_OutputFileName.empty()) {
                 write_to_file("%s\n", code_validity.error_msg.c_str());
+                write_to_file("Loading script %s ... failed\n", filename);
             }
+            return YT_FAIL;
         }
     }
 #ifndef SERIAL_MODE
@@ -299,39 +313,32 @@ int define_command::load_script(const char* filename) {
         MPI_Bcast(&indicator, 1, MPI_INT, s_Root, MPI_COMM_WORLD);
 
         if (indicator < 0) {
-            python_run_success = false;
+            return YT_FAIL;
         } else {
             std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_file();
-
-            // if error msg string is empty, then it has successfully done the run.
-            if (output[1].output_string.empty()) {
-                python_run_success = true;
-            } else {
-                python_run_success = false;
-            }
         }
     }
 #endif
 
-    if (python_run_success) {
-        // update libyt.interactive_mode["func_body"]
-        LibytPythonShell::load_file_func_body(filename);
+    // update libyt.interactive_mode["func_body"]
+    LibytPythonShell::load_file_func_body(filename);
 
-        // get function list defined inside the script, add the function name to list if it doesn't exist
-        // and set to idle
-        std::vector<std::string> func_list = LibytPythonShell::get_funcname_defined(filename);
-        for (int i = 0; i < (int)func_list.size(); i++) {
-            g_func_status_list.add_new_func(func_list[i].c_str(), 0);
-        }
+    // get function list defined inside the script, add the function name to list if it doesn't exist
+    // and set to idle
+    std::vector<std::string> func_list = LibytPythonShell::get_funcname_defined(filename);
+    for (int i = 0; i < (int)func_list.size(); i++) {
+        g_func_status_list.add_new_func(func_list[i].c_str(), 0);
     }
 
     if (g_myrank == s_Root) {
-        printf("Loading script %s ... %s\n", filename, python_run_success ? "done" : "failed");
+        printf("Loading script %s ... %s\n", filename, "done");
         if (!m_OutputFileName.empty()) {
-            write_to_file("Loading script %s ... %s\n", filename, python_run_success ? "done" : "failed");
+            write_to_file("Loading script %s ... %s\n", filename, "done");
         }
     }
 
+    // This returns if itself runs successfully, and does not guarantee every process works successfully.
+    // (Only root rank is using this return now, so will fix it later)
     return python_run_success;
 }
 
