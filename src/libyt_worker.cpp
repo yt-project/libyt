@@ -43,6 +43,7 @@ void LibytWorker::start() {
         switch (indicator) {
             case -1: {
                 done = true;
+                g_libyt_python_shell.clear_prompt_history();
                 break;
             }
             case 1: {

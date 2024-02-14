@@ -47,13 +47,17 @@ It can break down into five stages:
       <td>Tell libyt you're done.</td>
     </tr>
     <tr>
-      <td rowspan=3><strong>In situ analysis</strong></td>
+      <td rowspan=4><strong>In situ analysis</strong></td>
       <td><code>yt_run_Function</code>, <code>yt_run_FunctionArguments</code></td>
       <td>Run Python functions.</td>
     </tr>
     <tr>
       <td><code>yt_run_InteractiveMode</code></td>
       <td>Activate interactive prompt. This is only available in interactive mode.</td>
+    </tr>
+    <tr>
+      <td><code>yt_run_ReloadScript</code></td>
+      <td>Enter reloading script phase. This is only available in interactive mode.</td>
     </tr>
     <tr>
       <td><code>yt_run_JupyterKernel</code></td>
