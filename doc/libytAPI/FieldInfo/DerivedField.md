@@ -1,21 +1,4 @@
----
-layout: default
-title: Derived Field
-parent: yt_get_FieldsPtr -- Get fields information array
-grand_parent: libyt API
-nav_order: 1
----
 # Derived Field
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
 
 ## Definition of Derived Field
 When the field is not part of the iterative process or, we want to provide a specific C function to generate data during 

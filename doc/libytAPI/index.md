@@ -1,13 +1,24 @@
----
-layout: default
-title: libyt API
-nav_order: 5
-has_children: true
-permalink: libytAPI
-has_toc: false
----
-
 # libyt API
+
+```{toctree}
+:hidden:
+
+Initialize
+SetYTParameter
+SetCodeSpecificParameter
+FieldInfo/SetFieldsInformation
+SetParticlesInformation
+SetLocalGridsInformation
+LookUpPassedInData
+CommitYourSettings
+PerformInlineAnalysis
+ActivateInteractiveMode
+ActivateReloadingScript
+ActivateJupyterKernel
+FreeResource
+Finalize
+DataType
+```
 
 ## Procedure
 It can break down into five stages: 
@@ -77,8 +88,5 @@ It can break down into five stages:
 </table>
 
 
-----
 [^1]: :lizard: Currently, `libyt` only supports loading simulation data with adaptive mesh refinement grid structure (AMR grid) to Python. We are trying to make `libyt` works with more data structure.
-
-
 

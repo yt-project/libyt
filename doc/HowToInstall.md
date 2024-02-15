@@ -1,19 +1,4 @@
----
-layout: default
-title: How to Install
-nav_order: 2
----
 # How to Install
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
 
 ## C Library -- libyt
 
