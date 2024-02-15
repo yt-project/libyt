@@ -48,8 +48,9 @@ Print status board.
 ```
 Print function's definition and error messages if it has.
 
-##### Example
-{: .no_toc }
+:::
+###### Example
+:::
 Print the status of the function, including its definition and error message in each rank if it has.
 ```
 >>> %libyt status func
@@ -75,8 +76,9 @@ func ... failed
 ```
 Idle `<function name>` in next in situ analysis. You will see `X` at run column in status board. It will clear all the input arguments set through [`%libyt run`](#run).
 
-##### Example
-{: .no_toc }
+:::
+###### Example
+:::
 Idle `func` in next round.
 ```
 >>> %libyt idle func
@@ -93,8 +95,9 @@ Run `<function name>` in the following in situ analysis using `[args ...]` if gi
 
 > :warning: When using triple quotes in input arguments, use either `"""` or `'''`, but not both of them at the same time. If you really need triple quotes, stick to either one of them. For example, `%libyt run func """b""" """c"""` is good, but `%libyt run func """b""" '''c'''` leads to error.
 
-##### Example
-{: .no_toc }
+:::
+###### Example
+:::
 This is equivalent of calling `func(a, 2, "3")` in Python in next round.
 ```
 >>> a = 1

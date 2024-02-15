@@ -65,8 +65,9 @@ We need another process to start Jupyter Notebook/JupyterLab and connect to liby
 The cell takes Python statements and [libyt Defined Commands]({% link InSituPythonAnalysis/libytCommand.md %}#libyt-defined-commands).
 It can also import other Python modules
 
+:::
 ##### How does it execute Python statements and libyt defined commands?
-{: .no_toc }
+:::
 1. Takes user inputs in the cell.
 2. MPI root process broadcasts the inputs to other processes.
 3. Every other MPI process executes the same piece of input synchronously.
