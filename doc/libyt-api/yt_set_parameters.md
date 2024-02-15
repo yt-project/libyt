@@ -12,7 +12,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
 ### yt_param_yt
 - `const char* frontend` (Default=`NULL`)
   - Usage: Field information of the yt `frontend` to borrow from. This should be `yt` supported frontend.
-  > :pencil2: Please make sure the lifetime of `frontend` covers [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit) if you set [`check_data`]({% link libytAPI/Initialize.md %}#yt_param_libyt) to `true` when initializing `libyt`.
+  > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `frontend` covers [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit) if you set [`check_data`]({% link libytAPI/Initialize.md %}#yt_param_libyt) to `true` when initializing `libyt`.
 - `const char* fig_basename` (Default=`"Fig"`)
   - Usage: Base name of the output figures. Figure name will also be followed by counter number and `yt` functionality name.
 - `double domain_left_edge[3], domain_right_edge[3]` (Default=`DBL_UNDEFINED`)
@@ -47,7 +47,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
     - `1`: Yes
 - `int dimensionality` (Default=`INT_UNDEFINED`)
   - Usage: Dimensionality of the simulation. 
-  > :warning: We only support 3 for now.
+  > {octicon}`alert;1em;sd-text-danger;` We only support 3 for now.
 - `int domain_dimensions[3]` (Default=`INT_UNDEFINED`)
   - Usage: Number of cells along each dimension on the root AMR level.
 - `int refine_by` (Default=`INT_UNDEFINED`)
@@ -66,7 +66,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
   - Usage: Particle type list. This should be a `yt_par_type` array.
   - Data member in `yt_par_type`:
     - `const char* par_type`: Name of the particle type.
-    > :pencil2: Please make sure the lifetime of `par_type` covers the whole in situ process in `libyt`. `libyt` only borrows this name and does not make a copy.
+    > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `par_type` covers the whole in situ process in `libyt`. `libyt` only borrows this name and does not make a copy.
     - `int num_attr`: Number of attributes this particle type has. 
 
 ## Example

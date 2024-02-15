@@ -1,6 +1,6 @@
 # libyt Defined Commands
 
-> :information_source: There should be no spaces between `%` and `libyt`.
+> {octicon}`info;1em;sd-text-info;` There should be no spaces between `%` and `libyt`.
 
 ## General Commands
 
@@ -16,7 +16,7 @@ Print help messages.
 ```
 Exit interactive mode, and continue the iterative process in simulation. 
 
-> :information_source: `exit` only works in interactive Python prompt.
+> {octicon}`info;1em;sd-text-info;` `exit` only works in interactive Python prompt.
 
 ### load
 ```
@@ -32,7 +32,7 @@ All new functions detected in this new loaded script will be set to idle, and wi
 ```
 Export successfully run libyt defined commands and Python statement into file in current in situ analysis. History of interactive prompt will be cleared when leaving prompt.
 
-> :information_source: Will overwrite file if `<file name>` already exist.
+> {octicon}`info;1em;sd-text-info;` Will overwrite file if `<file name>` already exist.
 
 ### status
 ```
@@ -91,9 +91,9 @@ Function func set to idle ... done
 ```
 Run `<function name>` in the following in situ analysis using `[args ...]` if given. Set input arguments every time you switch this function on, because [`%libyt idle`](#idle) clears them.
 
-> :information_source: Input arguments passed in through [`yt_run_FunctionArguments`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_functionarguments) in simulation code have a bigger priority. When calling [`yt_run_InteractiveMode`]({% link libytAPI/ActivateInteractiveMode.md %}#yt_run_interactivemode), it runs all the functions that was set to run using [`%libyt run`](#run), but had not been done in simulation by calling [`yt_run_Function`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_function) or [`yt_run_FunctionArguments`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_functionarguments) yet.
+> {octicon}`info;1em;sd-text-info;` Input arguments passed in through [`yt_run_FunctionArguments`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_functionarguments) in simulation code have a bigger priority. When calling [`yt_run_InteractiveMode`]({% link libytAPI/ActivateInteractiveMode.md %}#yt_run_interactivemode), it runs all the functions that was set to run using [`%libyt run`](#run), but had not been done in simulation by calling [`yt_run_Function`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_function) or [`yt_run_FunctionArguments`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_functionarguments) yet.
 
-> :warning: When using triple quotes in input arguments, use either `"""` or `'''`, but not both of them at the same time. If you really need triple quotes, stick to either one of them. For example, `%libyt run func """b""" """c"""` is good, but `%libyt run func """b""" '''c'''` leads to error.
+> {octicon}`alert;1em;sd-text-danger;` When using triple quotes in input arguments, use either `"""` or `'''`, but not both of them at the same time. If you really need triple quotes, stick to either one of them. For example, `%libyt run func """b""" """c"""` is good, but `%libyt run func """b""" '''c'''` leads to error.
 
 :::
 ###### Example

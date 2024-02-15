@@ -86,7 +86,7 @@ import libyt
 
 - Usage: It only contains data in local process. The value corresponds to data member [`particle_data`]({% link libytAPI/SetLocalGridsInformation.md %}#field-data-and-particle-data) in `yt_grid`.
 
-> :information_source: `grid_data` and `particle_data` is read-only. They contain the actual simulation data.
+> {octicon}`info;1em;sd-text-info;` `grid_data` and `particle_data` is read-only. They contain the actual simulation data.
 
 ## Methods
 
@@ -118,7 +118,7 @@ get_field_remote(fname_list : list,
 ```
 - Usage: Return a dictionary that contains requested field data from remote rank.
 
-> :warning: This is a collective operation, and it requires every MPI process to participate.
+> {octicon}`alert;1em;sd-text-danger;` This is a collective operation, and it requires every MPI process to participate.
 
 ### get_particle_remote
 ```python
@@ -132,6 +132,6 @@ get_particle_remote(par_dict : dict,
 ```
 - Usage: Return a dictionary that contains requested particle data from remote rank.
 
-> :warning: This is a collective operation, and it requires every MPI process to participate.
+> {octicon}`alert;1em;sd-text-danger;` This is a collective operation, and it requires every MPI process to participate.
 
-> :lizard: `get_field_remote` and `get_particle_remote` may be hard to use in general case, since we have to prepare those list by ourselves. We will improve this and make it general in the future.
+> {octicon}`calendar;1em;sd-text-secondary;` `get_field_remote` and `get_particle_remote` may be hard to use in general case, since we have to prepare those list by ourselves. We will improve this and make it general in the future.

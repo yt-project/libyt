@@ -28,13 +28,13 @@ The options are mutually independent to each other.
 ###### Required Paths
 :::
 - `MPI_PATH`: MPI installation prefix, the path should contain folders like `include`, `lib` etc.
-  > :warning: Make sure you are using the same MPI to compile `libyt` and your simulation code.
+  > {octicon}`alert;1em;sd-text-danger;` Make sure you are using the same MPI to compile `libyt` and your simulation code.
 
 :::
 ###### Required Python Packages
 :::
 - `mpi4py`: This is Python bindings for the Message Passing Interface (MPI) standard.
-  > :warning: Please make sure `mpi4py` used in Python and MPI used in simulation are matched. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
+  > {octicon}`alert;1em;sd-text-danger;` Please make sure `mpi4py` used in Python and MPI used in simulation are matched. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
 
 ##### -DINTERACTIVE_MODE
 
@@ -61,7 +61,7 @@ The options are mutually independent to each other.
 - `xeus-zmq_DIR` (1.x release): Path to `xeus-zmqConfig.cmake` after installing [`xeus-zmq`](https://github.com/jupyter-xeus/xeus-zmq).
 - `ZeroMQ_DIR` (>=4.2.5, <5.0.0): Path to `ZeroMQConfig.cmake` after installing [`ZeroMQ`](https://github.com/zeromq/libzmq). (Some system may already have ZeroMQ installed, which doesn't need to provide the path explicitly.)
 
-> :information_source: `nlohmann_json`, `cppzmq`, `xtl`, `xeus`, and `ZeroMQ` are all `xeus-zmq`'s dependencies. Check [here](https://github.com/jupyter-xeus/xeus-zmq?tab=readme-ov-file#building-from-sources) for how to install `xeus-zmq`.
+> {octicon}`info;1em;sd-text-info;` `nlohmann_json`, `cppzmq`, `xtl`, `xeus`, and `ZeroMQ` are all `xeus-zmq`'s dependencies. Check [here](https://github.com/jupyter-xeus/xeus-zmq?tab=readme-ov-file#building-from-sources) for how to install `xeus-zmq`.
 
 :::
 ###### Required Python Packages
@@ -96,7 +96,7 @@ The options are mutually independent to each other.
    export CC=/software/gcc/bin/gcc
    export CXX=/software/gcc/bin/g++
    ```
-   > :information_source: It should support `c++14`.
+   > {octicon}`info;1em;sd-text-info;` It should support `c++14`.
    
 3. Generate files for project, `<1-(b)>` contains the flags in step 1-(b):
    ```bash

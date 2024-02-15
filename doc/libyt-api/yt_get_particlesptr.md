@@ -7,12 +7,12 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
 - Usage: Get the `yt_particle` array pointer where `libyt` access particles information from. Each MPI rank should call this function and fill them in. If you don't have any particles, then skip this.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
-> :warning: Every MPI rank must call this API and fill in the particle information in the same order. We do not broadcast and sync information here.
+> {octicon}`alert;1em;sd-text-danger;` Every MPI rank must call this API and fill in the particle information in the same order. We do not broadcast and sync information here.
 
 ### yt_particle
 - `const char* par_type` (set by `libyt`)
   - Usage: Name of the particle type. `libyt` only copies the pointer from [`par_type_list`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt)'s data member `par_type` to this variable and does not make a hard copy. You don't need to assign it again. Refer to [Naming and Field Information]({% link InSituPythonAnalysis/UsingYT.md %}#naming-and-field-information) for how particle/attribute names and yt fields are linked and reused.
-    > :pencil2: The lifetime of `par_type` should cover in situ analysis process. `libyt` only borrows this pointer and does not make a hard copy.
+    > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `par_type` should cover in situ analysis process. `libyt` only borrows this pointer and does not make a hard copy.
 - `int num_attr` (set by `libyt`)
   - Usage: Number of attributes does this particle type has. `libyt` will assign your input [`par_type_list`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt)'s data member `num_attr` to this variable. You may skip this.
 - `yt_attribute* attr_list` (initialized by `libyt`)
@@ -20,28 +20,28 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
   - Data member in `yt_attribute`:
     - `const char* attr_name` (Default=`NULL`)
       - Usage: Attribute name. Refer to [Naming and Field Information]({% link InSituPythonAnalysis/UsingYT.md %}#naming-and-field-information) for how particle/attribute names and yt fields are linked and reused.
-      > :pencil2: The lifetime of `attr_name` should cover in situ analysis process. `libyt` only borrows this variable and does not make a copy.
+      > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `attr_name` should cover in situ analysis process. `libyt` only borrows this variable and does not make a copy.
     - `yt_dtype attr_dtype` (Default=`YT_DOUBLE`)
       - Usage: Attribute’s data type.
       - Valid Value:  [`yt_dtype`]({% link libytAPI/DataType.md %}#yt_dtype)
     - `const char* attr_unit` (Default=`""`)
       - Usage: Unit of the attribute, using `yt` unit system.
-      > :pencil2: The lifetime of `attr_unit` should cover [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit).
+      > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `attr_unit` should cover [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit).
     - `int num_attr_name_alias` (Default=`0`)
       - Usage: Number of name aliases.
     - `const char **attr_name_alias` (Default=`NULL`)
       - Usage: A list of name aliases.
-      > :pencil2: The lifetime of `attr_name_alias` should cover [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit).
+      > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `attr_name_alias` should cover [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit).
     - `const char *attr_display_name` (Default=`NULL`)
       - Usage: Display name on the output figure. If it is not set, then it will use `attr_name` instead.
-      > :pencil2: The lifetime of `attr_display_name` should cover [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit).
+      > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `attr_display_name` should cover [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit).
 - `const char *coor_x, *coor_y, *coor_z` (Default=`NULL`)
   - Usage: Attribute name representing coordinate or position x, y, and z.
-  > :pencil2: The lifetime of `coor_x`, `coor_y`, `coor_z` should cover the in situ analysis process. `libyt` only borrows these names and does not make a copy.
+  > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `coor_x`, `coor_y`, `coor_z` should cover the in situ analysis process. `libyt` only borrows these names and does not make a copy.
 - `void (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*)` (Default=`NULL`)
   - Usage: Function pointer to get particle’s attribute.
 
-> :information_source: `libyt` borrows the full field and particle information class (`class XXXFieldInfo`) from [`frontend`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt). It is OK not to set a particle's `attr_unit`, `num_attr_name_alias`, `attr_name_alias`, `attr_display_name`, if this `attr_name` is already inside your frontend.
+> {octicon}`info;1em;sd-text-info;` `libyt` borrows the full field and particle information class (`class XXXFieldInfo`) from [`frontend`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt). It is OK not to set a particle's `attr_unit`, `num_attr_name_alias`, `attr_name_alias`, `attr_display_name`, if this `attr_name` is already inside your frontend.
 > If you are adding a totally new particle attribute, please add them. `libyt` will add these new attributes information alongside with your original one.
 
 ## Get Particle Attribute Function
@@ -65,7 +65,7 @@ void GetAttr(const int list_len, const long *list_gid, const char *par_type, con
   - `long data_length`: length of `data_ptr`.
   - `void *data_ptr`: data pointer where you should write in particle data of this grid.
 
-> :warning: We should always write our particle attribute data in the same order, since we get attributes separately.
+> {octicon}`alert;1em;sd-text-danger;` We should always write our particle attribute data in the same order, since we get attributes separately.
 
 ## Example
 `par_io_get_par_attr` function gets particle type `io` attributes. This particle type has position at the center of the grid it belongs to with value grid level (int).

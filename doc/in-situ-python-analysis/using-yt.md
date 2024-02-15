@@ -45,10 +45,10 @@ Basically, everything will work in Python under parallel computation using `mpi4
 | `LinePlot`               |     V     |                                                                     |
 | Halo Analysis            |           | Not test yet.                                                       |
 | Isocontours              |     V     |                                                                     |
-| `volume_render`          |     V     | :warning: Need even MPI processes.                                  |
+| `volume_render`          |     V     | {octicon}`alert;1em;sd-text-danger;` Need even MPI processes.                                  |
 | `ParticlePlot`           |     V     |                                                                     |
 | `ParticleProjectionPlot` |     V     |                                                                     |
-| Annotations              |     V     | :warning: Some[^1] require `save()` be outside of `if yt.is_root()` |
+| Annotations              |     V     | {octicon}`alert;1em;sd-text-danger;` Some[^1] require `save()` be outside of `if yt.is_root()` |
 
 Reading and accessing data is a collective operation, and it requires every MPI process to join.
 If only some of the processes participate in reading data during a yt function, then the program will hang, 
@@ -59,7 +59,7 @@ And plots with annotations `annotate_quiver`, `annotate_cquiver`, `annotate_velo
 `annotate_magnetic_field`, and `annotate_particles`, need to access data when saving figure. 
 Which means every MPI process should run `save()`, and we have to move `save()` outside of `if yt.is_root()`.
 
-> :lizard: Since there is no way we can know what data to access and build up a communication graph for data exchange beforehand,
+> {octicon}`calendar;1em;sd-text-secondary;` Since there is no way we can know what data to access and build up a communication graph for data exchange beforehand,
 > when accessing simulation data, `libyt` requires every process to participate in this.
 > We are working on this in both `yt` and `libyt`.
 
@@ -70,7 +70,7 @@ Which means every MPI process should run `save()`, and we have to move `save()` 
   Specify [`<frontend_name>`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt) and use `("<frontend_name>", "<field_name>")` to call libyt field.
 - **yt fields** are fields defined in field information class (class `XXXFieldInfo`) in a yt frontend and yt built-in derived fields. `XXX` is frontend name defined in `frontend` in [`yt_param_yt`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt).
     
-> :information_source: We can use both **libyt fields** and **yt fields** in in situ analysis Python script. All of them are two-component tuple, specify the whole tuple when using it in Python script. 
+> {octicon}`info;1em;sd-text-info;` We can use both **libyt fields** and **yt fields** in in situ analysis Python script. All of them are two-component tuple, specify the whole tuple when using it in Python script. 
 
 As a side note, we can use yt API to look up fields:
 ```python
@@ -106,7 +106,7 @@ Please do:
     ```
 2. Move the statement out of `if yt.is_root()` (for the case here).
 
-> :lizard: When accessing simulation data, `libyt` requires every process to participate in this.
+> {octicon}`calendar;1em;sd-text-secondary;` When accessing simulation data, `libyt` requires every process to participate in this.
 > We are working on this in both `yt` and `libyt`.
 
 

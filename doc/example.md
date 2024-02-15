@@ -29,7 +29,7 @@ The example initializes `libyt`, loads data to `libyt` in simulation's iterative
   ```makefile
   MPI_PATH := $(YOUR_MPI_PATH)
   ```
-  > :warning: Make sure you are using the same MPI to compile `libyt` and the example.
+  > {octicon}`alert;1em;sd-text-danger;` Make sure you are using the same MPI to compile `libyt` and the example.
 4. Go to `example` folder and compile.
   ```bash
   make clean

@@ -5,7 +5,7 @@
 - Compile `libyt` in [**interactive mode**]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff).
 - Call libyt API [`yt_run_InteractiveMode`]({% link libytAPI/ActivateInteractiveMode.md %}#activate-interactive-mode).
 
-> :information_source: Interactive mode only works on local machine or submit the job to HPC platforms through interactive queue like `qsub -I`.
+> {octicon}`info;1em;sd-text-info;` Interactive mode only works on local machine or submit the job to HPC platforms through interactive queue like `qsub -I`.
 > The reason is that the prompt is exposed through the terminal. Use [Reloading Script]({% link InSituPythonAnalysis/ReloadingScript.md %}#reloading-script) or [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access) to avoid this.
 
 ## Using Interactive Python Prompt
@@ -45,7 +45,7 @@ It can run any Python statements or [**libyt defined commands**]({% link InSituP
 This is like using normal Python prompt, except that there are functions, objects, and simulation data already defined in it.
 These statements run in inline script's namespace, and will update and make changes to it. 
 
-> :information_source: To make interactive prompt more smoothly, set lower [YT_VERBOSE]({% link libytAPI/Initialize.md %}#yt_param_libyt).
+> {octicon}`info;1em;sd-text-info;` To make interactive prompt more smoothly, set lower [YT_VERBOSE]({% link libytAPI/Initialize.md %}#yt_param_libyt).
 
 :::
 ##### How does the prompt execute Python statements and libyt defined commands?
@@ -55,7 +55,7 @@ These statements run in inline script's namespace, and will update and make chan
 3. Every other MPI process executes the same piece of input synchronously.
 4. Print feedbacks to the terminal.
 
-> :warning: Changes is kept and maintain in user's inline script's namespace in situ analysis in the following round.
+> {octicon}`alert;1em;sd-text-danger;` Changes is kept and maintain in user's inline script's namespace in situ analysis in the following round.
 
 ### Exit Interactive Python Prompt
 Use [`%libyt exit`]({% link InSituPythonAnalysis/libytCommand.md %}#exit) to exit the prompt.
