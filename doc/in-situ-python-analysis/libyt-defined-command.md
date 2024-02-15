@@ -38,7 +38,7 @@ Export successfully run libyt defined commands and Python statement into file in
 ```
 >>> %libyt status
 ```
-Print status board.
+Print [status board](#status-board).
 
 ## Function Related Commands
 
@@ -107,3 +107,25 @@ This is equivalent of calling `func(a, 2, "3")` in Python in next round.
 Function func set to run ... done
 Run func(a,2,"3") in next iteration
 ```
+
+## Status Board
+The status board contains a list of all the Python functions `libyt` finds.
+These are functions we can control whether to run in next round, and to access error message if it has.
+```txt
+=====================================================================
+  Inline Function                              Status         Run
+---------------------------------------------------------------------
+  * yt_inline_ProjectionPlot                   success         V
+  * yt_derived_field_demo                      idle            X
+  * test_function                              failed          V
+=====================================================================
+```
+- **Inline Function**: the inline function found by `libyt`.
+- **Status**: function status.
+  - `success`: successfully run the function.
+  - `failed`: failed to run the function.
+  - `idle`: the function was set to idle, so it was ignored and did nothing.
+  - `not run yet`: the function hasn't been run yet.
+- **Run**: whether the function will run automatically in next round.
+  - `V`: this function will run automatically in the following in situ analysis.
+  - `X`: this function will idle in next in situ analysis, even if it is called through [`yt_run_FunctionArguments`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_functionarguments) or [`yt_run_Function`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_function) in simulation.

@@ -11,31 +11,7 @@
 ## Using Interactive Python Prompt
 
 ### Status Board
-At the start of interactive mode, `libyt` prints the status board.
-Interactive Python prompt will list all the Python function it finds, either in imported script, or input from interactive Python prompt.
-These are functions we can control whether to run in next round, and to access error message if it has.
-```
-=====================================================================
-  Inline Function                              Status         Run
----------------------------------------------------------------------
-  * yt_inline_ProjectionPlot                   success         V
-  * yt_inline_ProfilePlot                      success         V
-  * yt_inline_ParticlePlot                     success         V
-  * yt_derived_field_demo                      idle            V
-  * test_function                              failed          V
-=====================================================================
->>> 
-```
-
-- **Inline Function**: the inline function found by `libyt`.
-- **Status**: function status.
-  - `success`: successfully run the function.
-  - `failed`: failed to run the function.
-  - `idle`: the function was set to idle, so it was ignored and did nothing.
-  - `not run yet`: the function hasn't been run yet.
-- **Run**: whether the function will run automatically in next round.
-  - `V`: this function will run automatically in the following in situ analysis.
-  - `X`: this function will idle in next in situ analysis, even if it is called through [`yt_run_FunctionArguments`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_functionarguments) or [`yt_run_Function`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_function) in simulation.
+At the start of interactive mode, `libyt` prints the [status board](./libyt-defined-command.md#status-board) to show the current execution state of each inline function.
 
 ### Python Prompt and libyt Defined Commands
 ```
