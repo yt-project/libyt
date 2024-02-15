@@ -1,21 +1,4 @@
----
-layout: default
-title: Example -- Local Machine
-parent: Jupyter Notebook Access
-grand_parent: In Situ Python Analysis
-nav_order: 2
----
-# Connecting to Kernel on Local Machine
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+# Example -- Connecting to Kernel on Local Machine
 
 ## Running Simulation
 
@@ -33,4 +16,3 @@ nav_order: 2
 ## Connecting to Kernel
 
 Go through [Starting Jupyter Notebook / JupyterLab]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#starting-jupyter-notebook--jupyterlab).
-

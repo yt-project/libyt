@@ -1,4 +1,4 @@
-# Using yt for In Situ Python Analysis
+# Using yt
 
 ## Requirements
 - Python package [`yt`](https://yt-project.org/) and [`yt_libyt`]({% link HowToInstall.md %}#yt_libyt).
@@ -79,7 +79,6 @@ As a side note, we can use yt API to look up fields:
 >>> ds.derived_field_list  # prints a list of yt derived field
 ```
 
-
 ### Naming and Field Information
 libyt inherits field information (ex: units, name aliases) defined in yt frontend, and it can access yt built-in derived fields.
 
@@ -93,6 +92,7 @@ Which is:
 3. If field name `"C"` defined in [`yt_get_FieldsPtr`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_get_fieldsptr)/[`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}#yt_get_particlesptr) overlapped with yt built-in derived field (`"C"` and yt derived field have the same name), then `yt` uses `"C"` defined through libyt API. Namely, it overwrites yt derived field.
 
 ## FAQs
+
 ### Why Does my Program Hang and How Do I Solve It?
 Though `libyt` can execute any Python module, when it comes to reading simulation data, it requires every MPI process to participate
 The program hanging problem is due to only some MPI processes are accessing the data, but not all of them.

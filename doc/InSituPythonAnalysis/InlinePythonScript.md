@@ -1,20 +1,4 @@
----
-layout: default
-title: Inline Python Script
-parent: In Situ Python Analysis
-nav_order: 1
----
 # Inline Python Script
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
 
 ## How libyt Loads Inline Python script and Runs Python Functions?
 The inline Python script and the simulation executable should be placed in the same location.
@@ -25,7 +9,6 @@ All of our in situ Python analysis are done inside this namespace.
 
 The namespace contains function objects in the script. We can use [`yt_run_Function`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_function) 
 and [`yt_run_FunctionArguments`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_functionarguments) to call them during simulation process.
-
 
 ## What Happens if the Python Function Crashed?
 If `libyt` is compiled in [**normal mode**]({% link HowToInstall.md %}#options), it is not fault-tolerant to Python, 
@@ -38,4 +21,3 @@ We can only update Python functions in **interactive mode** ([`-DINTERACTIVE_MOD
 
 Since every new added Python object is maintained inside inline Python script's namespace, you can update a Python function by re-define the function again, so that the old function is overwritten.
 (See [Interactive Python Prompt]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt), [Reloading Script]({% link InSituPythonAnalysis/ReloadingScript.md %}#reloading-script), and [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access).)
-

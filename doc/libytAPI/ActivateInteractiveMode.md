@@ -1,20 +1,10 @@
 ---
 layout: default
-title: yt_run_InteractiveMode -- Activate Python prompt
+title: 
 parent: libyt API
 nav_order: 10
 ---
-# Activate Interactive Mode
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+# `yt_run_InteractiveMode` -- Activate Interactive Python Prompt
 
 ## yt_run_InteractiveMode
 ```cpp

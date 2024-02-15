@@ -1,21 +1,4 @@
----
-layout: default
-title: Face-Centered Field
-parent: yt_get_FieldsPtr -- Get fields information array
-grand_parent: libyt API
-nav_order: 2
----
 # Face-Centered Field
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
 
 ## Definition of Face-Centered Field
 After ignoring the ghost cells, a face-centered data should only have one dimension greater than the grid's by one, considering swap axes or not. We will then do interpolation to convert it to cell-centered data.

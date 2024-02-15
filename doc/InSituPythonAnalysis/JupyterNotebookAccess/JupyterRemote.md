@@ -1,21 +1,4 @@
----
-layout: default
-title: Example -- Remote HPC Cluster
-parent: Jupyter Notebook Access
-grand_parent: In Situ Python Analysis
-nav_order: 3
----
-# Connecting to Kernel on HPC Cluster
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+# Example -- Connecting to Kernel on HPC Cluster
 
 ## Submitting Jobs to Computing Node
 1. Use libyt API [`yt_run_JupyterKernel`]({% link libytAPI/ActivateJupyterKernel.md %}#yt_run_jupyterkernel) in simulation and compile:
@@ -92,4 +75,3 @@ Please go through [Login Node](#login-node) before going through [Local Laptop](
 3. Leave the terminal open. (It's normal if it doesn't print anything after connection.)
 4. Copy and paste the link from [Login Node -- Step 3](#login-node) and change `XXXX` to `YYYY` in browser.
 5. Click "Libyt" kernel and connect to libyt Jupyter kernel launched by libyt API [`yt_run_JupyterKernel`]({% link libytAPI/ActivateJupyterKernel.md %}#yt_run_jupyterkernel).
-

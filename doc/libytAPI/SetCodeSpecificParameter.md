@@ -1,22 +1,6 @@
----
-layout: default
-title: yt_set_UserParameter* -- Set user parameter
-parent: libyt API
-nav_order: 3
----
-# Set Code or User Specific Parameter
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+# `yt_set_UserParameter*` -- Set Other Parameters
 
-## yt\_set\_UserParameter*
+## yt_set_UserParameter*
 ```cpp
 int yt_set_UserParameterInt       ( const char *key, const int n, const int       *input );
 int yt_set_UserParameterLong      ( const char *key, const int n, const long      *input );
@@ -50,4 +34,3 @@ yt_set_UserParameterInt("mhd", 1, &mhd);
 const int srhd = 0;
 yt_set_UserParameterInt("srhd", 1, &srhd);
 ```
-

@@ -1,20 +1,4 @@
----
-layout: default
-title: yt Data Type
-parent: libyt API
-nav_order: 15
----
-# yt Data Type
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+# Data Types
 
 ## yt_dtype
 - Usage: `libyt` defined macros for C data type. They are matched to corresponding NumPy data type and MPI data type.
@@ -34,7 +18,3 @@ nav_order: 15
 |   YT_ULONG    |   unsigned long    |    NPY_ULONG    |   MPI_UNSIGNED_LONG    |
 |  YT_LONGLONG  |     long long      |  NPY_LONGLONG   |     MPI_LONG_LONG      |
 | YT_ULONGLONG  | unsigned long long |  NPY_ULONGLONG  | MPI_UNSIGNED_LONG_LONG |
-
-
-
-

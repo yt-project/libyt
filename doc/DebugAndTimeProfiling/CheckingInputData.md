@@ -1,20 +1,4 @@
----
-layout: default
-title: Checking Input Data
-parent: Debug and Time Profiling
-nav_order: 1
----
 # Checking Input Data
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
 
 ## How to Configure?
 Set `check_data` to `true` when initializing `libyt` (see [Initialize]({% link libytAPI/Initialize.md %}#yt_initialize)):

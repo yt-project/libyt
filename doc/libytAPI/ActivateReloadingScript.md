@@ -1,20 +1,4 @@
----
-layout: default
-title: yt_run_ReloadScript -- Reload Script
-parent: libyt API
-nav_order: 11
----
-# Reload Script
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+# `yt_run_ReloadScript` -- Reload Script
 
 ## yt_run_ReloadScript
 ```cpp

@@ -1,21 +1,4 @@
----
-layout: default
-title: Interactive Python Prompt
-parent: In Situ Python Analysis
-nav_order: 5
----
 # Interactive Python Prompt
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
-
 
 ## Requirements
 
@@ -64,7 +47,6 @@ These statements run in inline script's namespace, and will update and make chan
 
 > :information_source: To make interactive prompt more smoothly, set lower [YT_VERBOSE]({% link libytAPI/Initialize.md %}#yt_param_libyt).
 
-
 ##### How does the prompt execute Python statements and libyt defined commands?
 {: .no_toc }
 1. MPI root process is the user interface, which takes user inputs.
@@ -78,12 +60,12 @@ These statements run in inline script's namespace, and will update and make chan
 Use [`%libyt exit`]({% link InSituPythonAnalysis/libytCommand.md %}#exit) to exit the prompt.
 Then it will return back to the simulation process.
 
-
 ## Known Limitations
 - Cannot use arrow keys or `Crtl+D` in interactive mode.
 - See [Limitations in MPI Related Python Tasks]({% link InSituPythonAnalysis/Limitations.md %}#limitations-in-mpi-related-python-tasks).
 
 ## FAQs
+
 ### Why Can't I Find the Prompt `>>>` After I have Activated Interactive Mode?
 `>>> `  is probably immersed inside the output. 
 We can hit enter again, which is to provide an empty statement, and it will come out. 

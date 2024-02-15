@@ -1,21 +1,4 @@
----
-layout: default
-title: yt_free -- Free resources
-parent: libyt API
-nav_order: 13
----
-# Free Resources Allocated by libyt
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
-
+# `yt_free` -- Free libyt Resource
 
 ## yt_free
 ```cpp

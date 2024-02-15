@@ -1,30 +1,15 @@
----
-layout: default
-title: yt_get_GridsPtr -- Get local grids information array
-parent: libyt API
-nav_order: 6
----
-# Set Local Grids Information
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+# `yt_get_GridsPtr` -- Set Local Grids Information
 
-## yt\_get\_GridsPtr
+## yt_get_GridsPtr
 ```cpp
 int yt_get_GridsPtr( yt_grid **grids_local );
 ```
 - Usage: Get the `yt_grid` pointer where `libyt` access grids information from. We should then fill in those information.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
-## yt\_grid
+## yt_grid
 One `yt_grid` contains the hierarchy of the grid, particle counts, and field data in this grid.
+
 ### Hierarchy
 - `double left_edge[3], right_edge[3]` (Default=`DBL_UNDEFINED`)
   - Usage: Grid left and right edge in code units.
