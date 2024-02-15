@@ -1,9 +1,9 @@
 # `yt_getGridInfo_*` -- Look Up Data
 
-> :information_source: These APIs simply look up hierarchy array constructed by `libyt` or look up data pointer that is 
+> {octicon}`info;1em;sd-text-info;` These APIs simply look up hierarchy array constructed by `libyt` or look up data pointer that is 
 > passed in by user and wrapped by `libyt`.
 
-> :warning: These APIs are only available after [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit) is called.
+> {octicon}`alert;1em;sd-text-danger;` These APIs are only available after [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit) is called.
 
 ## yt_getGridInfo_Dimensions
 ```cpp
@@ -53,7 +53,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char *ptype, long *par_co
 ```
 - Usage: Get number of particle `ptype` located on grid `gid`.
 - Return: `YT_SUCCESS` or `YT_FAIL`
-> :information_source: Particle type name `ptype` should be same as what you passed in [`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}#yt_get_particlesptr).
+> {octicon}`info;1em;sd-text-info;` Particle type name `ptype` should be same as what you passed in [`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}#yt_get_particlesptr).
 
 ## yt_getGridInfo_FieldData
 ```cpp
@@ -66,11 +66,11 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
     - `data_dimensions[3]`: Dimension of the `data_ptr` array, in the point of view of itself.
     - `data_dtype`: Data type of the array.
 
-> :information_source: Field name `field_name` should be same as what you passed in [`yt_get_FieldsPtr`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_get_fieldsptr).
+> {octicon}`info;1em;sd-text-info;` Field name `field_name` should be same as what you passed in [`yt_get_FieldsPtr`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_get_fieldsptr).
 
-> :information_source: Do not mix grid dimensions get through [`yt_getGridInfo_Dimensions`](#yt_getgridinfo_dimensions) with data dimensions get through [`yt_getGridInfo_FieldData`](#yt_getgridinfo_fielddata). Grid dimensions are numbers of cells in [x][y][z] <--> [0][1][2], excluding ghost cells. Whereas data dimensions are just data length in data's point of view, which may consist of ghost cells.
+> {octicon}`info;1em;sd-text-info;` Do not mix grid dimensions get through [`yt_getGridInfo_Dimensions`](#yt_getgridinfo_dimensions) with data dimensions get through [`yt_getGridInfo_FieldData`](#yt_getgridinfo_fielddata). Grid dimensions are numbers of cells in [x][y][z] <--> [0][1][2], excluding ghost cells. Whereas data dimensions are just data length in data's point of view, which may consist of ghost cells.
 
-> :warning: You should not modify `data_ptr`, because they are actual simulation data passed in by user when setting grid information [`yt_get_GridsPtr`]({% link libytAPI/SetLocalGridsInformation.md %}#yt_get_gridsptr).
+> {octicon}`alert;1em;sd-text-danger;` You should not modify `data_ptr`, because they are actual simulation data passed in by user when setting grid information [`yt_get_GridsPtr`]({% link libytAPI/SetLocalGridsInformation.md %}#yt_get_gridsptr).
 
 ## yt_getGridInfo_ParticleData
 ```cpp
@@ -83,6 +83,6 @@ int yt_getGridInfo_ParticleData(const long gid, const char *ptype, const char *a
   - `data_dimensions[3]`: Dimension of the `data_ptr` array, in the point of view of itself.  If `data_ptr` is a 1-dim array, the last two elements will be 0.
   - `data_dtype`: Data type of the array.
 
-> :information_source: Particle type `ptype` and attribute `attr` should be the same as what you passed in [`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}#yt_get_particlesptr).
+> {octicon}`info;1em;sd-text-info;` Particle type `ptype` and attribute `attr` should be the same as what you passed in [`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}#yt_get_particlesptr).
 
-> :warning: You should not modify `data_ptr`, because they are actual simulation data passed in by user when setting grid information [`yt_get_GridsPtr`]({% link libytAPI/SetLocalGridsInformation.md %}#yt_get_gridsptr).
+> {octicon}`alert;1em;sd-text-danger;` You should not modify `data_ptr`, because they are actual simulation data passed in by user when setting grid information [`yt_get_GridsPtr`]({% link libytAPI/SetLocalGridsInformation.md %}#yt_get_gridsptr).

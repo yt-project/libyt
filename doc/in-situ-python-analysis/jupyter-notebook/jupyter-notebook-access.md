@@ -20,7 +20,7 @@ We need another process to start Jupyter Notebook/JupyterLab and connect to liby
 
 ### Starting Jupyter Notebook/JupyterLab
 
-> :information_source: The process of starting Jupyter Notebook/JupyterLab and running simulation are separate and independent.
+> {octicon}`info;1em;sd-text-info;` The process of starting Jupyter Notebook/JupyterLab and running simulation are separate and independent.
 
 1. Get [`jupyter_libyt`]({% link HowToInstall.md %}#jupyter_libyt) and [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html).
 2. After installing `libyt`, add `<libyt-install-dir>/share/jupyter` to `JUPYTER_PATH`.
@@ -73,19 +73,19 @@ It can also import other Python modules
 3. Every other MPI process executes the same piece of input synchronously.
 4. Get outputs from each process and print feedbacks on the screen.
 
-> :warning: Changes is kept and maintain in user's inline script's namespace in situ analysis in the following round.
+> {octicon}`alert;1em;sd-text-danger;` Changes is kept and maintain in user's inline script's namespace in situ analysis in the following round.
 
 #### Auto-Completion
 
 Use `TAB` key to do auto-completion. 
 
-> :information_source: [`jedi`](https://jedi.readthedocs.io/en/latest/) must be installed to use this feature. Generally, if you have `IPython` installed, you probably already have `jedi`.
+> {octicon}`info;1em;sd-text-info;` [`jedi`](https://jedi.readthedocs.io/en/latest/) must be installed to use this feature. Generally, if you have `IPython` installed, you probably already have `jedi`.
 
 #### User Interface
 
 This is traditional Jupyter Notebook UI.
 
-> :lizard: If the notebook is connected to libyt Jupyter kernel, restarting only exits the kernel, and libyt API [`yt_run_JupyterKernel`]({% link libytAPI/ActivateJupyterKernel.md %}#yt_run_jupyterkernel) returns. It won't restart another kernel.
+> {octicon}`calendar;1em;sd-text-secondary;` If the notebook is connected to libyt Jupyter kernel, restarting only exits the kernel, and libyt API [`yt_run_JupyterKernel`]({% link libytAPI/ActivateJupyterKernel.md %}#yt_run_jupyterkernel) returns. It won't restart another kernel.
 
 ### How to Exit
 
@@ -99,7 +99,7 @@ Go to "Running Terminals and Kernels" -> "Shutdown Kernel".
 After exiting the kernel and returning to simulation process, we don't need to close the entire notebook to reconnect to the new libyt Jupyter kernel launched by the following step.
 We can press "Restart" button (:arrows_counterclockwise:) to reconnect to libyt Jupyter kernel.
 
-> :lizard: Make sure you already disconnect libyt Jupyter kernel before reconnecting. Otherwise, libyt Jupyter kernel will simply shutdown the kernel. There will be a pop-up window asking "if you want to restart" if you are already connected to a libyt kernel. 
+> {octicon}`calendar;1em;sd-text-secondary;` Make sure you already disconnect libyt Jupyter kernel before reconnecting. Otherwise, libyt Jupyter kernel will simply shutdown the kernel. There will be a pop-up window asking "if you want to restart" if you are already connected to a libyt kernel. 
 
 ## Known Limitations
 - The functionality is limited to taking Python inputs and printing outputs from all the MPI processes only. `libyt` hasn't done implementing Jupyter's full feature, like data streaming, supporting `ipwidgets` yet.

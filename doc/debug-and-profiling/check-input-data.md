@@ -17,7 +17,7 @@ if( yt_initialize( argc, argv, &param_libyt ) != YT_SUCCESS ){
 
 ## Data Checked by libyt
 
-> :information_source: The test is specific for adaptive mesh refinement data structure.
+> {octicon}`info;1em;sd-text-info;` The test is specific for adaptive mesh refinement data structure.
 
 If they all pass, then `libyt` is guarantee to work:
 - Check if number of grids ([`num_grids`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt)) matches the aggregated sum of ([`num_grids_local`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt)).

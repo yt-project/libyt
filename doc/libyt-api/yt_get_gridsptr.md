@@ -47,9 +47,9 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
     - `yt_dtype data_dtype`: Data type of `data_ptr`. We only need to set `data_dtype` when this grid's data type is different from the one set in fields'.
       - Valid Value: [`yt_dtype`]({% link libytAPI/DataType.md %}#yt_dtype)
 
-> :information_source: We should always fill in `data_dimensions`, if we want to wrap a data in memory that is not cell-centered.
+> {octicon}`info;1em;sd-text-info;` We should always fill in `data_dimensions`, if we want to wrap a data in memory that is not cell-centered.
 
-> :lizard: I know this is a little bit inefficient, since we are creating a structure only for wrapping data. We will fix this.
+> {octicon}`calendar;1em;sd-text-secondary;` I know this is a little bit inefficient, since we are creating a structure only for wrapping data. We will fix this.
 
 ## Example
 

@@ -17,7 +17,7 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt)
     - `YT_VERBOSE_DEBUG`: Output all log.
 - `const char* script` (Default=`yt_inline_script`)
   - Usage: Your Python script name. Do NOT contain `.py`. Make it a unique name that is different from python module name.
-  > :pencil2: Please make sure the lifetime of `script` covers the whole in situ analysis process.
+  > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `script` covers the whole in situ analysis process.
 - `long counter` (Default=`0`)
   - Usage: Number of rounds doing inline-analysis, may be useful in restart. We also append this number at the end of the figure name.
 - `bool check_data` (Default=`true`)

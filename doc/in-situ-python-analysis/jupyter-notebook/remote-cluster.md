@@ -39,7 +39,7 @@ Finally, we can open the web browser on our local laptop and connect to libyt Ju
 
 Please go through [Login Node](#login-node) before going through [Local Laptop](#local-laptop) Section.
 
-> :information_source: We don't need a running simulation before going through these steps. These steps can also check if SSH tunneling is working and can launch other kernels (like ipykernel) on login node, not just connecting to libyt kernel. 
+> {octicon}`info;1em;sd-text-info;` We don't need a running simulation before going through these steps. These steps can also check if SSH tunneling is working and can launch other kernels (like ipykernel) on login node, not just connecting to libyt kernel. 
 
 ### Login Node
 

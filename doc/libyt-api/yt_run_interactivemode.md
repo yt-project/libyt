@@ -15,7 +15,7 @@ int yt_run_InteractiveMode(const char* flag_file_name);
   - `YT_SUCCESS`
   - `YT_FAIL`: When `libyt` is not compiled with `-DINTERACTIVE_MODE`, it returns `YT_FAIL`.
 
-> :information_source: Must compile `libyt` with [`-DINTERACTIVE_MODE`]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff).
+> {octicon}`info;1em;sd-text-info;` Must compile `libyt` with [`-DINTERACTIVE_MODE`]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff).
 
 ## Example
 ```cpp

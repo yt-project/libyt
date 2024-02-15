@@ -91,6 +91,6 @@ It can break down into five stages:
 </div>
 
 
-[^1]: :lizard: Currently, `libyt` only supports loading simulation data with adaptive mesh refinement grid structure (
+[^1]: {octicon}`calendar;1em;sd-text-secondary;` Currently, `libyt` only supports loading simulation data with adaptive mesh refinement grid structure (
 AMR grid) to Python. We are trying to make `libyt` works with more data structure.
 
