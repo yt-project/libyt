@@ -11,7 +11,7 @@ Compile `libyt` with `-DSUPPORT_TIMER` option. (See [How to Install]({% link How
    ```
 2. Add `]}` at the end of `TimeProfile.json`.
    > {octicon}`info;1em;sd-text-info;` This is optional, and we only need to add `]}` if [Perfetto](https://ui.perfetto.dev/) doesn't recognize the file.
-3. Open Google Chrome and enter `chrome://tracing`, or go [Perfetto](https://ui.perfetto.dev/).
+3. Open Google Chrome and enter `chrome://tracing`, or go to [Perfetto](https://ui.perfetto.dev/).
 4. Load the time profile `TimeProfile.json`.
    
    ![](../_static/img/TracingTimeProfile.png)
