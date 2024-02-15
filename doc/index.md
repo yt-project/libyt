@@ -21,11 +21,11 @@ debug-and-profiling/index
 
 #### Contents
 - [**How to Install**](./how-to-install.md#how-to-install): how to get `libyt`?
-- [**How it Works**](./how-it-works#how-it-works): what is happening behind the scene?
-- [**Example**](./example#example): this demonstrates how to implement `libyt` in simulation step by step.
-- [**libyt API**](./libytAPI/index.md#libyt-api): this is for simulation developers that wish to implement `libyt`.
-- [**In Situ Python Analysis**](./InSituPythonAnalysis/index.md#in-situ-python-analysis): this is for users that are using `libyt` to do in situ analysis.
-- [**Debug and Time Profiling**](debug-and-profiling/index.md#debug-and-time-profiling): how to check inputs and run time profiling in `libyt`.
+- [**How it Works**](./how-it-works.md#how-it-works): what is happening behind the scene?
+- [**Example**](./example.md#example): this demonstrates how to implement `libyt` in simulation step by step.
+- [**libyt API**](./libyt-api/index.md#libyt-api): this is for simulation developers that wish to implement `libyt`.
+- [**In Situ Python Analysis**](./in-situ-python-analysis/index.md#in-situ-python-analysis): this is for users that are using `libyt` to do in situ analysis.
+- [**Debug and Time Profiling**](./debug-and-profiling/index.md#debug-and-time-profiling): how to check inputs and run time profiling in `libyt`.
 
 #### Label Meanings
 - {octicon}`pencil;1em;sd-text-warning;` means `libyt` only borrows the variable and does not make a copy.

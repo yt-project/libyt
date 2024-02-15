@@ -9,7 +9,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file);
     - `YT_SUCCESS`
     - `YT_FAIL`: When `libyt` is not compiled with `-DJUPYTER_KERNEL=ON`, it returns `YT_FAIL`.
 
-> {octicon}`info;1em;sd-text-info;` Must compile `libyt` with [`-DJUPYTER_KERNEL=ON`]({% link HowToInstall.md %}#-djupyter_kernelonoff-defaultoff).
+> {octicon}`info;1em;sd-text-info;` Must compile `libyt` with [`-DJUPYTER_KERNEL=ON`]({% link HowToInstall.md %}#djupyter-kernel).
 
 > {octicon}`info;1em;sd-text-info;` The API only launches a Jupyter kernel that exposes simulation data. For how to connect to the kernel, please go to [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access). 
 

@@ -1,7 +1,7 @@
 # Using yt
 
 ## Requirements
-- Python package [`yt`](https://yt-project.org/) and [`yt_libyt`]({% link HowToInstall.md %}#yt_libyt).
+- Python package [`yt`](https://yt-project.org/) and [`yt_libyt`]({% link HowToInstall.md %}#yt-libyt).
 
 ## Use yt for Parallel Computing
 `libyt` directly borrows parallel computation feature in `yt` using `mpi4py`. You can also refer to [**Parallel Computation With yt**](https://yt-project.org/doc/analyzing/parallel_computation.html#parallel-computation-with-yt).
