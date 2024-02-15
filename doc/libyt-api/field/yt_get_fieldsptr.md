@@ -3,8 +3,8 @@
 ```{toctree}
 :hidden:
 
-DerivedField
-FaceCenteredField
+derived-field
+face-centered-field
 ```
 
 ## yt_get_FieldsPtr

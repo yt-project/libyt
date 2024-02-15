@@ -3,6 +3,6 @@
 ```{toctree}
 :maxdepth: 1
 
-CheckingInputData
-TimeProfiling
+check-input-data
+time-profiling
 ```

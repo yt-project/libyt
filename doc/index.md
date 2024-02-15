@@ -11,21 +11,21 @@ It is an in situ analysis tool that allows researchers to analyze and visualize 
 ```{toctree}
 :hidden:
 
-HowToInstall
-HowItWorks
-Example
-libytAPI/index
-InSituPythonAnalysis/index
-DebugAndTimeProfiling/index
+how-to-install
+how-it-works
+example
+libyt-api/index
+in-situ-python-analysis/index
+debug-and-profiling/index
 ```
 
 ## Contents
-- [**How to Install**](./HowToInstall.md#how-to-install): how to get `libyt`?
-- [**How it Works**](./HowItWorks.md#how-it-works): what is happening behind the scene?
-- [**Example**](./Example.md#example): this demonstrates how to implement `libyt` in simulation step by step.
+- [**How to Install**](./how-to-install.md#how-to-install): how to get `libyt`?
+- [**How it Works**](./how-it-works#how-it-works): what is happening behind the scene?
+- [**Example**](./example#example): this demonstrates how to implement `libyt` in simulation step by step.
 - [**libyt API**](./libytAPI/index.md#libyt-api): this is for simulation developers that wish to implement `libyt`.
 - [**In Situ Python Analysis**](./InSituPythonAnalysis/index.md#in-situ-python-analysis): this is for users that are using `libyt` to do in situ analysis.
-- [**Debug and Time Profiling**](./DebugAndTimeProfiling/index.md#debug-and-time-profiling): how to check inputs and run time profiling in `libyt`.
+- [**Debug and Time Profiling**](debug-and-profiling/index.md#debug-and-time-profiling): how to check inputs and run time profiling in `libyt`.
 
 ## Label Meanings
 - ✏️ means `libyt` only borrows the variable and does not make a copy.

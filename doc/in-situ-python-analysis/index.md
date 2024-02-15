@@ -3,15 +3,15 @@
 ```{toctree}
 :hidden:
 
-InlinePythonScript
-UsingYT
-libytPythonModule
-libytCommand
-InteractivePythonPrompt
-ReloadingScript
-JupyterNotebookAccess/JupyterNotebook
-Limitations
-FAQs
+inline-python-script
+using-yt
+libyt-python-module
+libyt-defined-command
+interactive-python-prompt
+reloading-script
+jupyter-notebook/jupyter-notebook-access
+limitation
+faq
 ```
 
 ## Using Python for In Situ Analysis in libyt
