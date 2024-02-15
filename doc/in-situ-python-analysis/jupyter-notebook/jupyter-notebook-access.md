@@ -3,8 +3,8 @@
 ```{toctree}
 :hidden:
 
-JupyterLocalMachine
-JupyterRemote
+local-desktop
+remote-cluster
 ```
 
 ## Requirements

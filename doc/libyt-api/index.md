@@ -3,21 +3,21 @@
 ```{toctree}
 :hidden:
 
-Initialize
-SetYTParameter
-SetCodeSpecificParameter
-FieldInfo/SetFieldsInformation
-SetParticlesInformation
-SetLocalGridsInformation
-LookUpPassedInData
-CommitYourSettings
-PerformInlineAnalysis
-ActivateInteractiveMode
-ActivateReloadingScript
-ActivateJupyterKernel
-FreeResource
-Finalize
-DataType
+yt_initialize
+yt_set_parameters
+yt_set_userparameter
+field/yt_get_fieldsptr
+yt_get_particlesptr
+yt_get_gridsptr
+yt_getgridinfo
+yt_commit
+run-python-function
+yt_run_interactivemode
+yt_run_reloadscript
+yt_run_jupyterkernel
+yt_free
+yt_finalize
+data-type
 ```
 
 ## Procedure
