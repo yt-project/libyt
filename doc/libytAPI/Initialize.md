@@ -1,22 +1,6 @@
----
-layout: default
-title: yt_initialize -- Initialize libyt
-parent: libyt API
-nav_order: 1
----
-# Initialize
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+# `yt_initialize` -- Initialize
 
-## yt\_initialize
+## yt_initialize
 ```cpp
 int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt)
 ```
@@ -38,8 +22,6 @@ int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt)
   - Usage: Number of rounds doing inline-analysis, may be useful in restart. We also append this number at the end of the figure name.
 - `bool check_data` (Default=`true`)
   - Usage: Check the input data (see [Checking Input Data]({% link DebugAndTimeProfiling/CheckingInputData.md%}#checking-input-data)), if it is true. Set this to `false` after you have successfully implemented libyt.
-
-
 
 ## Example
 ```cpp

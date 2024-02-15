@@ -1,20 +1,4 @@
----
-layout: default
-title: yt_set_Parameters -- Set yt parameters
-parent: libyt API
-nav_order: 2
----
-# Set `yt` Parameters
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+# `yt_set_Parameters` -- Set yt Parameters
 
 ## yt_set_Parameters
 ```cpp
@@ -84,7 +68,6 @@ int yt_set_Parameters( yt_param_yt *param_yt )
     - `const char* par_type`: Name of the particle type.
     > :pencil2: Please make sure the lifetime of `par_type` covers the whole in situ process in `libyt`. `libyt` only borrows this name and does not make a copy.
     - `int num_attr`: Number of attributes this particle type has. 
-
 
 ## Example
 ```cpp

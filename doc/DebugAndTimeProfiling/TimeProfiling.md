@@ -1,20 +1,4 @@
----
-layout: default
-title: Time Profiling
-parent: Debug and Time Profiling
-nav_order: 2
----
 # Time Profiling
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
 
 ## How to Configure?
 

@@ -1,23 +1,6 @@
----
-layout: default
-title: yt_get_ParticlesPtr -- Get particles information array
-parent: libyt API
-nav_order: 5
----
-# Set Particles Information
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+# `yt_get_ParticlesPtr` -- Set Particle Information
 
-
-## yt\_get\_ParticlesPtr
+## yt_get_ParticlesPtr
 ```cpp
 int yt_get_ParticlesPtr( yt_particle **particle_list );
 ```

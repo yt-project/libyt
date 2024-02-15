@@ -1,4 +1,4 @@
-# Set Fields Information
+# `yt_get_FieldsPtr` -- Set Field Information
 
 ```{toctree}
 :hidden:
@@ -7,7 +7,7 @@ DerivedField
 FaceCenteredField
 ```
 
-## yt\_get\_FieldsPtr
+## yt_get_FieldsPtr
 ```cpp
 int yt_get_FieldsPtr( yt_field **field_list )
 ```

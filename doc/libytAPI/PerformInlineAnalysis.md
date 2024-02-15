@@ -1,29 +1,13 @@
----
-layout: default
-title: yt_run_Function/Arguments -- Call Python functions
-parent: libyt API
-nav_order: 9
----
-# Calling Python Functions
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+# `yt_run_Function`, `yt_run_FunctionArguments` -- Call Python Function
 
-## yt\_run\_Function
+## yt_run_Function
 ```cpp
 int yt_run_Function( const char *function_name );
 ```
 - Usage: Run Python function `function_name`. This is equivalent to run `function_name()` in Python.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
-## yt\_run\_FunctionArguments
+## yt_run_FunctionArguments
 ```cpp
 int yt_run_FunctionArguments( const char *function_name, int argc, ... );
 ```
@@ -32,7 +16,6 @@ int yt_run_FunctionArguments( const char *function_name, int argc, ... );
 > :warning: When using triple quotes in input arguments, use either `"""` or `'''`, but not both of them at the same time. If you really need triple quotes, stick to either one of them. For example, `yt_run_FunctionArguments("func", 2, """b""", """c""")` is good, but `yt_run_FunctionArguments("func", 2, """b""", '''c''')` is bad and leads to error.
 
 > :information_source: These two API run functions inside script's namespace, which means we can pass in objects defined in script directly.
-
 
 ## Example
 If our inline script is this:

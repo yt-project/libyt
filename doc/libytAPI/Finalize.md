@@ -1,20 +1,4 @@
----
-layout: default
-title: yt_finalize -- Finalize libyt
-parent: libyt API
-nav_order: 14
----
-# Finalize
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+# `yt_finalize` -- Finalize
 
 ## yt_finalize
 ```cpp

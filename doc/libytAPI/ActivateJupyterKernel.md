@@ -1,20 +1,4 @@
----
-layout: default
-title: yt_run_JupyterKernel -- Activate Jupyter Kernel
-parent: libyt API
-nav_order: 12
----
-# Activate Jupyter Kernel
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+# `yt_run_JupyterKernel` -- Activate Jupyter Kernel
 
 ## yt_run_JupyterKernel
 ```cpp

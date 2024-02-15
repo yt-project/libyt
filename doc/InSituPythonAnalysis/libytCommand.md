@@ -1,24 +1,9 @@
----
-layout: default
-title: libyt Defined Commands
-parent: In Situ Python Analysis
-nav_order: 4
----
 # libyt Defined Commands
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
 
 > :information_source: There should be no spaces between `%` and `libyt`.
 
 ## General Commands
+
 ### help
 ```
 >>> %libyt help
@@ -58,7 +43,6 @@ Print status board.
 ## Function Related Commands
 
 ### status
-
 ```
 >>> %libyt status <function name>
 ```

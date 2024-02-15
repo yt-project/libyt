@@ -1,21 +1,4 @@
----
-layout: default
-title: Reloading Script
-parent: In Situ Python Analysis
-nav_order: 6
----
 # Reloading Script
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
-
 
 ## Requirements
 
