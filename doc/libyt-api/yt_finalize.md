@@ -1,6 +1,6 @@
 # `yt_finalize` -- Finalize
 
-## yt_finalize
+## `yt_finalize`
 ```cpp
 int yt_finalize();
 ```

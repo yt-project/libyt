@@ -1,12 +1,6 @@
----
-layout: default
-title: 
-parent: libyt API
-nav_order: 10
----
 # `yt_run_InteractiveMode` -- Activate Interactive Python Prompt
 
-## yt_run_InteractiveMode
+## `yt_run_InteractiveMode`
 ```cpp
 int yt_run_InteractiveMode(const char* flag_file_name);
 ```

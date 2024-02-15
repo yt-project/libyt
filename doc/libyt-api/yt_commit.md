@@ -1,6 +1,6 @@
 # `yt_commit` -- Commit Your Settings
 
-## yt_commit
+## `yt_commit`
 ```cpp
 int yt_commit();
 ```

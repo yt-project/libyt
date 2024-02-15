@@ -1,6 +1,6 @@
 # `yt_set_Parameters` -- Set yt Parameters
 
-## yt_set_Parameters
+## `yt_set_Parameters`
 ```cpp
 int yt_set_Parameters( yt_param_yt *param_yt )
 ```
@@ -9,7 +9,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
   - We will reset all cosmological parameters (e.g. `current_redshift`, `omega_lambda`, `omega_matter`, `hubble_constant`) to `0` if `cosmological_simulation` is `0`.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
-### yt_param_yt
+### `yt_param_yt`
 - `const char* frontend` (Default=`NULL`)
   - Usage: Field information of the yt `frontend` to borrow from. This should be `yt` supported frontend.
   > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `frontend` covers [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit) if you set [`check_data`]({% link libytAPI/Initialize.md %}#yt_param_libyt) to `true` when initializing `libyt`.

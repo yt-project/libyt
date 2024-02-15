@@ -1,6 +1,6 @@
 # `yt_run_ReloadScript` -- Reload Script
 
-## yt_run_ReloadScript
+## `yt_run_ReloadScript`
 ```cpp
 int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name, const char* script_name);
 ```

@@ -1,13 +1,13 @@
 # `yt_initialize` -- Initialize
 
-## yt_initialize
+## `yt_initialize`
 ```cpp
 int yt_initialize(int argc, char *argv[], const yt_param_libyt *param_libyt)
 ```
 - Usage: Initialize `libyt` and import your Python script. This API should only be called once.
 - Return: `YT_SUCCESS` or `YT_FAIL`.
 
-### yt_param_libyt
+### `yt_param_libyt`
 - `yt_verbose verbose` (Default=`YT_VERBOSE_WARNING`)
   - Usage: Set the log message level.
   - Valid Value for `yt_verbose`:

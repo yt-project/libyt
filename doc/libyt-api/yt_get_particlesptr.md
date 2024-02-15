@@ -1,6 +1,6 @@
 # `yt_get_ParticlesPtr` -- Set Particle Information
 
-## yt_get_ParticlesPtr
+## `yt_get_ParticlesPtr`
 ```cpp
 int yt_get_ParticlesPtr( yt_particle **particle_list );
 ```
@@ -9,7 +9,7 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
 
 > {octicon}`alert;1em;sd-text-danger;` Every MPI rank must call this API and fill in the particle information in the same order. We do not broadcast and sync information here.
 
-### yt_particle
+### `yt_particle`
 - `const char* par_type` (set by `libyt`)
   - Usage: Name of the particle type. `libyt` only copies the pointer from [`par_type_list`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt)'s data member `par_type` to this variable and does not make a hard copy. You don't need to assign it again. Refer to [Naming and Field Information]({% link InSituPythonAnalysis/UsingYT.md %}#naming-and-field-information) for how particle/attribute names and yt fields are linked and reused.
     > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `par_type` should cover in situ analysis process. `libyt` only borrows this pointer and does not make a hard copy.
@@ -58,7 +58,7 @@ void GetAttr(const int list_len, const long *list_gid, const char *par_type, con
   - `const char *attr_name`: target attribute to prepare.
   - `yt_array *data_array`: write generated particle data to the pointer in this array correspondingly. Fill in particle attribute inside `yt_array` array using the same order as in `list_gid`.
 
-### yt_array
+### `yt_array`
 - Usage: a struct used in derived function and get particle attribute function.
 - Data Member:
   - `long gid`: grid id.
