@@ -69,7 +69,7 @@ We need another process to start Jupyter Notebook/JupyterLab and connect to liby
 
 ### Basics
 
-![](../../assets/imgs/JupyterNB-Basics.png)
+![](../../_static/img/JupyterNB-Basics.png)
 
 #### Python Prompt and libyt Defined Commands
 

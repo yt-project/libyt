@@ -30,4 +30,4 @@ Compile `libyt` with `-DSUPPORT_TIMER` option. (See [How to Install]({% link How
 3. Open Google Chrome and enter `chrome://tracing`, or go [Perfetto](https://ui.perfetto.dev/).
 4. Load the time profile `TimeProfile.json`.
    
-   ![](../assets/imgs/TracingTimeProfile.png)
+   ![](../_static/img/TracingTimeProfile.png)
