@@ -19,7 +19,7 @@ in-situ-python-analysis/index
 debug-and-profiling/index
 ```
 
-## Contents
+#### Contents
 - [**How to Install**](./how-to-install.md#how-to-install): how to get `libyt`?
 - [**How it Works**](./how-it-works#how-it-works): what is happening behind the scene?
 - [**Example**](./example#example): this demonstrates how to implement `libyt` in simulation step by step.
@@ -27,7 +27,7 @@ debug-and-profiling/index
 - [**In Situ Python Analysis**](./InSituPythonAnalysis/index.md#in-situ-python-analysis): this is for users that are using `libyt` to do in situ analysis.
 - [**Debug and Time Profiling**](debug-and-profiling/index.md#debug-and-time-profiling): how to check inputs and run time profiling in `libyt`.
 
-## Label Meanings
+#### Label Meanings
 - {octicon}`pencil;1em;sd-text-warning;` means `libyt` only borrows the variable and does not make a copy.
 - {octicon}`info;1em;sd-text-info;` means more information on this topic.
 - {octicon}`alert;1em;sd-text-danger;` means things we should be careful.

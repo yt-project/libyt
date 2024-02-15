@@ -17,12 +17,14 @@ Go through [basic requirements](#basic-requirements) and [options](#options) and
 ### Options 
 The options are mutually independent to each other. 
 
-##### -DSERIAL_MODE
+##### `-DSERIAL_MODE`
+
+- Default: `-DSERIAL_MODE=OFF`
 
 |                     | Notes                      | Required Paths | Required Python Packages                     |
 |---------------------|----------------------------|----------------|----------------------------------------------|
-| Parallel Mode (OFF) | Compile `libyt` using MPI. | - `MPI_PATH`   | - [`mpi4py`](https://mpi4py.readthedocs.io/) |
-| Serial Mode (ON)    | Compile `libyt` using GCC. |                |                                              |
+| **Parallel Mode** (OFF) | Compile `libyt` using MPI. | - `MPI_PATH`   | - [`mpi4py`](https://mpi4py.readthedocs.io/) |
+| **Serial Mode** (ON)    | Compile `libyt` using GCC. |                |                                              |
 
 :::
 ###### Required Paths
@@ -36,7 +38,9 @@ The options are mutually independent to each other.
 - `mpi4py`: This is Python bindings for the Message Passing Interface (MPI) standard.
   > {octicon}`alert;1em;sd-text-danger;` Please make sure `mpi4py` used in Python and MPI used in simulation are matched. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
 
-##### -DINTERACTIVE_MODE
+##### `-DINTERACTIVE_MODE`
+
+- Default: `-DINTERACTIVE_MODE=OFF`
 
 |                       | Notes                                                                                                                                                                                                                                  | Required Paths   |
 |-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
@@ -45,7 +49,9 @@ The options are mutually independent to each other.
 
 - `READLINE_PATH`: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) installation prefix, the path should contain folders like `include`, `lib` etc.
 
-##### -DJUPYTER_KERNEL
+##### `-DJUPYTER_KERNEL`
+
+- Default: `-DJUPYTER_KERNEL=OFF`
 
 |  | Notes                                                                                                                                                                                | Required Paths | Required Python Packages                                                                                                                                                                    |
 |---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -71,7 +77,9 @@ The options are mutually independent to each other.
 - `jedi`: Support auto-completion in Jupyter Notebook and JupyterLab. This is optional. (If you have IPython installed, you might already have this.)
 
 
-##### -DSUPPORT_TIMER
+##### `-DSUPPORT_TIMER`
+
+- Default: `-DSUPPORT_TIMER=OFF`
 
 |                     | Notes                                                                                                             | Required Paths |
 |---------------------|-------------------------------------------------------------------------------------------------------------------|----------------|
