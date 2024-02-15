@@ -1,6 +1,6 @@
 # Checking Input Data
 
-## How to Configure?
+## How to Configure
 Set `check_data` to `true` when initializing `libyt` (see [Initialize]({% link libytAPI/Initialize.md %}#yt_initialize)):
 ```c++
 yt_param_libyt param_libyt;

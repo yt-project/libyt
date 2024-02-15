@@ -67,7 +67,7 @@ Then it will return back to the simulation process.
 
 ## FAQs
 
-### Why Can't I Find the Prompt `>>>` After I have Activated Interactive Mode?
+### Why Can't I Find the Prompt `>>>`?
 `>>> `  is probably immersed inside the output. 
 We can hit enter again, which is to provide an empty statement, and it will come out. 
 

@@ -1,6 +1,6 @@
 # Time Profiling
 
-## How to Configure?
+## How to Configure
 
 Compile `libyt` with `-DSUPPORT_TIMER` option. (See [How to Install]({% link HowToInstall.md %}#options))
 

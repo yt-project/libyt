@@ -8,7 +8,7 @@
 ## Reloading Script
 Reloading script feature is a file-based [interactive Python prompt]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt), such that user creates specific file name to send instructions to libyt and gets output from specific file.
 
-### The Workflow -- Reload and Exit
+### How to Reload and Exit
 The API:
 ```c++
 int yt_run_ReloadScript(const char* flag_file, const char* reload, const char* script);
