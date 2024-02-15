@@ -3,7 +3,7 @@
 ## Requirements
 - Python package [`yt`](https://yt-project.org/) and [`yt_libyt`]({% link HowToInstall.md %}#yt_libyt).
 
-## Use yt for In Situ Python Analysis under Parallel Computation
+## Use yt for Parallel Computing
 `libyt` directly borrows parallel computation feature in `yt` using `mpi4py`. You can also refer to [**Parallel Computation With yt**](https://yt-project.org/doc/analyzing/parallel_computation.html#parallel-computation-with-yt).
 
 We should always include the first three lines, then wrap the other statements inside Python functions, 

@@ -17,7 +17,7 @@ Go through [basic requirements](#basic-requirements) and [options](#options) and
 ### Options 
 The options are mutually independent to each other. 
 
-##### -DSERIAL_MODE=ON/OFF (Default=OFF)
+##### -DSERIAL_MODE
 
 |                     | Notes                      | Required Paths | Required Python Packages                     |
 |---------------------|----------------------------|----------------|----------------------------------------------|
@@ -36,7 +36,7 @@ The options are mutually independent to each other.
 - `mpi4py`: This is Python bindings for the Message Passing Interface (MPI) standard.
   > :warning: Please make sure `mpi4py` used in Python and MPI used in simulation are matched. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
 
-##### -DINTERACTIVE_MODE=ON/OFF (Default=OFF)
+##### -DINTERACTIVE_MODE
 
 |                       | Notes                                                                                                                                                                                                                                  | Required Paths   |
 |-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
@@ -45,7 +45,7 @@ The options are mutually independent to each other.
 
 - `READLINE_PATH`: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) installation prefix, the path should contain folders like `include`, `lib` etc.
 
-##### -DJUPYTER_KERNEL=ON/OFF (Default=OFF)
+##### -DJUPYTER_KERNEL
 
 |  | Notes                                                                                                                                                                                | Required Paths | Required Python Packages                                                                                                                                                                    |
 |---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -71,7 +71,7 @@ The options are mutually independent to each other.
 - `jedi`: Support auto-completion in Jupyter Notebook and JupyterLab. This is optional. (If you have IPython installed, you might already have this.)
 
 
-##### -DSUPPORT_TIMER=ON/OFF (Default=OFF)
+##### -DSUPPORT_TIMER
 
 |                     | Notes                                                                                                             | Required Paths |
 |---------------------|-------------------------------------------------------------------------------------------------------------------|----------------|

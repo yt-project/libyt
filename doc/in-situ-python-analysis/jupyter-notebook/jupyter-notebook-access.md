@@ -18,7 +18,7 @@ remote-cluster
 During simulation runtime, `libyt` will activate libyt Jupyter kernel. 
 We need another process to start Jupyter Notebook/JupyterLab and connect to libyt Jupyter kernel. 
 
-### Starting Jupyter Notebook / JupyterLab
+### Starting Jupyter Notebook/JupyterLab
 
 > :information_source: The process of starting Jupyter Notebook/JupyterLab and running simulation are separate and independent.
 
@@ -54,7 +54,7 @@ We need another process to start Jupyter Notebook/JupyterLab and connect to liby
 - [Connecting to kernel on local machine]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterLocalMachine.md %}#connecting-to-kernel-on-local-machine)
 - [Connecting to kernel on HPC cluster]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterRemote.md %}#connecting-to-kernel-on-hpc-cluster)
 
-## Using Jupyter Notebook / JupyterLab
+## Using Jupyter Notebook/JupyterLab
 
 ### Basics
 
