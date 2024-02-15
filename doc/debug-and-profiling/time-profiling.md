@@ -4,7 +4,7 @@
 
 Compile `libyt` with `-DSUPPORT_TIMER` option. (See [How to Install]({% link HowToInstall.md %}#options))
 
-## Visualizing the Profile -- Chrome Tracing
+## Chrome Tracing -- Visualizing the Profile
 1. Since each process dumps its profile `libytTimeProfile_MPI*.json` separately, we run the following to concatenate all of them:
    ```bash
    cat `ls libytTimeProfile_MPI*` >> TimeProfile.json

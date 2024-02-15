@@ -4,13 +4,13 @@
 
 ## General Commands
 
-### help
+### `help`
 ```
 >>> %libyt help
 ```
 Print help messages.
 
-### exit
+### `exit`
 ```
 >>> %libyt exit
 ```
@@ -18,7 +18,7 @@ Exit interactive mode, and continue the iterative process in simulation.
 
 > {octicon}`info;1em;sd-text-info;` `exit` only works in interactive Python prompt.
 
-### load
+### `load`
 ```
 >>> %libyt load <file name>
 ```
@@ -26,7 +26,7 @@ Load and run file in inline script's namespace. This runs statements in the file
 
 All new functions detected in this new loaded script will be set to idle, and will not run in the following in situ analysis, unless you switch it on using [`%libyt run`](#run).
 
-### export
+### `export`
 ```
 >>> %libyt export <file name>
 ```
@@ -34,7 +34,7 @@ Export successfully run libyt defined commands and Python statement into file in
 
 > {octicon}`info;1em;sd-text-info;` Will overwrite file if `<file name>` already exist.
 
-### status
+### `status`
 ```
 >>> %libyt status
 ```
@@ -42,7 +42,7 @@ Print status board.
 
 ## Function Related Commands
 
-### status
+### `status`
 ```
 >>> %libyt status <function name>
 ```
@@ -70,7 +70,7 @@ func ... failed
     ...
 ```
 
-### idle
+### `idle`
 ```
 >>> %libyt idle <function name>
 ```
@@ -85,7 +85,7 @@ Idle `func` in next round.
 Function func set to idle ... done
 ```
 
-### run
+### `run`
 ```
 >>> %libyt run <function name> [args ...]
 ```

@@ -7,7 +7,7 @@ derived-field
 face-centered-field
 ```
 
-## yt_get_FieldsPtr
+## `yt_get_FieldsPtr`
 ```cpp
 int yt_get_FieldsPtr( yt_field **field_list )
 ```
@@ -16,7 +16,7 @@ int yt_get_FieldsPtr( yt_field **field_list )
 
 > {octicon}`alert;1em;sd-text-danger;` Every MPI rank must call this API and fill in the field information in the same order. `libyt` does not broadcast and sync information here.
 
-### yt_field
+### `yt_field`
 - `const char* field_name` (Default=`NULL`)
   - Usage: Field name. Refer to [Naming and Field Information]({% link InSituPythonAnalysis/UsingYT.md %}#naming-and-field-information) for how field names and yt fields are linked and reused.
   > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `field_name` covers the whole in situ analysis process. `libyt` only borrows this name and does not make a copy.

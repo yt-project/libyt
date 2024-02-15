@@ -1,6 +1,6 @@
 # `yt_run_JupyterKernel` -- Activate Jupyter Kernel
 
-## yt_run_JupyterKernel
+## `yt_run_JupyterKernel`
 ```cpp
 int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file);
 ```

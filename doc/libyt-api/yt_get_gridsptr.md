@@ -1,13 +1,13 @@
 # `yt_get_GridsPtr` -- Set Local Grids Information
 
-## yt_get_GridsPtr
+## `yt_get_GridsPtr`
 ```cpp
 int yt_get_GridsPtr( yt_grid **grids_local );
 ```
 - Usage: Get the `yt_grid` pointer where `libyt` access grids information from. We should then fill in those information.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
-## yt_grid
+## `yt_grid`
 One `yt_grid` contains the hierarchy of the grid, particle counts, and field data in this grid.
 
 ### Hierarchy
@@ -39,7 +39,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
 - `yt_data** particle_data` (initialized by `libyt`)
   - Usage: Store all the particle data under this grid. Namely, `particle_data[0][1]` contains particle type (`particle_list[0].par_type`) attribute (`particle_list[0].attr_list[1]`) data, where `particle_list` is [`yt_particle`]({% link libytAPI/SetParticlesInformation.md %}#yt_particle) array set through [`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}##yt_get_particlesptr).
 
-### yt_data
+### `yt_data`
   - Usage: a struct used for wrapping existing data pointers.
   - Data member:
     - `void* data_ptr`: Data pointer.

@@ -1,13 +1,13 @@
 # `yt_run_Function`, `yt_run_FunctionArguments` -- Call Python Function
 
-## yt_run_Function
+## `yt_run_Function`
 ```cpp
 int yt_run_Function( const char *function_name );
 ```
 - Usage: Run Python function `function_name`. This is equivalent to run `function_name()` in Python.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
-## yt_run_FunctionArguments
+## `yt_run_FunctionArguments`
 ```cpp
 int yt_run_FunctionArguments( const char *function_name, int argc, ... );
 ```

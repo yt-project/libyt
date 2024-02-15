@@ -1,6 +1,6 @@
 # Data Types
 
-## yt_dtype
+## `yt_dtype`
 - Usage: `libyt` defined macros for C data type. They are matched to corresponding NumPy data type and MPI data type.
 
 |   yt_dtype    |    C Data Type     | NumPy Data Type |     MPI Data Type      |

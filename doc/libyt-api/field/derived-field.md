@@ -18,7 +18,7 @@ Derived functions must have prototype:
 
 Derived function `derived_func` generates data and stores in `yt_array` array data member `data_ptr` without ghost cell. Make sure your function writes the data in x-address alters first orientation (which is [z][y][x]), if `contiguous_in_x` is set to `true`. Write the data in z-address alters first orientation (which is [x][y][z]), if `contiguous_in_x` is set to `false`.
 
-### yt_array
+### `yt_array`
 - Usage: a struct used in derived function and get particle attribute function.
 - Data Member:
   - `long gid`: grid id.

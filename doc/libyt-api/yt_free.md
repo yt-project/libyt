@@ -1,6 +1,6 @@
 # `yt_free` -- Free libyt Resource
 
-## yt_free
+## `yt_free`
 ```cpp
 int yt_free();
 ```

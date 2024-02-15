@@ -1,6 +1,6 @@
 # `yt_set_UserParameter*` -- Set Other Parameters
 
-## yt_set_UserParameter*
+## `yt_set_UserParameter*`
 ```cpp
 int yt_set_UserParameterInt       ( const char *key, const int n, const int       *input );
 int yt_set_UserParameterLong      ( const char *key, const int n, const long      *input );
