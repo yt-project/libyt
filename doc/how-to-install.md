@@ -88,7 +88,7 @@ The options are mutually independent to each other.
 ### CMake
 1. Toggle options, set paths and generate files to build the project. This can be done through either (a) or (b):
 
-   (a) Set it through editing `CMakeLists.txt` at root directory. For example, this uses option [`-DSERIAL_MODE=OFF`](#-dserial_modeonoff-defaultoff) and provides `MPI_PATH`:
+   (a) Set it through editing `CMakeLists.txt` at root directory. For example, this uses option [`-DSERIAL_MODE=OFF`](#dserial-mode) and provides `MPI_PATH`:
    ```cmake
    option(SERIAL_MODE "Compile library for serial process" ON)
    set(MPI_PATH "<path-to-mpi-prefix>" CACHE PATH "Path to MPI installation prefix (-DSERIAL_MODE=OFF)")

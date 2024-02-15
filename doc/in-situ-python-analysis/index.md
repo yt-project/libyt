@@ -24,11 +24,11 @@ faq
 
 - [**libyt Defined Commands**]({% link InSituPythonAnalysis/libytCommand.md %}#libyt-defined-commands): the commands allow users to load script, export history, set function to run or idle, etc.
 - [**Interactive Python Prompt**]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt): the prompt can process Python statements and give feedback instantly.
-  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled using [`-DINTERACTIVE_MODE=ON`]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff).
+  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled using [`-DINTERACTIVE_MODE=ON`]({% link HowToInstall.md %}#dinteractive-mode).
 - [**Reloading Script**]({% link InSituPythonAnalysis/ReloadingScript.md %}#reloading-script): this allows reloading Python script.
-  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled using [`-DINTERACTIVE_MODE=ON`]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff).
+  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled using [`-DINTERACTIVE_MODE=ON`]({% link HowToInstall.md %}#dinteractive-mode).
 - [**Jupyter Notebook Access**]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access): this allows accessing and analyzing simulation data through JupyterLab/Jupyter Notebook.
-  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled in [`-DJUPYTER_KERNEL=ON`]({% link HowToInstall.md %}#-djupyter_kernelonoff-defaultoff).
+  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled in [`-DJUPYTER_KERNEL=ON`]({% link HowToInstall.md %}#djupyter-kernel).
 
 ## Limitations
 

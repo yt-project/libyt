@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Compile `libyt` in [**interactive mode**]({% link HowToInstall.md %}#-dinteractive_modeonoff-defaultoff).
+- Compile `libyt` in [**interactive mode**]({% link HowToInstall.md %}#dinteractive-mode).
 - Call libyt API [`yt_run_InteractiveMode`]({% link libytAPI/ActivateInteractiveMode.md %}#activate-interactive-mode).
 
 > {octicon}`info;1em;sd-text-info;` Interactive mode only works on local machine or submit the job to HPC platforms through interactive queue like `qsub -I`.
