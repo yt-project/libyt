@@ -47,8 +47,9 @@ These statements run in inline script's namespace, and will update and make chan
 
 > :information_source: To make interactive prompt more smoothly, set lower [YT_VERBOSE]({% link libytAPI/Initialize.md %}#yt_param_libyt).
 
+:::
 ##### How does the prompt execute Python statements and libyt defined commands?
-{: .no_toc }
+:::
 1. MPI root process is the user interface, which takes user inputs.
 2. MPI root process broadcasts the inputs to other processes.
 3. Every other MPI process executes the same piece of input synchronously.

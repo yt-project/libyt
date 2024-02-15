@@ -29,7 +29,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'README.md']
 # -- Options for MyST --------------------------------------------------------
 
 myst_enable_extensions = [
-    "colon_fence"
+    "colon_fence",
+    "deflist"
 ]
 suppress_warnings = ["myst.header"]
 
