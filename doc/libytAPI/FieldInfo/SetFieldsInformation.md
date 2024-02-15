@@ -1,22 +1,11 @@
----
-layout: default
-title: yt_get_FieldsPtr -- Get fields information array
-parent: libyt API
-has_children: true
-nav_order: 4
-has_toc: false
----
 # Set Fields Information
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+
+```{toctree}
+:hidden:
+
+DerivedField
+FaceCenteredField
+```
 
 ## yt\_get\_FieldsPtr
 ```cpp

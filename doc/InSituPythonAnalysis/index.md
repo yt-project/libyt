@@ -1,13 +1,18 @@
----
-layout: default
-title: In Situ Python Analysis
-nav_order: 6
-has_children: true
-permalink: InSituPythonAnalysis
-has_toc: false
----
-
 # In Situ Python Analysis
+
+```{toctree}
+:hidden:
+
+InlinePythonScript
+UsingYT
+libytPythonModule
+libytCommand
+InteractivePythonPrompt
+ReloadingScript
+JupyterNotebookAccess/JupyterNotebook
+Limitations
+FAQs
+```
 
 ## Using Python for In Situ Analysis in libyt
 

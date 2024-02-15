@@ -1,20 +1,4 @@
----
-layout: default
-title: Using yt
-parent: In Situ Python Analysis
-nav_order: 2
----
 # Using yt for In Situ Python Analysis
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
 
 ## Requirements
 - Python package [`yt`](https://yt-project.org/) and [`yt_libyt`]({% link HowToInstall.md %}#yt_libyt).
@@ -125,5 +109,5 @@ Please do:
 > :lizard: When accessing simulation data, `libyt` requires every process to participate in this.
 > We are working on this in both `yt` and `libyt`.
 
-----
+
 [^1]: `annotate_quiver`, `annotate_cquiver`, `annotate_velocity`, `annotate_line_integral_convolution`, `annotate_magnetic_field`, and `annotate_particles`

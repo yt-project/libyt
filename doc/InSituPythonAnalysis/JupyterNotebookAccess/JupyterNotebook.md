@@ -1,22 +1,11 @@
----
-layout: default
-title: Jupyter Notebook Access
-parent: In Situ Python Analysis
-has_children: true
-nav_order: 7
-has_toc: false
----
 # Jupyter Notebook Access
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
+
+```{toctree}
+:hidden:
+
+JupyterLocalMachine
+JupyterRemote
+```
 
 ## Requirements
 

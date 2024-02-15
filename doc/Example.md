@@ -1,19 +1,4 @@
----
-layout: default
-title: Example
-nav_order: 4
----
 # Example
-{: .no_toc }
-<details open markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-- TOC
-{:toc}
-</details>
----
 
 The [`example`](https://github.com/yt-project/libyt/blob/main/example) demonstrates how to implement `libyt` in adaptive mesh refinement simulation.
 The steps related to implementation of `libyt` is commented like this:
