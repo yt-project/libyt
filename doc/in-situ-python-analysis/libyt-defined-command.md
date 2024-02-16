@@ -111,7 +111,7 @@ Run func(a,2,"3") in next iteration
 ## Status Board
 The status board contains a list of all the Python functions `libyt` finds.
 These are functions we can control whether to run in next round, and to access error message from the last Python function call by [`yt_run_Function`](../libyt-api/run-python-function.md#yt-run-function)/[`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt-run-functionarguments).
-```txt
+```text
 =====================================================================
   Inline Function                              Status         Run
 ---------------------------------------------------------------------
