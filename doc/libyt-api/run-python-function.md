@@ -11,11 +11,11 @@ int yt_run_Function( const char *function_name );
 ```cpp
 int yt_run_FunctionArguments( const char *function_name, int argc, ... );
 ```
-- Usage: Run Python function `function_name` with input arguments. This API will pass total number of `argc` arguments. Please wrap your arguments as strings. For example, `"0"` for `0`, `"\'FieldName\'"` for `'FieldName'`, `"a"` for a defined Python variable `a` within namespace.
+- Usage: Run Python function `function_name` with input arguments. This API will pass total number of `argc` arguments. Wrap your arguments as strings. For example, use `"0"` for `0`, `"\'FieldName\'"` for `'FieldName'`, `"a"` for a defined Python variable `a` within namespace.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 > {octicon}`alert;1em;sd-text-danger;` When using triple quotes in input arguments, use either `"""` or `'''`, but not both of them at the same time. If you really need triple quotes, stick to either one of them. For example, `yt_run_FunctionArguments("func", 2, """b""", """c""")` is good, but `yt_run_FunctionArguments("func", 2, """b""", '''c''')` is bad and leads to error.
 
-> {octicon}`info;1em;sd-text-info;` These two API run functions inside script's namespace, which means we can pass in objects defined in script directly.
+> {octicon}`info;1em;sd-text-info;` These two API run functions inside script's namespace, which means we can pass in variables already defined in the script.
 
 ## Example
 If our inline script is this:
