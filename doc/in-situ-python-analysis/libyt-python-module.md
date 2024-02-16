@@ -146,4 +146,4 @@ get_particle_remote(par_dict : dict,
 
 > {octicon}`alert;1em;sd-text-danger;` This is a collective operation, and it requires every MPI process to participate.
 
-> {octicon}`calendar;1em;sd-text-secondary;` `get_field_remote` and `get_particle_remote` may be hard to use in general case, since we have to prepare those list by ourselves. We will improve this and make it general in the future.
+> {octicon}`calendar;1em;sd-text-secondary;` [`get_field_remote`](#get-field-remote) and [`get_particle_remote`](#get-particle-remote) may be hard to use in general case, since we have to prepare those list by ourselves. We will improve this and make it general in the future.
