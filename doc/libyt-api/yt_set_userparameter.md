@@ -11,7 +11,7 @@ int yt_set_UserParameterFloat     ( const char *key, const int n, const float   
 int yt_set_UserParameterDouble    ( const char *key, const int n, const double    *input );
 int yt_set_UserParameterString    ( const char *key,              const char      *input );
 ```
-- Usage: Add code or user specific parameters that is used in your input yt [`frontend`](./yt_set_parameters.md#yt-param-yt) `XXXDataset` class. `libyt` borrows field information (`class XXXFieldInfo`), so we need to set them properly. `libyt` will add them to `libytDataset` class as new attributes. You can also add whatever variables you like, it will be stored under [`libyt.param_user`]({% link InSituPythonAnalysis/libytPythonModule.md %}#param_user)
+- Usage: Add code or user specific parameters that is used in your input yt [`frontend`](./yt_set_parameters.md#yt-param-yt) `XXXDataset` class. `libyt` borrows field information (`class XXXFieldInfo`), so we need to set them properly. `libyt` will add them to `libytDataset` class as new attributes. You can also add whatever variables you like, it will be stored under [`libyt.param_user`](../in-situ-python-analysis/libyt-python-module.md#param-user).
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## Example
