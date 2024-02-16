@@ -2,11 +2,11 @@
 
 ## Requirements
 
-- Compile `libyt` in [**interactive mode**]({% link HowToInstall.md %}#dinteractive-mode).
+- Compile `libyt` in [**interactive mode**](../how-to-install.md#dinteractive-mode).
 - Call libyt API [`yt_run_ReloadScript`]({% link libytAPI/ActivateReloadingScript.md %}#reload-script). 
 
 ## Reloading Script
-Reloading script feature is a file-based [interactive Python prompt]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt), such that user creates specific file name to send instructions to libyt and gets output from specific file.
+Reloading script feature is a file-based [interactive Python prompt](./interactive-python-prompt.md#interactive-python-prompt), such that user creates specific file name to send instructions to libyt and gets output from specific file.
 
 ### How to Reload and Exit
 The API:
@@ -28,7 +28,7 @@ The code enters reloading script phase when it finds `LIBYT_STOP` file or an err
 
 ### Python Statements and libyt Defined Commands
 
-The script can have both Python statements and [**libyt defined commands**]({% link InSituPythonAnalysis/libytCommand.md %}#libyt-defined-commands). We need to separate Python statements and libyt commands using `#LIBYT_COMMANDS`. libyt commands should be after `#LIBYT_COMMANDS` and commented out.
+The script can have both Python statements and [**libyt defined commands**](./libyt-defined-command.md#libyt-defined-commands). We need to separate Python statements and libyt commands using `#LIBYT_COMMANDS`. libyt commands should be after `#LIBYT_COMMANDS` and commented out.
 
 For example:
 ```python
@@ -43,10 +43,10 @@ def func():
 ```
 
 ## Known Limitations
-- See [Limitations in MPI Related Python Tasks]({% link InSituPythonAnalysis/Limitations.md %}#limitations-in-mpi-related-python-tasks).
+- See [Limitations in MPI Related Python Tasks](./limitation.md#limitations-in-mpi-related-python-tasks).
 
 ## FAQs
 
 ### When Can I Reload Script?
-`libyt` supports reloading script feature if it is compiled with [`-DINTERACTIVE_MODE`]({% link HowToInstall.md %}#dinteractive-mode).
+`libyt` supports reloading script feature if it is compiled with [`-DINTERACTIVE_MODE`](../how-to-install.md#dinteractive-mode).
 The root process reads the file to reload, so it would work on your local desktop and in HPC platform.

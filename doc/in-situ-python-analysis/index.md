@@ -16,24 +16,24 @@ faq
 
 ## Using Python for In Situ Analysis in libyt
 
-- [**Inline Python Script**]({% link InSituPythonAnalysis/InlinePythonScript.md %}#inline-python-script): how inline Python script works?
-- [**Using yt**]({% link InSituPythonAnalysis/UsingYT.md %}#using-yt-for-in-situ-python-analysis): how to use `yt` for in situ analysis?
-- [**libyt Python Module**]({% link InSituPythonAnalysis/libytPythonModule.md %}#libyt-python-module): the Python module where libyt API binds simulation data to.
+- [**Inline Python Script**](./inline-python-script.md#inline-python-script): how inline Python script works?
+- [**Using yt**](./using-yt.md#using-yt): how to use `yt` for in situ analysis?
+- [**libyt Python Module**](./libyt-python-module.md#libyt-python-module): the Python module where libyt API binds simulation data to.
 
 ## User Interface
 
-- [**libyt Defined Commands**]({% link InSituPythonAnalysis/libytCommand.md %}#libyt-defined-commands): the commands allow users to load script, export history, set function to run or idle, etc.
-- [**Interactive Python Prompt**]({% link InSituPythonAnalysis/InteractivePythonPrompt.md %}#interactive-python-prompt): the prompt can process Python statements and give feedback instantly.
-  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled using [`-DINTERACTIVE_MODE=ON`]({% link HowToInstall.md %}#dinteractive-mode).
-- [**Reloading Script**]({% link InSituPythonAnalysis/ReloadingScript.md %}#reloading-script): this allows reloading Python script.
-  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled using [`-DINTERACTIVE_MODE=ON`]({% link HowToInstall.md %}#dinteractive-mode).
-- [**Jupyter Notebook Access**]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access): this allows accessing and analyzing simulation data through JupyterLab/Jupyter Notebook.
-  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled in [`-DJUPYTER_KERNEL=ON`]({% link HowToInstall.md %}#djupyter-kernel).
+- [**libyt Defined Commands**](./libyt-defined-command.md#libyt-defined-commands): the commands allow users to load script, export history, set function to run or idle, etc.
+- [**Interactive Python Prompt**](./interactive-python-prompt.md#interactive-python-prompt): the prompt can process Python statements and give feedback instantly.
+  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled using [`-DINTERACTIVE_MODE=ON`](../how-to-install.md#dinteractive-mode).
+- [**Reloading Script**](./reloading-script.md#reloading-script): this allows reloading Python script.
+  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled using [`-DINTERACTIVE_MODE=ON`](../how-to-install.md#dinteractive-mode).
+- [**Jupyter Notebook Access**](./jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access): this allows accessing and analyzing simulation data through JupyterLab/Jupyter Notebook.
+  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled in [`-DJUPYTER_KERNEL=ON`](../how-to-install.md#djupyter-kernel).
 
 ## Limitations
 
-- [**Limitations in MPI Related Python Tasks**]({% link InSituPythonAnalysis/Limitations.md %}#limitations-in-mpi-related-python-tasks)
+- [**Limitations in MPI Related Python Tasks**](./limitation.md#limitations-in-mpi-related-python-tasks)
 
 ## FAQs
 
-- [**How Does libyt Run Python Script?**]({% link InSituPythonAnalysis/FAQs.md %}#how-does-libyt-run-python-script)
+- [**How Does libyt Run Python Script?**](./faq.md#how-does-libyt-run-python-script)
