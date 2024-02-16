@@ -121,7 +121,7 @@ These are functions we can control whether to run in next round, and to access e
 =====================================================================
 ```
 - **Inline Function**: the inline function found by `libyt`.
-- **Status**: function status.
+- **Status**: function status in latest Python function call by [`yt_run_Function`](../libyt-api/run-python-function.md#yt-run-function)/[`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt-run-functionarguments).
   - `success`: successfully run the function.
   - `failed`: failed to run the function.
   - `idle`: the function was set to idle, so it was ignored and did nothing.
