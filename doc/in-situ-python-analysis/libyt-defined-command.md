@@ -16,7 +16,7 @@ Print help messages.
 ```
 Exit interactive mode, and continue the iterative process in simulation. 
 
-> {octicon}`info;1em;sd-text-info;` `exit` only works in interactive Python prompt.
+> {octicon}`info;1em;sd-text-info;` `exit` only works in [Interactive Python Prompt](./interactive-python-prompt.md#interactive-python-prompt).
 
 ### `load`
 ```
@@ -24,15 +24,13 @@ Exit interactive mode, and continue the iterative process in simulation.
 ```
 Load and run file in inline script's namespace. This runs statements in the file line by line in Python. We can overwrite and update Python functions and objects. Changes will maintain throughout in situ analysis.
 
-All new functions detected in this new loaded script will be set to idle, and will not run in the following in situ analysis, unless you switch it on using [`%libyt run`](#run).
+All new functions detected in this new loaded script will be set to idle, unless you switch it on using [`%libyt run`](#run).
 
 ### `export`
 ```
 >>> %libyt export <file name>
 ```
-Export successfully run libyt defined commands and Python statement into file in current in situ analysis. History of interactive prompt will be cleared when leaving prompt.
-
-> {octicon}`info;1em;sd-text-info;` Will overwrite file if `<file name>` already exist.
+Export successfully executed libyt defined commands and Python statements into file `<file name>`. File will be overwritten if it already exists. History will be cleared when leaving the analysis.
 
 ### `status`
 ```
@@ -46,7 +44,9 @@ Print [status board](#status-board).
 ```
 >>> %libyt status <function name>
 ```
-Print function's definition and error messages if it has.
+Print current function's definition and error occurred when running inline functions.
+
+> {octicon}`info;1em;sd-text-info;` Since we can update the function, the function definition shown will always be the newly updated one. The error messages are from the last Python function call by [`yt_run_Function`](../libyt-api/run-python-function.md#yt-run-function)/[`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt-run-functionarguments).
 
 :::
 ###### Example
@@ -74,7 +74,7 @@ func ... failed
 ```
 >>> %libyt idle <function name>
 ```
-Idle `<function name>` in next in situ analysis. You will see `X` at run column in status board. It will clear all the input arguments set through [`%libyt run`](#run).
+Idle `<function name>` in next in situ analysis. You will see `X` at run column in [status board](#status-board). It will clear all the input arguments set through [`%libyt run`](#run).
 
 :::
 ###### Example
@@ -89,11 +89,11 @@ Function func set to idle ... done
 ```
 >>> %libyt run <function name> [args ...]
 ```
-Run `<function name>` in the following in situ analysis using `[args ...]` if given. Set input arguments every time you switch this function on, because [`%libyt idle`](#idle) clears them.
+Run `<function name>` in the following in situ analysis using `[args ...]` if given.
 
-> {octicon}`info;1em;sd-text-info;` Input arguments passed in through [`yt_run_FunctionArguments`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_functionarguments) in simulation code have a bigger priority. When calling [`yt_run_InteractiveMode`]({% link libytAPI/ActivateInteractiveMode.md %}#yt_run_interactivemode), it runs all the functions that was set to run using [`%libyt run`](#run), but had not been done in simulation by calling [`yt_run_Function`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_function) or [`yt_run_FunctionArguments`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_functionarguments) yet.
+> {octicon}`info;1em;sd-text-info;` Input arguments passed in through [`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt-run-functionarguments) in simulation code have a bigger priority.
 
-> {octicon}`alert;1em;sd-text-danger;` When using triple quotes in input arguments, use either `"""` or `'''`, but not both of them at the same time. If you really need triple quotes, stick to either one of them. For example, `%libyt run func """b""" """c"""` is good, but `%libyt run func """b""" '''c'''` leads to error.
+> {octicon}`alert;1em;sd-text-danger;` When using triple quotes in input arguments, use either `"""` or `'''`, but not both.. If you really need triple quotes, stick to either one of them. For example, `%libyt run func """b""" """c"""` is good, but `%libyt run func """b""" '''c'''` leads to error.
 
 :::
 ###### Example
@@ -110,7 +110,7 @@ Run func(a,2,"3") in next iteration
 
 ## Status Board
 The status board contains a list of all the Python functions `libyt` finds.
-These are functions we can control whether to run in next round, and to access error message if it has.
+These are functions we can control whether to run in next round, and to access error message from the last Python function call by [`yt_run_Function`](../libyt-api/run-python-function.md#yt-run-function)/[`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt-run-functionarguments).
 ```txt
 =====================================================================
   Inline Function                              Status         Run
@@ -128,4 +128,4 @@ These are functions we can control whether to run in next round, and to access e
   - `not run yet`: the function hasn't been run yet.
 - **Run**: whether the function will run automatically in next round.
   - `V`: this function will run automatically in the following in situ analysis.
-  - `X`: this function will idle in next in situ analysis, even if it is called through [`yt_run_FunctionArguments`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_functionarguments) or [`yt_run_Function`]({% link libytAPI/PerformInlineAnalysis.md %}#yt_run_function) in simulation.
+  - `X`: this function will idle in next in situ analysis, even if it is called by [`yt_run_Function`](../libyt-api/run-python-function.md#yt-run-function)/[`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt-run-functionarguments) in simulation.

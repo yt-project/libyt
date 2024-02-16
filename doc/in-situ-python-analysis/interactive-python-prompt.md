@@ -3,7 +3,7 @@
 ## Requirements
 
 - Compile `libyt` in [**interactive mode**](../how-to-install.md#dinteractive-mode).
-- Call libyt API [`yt_run_InteractiveMode`]({% link libytAPI/ActivateInteractiveMode.md %}#activate-interactive-mode).
+- Call libyt API [`yt_run_InteractiveMode`](../libyt-api/yt_run_interactivemode.md#activate-interactive-mode).
 
 > {octicon}`info;1em;sd-text-info;` Interactive mode only works on local machine or submit the job to HPC platforms through interactive queue like `qsub -I`.
 > The reason is that the prompt is exposed through the terminal. Use [Reloading Script](./reloading-script.md#reloading-script) or [Jupyter Notebook Access](./jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access) to avoid this.
