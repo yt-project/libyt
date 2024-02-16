@@ -23,7 +23,7 @@ nav_order: 5
 - Call libyt API [`yt_run_InteractiveMode`]({% link libytAPI/ActivateInteractiveMode.md %}#activate-interactive-mode).
 
 > :information_source: Interactive mode only works on local machine or submit the job to HPC platforms through interactive queue like `qsub -I`.
-> The reason is that the prompt is exposed through the terminal. Use [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access) to avoid this.
+> The reason is that the prompt is exposed through the terminal. Use [Reloading Script]({% link InSituPythonAnalysis/ReloadingScript.md %}#reloading-script) or [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access) to avoid this.
 
 ## Using Interactive Python Prompt
 
@@ -91,5 +91,5 @@ We can hit enter again, which is to provide an empty statement, and it will come
 We can make prompt more smoothly by setting [YT_VERBOSE]({% link libytAPI/Initialize.md %}#yt_param_libyt) to YT_VERBOSE_INFO.
 
 ### Where Can I Use Interactive Mode?
-`libyt` interactive mode only works on local machine or submit the job to HPC platforms through interactive queue like `qsub -I`. 
+`libyt` interactive Python prompt only works on local machine or submit the job to HPC platforms through interactive queue like `qsub -I`. 
 The reason is that the user interface is exposed in the terminal.

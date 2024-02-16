@@ -1,8 +1,6 @@
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
 
 #include "func_status_list.h"
-
-#include <string.h>
 
 #include <iostream>
 
@@ -96,7 +94,61 @@ int func_status_list::print_summary() {
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  func_status_list
-// Method      :  print_summary
+// Method      :  print_summary_to_file
+//
+// Notes       :  1. Instead of printing the summary string like print_summary, it prints it to file.
+//
+// Arguments   :  const std::string& file_name : write summary to file
+//
+// Return      :  YT_SUCCESS / YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+bool func_status_list::print_summary_to_file(const std::string& file_name) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    if (g_myrank == g_myroot) {
+        // open file to write
+        FILE* output_file;
+        output_file = fopen(file_name.c_str(), "a");
+        if (output_file == nullptr) {
+            log_error("Unable to write summary to file '%s'.\n", file_name.c_str());
+            return YT_FAIL;
+        }
+
+        fprintf(output_file, "=====================================================================\n");
+        fprintf(output_file, "  %-40s     %-12s   %s\n", "Inline Function", "Status", "Run");
+        fprintf(output_file, "---------------------------------------------------------------------\n");
+        for (int i = 0; i < size(); i++) {
+            fprintf(output_file, "  * %-43s", m_FuncStatusList[i].get_func_name());
+            int run = m_FuncStatusList[i].get_run();
+            int status = m_FuncStatusList[i].get_status();
+
+            if (status == 0) {
+                fprintf(output_file, "%-12s", "failed");
+            } else if (status == 1) {
+                fprintf(output_file, "%-12s", "success");
+            } else if (status == -1) {
+                fprintf(output_file, "%-12s", "idle");
+            } else {
+                fprintf(output_file, "%-12s (%d)", "unknown status", status);
+            }
+
+            if (run == 1)
+                fprintf(output_file, "%5s\n", "V");
+            else
+                fprintf(output_file, "%5s\n", "X");
+        }
+        fprintf(output_file, "=====================================================================\n");
+
+        // close file
+        fclose(output_file);
+    }
+
+    return YT_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  func_status_list
+// Method      :  get_summary_html
 //
 // Notes       :  1. Get function status and run status in func_status_list, returned as html format.
 //                2. Return in html format.
@@ -289,4 +341,4 @@ int func_status_list::run_func() {
     return YT_SUCCESS;
 }
 
-#endif  // #ifdef INTERACTIVE_MODE
+#endif  // #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)

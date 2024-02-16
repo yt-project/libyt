@@ -1,4 +1,4 @@
-#if defined(INTERACTIVE_MODE) && defined(JUPYTER_KERNEL) && !defined(SERIAL_MODE)
+#if defined(JUPYTER_KERNEL) && !defined(SERIAL_MODE)
 #include "libyt_worker.h"
 
 #include <mpi.h>
@@ -43,6 +43,7 @@ void LibytWorker::start() {
         switch (indicator) {
             case -1: {
                 done = true;
+                g_libyt_python_shell.clear_prompt_history();
                 break;
             }
             case 1: {
@@ -64,4 +65,4 @@ void LibytWorker::start() {
     log_debug("Leaving libyt worker on MPI process %d\n", m_mpi_rank);
 }
 
-#endif  // #if defined(INTERACTIVE_MODE) && defined(JUPYTER_KERNEL) && !defined(SERIAL_MODE)
+#endif  // #if defined(JUPYTER_KERNEL) && !defined(SERIAL_MODE)
