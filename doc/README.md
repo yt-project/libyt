@@ -9,3 +9,6 @@
   ```bash
   sphinx-autobuild -n -W -b html doc/ doc/_build/ --port 8001
   ```
+
+#### Notes
+- When doing cross-referencing between different files, use the anchor generated in markdown. Don't use the anchor shown in the browser. The Anchor slug used in furo (sphinx theme) after built (in browser) and the one used in myst markdown are not the same!
