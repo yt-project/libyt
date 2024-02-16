@@ -142,3 +142,9 @@ MPI process to participate, otherwise, the process will hang there and wait for 
 :class: only-light
 :scale: 110%
 ```
+
+```{image} _static/svg/RMA-dark.svg
+:align: center
+:class: only-dark
+:scale: 110%
+```
