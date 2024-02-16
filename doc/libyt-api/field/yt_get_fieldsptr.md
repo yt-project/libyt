@@ -38,7 +38,7 @@ int yt_get_FieldsPtr( yt_field **field_list )
   - Valid Value: Must be greater than or equal to `0`.
 - `yt_dtype field_dtype` (Default=`YT_DTYPE_UNKNOWN`)
   - Usage: Data type of the field.
-  - Valid Value:  [`yt_dtype`](../data-type.md#yt-dtype)
+  - Valid Value:  [`yt_dtype`](../data-type.md#yt_dtype)
 - `bool contiguous_in_x` (Default=`true`)
   - Usage: Is the 3D data array define as [z][y][x], which is x address alters first.
   - Valid Value:
@@ -48,17 +48,17 @@ int yt_get_FieldsPtr( yt_field **field_list )
   - Usage: Function pointer to generate derived field data when input grid id. This is only used in derived field (`field_type="derived_func"`). See [Derived Field](./derived-field.md#derived-field).
 - `const char* field_unit` (Default=`""`)
   - Usage: Unit of the field, using `yt` unit system.
-  > {octicon}`pencil;1em;sd-text-warning;` Make sure the lifetime of `field_unit` covers [`yt_commit`](../yt_commit.md#yt-commit).
+  > {octicon}`pencil;1em;sd-text-warning;` Make sure the lifetime of `field_unit` covers [`yt_commit`](../yt_commit.md#yt_commit).
 - `int num_field_name_alias` (Default=`0`)
   - Usage: Number of name aliases in `field_name_alias`.
 - `const char** field_name_alias` (Default=`NULL`)
   - Usage: Name aliases.
-  > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `field_name_alias` covers [`yt_commit`](../yt_commit.md#yt-commit).
+  > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `field_name_alias` covers [`yt_commit`](../yt_commit.md#yt_commit).
 - `const char* field_display_name` (Default=`NULL`)
   - Usage: Display name of the field on the output figure. If not set, `yt` uses its field name instead.
-  > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `field_display_name` covers [`yt_commit`](../yt_commit.md#yt-commit).
+  > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `field_display_name` covers [`yt_commit`](../yt_commit.md#yt_commit).
 
-> {octicon}`info;1em;sd-text-info;` `libyt` borrows the full field information class (`class XXXFieldInfo`) from [`frontend`](../yt_set_parameters.md#yt-param-yt). It is OK not to set a field's `field_unit`, `num_field_name_alias`, `field_name_alias`, `field_display_name`, if this `field_name` is already defined inside the frontend.
+> {octicon}`info;1em;sd-text-info;` `libyt` borrows the full field information class (`class XXXFieldInfo`) from [`frontend`](../yt_set_parameters.md#yt_param_yt). It is OK not to set a field's `field_unit`, `num_field_name_alias`, `field_name_alias`, `field_display_name`, if this `field_name` is already defined inside the frontend.
 > If you are adding a totally new field, do add them. `libyt` will add these new field information alongside with your original one.
 > 
 > Refer to [Naming and Field Information](../../in-situ-python-analysis/using-yt.md#naming-and-field-information) for how field names and yt fields are linked and reused.

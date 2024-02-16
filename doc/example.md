@@ -20,7 +20,7 @@ The example initializes `libyt`, loads data to `libyt` in simulation's iterative
 
 ## How to Compile and Run
 
-1. Install `libyt` with [`-DSERIAL_MODE=OFF`](./how-to-install.md#dserial-mode) and install Python package [`yt_libyt`](./how-to-install.md#yt-libyt).
+1. Install `libyt` with [`-DSERIAL_MODE=OFF`](./how-to-install.md#-dserial_mode) and install Python package [`yt_libyt`](./how-to-install.md#yt_libyt).
 2. Install [`yt`](https://yt-project.org/). This example uses `yt` as the core analytic method.
 3. Update `MPI_PATH` and `LIBYT_PATH` in `example/Makefile`, which is their installation prefix. The folder should contain `include`, `lib` etc.
    ```makefile
@@ -42,7 +42,7 @@ The example initializes `libyt`, loads data to `libyt` in simulation's iterative
 
 ### Activate Interactive Mode
 
-To try out **interactive mode**, compile `libyt` with [`-DINTERACTIVE_MODE=ON`](./how-to-install.md#dinteractive-mode).
+To try out **interactive mode**, compile `libyt` with [`-DINTERACTIVE_MODE=ON`](./how-to-install.md#-dinteractive_mode).
 Interactive mode supports [Reloading Script](./in-situ-python-analysis/reloading-script.md#reloading-script) and [Interactive Python Prompt](./in-situ-python-analysis/interactive-python-prompt.md#interactive-python-prompt) features.
 
 Un-comment these blocks in `example.cpp`:
@@ -67,7 +67,7 @@ if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
 
 ### Activate libyt Jupyter Kernel
 
-To try out **jupyter kernel mode**, compile `libyt` with [`-DJUPYTER_KERNEL=ON`](./how-to-install.md#djupyter-kernel).
+To try out **jupyter kernel mode**, compile `libyt` with [`-DJUPYTER_KERNEL=ON`](./how-to-install.md#-djupyter_kernel).
 
 Then un-comment this block in `example.cpp`:
 ```c++

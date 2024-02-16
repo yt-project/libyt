@@ -46,7 +46,7 @@ Print [status board](#status-board).
 ```
 Print current function's definition and error occurred when running inline functions.
 
-> {octicon}`info;1em;sd-text-info;` Since we can update the function, the function definition shown will always be the newly updated one. The error messages are from the last Python function call by [`yt_run_Function`](../libyt-api/run-python-function.md#yt-run-function)/[`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt-run-functionarguments).
+> {octicon}`info;1em;sd-text-info;` Since we can update the function, the function definition shown will always be the newly updated one. The error messages are from the last Python function call by [`yt_run_Function`](../libyt-api/run-python-function.md#yt_run_function)/[`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt_run_functionarguments).
 
 :::
 ###### Example
@@ -91,7 +91,7 @@ Function func set to idle ... done
 ```
 Run `<function name>` in the following in situ analysis using `[args ...]` if given.
 
-> {octicon}`info;1em;sd-text-info;` Input arguments passed in through [`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt-run-functionarguments) in simulation code have a bigger priority.
+> {octicon}`info;1em;sd-text-info;` Input arguments passed in through [`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt_run_functionarguments) in simulation code have a bigger priority.
 
 > {octicon}`alert;1em;sd-text-danger;` When using triple quotes in input arguments, use either `"""` or `'''`, but not both.. If you really need triple quotes, stick to either one of them. For example, `%libyt run func """b""" """c"""` is good, but `%libyt run func """b""" '''c'''` leads to error.
 
@@ -110,7 +110,7 @@ Run func(a,2,"3") in next iteration
 
 ## Status Board
 The status board contains a list of all the Python functions `libyt` finds.
-These are functions we can control whether to run in next round, and to access error message from the last Python function call by [`yt_run_Function`](../libyt-api/run-python-function.md#yt-run-function)/[`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt-run-functionarguments).
+These are functions we can control whether to run in next round, and to access error message from the last Python function call by [`yt_run_Function`](../libyt-api/run-python-function.md#yt_run_function)/[`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt_run_functionarguments).
 ```text
 =====================================================================
   Inline Function                              Status         Run
@@ -121,11 +121,11 @@ These are functions we can control whether to run in next round, and to access e
 =====================================================================
 ```
 - **Inline Function**: the inline function found by `libyt`.
-- **Status**: function status in latest Python function call by [`yt_run_Function`](../libyt-api/run-python-function.md#yt-run-function)/[`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt-run-functionarguments).
+- **Status**: function status in latest Python function call by [`yt_run_Function`](../libyt-api/run-python-function.md#yt_run_function)/[`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt_run_functionarguments).
   - `success`: successfully run the function.
   - `failed`: failed to run the function.
   - `idle`: the function was set to idle, so it was ignored and did nothing.
   - `not run yet`: the function hasn't been run yet.
 - **Run**: whether the function will run automatically in next round.
   - `V`: this function will run automatically in the following in situ analysis.
-  - `X`: this function will idle in next in situ analysis, even if it is called by [`yt_run_Function`](../libyt-api/run-python-function.md#yt-run-function)/[`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt-run-functionarguments) in simulation.
+  - `X`: this function will idle in next in situ analysis, even if it is called by [`yt_run_Function`](../libyt-api/run-python-function.md#yt_run_function)/[`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt_run_functionarguments) in simulation.

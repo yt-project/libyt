@@ -58,7 +58,7 @@ The options are mutually independent to each other.
 
 |                              | Notes                                                                                                                                                                             | Required Paths | Required Python Packages                                                                                                                                                                    |
 |------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Jupyter Kernel Mode** (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access](./in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access)) | - `nlohmann_json_DIR` <br> - `cppzmq_DIR` <br> - `xtl_DIR` <br> - `xeus_DIR` <br> - `xeus-zmq_DIR` <br> - `ZeroMQ_DIR` <br> | - [`jupyter_libyt`](#jupyter-libyt) <br> - [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html) <br> - (Optional)[`jedi`](https://jedi.readthedocs.io/en/latest/) |
+| **Jupyter Kernel Mode** (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access](./in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access)) | - `nlohmann_json_DIR` <br> - `cppzmq_DIR` <br> - `xtl_DIR` <br> - `xeus_DIR` <br> - `xeus-zmq_DIR` <br> - `ZeroMQ_DIR` <br> | - [`jupyter_libyt`](#jupyter_libyt) <br> - [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html) <br> - (Optional)[`jedi`](https://jedi.readthedocs.io/en/latest/) |
 
 :::
 ###### Required Paths
@@ -112,7 +112,7 @@ The options are mutually independent to each other.
 ### CMake
 1. Toggle options, set paths and generate files to build the project. This can be done through either (a) or (b):
 
-   (a) Set it through editing `CMakeLists.txt` at root directory. For example, this uses option [`-DSERIAL_MODE=OFF`](#dserial-mode) and provides `MPI_PATH`:
+   (a) Set it through editing `CMakeLists.txt` at root directory. For example, this uses option [`-DSERIAL_MODE=OFF`](#-dserial_mode) and provides `MPI_PATH`:
    ```cmake
    option(SERIAL_MODE "Compile library for serial process" ON)
    set(MPI_PATH "<path-to-mpi-prefix>" CACHE PATH "Path to MPI installation prefix (-DSERIAL_MODE=OFF)")

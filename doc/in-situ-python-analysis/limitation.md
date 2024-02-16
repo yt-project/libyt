@@ -12,4 +12,4 @@ else:
     pass
 ```
 
-> {octicon}`info;1em;sd-text-info;` When accessing simulation data, `libyt` requires every process to participate (See [`libyt.get_field_remote`](./libyt-python-module.md#get-field-remote) and [`libyt.get_particle_remote`](./libyt-python-module.md#get-particle-remote).
+> {octicon}`info;1em;sd-text-info;` When accessing simulation data, `libyt` requires every process to participate (See [`libyt.get_field_remote`](./libyt-python-module.md#get_field_remote) and [`libyt.get_particle_remote`](./libyt-python-module.md#get_particle_remote).

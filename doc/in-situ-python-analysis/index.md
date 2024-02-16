@@ -24,11 +24,11 @@ faq
 
 - [**libyt Defined Commands**](./libyt-defined-command.md#libyt-defined-commands): the commands allow users to load script, export history, set function to run or idle, etc.
 - [**Interactive Python Prompt**](./interactive-python-prompt.md#interactive-python-prompt): the prompt can process Python statements and give feedback instantly.
-  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled using [`-DINTERACTIVE_MODE=ON`](../how-to-install.md#dinteractive-mode).
+  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled using [`-DINTERACTIVE_MODE=ON`](../how-to-install.md#-dinteractive_mode).
 - [**Reloading Script**](./reloading-script.md#reloading-script): this allows reloading Python script.
-  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled using [`-DINTERACTIVE_MODE=ON`](../how-to-install.md#dinteractive-mode).
+  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled using [`-DINTERACTIVE_MODE=ON`](../how-to-install.md#-dinteractive_mode).
 - [**Jupyter Notebook Access**](./jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access): this allows accessing and analyzing simulation data through JupyterLab/Jupyter Notebook.
-  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled in [`-DJUPYTER_KERNEL=ON`](../how-to-install.md#djupyter-kernel).
+  > {octicon}`info;1em;sd-text-info;` `libyt` should be compiled in [`-DJUPYTER_KERNEL=ON`](../how-to-install.md#-djupyter_kernel).
 
 ## Limitations
 
