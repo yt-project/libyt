@@ -15,7 +15,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
   - Usage: Grid left and right edge in code units.
 - `long id` (Default=`LNG_UNDEFINED`)
   - Usage: Grid global id.
-  - Valid Value: It should be contiguous starting from [`index_offset`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt).
+  - Valid Value: It should be contiguous starting from [`index_offset`](./yt_set_parameters.md#yt-param-yt).
 - `long parent_id` (Default=`LNG_UNDEFINED`)
   - Usage: Parent grid id.
   - Valide Value:
@@ -30,7 +30,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
 
 ### Particle Counts
 - `long* par_count_list` (initialized by `libyt`)
-  - Usage: Number of particles in each particle type located in this grid. This `long` array has length equals to number of particle types. The particle order should be the same as the input in [`par_type_list`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt).
+  - Usage: Number of particles in each particle type located in this grid. This `long` array has length equals to number of particle types. The particle order should be the same as the input in [`par_type_list`](./yt_set_parameters.md#yt-param-yt).
   - Valid Value: Should be greater than or equal to `0`.
 
 ### Field Data and Particle Data

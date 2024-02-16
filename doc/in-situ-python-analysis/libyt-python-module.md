@@ -46,7 +46,7 @@ import libyt
 |    `param_yt["domain_dimensions"]`    |    `domain_dimensions`    |  `yt_set_Parameters`  |                                      |
 
 
-- Usage: Contain `yt` parameters. The values correspond to data members in  [`yt_param_yt`]({% link libytAPI/SetYTParameter.md%}#yt_param_yt).
+- Usage: Contain `yt` parameters. The values correspond to data members in  [`yt_param_yt`](../libyt-api/yt_set_parameters.md#yt-param-yt).
 
 ### `param_user`
 

@@ -67,8 +67,8 @@ Which means every MPI process should run `save()`, and we have to move `save()` 
 
 ### libyt Fields and yt Fields
 - **libyt fields** are fields loaded by `libyt`. They are fields defined inside [`yt_get_FieldsPtr`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_get_fieldsptr) and [`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}#yt_get_particlesptr).
-  Specify [`<frontend_name>`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt) and use `("<frontend_name>", "<field_name>")` to call libyt field.
-- **yt fields** are fields defined in field information class (class `XXXFieldInfo`) in a yt frontend and yt built-in derived fields. `XXX` is frontend name defined in `frontend` in [`yt_param_yt`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt).
+  Specify [`<frontend_name>`](../libyt-api/yt_set_parameters.md#yt-param-yt) and use `("<frontend_name>", "<field_name>")` to call libyt field.
+- **yt fields** are fields defined in field information class (class `XXXFieldInfo`) in a yt frontend and yt built-in derived fields. `XXX` is frontend name defined in `frontend` in [`yt_param_yt`](../libyt-api/yt_set_parameters.md#yt-param-yt).
     
 > {octicon}`info;1em;sd-text-info;` We can use both **libyt fields** and **yt fields** in in situ analysis Python script. All of them are two-component tuple, specify the whole tuple when using it in Python script. 
 
@@ -82,12 +82,12 @@ As a side note, we can use yt API to look up fields:
 ### Naming and Field Information
 libyt inherits field information (ex: units, name aliases) defined in yt frontend, and it can access yt built-in derived fields.
 
-yt frontend (`frontend` set through [`yt_param_yt`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt)
-using [`yt_set_Parameters`]({% link libytAPI/SetYTParameter.md %}#yt_set_parameters)) has the highest priority, the next is fields/particles defined through [`yt_get_FieldsPtr`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_get_fieldsptr)/[`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}#yt_get_particlesptr), 
+yt frontend (`frontend` set through [`yt_param_yt`](../libyt-api/yt_set_parameters.md#yt-param-yt)
+using [`yt_set_Parameters`](../libyt-api/yt_set_parameters.md#yt_set_parameters)) has the highest priority, the next is fields/particles defined through [`yt_get_FieldsPtr`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_get_fieldsptr)/[`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}#yt_get_particlesptr), 
 and finally yt built-in derived fields.
 
 Which is:
-1. If field name `"A"` is both defined in [`yt_get_FieldsPtr`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_get_fieldsptr)/[`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}#yt_get_particlesptr) and yt [`frontend`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt), then `yt` uses the field information (ex: units, name alias) defined in yt [`frontend`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt). (It also adds name alias defined through libyt API to this field information if there is.)
+1. If field name `"A"` is both defined in [`yt_get_FieldsPtr`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_get_fieldsptr)/[`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}#yt_get_particlesptr) and yt [`frontend`](../libyt-api/yt_set_parameters.md#yt-param-yt), then `yt` uses the field information (ex: units, name alias) defined in yt [`frontend`](../libyt-api/yt_set_parameters.md#yt-param-yt). (It also adds name alias defined through libyt API to this field information if there is.)
 2. If field name `"B"` is only defined in [`yt_get_FieldsPtr`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_get_fieldsptr)/[`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}#yt_get_particlesptr), then `yt` uses the information defined through libyt API.
 3. If field name `"C"` defined in [`yt_get_FieldsPtr`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_get_fieldsptr)/[`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}#yt_get_particlesptr) overlapped with yt built-in derived field (`"C"` and yt derived field have the same name), then `yt` uses `"C"` defined through libyt API. Namely, it overwrites yt derived field.
 

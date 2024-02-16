@@ -21,7 +21,7 @@ It can run any Python statements or [**libyt defined commands**]({% link InSituP
 This is like using normal Python prompt, except that there are functions, objects, and simulation data already defined in it.
 These statements run in inline script's namespace, and will update and make changes to it. 
 
-> {octicon}`info;1em;sd-text-info;` To make interactive prompt more smoothly, set lower [YT_VERBOSE]({% link libytAPI/Initialize.md %}#yt_param_libyt).
+> {octicon}`info;1em;sd-text-info;` To make interactive prompt more smoothly, set lower [YT_VERBOSE](../libyt-api/yt_initialize.md#yt-param-libyt).
 
 :::
 ##### How does the prompt execute Python statements and libyt defined commands?
@@ -47,7 +47,7 @@ Then it will return back to the simulation process.
 `>>> `  is probably immersed inside the output. 
 We can hit enter again, which is to provide an empty statement, and it will come out. 
 
-We can make prompt more smoothly by setting [YT_VERBOSE]({% link libytAPI/Initialize.md %}#yt_param_libyt) to YT_VERBOSE_INFO.
+We can make prompt more smoothly by setting [YT_VERBOSE](../libyt-api/yt_initialize.md#yt-param-libyt) to YT_VERBOSE_INFO.
 
 ### Where Can I Use Interactive Mode?
 `libyt` interactive Python prompt only works on local machine or submit the job to HPC platforms through interactive queue like `qsub -I`. 

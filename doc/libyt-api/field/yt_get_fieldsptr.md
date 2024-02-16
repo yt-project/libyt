@@ -48,17 +48,17 @@ int yt_get_FieldsPtr( yt_field **field_list )
   - Usage: Function pointer to generate derived field data when input grid id. This is only used in derived field, which is when `field_type` set to `derived_func` (`field_type="derived_func"`). See [Derived Field]({% link libytAPI/FieldInfo/DerivedField.md %}#derived-field) for more information.
 - `const char* field_unit` (Default=`""`)
   - Usage: Unit of the field, using `yt` unit system.
-  > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `field_unit` covers [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit).
+  > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `field_unit` covers [`yt_commit`](./yt_commit.md#yt-commit).
 - `int num_field_name_alias` (Default=`0`)
   - Usage: Number of name aliases in `field_name_alias`.
 - `const char** field_name_alias` (Default=`NULL`)
   - Usage: Name aliases.
-  > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `field_name_alias` covers [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit).
+  > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `field_name_alias` covers [`yt_commit`](./yt_commit.md#yt-commit).
 - `const char* field_display_name` (Default=`NULL`)
   - Usage: Display name of the field on the output figure. If not set, `yt` uses its field name instead.
-  > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `field_display_name` covers [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit).
+  > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `field_display_name` covers [`yt_commit`](./yt_commit.md#yt-commit).
 
-> {octicon}`info;1em;sd-text-info;` `libyt` borrows the full field information class (`class XXXFieldInfo`) from [`frontend`]({% link libytAPI/SetYTParameter.md%}#yt_param_yt). It is OK not to set a field's `field_unit`, `num_field_name_alias`, `field_name_alias`, `field_display_name`, if this `field_name` is already inside your frontend.
+> {octicon}`info;1em;sd-text-info;` `libyt` borrows the full field information class (`class XXXFieldInfo`) from [`frontend`](./yt_set_parameters.md#yt-param-yt). It is OK not to set a field's `field_unit`, `num_field_name_alias`, `field_name_alias`, `field_display_name`, if this `field_name` is already inside your frontend.
 > If you are adding a totally new field, please add them. `libyt` will add these new field information alongside with your original one.
 
 ## Example

@@ -27,7 +27,7 @@ It can break down into five stages:
 - initialization,
 - loading simulation data into Python[^1],
 - do in situ analysis,
-- reset,
+- free resources allocated by `libyt`,
 - and finalization.
 
 ## libyt API
