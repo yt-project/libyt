@@ -46,7 +46,7 @@ import libyt
 |    `param_yt["domain_dimensions"]`    |    `domain_dimensions`    |  `yt_set_Parameters`  |                                      |
 
 
-- Usage: Contain `yt` parameters. The values correspond to data members in  [`yt_param_yt`](../libyt-api/yt_set_parameters.md#yt-param-yt).
+- Usage: Contain `yt` parameters. The values correspond to data members in  [`yt_param_yt`](../libyt-api/yt_set_parameters.md#yt_param_yt).
 
 ### `param_user`
 
@@ -72,7 +72,7 @@ import libyt
 |       `hierarchy["grid_levels"][id]`        |      `level`      |      `yt_commit`       |                                                                          |
 |         `hierarchy["proc_num"][id]`         |    `proc_num`     |      `yt_commit`       |                                                                          |
 
-- Usage: Contain AMR grid hierarchy. The values and `id` are corresponding to data members in [`yt_grid`](../libyt-api/yt_get_gridsptr.md#yt-grid).
+- Usage: Contain AMR grid hierarchy. The values and `id` are corresponding to data members in [`yt_grid`](../libyt-api/yt_get_gridsptr.md#yt_grid).
 
 ### `grid_data`
 
@@ -146,4 +146,4 @@ get_particle_remote(par_dict : dict,
 
 > {octicon}`alert;1em;sd-text-danger;` This is a collective operation, and it requires every MPI process to participate.
 
-> {octicon}`calendar;1em;sd-text-secondary;` [`get_field_remote`](#get-field-remote) and [`get_particle_remote`](#get-particle-remote) may be hard to use in general case, since we have to prepare those list by ourselves. We will improve this and make it general in the future.
+> {octicon}`calendar;1em;sd-text-secondary;` [`get_field_remote`](#get_field_remote) and [`get_particle_remote`](#get_particle_remote) may be hard to use in general case, since we have to prepare those list by ourselves. We will improve this and make it general in the future.

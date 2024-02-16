@@ -12,7 +12,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
 ### `yt_param_yt`
 - `const char* frontend` (Default=`NULL`)
   - Usage: Field information of the yt `frontend` to borrow from. This should be `yt` supported frontend.
-  > {octicon}`pencil;1em;sd-text-warning;` Make sure the lifetime of `frontend` covers [`yt_commit`](./yt_commit.md#yt-commit) if you set [`check_data`](./yt_initialize.md#yt-param-libyt) to `true` when initializing `libyt`.
+  > {octicon}`pencil;1em;sd-text-warning;` Make sure the lifetime of `frontend` covers [`yt_commit`](./yt_commit.md#yt_commit) if you set [`check_data`](./yt_initialize.md#yt_param_libyt) to `true` when initializing `libyt`.
 - `const char* fig_basename` (Default=`"Fig"`)
   - Usage: Base name of the output figures. Figure name will also be followed by counter number and `yt` functionality name.
 - `double domain_left_edge[3], domain_right_edge[3]` (Default=`DBL_UNDEFINED`)

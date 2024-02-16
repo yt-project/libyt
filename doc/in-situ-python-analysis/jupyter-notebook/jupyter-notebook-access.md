@@ -9,9 +9,9 @@ remote-cluster
 
 ## Requirements
 
-- Compile `libyt` in **jupyter kernel mode** ([`-DJUPYTER_KERNEL=ON`](../../how-to-install.md#djupyter-kernel)).
-- Call libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt-run-jupyterkernel).
-- Python package [`jupyter_libyt`](../../how-to-install.md#jupyter-libyt), [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html), and [`jedi`](https://jedi.readthedocs.io/en/latest/).
+- Compile `libyt` in **jupyter kernel mode** ([`-DJUPYTER_KERNEL=ON`](../../how-to-install.md#-djupyter_kernel)).
+- Call libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt_run_jupyterkernel).
+- Python package [`jupyter_libyt`](../../how-to-install.md#jupyter_libyt), [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html), and [`jedi`](https://jedi.readthedocs.io/en/latest/).
 
 ## Setting Up
 
@@ -22,7 +22,7 @@ We need another process to start Jupyter Notebook/JupyterLab and connect to liby
 
 > {octicon}`info;1em;sd-text-info;` The process of starting Jupyter Notebook/JupyterLab and running simulation are separate and independent.
 
-1. Get [`jupyter_libyt`](../../how-to-install.md#jupyter-libyt) and [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html).
+1. Get [`jupyter_libyt`](../../how-to-install.md#jupyter_libyt) and [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html).
 2. After installing `libyt`, add `<libyt-install-prefix>/share/jupyter` to [`JUPYTER_PATH`](https://docs.jupyter.org/en/latest/use/jupyter-directories.html#envvar-JUPYTER_PATH).
    ```bash
    export JUPYTER_PATH=<libyt-install-prefix>/share/jupyter:$JUPYTER_PATH
@@ -45,15 +45,15 @@ We need another process to start Jupyter Notebook/JupyterLab and connect to liby
 
 ### Running Simulation
 
-1. Compile `libyt` in **jupyter kernel mode** ([`-DJUPYTER_KERNEL=ON`](../../how-to-install.md#djupyter-kernel)).
-2. Call libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt-run-jupyterkernel). When flag file is detected, `libyt` will activate libyt kernel.
-3. libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt-run-jupyterkernel) returns `YT_SUCCESS` after libyt kernel shuts down (see [How to Exit](#how-to-exit)).
+1. Compile `libyt` in **jupyter kernel mode** ([`-DJUPYTER_KERNEL=ON`](../../how-to-install.md#-djupyter_kernel)).
+2. Call libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt_run_jupyterkernel). When flag file is detected, `libyt` will activate libyt kernel.
+3. libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt_run_jupyterkernel) returns `YT_SUCCESS` after libyt kernel shuts down (see [How to Exit](#how-to-exit)).
 4. Simulation can continue its process.
 
 ### Example
 
-- [Connecting to Kernel on Local Machine](./local-desktop.md#example-connecting-to-kernel-on-local-machine)
-- [Connecting to Kernel on HPC Cluster](./remote-cluster.md#example-connecting-to-kernel-on-hpc-cluster)
+- [Connecting to Kernel on Local Machine](./local-desktop.md#example----connecting-to-kernel-on-local-machine)
+- [Connecting to Kernel on HPC Cluster](./remote-cluster.md#example----connecting-to-kernel-on-hpc-cluster)
 
 ## Using Jupyter Notebook/JupyterLab
 
@@ -76,7 +76,7 @@ It can also import other Python modules.
 3. Every MPI process executes the same piece of input synchronously.
 4. Get outputs from each process and print feedbacks on the screen.
 
-> {octicon}`alert;1em;sd-text-danger;` Changes is kept and maintained in user's inline [`script`](../libyt-api/yt_initialize.md#yt-param-libyt)'s namespace, and it will be brought to the following round of in situ analysis.
+> {octicon}`alert;1em;sd-text-danger;` Changes is kept and maintained in user's inline [`script`](../../libyt-api/yt_initialize.md#yt_param_libyt)'s namespace, and it will be brought to the following round of in situ analysis.
 
 #### Auto-Completion
 
@@ -88,7 +88,7 @@ Use `TAB` key to do auto-completion.
 
 This is the same as traditional Jupyter Notebook UI. Be careful when sending kernel related instructions (ex: shutdown/interrupt/restart a kernel), since the kernel is managed by libyt API. 
 
-> {octicon}`alert;1em;sd-text-danger;` If the notebook is connected to libyt kernel, restarting only exits the kernel, and libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt-run-jupyterkernel) returns. It won't restart another kernel by itself.
+> {octicon}`alert;1em;sd-text-danger;` If the notebook is connected to libyt kernel, restarting only exits the kernel, and libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt_run_jupyterkernel) returns. It won't restart another kernel by itself.
 
 ### How to Exit
 

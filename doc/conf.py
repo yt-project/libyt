@@ -32,7 +32,10 @@ myst_enable_extensions = [
     "colon_fence",
     "deflist"
 ]
-suppress_warnings = ["myst.header"]
+suppress_warnings = [
+    "myst.header"
+]
+myst_heading_anchors= 6
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

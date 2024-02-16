@@ -15,7 +15,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
   - Usage: Grid left and right edge in code units.
 - `long id` (Default=`LNG_UNDEFINED`)
   - Usage: Grid global id.
-  - Valid Value: It should be contiguous starting from [`index_offset`](./yt_set_parameters.md#yt-param-yt).
+  - Valid Value: It should be contiguous starting from [`index_offset`](./yt_set_parameters.md#yt_param_yt).
 - `long parent_id` (Default=`LNG_UNDEFINED`)
   - Usage: Parent grid id.
   - Valide Value:
@@ -30,14 +30,14 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
 
 ### Particle Counts
 - `long* par_count_list` (initialized by `libyt`)
-  - Usage: Number of particles in each particle type located in this grid. This `long` array has length equals to number of particle types. The particle order should be the same as the input in [`par_type_list`](./yt_set_parameters.md#yt-param-yt).
+  - Usage: Number of particles in each particle type located in this grid. This `long` array has length equals to number of particle types. The particle order should be the same as the input in [`par_type_list`](./yt_set_parameters.md#yt_param_yt).
   - Valid Value: Should be greater than or equal to `0`.
 
 ### Field Data and Particle Data
 - `yt_data* field_data` (initialized by `libyt`)
   - Usage: Store all the field data under this grid. This is a `yt_data` array with length equals to number of fields.
 - `yt_data** particle_data` (initialized by `libyt`)
-  - Usage: Store all the particle data under this grid. Namely, `particle_data[0][1]` contains particle type (`particle_list[0].par_type`) attribute (`particle_list[0].attr_list[1]`) data, where `particle_list` is [`yt_particle`](./yt_get_particlesptr.md#yt-particle) array set through [`yt_get_ParticlesPtr`](./yt_get_particlesptr.md#yt-get-particlesptr).
+  - Usage: Store all the particle data under this grid. Namely, `particle_data[0][1]` contains particle type (`particle_list[0].par_type`) attribute (`particle_list[0].attr_list[1]`) data, where `particle_list` is [`yt_particle`](./yt_get_particlesptr.md#yt_particle) array set through [`yt_get_ParticlesPtr`](./yt_get_particlesptr.md#yt_get_particlesptr).
 
 ### `yt_data`
   - Usage: a struct used for wrapping existing data pointers.
@@ -45,7 +45,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
     - `void* data_ptr`: Data pointer.
     - `int data_dimensions[3]`: Dimension of `data_ptr`, which is the actual dimension of this pointer. If `data_ptr` is a 1-dim array, set the last two elements to 0. (This only happens in particle data, and we aren't rely on this value to wrap the data.)
     - `yt_dtype data_dtype`: Data type of `data_ptr`. We only need to set `data_dtype` when this grid's data type is different from the one set in fields'.
-      - Valid Value: [`yt_dtype`](./data-type.md#yt-dtype)
+      - Valid Value: [`yt_dtype`](./data-type.md#yt_dtype)
 
 > {octicon}`info;1em;sd-text-info;` We should always fill in `data_dimensions`, if we want to wrap a data in memory that is not cell-centered.
 

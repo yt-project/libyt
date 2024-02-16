@@ -1,7 +1,7 @@
 # Example -- Connecting to Kernel on HPC Cluster
 
 ## Submitting Jobs to Computing Node
-1. Use libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt-run-jupyterkernel) in simulation and compile:
+1. Use libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt_run_jupyterkernel) in simulation and compile:
    ```c++
    if (yt_run_JupyterKernel("LIBYT_STOP", true) != YT_SUCCESS) {
        // some error message
@@ -43,7 +43,7 @@ Please go through [Login Node](#login-node) before going through [Local Laptop](
 
 ### Login Node
 
-1. Complete [Starting Jupyter Notebook / JupyterLab -- Step 1, 2, and 3](./jupyter-notebook-access.md#starting-jupyter-notebook-jupyterlab).
+1. Complete [Starting Jupyter Notebook / JupyterLab -- Step 1, 2, and 3](./jupyter-notebook-access.md#starting-jupyter-notebookjupyterlab).
 2. Launch Jupyter Notebook / JupyterLab in no-browser mode with port `XXXX` and allowing access from other IP address (`--ip="0.0.0.0"`):
    ```bash
    jupyter notebook --no-browser --port=XXXX --ip="0.0.0.0"
@@ -74,4 +74,4 @@ Please go through [Login Node](#login-node) before going through [Local Laptop](
    - `YYYY` is the port you want to bind to on local laptop.
 3. Leave the terminal open. (It's normal if it doesn't print anything after connection.)
 4. Copy and paste the link from [Login Node -- Step 3](#login-node) and change `XXXX` to `YYYY` in browser.
-5. Click "Libyt" kernel and connect to libyt kernel launched by libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt-run-jupyterkernel).
+5. Click "Libyt" kernel and connect to libyt kernel launched by libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt_run_jupyterkernel).

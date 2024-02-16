@@ -11,10 +11,10 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
 
 ### `yt_particle`
 - `const char* par_type` (set by `libyt`)
-  - Usage: Name of the particle type. `libyt` only copies the pointer from [`par_type_list`](./yt_set_parameters.md#yt-param-yt)'s data member `par_type` to this variable and does not make a hard copy. You don't need to assign it again.
+  - Usage: Name of the particle type. `libyt` only copies the pointer from [`par_type_list`](./yt_set_parameters.md#yt_param_yt)'s data member `par_type` to this variable and does not make a hard copy. You don't need to assign it again.
   > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `par_type` should cover in situ analysis process. `libyt` only borrows this pointer and does not make a hard copy.
 - `int num_attr` (set by `libyt`)
-  - Usage: Number of attributes this particle type has. `libyt` will assign your input [`par_type_list`](./yt_set_parameters.md#yt-param-yt)'s data member `num_attr` to this variable. You may skip this.
+  - Usage: Number of attributes this particle type has. `libyt` will assign your input [`par_type_list`](./yt_set_parameters.md#yt_param_yt)'s data member `num_attr` to this variable. You may skip this.
 - `yt_attribute* attr_list` (initialized by `libyt`)
   - Usage: Attribute list of this particle. This is a `yt_attribute` array with length `num_attr`.
   - Data member in `yt_attribute`:
@@ -23,25 +23,25 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
       > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `attr_name` should cover in situ analysis process. `libyt` only borrows this variable and does not make a copy.
     - `yt_dtype attr_dtype` (Default=`YT_DOUBLE`)
       - Usage: Attribute’s data type.
-      - Valid Value:  [`yt_dtype`](./data-type.md#yt-dtype)
+      - Valid Value:  [`yt_dtype`](./data-type.md#yt_dtype)
     - `const char* attr_unit` (Default=`""`)
       - Usage: Unit of the attribute, using `yt` unit system.
-      > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `attr_unit` should cover [`yt_commit`](./yt_commit.md#yt-commit).
+      > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `attr_unit` should cover [`yt_commit`](./yt_commit.md#yt_commit).
     - `int num_attr_name_alias` (Default=`0`)
       - Usage: Number of name aliases.
     - `const char **attr_name_alias` (Default=`NULL`)
       - Usage: A list of name aliases.
-      > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `attr_name_alias` should cover [`yt_commit`](./yt_commit.md#yt-commit).
+      > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `attr_name_alias` should cover [`yt_commit`](./yt_commit.md#yt_commit).
     - `const char *attr_display_name` (Default=`NULL`)
       - Usage: Display name on the output figure. If it is not set, then it will use `attr_name` instead.
-      > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `attr_display_name` should cover [`yt_commit`](./yt_commit.md#yt-commit).
+      > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `attr_display_name` should cover [`yt_commit`](./yt_commit.md#yt_commit).
 - `const char *coor_x, *coor_y, *coor_z` (Default=`NULL`)
   - Usage: Attribute name representing coordinate or position x, y, and z.
   > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `coor_x`, `coor_y`, `coor_z` should cover the in situ analysis process. `libyt` only borrows these names and does not make a copy.
 - `void (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*)` (Default=`NULL`)
   - Usage: Function pointer to get or generate particle’s attribute.
 
-> {octicon}`info;1em;sd-text-info;` `libyt` borrows the full field and particle information class (`class XXXFieldInfo`) from [`frontend`](./yt_set_parameters.md#yt-param-yt). It is OK not to set a particle's `attr_unit`, `num_attr_name_alias`, `attr_name_alias`, `attr_display_name`, if this `attr_name` is already inside your frontend.
+> {octicon}`info;1em;sd-text-info;` `libyt` borrows the full field and particle information class (`class XXXFieldInfo`) from [`frontend`](./yt_set_parameters.md#yt_param_yt). It is OK not to set a particle's `attr_unit`, `num_attr_name_alias`, `attr_name_alias`, `attr_display_name`, if this `attr_name` is already inside your frontend.
 > If you are adding a totally new particle attribute, do add them. `libyt` will add these new attributes information alongside with your original one.
 > 
 > Refer to [Naming and Field Information](../in-situ-python-analysis/using-yt.md#naming-and-field-information) for how particle/attribute names and yt fields are linked and reused.
