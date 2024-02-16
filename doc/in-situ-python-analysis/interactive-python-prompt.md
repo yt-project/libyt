@@ -2,11 +2,11 @@
 
 ## Requirements
 
-- Compile `libyt` in [**interactive mode**]({% link HowToInstall.md %}#dinteractive-mode).
+- Compile `libyt` in [**interactive mode**](../how-to-install.md#dinteractive-mode).
 - Call libyt API [`yt_run_InteractiveMode`]({% link libytAPI/ActivateInteractiveMode.md %}#activate-interactive-mode).
 
 > {octicon}`info;1em;sd-text-info;` Interactive mode only works on local machine or submit the job to HPC platforms through interactive queue like `qsub -I`.
-> The reason is that the prompt is exposed through the terminal. Use [Reloading Script]({% link InSituPythonAnalysis/ReloadingScript.md %}#reloading-script) or [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access) to avoid this.
+> The reason is that the prompt is exposed through the terminal. Use [Reloading Script](./reloading-script.md#reloading-script) or [Jupyter Notebook Access](./jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access) to avoid this.
 
 ## Using Interactive Python Prompt
 
@@ -17,7 +17,7 @@ At the start of interactive mode, `libyt` prints the [status board](./libyt-defi
 ```
 >>> 
 ```
-It can run any Python statements or [**libyt defined commands**]({% link InSituPythonAnalysis/libytCommand.md %}#libyt-defined-commands) here, including importing Python modules.
+It can run any Python statements or [**libyt defined commands**](./libyt-defined-command.md#libyt-defined-commands) here, including importing Python modules.
 This is like using normal Python prompt, except that there are functions, objects, and simulation data already defined in it.
 These statements run in inline script's namespace, and will update and make changes to it. 
 
@@ -34,12 +34,12 @@ These statements run in inline script's namespace, and will update and make chan
 > {octicon}`alert;1em;sd-text-danger;` Changes is kept and maintain in user's inline script's namespace in situ analysis in the following round.
 
 ### Exit Interactive Python Prompt
-Use [`%libyt exit`]({% link InSituPythonAnalysis/libytCommand.md %}#exit) to exit the prompt.
+Use [`%libyt exit`](./libyt-defined-command.md#exit) to exit the prompt.
 Then it will return back to the simulation process.
 
 ## Known Limitations
 - Cannot use arrow keys or `Crtl+D` in interactive mode.
-- See [Limitations in MPI Related Python Tasks]({% link InSituPythonAnalysis/Limitations.md %}#limitations-in-mpi-related-python-tasks).
+- See [Limitations in MPI Related Python Tasks](./limitation.md#limitations-in-mpi-related-python-tasks).
 
 ## FAQs
 
