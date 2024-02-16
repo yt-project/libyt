@@ -57,9 +57,9 @@ Once the root process makes sure the input syntax is complete and is a valid Pyt
 it then broadcasts the statement to other MPI processes, and all the MPI processes run the Python statement together. 
 The changes made will be brought to the following round of analysis.
 
-[^1]: MPI for Python provides Python bindings for the Message Passing Interface (MPI) standard.
+[^1]: MPI for Python provides Python bindings for the Message Passing Interface (MPI) standard. ([https://mpi4py.readthedocs.io/en/stable/](https://mpi4py.readthedocs.io/en/stable/))
 
-[^2]: `yt` is an open-source, permissively-licensed python package for analyzing and visualizing volumetric data.
+[^2]: `yt` is an open-source, permissively-licensed python package for analyzing and visualizing volumetric data. ([https://yt-project.org/](https://yt-project.org/))
 
 ## Connecting Data in Simulation to Python
 
