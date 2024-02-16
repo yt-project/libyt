@@ -114,6 +114,12 @@ The user-defined C function can be anything, as long as it has the correct proto
 :scale: 110%
 ```
 
+```{image} _static/svg/PythonAskData-dark.svg
+:align: center
+:class: only-dark
+:scale: 110%
+```
+
 ## Data Redistribution Process
 
 Each MPI process contains one simulation code and one Python instance.
