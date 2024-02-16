@@ -82,21 +82,19 @@ Which means every MPI process should run `save()`, and we have to move `save()` 
 ## Distinguish libyt Fields and yt Fields
 
 ### libyt Fields and yt Fields
-- **libyt fields** are fields loaded by `libyt`. They are fields defined inside [`yt_get_FieldsPtr`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_get_fieldsptr). It could be actual simulation field data, or data generated through [derived field function]({% link libytAPI/FieldInfo/DerivedField.md %}#derived-field-function).
+- **libyt fields** are fields loaded by `libyt`. They are fields defined inside [`yt_get_FieldsPtr`]({% link libytAPI/FieldInfo/SetFieldsInformation.md %}#yt_get_fieldsptr) and [`yt_get_ParticlesPtr`]({% link libytAPI/SetParticlesInformation.md %}#yt_get_particlesptr).
+  Specify [`<frontend_name>`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt) and use `("<frontend_name>", "<field_name>")` to call libyt field.
+- **yt fields** are fields defined in field information class (class `XXXFieldInfo`) in a yt frontend and yt built-in derived fields. `XXX` is frontend name defined in `frontend` in [`yt_param_yt`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt).
     
-    ```python
-    ds = yt_libyt.libytDataset()
-    ds.field_list  # prints a list of libyt fields
-    ```
-  
-- **yt fields** are fields defined in field information class (class `XXXFieldInfo`) in yt frontend, or yt built-in derived fields. `XXX` is frontend name defined in `frontend` in [`yt_param_yt`]({% link libytAPI/SetYTParameter.md %}#yt_param_yt).
+> :information_source: We can use both **libyt fields** and **yt fields** in in situ analysis Python script. All of them are two-component tuple, specify the whole tuple when using it in Python script. 
 
-    ```python
-    ds = yt_libyt.libytDataset()
-    ds.derived_field_list  # prints a list of yt derived field
-    ```
+As a side note, we can use yt API to look up fields:
+```python
+>>> ds = yt_libyt.libytDataset()
+>>> ds.field_list          # prints a list of libyt fields and field information class in a frontend
+>>> ds.derived_field_list  # prints a list of yt derived field
+```
 
-> :information_source: We can use both **libyt fields** and **yt fields** in in situ analysis Python script. 
 
 ### Naming and Field Information
 libyt inherits field information (ex: units, name aliases) defined in yt frontend, and it can access yt built-in derived fields.

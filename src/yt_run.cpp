@@ -1,6 +1,5 @@
 #include <stdarg.h>
 
-#include <iostream>
 #include <string>
 
 #include "LibytProcessControl.h"
@@ -34,7 +33,7 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // always run m_Run = -1 function, and set 1.
     // always run unknown function and let Python generates error.
     int func_index = g_func_status_list.get_func_index(function_name);
@@ -91,7 +90,7 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
     va_end(Args);
 
     if (unable_to_wrapped) {
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
         // set error msg in interactive mode before returning YT_FAIL.
         std::string str_set_error =
             std::string("libyt.interactive_mode[\"func_err_msg\"][\"") + std::string(function_name) +
@@ -113,32 +112,32 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
 
     log_info("Performing YT inline analysis %s ...\n", str_function.c_str());
 
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     std::string str_CallYT_TryExcept;
     str_CallYT_TryExcept = std::string("try:\n") + std::string("    ") + str_CallYT + std::string("\n") +
                            std::string("except Exception as e:\n"
                                        "    libyt.interactive_mode[\"func_err_msg\"][\"") +
                            std::string(function_name) + std::string("\"] = traceback.format_exc()\n");
-#endif  // #ifdef INTERACTIVE_MODE
+#endif
 
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     if (PyRun_SimpleString(str_CallYT_TryExcept.c_str()) != 0)
 #else
     if (PyRun_SimpleString(str_CallYT.c_str()) != 0)
-#endif  // #ifdef INTERACTIVE_MODE
+#endif
     {
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
         g_func_status_list[func_index].set_status(0);
 #endif
         YT_ABORT("Unexpected error occurred while executing %s in script's namespace.\n", str_function.c_str());
     }
 
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // update status in g_func_status_list
     g_func_status_list[func_index].get_status();
 #endif
 
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     log_info("Performing YT inline analysis %s ... %s.\n", str_function.c_str(),
              (g_func_status_list[func_index].get_status() == 1) ? "done" : "failed");
 #else
@@ -170,7 +169,7 @@ int yt_run_Function(const char* function_name) {
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // always run m_Run = -1 function, and set 1.
     // always run unknown function and let Python generates error.
     int func_index = g_func_status_list.get_func_index(function_name);
@@ -199,32 +198,32 @@ int yt_run_Function(const char* function_name) {
 
     log_info("Performing YT inline analysis %s ...\n", str_function.c_str());
 
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     std::string str_CallYT_TryExcept;
     str_CallYT_TryExcept = std::string("try:\n") + std::string("    ") + str_CallYT + std::string("\n") +
                            std::string("except Exception as e:\n"
                                        "    libyt.interactive_mode[\"func_err_msg\"][\"") +
                            std::string(function_name) + std::string("\"] = traceback.format_exc()\n");
-#endif  // #ifdef INTERACTIVE_MODE
+#endif
 
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     if (PyRun_SimpleString(str_CallYT_TryExcept.c_str()) != 0)
 #else
     if (PyRun_SimpleString(str_CallYT.c_str()) != 0)
-#endif  // #ifdef INTERACTIVE_MODE
+#endif
     {
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
         g_func_status_list[func_index].set_status(0);
 #endif
         YT_ABORT("Unexpected error occurred while executing %s in script's namespace.\n", str_function.c_str());
     }
 
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // update status in g_func_status_list
     g_func_status_list[func_index].get_status();
 #endif
 
-#ifdef INTERACTIVE_MODE
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     log_info("Performing YT inline analysis %s ... %s.\n", str_function.c_str(),
              (g_func_status_list[func_index].get_status() == 1) ? "done" : "failed");
 #else

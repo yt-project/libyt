@@ -2,7 +2,7 @@
 layout: default
 title: yt Data Type
 parent: libyt API
-nav_order: 14
+nav_order: 15
 ---
 # yt Data Type
 {: .no_toc }

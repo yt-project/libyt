@@ -1,4 +1,4 @@
-#if defined(INTERACTIVE_MODE) && defined(JUPYTER_KERNEL)
+#ifdef JUPYTER_KERNEL
 #include "libyt_kernel.h"
 
 #include <string>
@@ -357,6 +357,8 @@ void LibytKernel::shutdown_request_impl() {
         Py_DECREF(m_py_jedi_interpreter);
     }
 
+    g_libyt_python_shell.clear_prompt_history();
+
     log_info("Shutting down libyt kernel ...\n");
 }
 
@@ -474,4 +476,4 @@ static std::array<int, 2> find_lineno_columno(const std::string& code, int pos) 
     return {lineno, columno};
 }
 
-#endif
+#endif  // #ifdef JUPYTER_KERNEL
