@@ -26,6 +26,12 @@ When doing in situ analysis, every simulation process pauses, and a total of *N*
 :scale: 80%
 ```
 
+```{image} _static/svg/Overview-dark.svg
+:align: center
+:class: only-dark
+:scale: 80%
+```
+
 Simulations use `libyt` API to pass in data and run Python codes during runtime,
 and Python instances use `libyt` Python module to request data directly from simulations
 using C-extension method and access Python objects that contain simulation information. 
