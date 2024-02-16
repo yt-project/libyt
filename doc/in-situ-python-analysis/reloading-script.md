@@ -18,7 +18,13 @@ int yt_run_ReloadScript(const char* flag_file, const char* reload, const char* s
 ```{image} ../_static/svg/ReloadingScript-light.svg
 :align: center
 :class: only-light
-:scale: 125%
+:scale: 100%
+```
+
+```{image} ../_static/svg/ReloadingScript-dark.svg
+:align: center
+:class: only-dark
+:scale: 100%
 ```
 
 **A concrete example**:
