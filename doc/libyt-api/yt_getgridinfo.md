@@ -3,7 +3,7 @@
 > {octicon}`info;1em;sd-text-info;` These APIs simply look up hierarchy array constructed by `libyt` or look up data pointer that is 
 > passed in by user and wrapped by `libyt`.
 
-> {octicon}`alert;1em;sd-text-danger;` These APIs are only available after [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit) is called.
+> {octicon}`alert;1em;sd-text-danger;` These APIs are only available after [`yt_commit`](./yt_commit.md#yt-commit) is called.
 
 ## `yt_getGridInfo_Dimensions`
 ```cpp

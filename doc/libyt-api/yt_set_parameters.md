@@ -4,7 +4,7 @@
 ```cpp
 int yt_set_Parameters( yt_param_yt *param_yt )
 ```
-- Usage: Set `yt` parameters, number of fields, number of particle types and how many attributes do each of them have, and number of local grids exist on this MPI rank. 
+- Usage: Set `yt` parameters, and other parameters like number of fields, number of particle types, number of their attributes, and number of local grids exist on this MPI rank. 
 - Notes: 
   - We will reset all cosmological parameters (e.g. `current_redshift`, `omega_lambda`, `omega_matter`, `hubble_constant`) to `0` if `cosmological_simulation` is `0`.
 - Return: `YT_SUCCESS` or `YT_FAIL`
@@ -12,7 +12,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
 ### `yt_param_yt`
 - `const char* frontend` (Default=`NULL`)
   - Usage: Field information of the yt `frontend` to borrow from. This should be `yt` supported frontend.
-  > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `frontend` covers [`yt_commit`]({% link libytAPI/CommitYourSettings.md %}#yt_commit) if you set [`check_data`]({% link libytAPI/Initialize.md %}#yt_param_libyt) to `true` when initializing `libyt`.
+  > {octicon}`pencil;1em;sd-text-warning;` Make sure the lifetime of `frontend` covers [`yt_commit`](./yt_commit.md#yt-commit) if you set [`check_data`](./yt_initialize.md#yt-param-libyt) to `true` when initializing `libyt`.
 - `const char* fig_basename` (Default=`"Fig"`)
   - Usage: Base name of the output figures. Figure name will also be followed by counter number and `yt` functionality name.
 - `double domain_left_edge[3], domain_right_edge[3]` (Default=`DBL_UNDEFINED`)
@@ -47,7 +47,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
     - `1`: Yes
 - `int dimensionality` (Default=`INT_UNDEFINED`)
   - Usage: Dimensionality of the simulation. 
-  > {octicon}`alert;1em;sd-text-danger;` We only support 3 for now.
+  > {octicon}`alert;1em;sd-text-danger;` `libyt` only support 3 for now.
 - `int domain_dimensions[3]` (Default=`INT_UNDEFINED`)
   - Usage: Number of cells along each dimension on the root AMR level.
 - `int refine_by` (Default=`INT_UNDEFINED`)
@@ -66,7 +66,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
   - Usage: Particle type list. This should be a `yt_par_type` array.
   - Data member in `yt_par_type`:
     - `const char* par_type`: Name of the particle type.
-    > {octicon}`pencil;1em;sd-text-warning;` Please make sure the lifetime of `par_type` covers the whole in situ process in `libyt`. `libyt` only borrows this name and does not make a copy.
+      > {octicon}`pencil;1em;sd-text-warning;` Make sure the lifetime of `par_type` covers the whole in situ process in `libyt`. `libyt` only borrows this name and does not make a copy.
     - `int num_attr`: Number of attributes this particle type has. 
 
 ## Example

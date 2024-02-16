@@ -2,7 +2,7 @@
 
 ## How libyt Loads Inline Python script and Runs Python Functions?
 The inline Python script and the simulation executable should be placed in the same location.
-`libyt` imports inline Python script only once at initialization stage when calling [`yt_initialize`]({% link libytAPI/Initialize.md %}#yt_initialize). 
+`libyt` imports inline Python script only once at initialization stage when calling [`yt_initialize`](../libyt-api/yt_initialize.md#yt-initialize). 
 
 Each MPI process runs the same Python script. The imported script will also serve as the namespace. 
 All of our in situ Python analysis are done inside this namespace. 
