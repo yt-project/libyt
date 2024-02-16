@@ -1,16 +1,16 @@
 # Example -- Connecting to Kernel on HPC Cluster
 
 ## Submitting Jobs to Computing Node
-1. Use libyt API [`yt_run_JupyterKernel`]({% link libytAPI/ActivateJupyterKernel.md %}#yt_run_jupyterkernel) in simulation and compile:
+1. Use libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt-run-jupyterkernel) in simulation and compile:
    ```c++
    if (yt_run_JupyterKernel("LIBYT_STOP", true) != YT_SUCCESS) {
        // some error message
    }
    ```
-   It will launch libyt Jupyter kernel once it detects `LIBYT_STOP`. 
-   Remember to make `libyt` to use user provided connection file by setting `true`.
+   It will launch libyt kernel once it detects `LIBYT_STOP`. 
+   Remember to make `libyt` to use user-provided connection file by setting `true`.
 2. Submit the job to HPC cluster, your simulation should be running by now.
-3. Create connection file `libyt_kernel_connection.json` in the same folder where simulation executable is, for example:
+3. Create connection file `libyt_kernel_connection.json` in the same folder where simulation executable is. An example of `libyt_kernel_connection.json`:
    ```json
    {
      "transport": "tcp",  
@@ -28,14 +28,14 @@
      ```bash
      cat /etc/hosts
      ```
-   - Ports should be unused.
-4. Wait for connection from Jupyter Notebook / JupyterLab (See below [Connecting to Kernel](#connecting-to-kernel))
-5. Shutdown the kernel. ([How to Exit]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#how-to-exit))
+   - Ports should be unused. If the ports are in use, then `libyt` will block and wait for you to provide a new one.
+4. Wait for incoming connection from Jupyter Notebook / JupyterLab (See below [Connecting to Kernel](#connecting-to-kernel))
+5. Shutdown the kernel. ([How to Exit](./jupyter-notebook-access.md#how-to-exit))
 
 ## Connecting to Kernel
 
 We will start a no-browser Jupyter Notebook / JupyterLab on login node. Then we use SSH tunneling (SSH port forwarding) to connect to this no-browser notebook.
-Finally, we can open the web browser on our local laptop and connect to libyt Jupyter kernel.
+Finally, we can open the web browser on our local laptop and connect to libyt kernel.
 
 Please go through [Login Node](#login-node) before going through [Local Laptop](#local-laptop) Section.
 
@@ -43,13 +43,13 @@ Please go through [Login Node](#login-node) before going through [Local Laptop](
 
 ### Login Node
 
-1. Complete [Starting Jupyter Notebook / JupyterLab -- Step 1, 2, and 3]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#starting-jupyter-notebook--jupyterlab).
-2. Launch Jupyter Notebook / JupyterLab in no-browser mode with port `XXXX` and allowing access from other IP address:
+1. Complete [Starting Jupyter Notebook / JupyterLab -- Step 1, 2, and 3](./jupyter-notebook-access.md#starting-jupyter-notebook-jupyterlab).
+2. Launch Jupyter Notebook / JupyterLab in no-browser mode with port `XXXX` and allowing access from other IP address (`--ip="0.0.0.0"`):
    ```bash
-   jupyter-lab --no-browser --port=XXXX --ip="0.0.0.0"
    jupyter notebook --no-browser --port=XXXX --ip="0.0.0.0"
+   jupyter-lab --no-browser --port=XXXX --ip="0.0.0.0"
    ```
-   Change `XXXX` to some unused port, this is just a placeholder.
+   Change `XXXX` to some unused port on login node, this is just a placeholder.
 3. You should see something like:
    ```text
    http://127.0.0.1:XXXX/lab?token=<token>
@@ -62,7 +62,7 @@ Please go through [Login Node](#login-node) before going through [Local Laptop](
    cat /etc/hosts
    ```
    Here, we assume login node's internal ip is `192.168.0.150`.
-2. After [login node](#login-node) has started a no-browser jupyter notebook, use SSH port forwarding and connect to the Jupyter Notebook / JupyterLab server on the login node.
+2. After [Login Node](#login-node) has started a no-browser jupyter notebook, use SSH port forwarding and connect to the Jupyter Notebook / JupyterLab server on the login node.
    ```bash
    ssh -p <host_port> -N <user>@<host> -L localhost:YYYY:192.168.0.150:XXXX
    ```
@@ -71,7 +71,7 @@ Please go through [Login Node](#login-node) before going through [Local Laptop](
      ssh -p <host_port> <user>@<host>
      ```
      If there is no `<host_port>`, simply remove `-p <host_port>`.
-   - `YYYY` is the port you want to bind to on local machine.
+   - `YYYY` is the port you want to bind to on local laptop.
 3. Leave the terminal open. (It's normal if it doesn't print anything after connection.)
 4. Copy and paste the link from [Login Node -- Step 3](#login-node) and change `XXXX` to `YYYY` in browser.
-5. Click "Libyt" kernel and connect to libyt Jupyter kernel launched by libyt API [`yt_run_JupyterKernel`]({% link libytAPI/ActivateJupyterKernel.md %}#yt_run_jupyterkernel).
+5. Click "Libyt" kernel and connect to libyt kernel launched by libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt-run-jupyterkernel).
