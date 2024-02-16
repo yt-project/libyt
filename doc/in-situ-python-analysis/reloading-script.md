@@ -15,7 +15,11 @@ int yt_run_ReloadScript(const char* flag_file, const char* reload, const char* s
 ```
 **Below is the workflow**:
 
-![](../_static/svg/ReloadingScript-light.svg)
+```{image} ../_static/svg/ReloadingScript-light.svg
+:align: center
+:class: only-light
+:scale: 125%
+```
 
 **A concrete example**:
 ```c++
