@@ -15,7 +15,7 @@ int yt_run_ReloadScript(const char* flag_file, const char* reload, const char* s
 ```
 **Below is the workflow**:
 
-![](../_static/svg/ReloadingScript.svg)
+![](../_static/svg/ReloadingScript-light.svg)
 
 **A concrete example**:
 ```c++
