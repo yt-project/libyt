@@ -11,19 +11,19 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
 
 ### `yt_particle`
 - `const char* par_type` (set by `libyt`)
-  - Usage: Name of the particle type. `libyt` only copies the pointer from [`par_type_list`](./yt_set_parameters.md#yt-param-yt)'s data member `par_type` to this variable and does not make a hard copy. You don't need to assign it again. Refer to [Naming and Field Information]({% link InSituPythonAnalysis/UsingYT.md %}#naming-and-field-information) for how particle/attribute names and yt fields are linked and reused.
-    > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `par_type` should cover in situ analysis process. `libyt` only borrows this pointer and does not make a hard copy.
+  - Usage: Name of the particle type. `libyt` only copies the pointer from [`par_type_list`](./yt_set_parameters.md#yt-param-yt)'s data member `par_type` to this variable and does not make a hard copy. You don't need to assign it again.
+  > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `par_type` should cover in situ analysis process. `libyt` only borrows this pointer and does not make a hard copy.
 - `int num_attr` (set by `libyt`)
-  - Usage: Number of attributes does this particle type has. `libyt` will assign your input [`par_type_list`](./yt_set_parameters.md#yt-param-yt)'s data member `num_attr` to this variable. You may skip this.
+  - Usage: Number of attributes this particle type has. `libyt` will assign your input [`par_type_list`](./yt_set_parameters.md#yt-param-yt)'s data member `num_attr` to this variable. You may skip this.
 - `yt_attribute* attr_list` (initialized by `libyt`)
   - Usage: Attribute list of this particle. This is a `yt_attribute` array with length `num_attr`.
   - Data member in `yt_attribute`:
     - `const char* attr_name` (Default=`NULL`)
-      - Usage: Attribute name. Refer to [Naming and Field Information]({% link InSituPythonAnalysis/UsingYT.md %}#naming-and-field-information) for how particle/attribute names and yt fields are linked and reused.
+      - Usage: Attribute name. 
       > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `attr_name` should cover in situ analysis process. `libyt` only borrows this variable and does not make a copy.
     - `yt_dtype attr_dtype` (Default=`YT_DOUBLE`)
       - Usage: Attribute’s data type.
-      - Valid Value:  [`yt_dtype`]({% link libytAPI/DataType.md %}#yt_dtype)
+      - Valid Value:  [`yt_dtype`](./data-type.md#yt-dtype)
     - `const char* attr_unit` (Default=`""`)
       - Usage: Unit of the attribute, using `yt` unit system.
       > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `attr_unit` should cover [`yt_commit`](./yt_commit.md#yt-commit).
@@ -39,10 +39,12 @@ int yt_get_ParticlesPtr( yt_particle **particle_list );
   - Usage: Attribute name representing coordinate or position x, y, and z.
   > {octicon}`pencil;1em;sd-text-warning;` The lifetime of `coor_x`, `coor_y`, `coor_z` should cover the in situ analysis process. `libyt` only borrows these names and does not make a copy.
 - `void (*get_par_attr) (const int, const long*, const char*, const char*, yt_array*)` (Default=`NULL`)
-  - Usage: Function pointer to get particle’s attribute.
+  - Usage: Function pointer to get or generate particle’s attribute.
 
 > {octicon}`info;1em;sd-text-info;` `libyt` borrows the full field and particle information class (`class XXXFieldInfo`) from [`frontend`](./yt_set_parameters.md#yt-param-yt). It is OK not to set a particle's `attr_unit`, `num_attr_name_alias`, `attr_name_alias`, `attr_display_name`, if this `attr_name` is already inside your frontend.
-> If you are adding a totally new particle attribute, please add them. `libyt` will add these new attributes information alongside with your original one.
+> If you are adding a totally new particle attribute, do add them. `libyt` will add these new attributes information alongside with your original one.
+> 
+> Refer to [Naming and Field Information](../in-situ-python-analysis/using-yt.md#naming-and-field-information) for how particle/attribute names and yt fields are linked and reused.
 
 ## Get Particle Attribute Function
 For each particle type, there should be one get particle attribute function `get_par_attr`. This function is able to write particle attribute to an array, just through knowing the grid id, particle type, and attribute name.
@@ -57,6 +59,7 @@ void GetAttr(const int list_len, const long *list_gid, const char *par_type, con
   - `const char *par_type`: target particle type to prepare.
   - `const char *attr_name`: target attribute to prepare.
   - `yt_array *data_array`: write generated particle data to the pointer in this array correspondingly. Fill in particle attribute inside `yt_array` array using the same order as in `list_gid`.
+> {octicon}`alert;1em;sd-text-danger;` We should always write our particle attribute data in the same order, since we get attributes separately.
 
 ### `yt_array`
 - Usage: a struct used in derived function and get particle attribute function.
@@ -65,7 +68,7 @@ void GetAttr(const int list_len, const long *list_gid, const char *par_type, con
   - `long data_length`: length of `data_ptr`.
   - `void *data_ptr`: data pointer where you should write in particle data of this grid.
 
-> {octicon}`alert;1em;sd-text-danger;` We should always write our particle attribute data in the same order, since we get attributes separately.
+
 
 ## Example
 `par_io_get_par_attr` function gets particle type `io` attributes. This particle type has position at the center of the grid it belongs to with value grid level (int).
