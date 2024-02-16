@@ -4,14 +4,14 @@
 ```cpp
 int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file);
 ```
-- Usage: Activate Jupyter kernel if file `flag_file_name` is detected. `libyt` uses user provided connection file if `use_connection_file` is `true`. If `false`, it will pick and bind to ports and generate the connection file itself. The connection file name must be `libyt_kernel_connection.json`.
+- Usage: Activate Jupyter kernel if file `flag_file_name` is detected. `libyt` uses user-provided connection file if `use_connection_file` is `true`. If `false`, it will pick and bind to ports and generate the connection file itself. The connection file name must be `libyt_kernel_connection.json`.
 - Return:
     - `YT_SUCCESS`
     - `YT_FAIL`: When `libyt` is not compiled with `-DJUPYTER_KERNEL=ON`, it returns `YT_FAIL`.
 
-> {octicon}`info;1em;sd-text-info;` Must compile `libyt` with [`-DJUPYTER_KERNEL=ON`]({% link HowToInstall.md %}#djupyter-kernel).
+> {octicon}`info;1em;sd-text-info;` Must compile `libyt` with [`-DJUPYTER_KERNEL=ON`](../how-to-install.md#djupyter-kernel).
 
-> {octicon}`info;1em;sd-text-info;` The API only launches a Jupyter kernel that exposes simulation data. For how to connect to the kernel, please go to [Jupyter Notebook Access]({% link InSituPythonAnalysis/JupyterNotebookAccess/JupyterNotebook.md %}#jupyter-notebook-access). 
+> {octicon}`info;1em;sd-text-info;` The API only launches a Jupyter kernel, which is an entry point for Jupyter Notebook / JupyterLab to connect to. For how to connect to the kernel, please go to [Jupyter Notebook Access](../in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access). 
 
 ## Connection File
 The connection file name must be `libyt_kernel_connection.json`. This is the same connection file used in Jupyter but with different file name.
@@ -32,6 +32,8 @@ For example:
   "key": "64e13a6faaf1470eb1f86df565543923"
 }
 ```
+
+> {octicon}`alert;1em;sd-text-danger;` Connection file name must be `libyt_kernel_connection.json`.
 
 ## Example
 This forces `libyt` to use user provided connection file. `libyt` will launch Jupyter kernel when it detects `LIBYT_STOP` file.
