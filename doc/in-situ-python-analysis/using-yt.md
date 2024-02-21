@@ -2,6 +2,7 @@
 
 ## Requirements
 - Python package [`yt`](https://yt-project.org/) and [`yt_libyt`](../how-to-install.md#yt_libyt).
+- If it is for parallel computing in **parallel mode** ([`-DSERIAL_MODE=OFF`](../how-to-install.md#-dserial_mode)), it needs [`mpi4py`](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
 
 ## Use yt for Parallel Computing
 > {octicon}`info;1em;sd-text-info;` `libyt` directly borrows parallel computation feature in `yt` using `mpi4py`. Please refer to [**Parallel Computation With yt**](https://yt-project.org/doc/analyzing/parallel_computation.html#parallel-computation-with-yt).
@@ -19,11 +20,11 @@ For example, the function `yt_inline` plots a density projection plot.
 
 import yt_libyt                   # import libyt's yt frontend
 import yt                         # import yt
-yt.enable_parallelism()           # make yt work in parallelism
+#yt.enable_parallelism()          # make yt works in parallel computing (require mpi4py)
 
 def yt_inline():
     ds = yt_libyt.libytDataset()  # <--> yt.load("Data")
-    proj = yt.ProjectionPlot(ds, "density")
+    proj = yt.ProjectionPlot(ds, "x", ("gas", "density"))
     if yt.is_root():
         proj.save()
 ```
