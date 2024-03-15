@@ -27,10 +27,8 @@ void TimerControl::CreateFile(const char* filename, int rank) {
 
     // Write heading and basic info
     if (m_MPIRank == 0) {
-        file_out << "{\"otherData\": {"
-                 << "\"version\": \"" << LIBYT_MAJOR_VERSION << "." << LIBYT_MINOR_VERSION << "." << LIBYT_MICRO_VERSION
-                 << "\","
-                 << "\"mode\": "
+        file_out << "{\"otherData\": {" << "\"version\": \"" << LIBYT_MAJOR_VERSION << "." << LIBYT_MINOR_VERSION << "."
+                 << LIBYT_MICRO_VERSION << "\"," << "\"mode\": "
 #if defined(INTERACTIVE_MODE)
                  << "\"interactive_mode\""
 #elif defined(JUPYTER_KERNEL)
