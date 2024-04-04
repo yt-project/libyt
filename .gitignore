@@ -3,3 +3,9 @@
 libyt.so
 libyt.so.*
 doc/_site
+doc/_build/
+vendor/cppzmq/
+vendor/nlohmann_json/
+vendor/xeus/
+vendor/xeus-zmq/
+vendor/xtl/
