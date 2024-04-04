@@ -1,3 +1,5 @@
+set(CMAKE_INSTALL_RPATH "${PROJECT_SOURCE_DIR}/vendor/xeus/xeus-build;${PROJECT_SOURCE_DIR}/vendor/xeus-zmq/xeus-zmq-build")
+
 ### libyt COMPILATION ###
 # old tangled libyt stuff combined as a whole (will definitely split to smaller modules in future version)
 add_library(yt SHARED
@@ -58,7 +60,8 @@ set_target_properties(yt PROPERTIES
         SOVERSION ${PROJECT_VERSION_MAJOR}               # soversion (.so.x.y.z)
         PUBLIC_HEADER "${LIBYT_PUBLIC_HEADER}"           # APIs
         POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS}   # build PIC
-        INSTALL_RPATH_USE_LINK_PATH TRUE)                # set rpath
+        INSTALL_RPATH_USE_LINK_PATH TRUE                 # set rpath
+)
 
 ### libyt INSTALLATION RULE ###
 include(GNUInstallDirs)
