@@ -2,7 +2,7 @@ include(FetchContent)
 
 if (JUPYTER_KERNEL)
 
-## get dependency
+## get dependencies ####################################################################################################
 set(FETCHCONTENT_BASE_DIR "${PROJECT_SOURCE_DIR}/vendor/nlohmann_json")
 FetchContent_Declare(
         nlohmann_json
@@ -38,7 +38,7 @@ FetchContent_Declare(
         GIT_TAG 1.3.0
 )
 
-## populate
+## populate ############################################################################################################
 FetchContent_GetProperties(nlohmann_json)
 if (NOT nlohmann_json_POPULATED)
     FetchContent_Populate(nlohmann_json)
@@ -59,12 +59,9 @@ if (NOT xtl_POPULATED)
     add_subdirectory(${xtl_SOURCE_DIR} ${xtl_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif ()
 
-# ref: https://stackoverflow.com/a/35345933
+# redefining install() and export() to make xeus and xeus-zmq work (ref: https://stackoverflow.com/a/35345933)
 if (NOT DEFINED _DISABLE_INSTALLATION)
-    # This variable is responsible for installation disabling.
     set(_DISABLE_INSTALLATION FALSE)
-
-    # Replace install() with conditional installation.
     macro (install)
         if (NOT _DISABLE_INSTALLATION)
             _install(${ARGN})
@@ -74,7 +71,6 @@ endif ()
 
 if (NOT DEFINED _DISABLE_EXPORT)
     set(_DISABLE_EXPORT FALSE)
-
     macro(export)
         if (NOT _DISABLE_EXPORT)
             _export(${ARGN})
@@ -85,17 +81,21 @@ endif ()
 FetchContent_GetProperties(xeus)
 if (NOT xeus_POPULATED)
     FetchContent_Populate(xeus)
+    set(_DISABLE_INSTALLATION_OLD ${_DISABLE_INSTALLATION})
 	set(_DISABLE_INSTALLATION TRUE)
     set(_DISABLE_EXPORT TRUE)
 	add_subdirectory(${xeus_SOURCE_DIR} ${xeus_BINARY_DIR} EXCLUDE_FROM_ALL)
+    set(_DISABLE_INSTALLATION ${_DISABLE_INSTALLATION_OLD})
 endif ()
 
 FetchContent_GetProperties(xeus-zmq)
 if (NOT xeus-zmq_POPULATED)
     FetchContent_Populate(xeus-zmq)
+    set(_DISABLE_INSTALLATION_OLD ${_DISABLE_INSTALLATION})
 	set(_DISABLE_INSTALLATION TRUE)
     set(_DISABLE_EXPORT TRUE)
 	add_subdirectory(${xeus-zmq_SOURCE_DIR} ${xeus-zmq_BINARY_DIR} EXCLUDE_FROM_ALL)
+    set(_DISABLE_INSTALLATION ${_DISABLE_INSTALLATION_OLD})
 endif ()
 
 endif () # if (JUPYTER_KERNEL)
