@@ -26,9 +26,12 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## build static/shared library ##
-option(BUILD_SHARED_LIBS "Building using shared libraries"    ON )
+option(BUILD_SHARED_LIBS "Building using shared libraries"                                                    ON )
 
 ## find dependencies ##
+set(Python_ROOT_DIR ${PYTHON_PATH})
+find_package(Python COMPONENTS Development NumPy REQUIRED)
+
 if (NOT SERIAL_MODE)
     set(MPI_HOME ${MPI_PATH})
     find_package(MPI REQUIRED)
@@ -37,9 +40,6 @@ endif ()
 #if (JUPYTER_KERNEL)
 #    find_package(xeus-zmq 1.0 REQUIRED)
 #endif ()
-
-set(Python_ROOT_DIR ${PYTHON_PATH})
-find_package(Python COMPONENTS Development NumPy REQUIRED)
 
 ## config files ##
 if (JUPYTER_KERNEL)
