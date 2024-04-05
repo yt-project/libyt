@@ -59,8 +59,12 @@ set_target_properties(yt PROPERTIES
         PUBLIC_HEADER "${LIBYT_PUBLIC_HEADER}"           # APIs
         POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS}   # build PIC
         INSTALL_RPATH_USE_LINK_PATH TRUE                 # set rpath
+)
+if (JUPYTER_KERNEL)
+set_target_properties(yt PROPERTIES
         INSTALL_RPATH "${PROJECT_SOURCE_DIR}/vendor/xeus/xeus-build;${PROJECT_SOURCE_DIR}/vendor/xeus-zmq/xeus-zmq-build"
 )
+endif ()
 
 ### libyt INSTALLATION RULE ###
 include(GNUInstallDirs)
