@@ -72,10 +72,17 @@ set_target_properties(yt PROPERTIES
         POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS}   # build PIC
         INSTALL_RPATH_USE_LINK_PATH TRUE                 # set rpath
 )
-if (JUPYTER_KERNEL AND LIBYT_GET_XEUS_ZMQ_BY_VENDOR)
-set_target_properties(yt PROPERTIES
-        INSTALL_RPATH "${PROJECT_SOURCE_DIR}/vendor/xeus/xeus-build;${PROJECT_SOURCE_DIR}/vendor/xeus-zmq/xeus-zmq-build"
-)
+if (JUPYTER_KERNEL)
+    set(LIBYT_VENDOR_RPATH "")
+    if (LIBYT_GET_XEUS_BY_VENDOR)
+        list(APPEND LIBYT_VENDOR_RPATH "${PROJECT_SOURCE_DIR}/vendor/xeus/xeus-build")
+    endif ()
+
+    if (LIBYT_GET_XEUS_ZMQ_BY_VENDOR)
+        list(APPEND LIBYT_VENDOR_RPATH "${PROJECT_SOURCE_DIR}/vendor/xeus-zmq/xeus-zmq-build")
+    endif ()
+
+    set_target_properties(yt PROPERTIES INSTALL_RPATH "${LIBYT_VENDOR_RPATH}")
 endif ()
 
 ### libyt INSTALLATION RULE ###
