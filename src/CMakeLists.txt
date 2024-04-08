@@ -30,11 +30,6 @@ if (JUPYTER_KERNEL)
     # since vendor/CMakeLists.txt has already checked the version requirement or populated xeus-zmq,
     # we don't need to check it again here.
     find_package(xeus-zmq QUIET)
-    if (xeus-zmq_FOUND)
-        set(LIBYT_GET_XEUS_ZMQ_BY_VENDOR OFF)
-    else ()
-        set(LIBYT_GET_XEUS_ZMQ_BY_VENDOR ON)
-    endif ()
 endif ()
 
 # include dir
