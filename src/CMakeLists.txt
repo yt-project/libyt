@@ -37,16 +37,14 @@ target_include_directories(yt PRIVATE
         ${PROJECT_SOURCE_DIR}/include
         $<$<NOT:$<BOOL:${SERIAL_MODE}>>:${MPI_INCLUDE_PATH}>
         ${Python_INCLUDE_DIRS}
-        $<$<AND:$<BOOL:${INTERACTIVE_MODE}>,$<NOT:$<STREQUAL:${READLINE_PATH},>>>:${READLINE_PATH}/include>)
+        $<$<BOOL:${INTERACTIVE_MODE}>:${Readline_INCLUDE_DIR}>)
 
 # link lib
-target_link_directories(yt PRIVATE
-        $<$<AND:$<BOOL:${INTERACTIVE_MODE}>,$<NOT:$<STREQUAL:${READLINE_PATH},>>>:${READLINE_PATH}/lib>)
 target_link_libraries(yt PRIVATE
         $<$<NOT:$<BOOL:${SERIAL_MODE}>>:MPI::MPI_CXX>
         ${Python_LIBRARIES}
         Python::NumPy
-        $<$<BOOL:${INTERACTIVE_MODE}>:readline>
+        $<$<BOOL:${INTERACTIVE_MODE}>:${Readline_LIBRARY}>
         $<$<BOOL:${JUPYTER_KERNEL}>:xeus-zmq>)
 
 # set properties

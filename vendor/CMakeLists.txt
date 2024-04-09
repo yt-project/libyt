@@ -1,5 +1,28 @@
 include(FetchContent)
 
+if (INTERACTIVE_MODE)
+
+find_path(Readline_ROOT_DIR
+    NAMES include/readline/readline.h
+    HINTS ${READLINE_PATH}
+)
+
+find_path(Readline_INCLUDE_DIR
+    NAMES readline/readline.h
+    HINTS ${Readline_ROOT_DIR}/include
+)
+
+find_library(Readline_LIBRARY
+    NAMES readline
+    HINTS ${Readline_ROOT_DIR}/lib
+)
+
+if (Readline_INCLUDE_DIR AND Readline_LIBRARY)
+    message(STATUS "Found readline: ${Readline_LIBRARY}")
+endif ()
+
+endif ()
+
 if (JUPYTER_KERNEL)
 
 ## fetch version (neglect v)############################################################################################
