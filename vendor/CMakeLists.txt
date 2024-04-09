@@ -2,14 +2,21 @@ include(FetchContent)
 
 if (JUPYTER_KERNEL)
 
+## fetch version (neglect v)############################################################################################
+set(LIBYT_NLOHMANN_JSON_FETCH_VERSION    3.11.3 )
+set(LIBYT_XTL_FETCH_VERSION              0.7.7  )
+set(LIBYT_ZEROMQ_FETCH_VERSION           4.3.5  )
+set(LIBYT_CPPZMQ_FETCH_VERSION           4.10.0 )
+set(LIBYT_XEUS_FETCH_VERSION             3.2.0  )
+set(LIBYT_XEUS_ZMQ_FETCH_VERSION         1.3.0  )
+
 ## requirements ########################################################################################################
 set(LIBYT_NLOHMANN_JSON_REQUIRED_VERSION 3.2.0 )
-set(LIBYT_CPPZMQ_REQUIRED_VERSION        4.8.1 )
-set(LIBYT_ZEROMQ_REQUIRED_VERSION        4.2.5 )
 set(LIBYT_XTL_REQUIRED_VERSION           0.7.0 )
+set(LIBYT_ZEROMQ_REQUIRED_VERSION        4.2.5 )
+set(LIBYT_CPPZMQ_REQUIRED_VERSION        4.8.1 )
 set(LIBYT_XEUS_REQUIRED_VERSION          3.0.0 )
 set(LIBYT_XEUS_ZMQ_REQUIRED_VERSION      1.0   )
-set(LIBYT_ZEROMQ_REQUIRED_VERSION        4.2.5 )
 
 ## prepare and redefine ################################################################################################
 # redefining install() and export() to make xeus and xeus-zmq work (ref: https://stackoverflow.com/a/35345933)
@@ -40,7 +47,7 @@ if (NOT nlohmann_json_FOUND)
     FetchContent_Declare(
             nlohmann_json
             GIT_REPOSITORY "https://github.com/nlohmann/json.git"
-            GIT_TAG v3.11.3
+            GIT_TAG "v${LIBYT_NLOHMANN_JSON_FETCH_VERSION}"
     )
     FetchContent_GetProperties(nlohmann_json)
     if (NOT nlohmann_json_POPULATED)
@@ -60,7 +67,7 @@ if (NOT xtl_FOUND)
     FetchContent_Declare(
             xtl
             GIT_REPOSITORY "https://github.com/xtensor-stack/xtl.git"
-            GIT_TAG 0.7.7
+            GIT_TAG "${LIBYT_XTL_FETCH_VERSION}"
     )
     FetchContent_GetProperties(xtl)
     if (NOT xtl_POPULATED)
@@ -84,7 +91,7 @@ if (NOT ZeroMQ_FOUND)
         FetchContent_Declare(
                 libzmq
                 GIT_REPOSITORY "https://github.com/zeromq/libzmq.git"
-                GIT_TAG v4.3.5
+                GIT_TAG "v${LIBYT_ZEROMQ_FETCH_VERSION}"
         )
         FetchContent_GetProperties(libzmq)
         if (NOT libzmq_POPULATED)
@@ -110,7 +117,7 @@ if (NOT cppzmq_FOUND)
     FetchContent_Declare(
             cppzmq
             GIT_REPOSITORY "https://github.com/zeromq/cppzmq.git"
-            GIT_TAG v4.10.0
+            GIT_TAG "v${LIBYT_CPPZMQ_FETCH_VERSION}"
     )
     FetchContent_GetProperties(cppzmq)
     if (NOT cppzmq_POPULATED)
@@ -131,7 +138,7 @@ if (NOT xeus_FOUND)
     FetchContent_Declare(
             xeus
             GIT_REPOSITORY "https://github.com/jupyter-xeus/xeus.git"
-            GIT_TAG 3.2.0
+            GIT_TAG "${LIBYT_XEUS_FETCH_VERSION}"
     )
     FetchContent_GetProperties(xeus)
     if (NOT xeus_POPULATED)
@@ -159,7 +166,7 @@ if (NOT xeus-zmq_FOUND)
     FetchContent_Declare(
             xeus-zmq
             GIT_REPOSITORY "https://github.com/jupyter-xeus/xeus-zmq.git"
-            GIT_TAG 1.3.0
+            GIT_TAG "${LIBYT_XEUS_ZMQ_FETCH_VERSION}"
     )
     FetchContent_GetProperties(xeus-zmq)
     if (NOT xeus-zmq_POPULATED)
