@@ -71,7 +71,7 @@ if (JUPYTER_KERNEL)
     set(LIBYT_VENDOR_RPATH "")
 
     if (LIBYT_GET_ZEROMQ_BY_VENDOR)
-        list(APPEND LIBYT_VENDOR_RPATH "${PROJECT_SOURCE_DIR}/vendor/libzmq/libzmq-build")
+        list(APPEND LIBYT_VENDOR_RPATH "${PROJECT_SOURCE_DIR}/vendor/libzmq/libzmq-build/lib")
     endif ()
 
     if (LIBYT_GET_XEUS_BY_VENDOR)
