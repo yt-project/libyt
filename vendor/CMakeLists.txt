@@ -5,6 +5,7 @@ if (JUPYTER_KERNEL)
 ## requirements ########################################################################################################
 set(LIBYT_NLOHMANN_JSON_REQUIRED_VERSION 3.2.0 )
 set(LIBYT_CPPZMQ_REQUIRED_VERSION        4.8.1 )
+set(LIBYT_ZEROMQ_REQUIRED_VERSION        4.2.5 )
 set(LIBYT_XTL_REQUIRED_VERSION           0.7.0 )
 set(LIBYT_XEUS_REQUIRED_VERSION          3.0.0 )
 set(LIBYT_XEUS_ZMQ_REQUIRED_VERSION      1.0   )
@@ -31,6 +32,7 @@ if (NOT DEFINED _DISABLE_EXPORT)
 endif ()
 
 ## get dependencies and populate #######################################################################################
+## nlohmann_json
 find_package(nlohmann_json ${LIBYT_NLOHMANN_JSON_REQUIRED_VERSION} QUIET)
 if (NOT nlohmann_json_FOUND)
     message(STATUS "Unable to find nlohmann_json, getting dependency...")
@@ -50,6 +52,7 @@ else ()
     message(STATUS "Found nlohmann_json: ${nlohmann_json_DIR} (found version \"${nlohmann_json_VERSION}\")")
 endif ()
 
+## xtl
 find_package(xtl ${LIBYT_XTL_REQUIRED_VERSION} QUIET)
 if (NOT xtl_FOUND)
     message(STATUS "Unable to find xtl, getting dependency...")
@@ -69,6 +72,35 @@ else ()
     message(STATUS "Found xtl: ${xtl_DIR} (found version \"${xtl_VERSION}\")")
 endif ()
 
+## ZeroMQ
+find_package(ZeroMQ ${LIBYT_ZEROMQ_REQUIRED_VERSION} QUIET)
+if (NOT ZeroMQ_FOUND)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PC_ZeroMQ QUIET libzmq>=${LIBYT_ZEROMQ_REQUIRED_VERSION})
+
+    if (NOT PC_ZeroMQ_FOUND)
+        message(STATUS "Unable to find ZeroMQ, getting dependency...")
+        set(FETCHCONTENT_BASE_DIR "${PROJECT_SOURCE_DIR}/vendor/libzmq")
+        FetchContent_Declare(
+                libzmq
+                GIT_REPOSITORY "https://github.com/zeromq/libzmq.git"
+                GIT_TAG v4.3.5
+        )
+        FetchContent_GetProperties(libzmq)
+        if (NOT libzmq_POPULATED)
+            FetchContent_Populate(libzmq)
+            add_subdirectory(${libzmq_SOURCE_DIR} ${libzmq_BINARY_DIR} EXCLUDE_FROM_ALL)
+            set(ZeroMQ_DIR ${libzmq_BINARY_DIR} CACHE INTERNAL "")
+        endif ()
+    else ()
+        message(STATUS "Found ZeroMQ: ${PC_ZeroMQ_LINK_LIBRARIES} (found version \"${PC_ZeroMQ_VERSION}\")")
+        # TODO: populate from pkg-cofig
+    endif ()
+else ()
+    message(STATUS "Found ZeroMQ: ${ZeroMQ_DIR} (found version \"${ZeroMQ_VERSION}\")")
+endif ()
+
+## cppzmq
 find_package(cppzmq ${LIBYT_CPPZMQ_REQUIRED_VERSION} QUIET)
 if (NOT cppzmq_FOUND)
     message(STATUS "Unable to find cppzmq, getting dependency...")
@@ -89,6 +121,7 @@ else ()
     message(STATUS "Found cppzmq: ${cppzmq_DIR} (found version \"${cppzmq_VERSION}\")")
 endif ()
 
+## xeus
 find_package(xeus ${LIBYT_XEUS_REQUIRED_VERSION} QUIET)
 if (NOT xeus_FOUND)
     message(STATUS "Unable to find xeus, getting dependency...")
@@ -116,6 +149,7 @@ else ()
     message(STATUS "Found xeus: ${xeus_DIR} (found version \"${xeus_VERSION}\")")
 endif ()
 
+## xeus-zmq
 find_package(xeus-zmq ${LIBYT_XEUS_ZMQ_REQUIRED_VERSION} QUIET)
 if (NOT xeus-zmq_FOUND)
     message(STATUS "Unable to find xeus-zmq, getting dependency...")
