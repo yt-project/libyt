@@ -37,25 +37,8 @@ if (NOT SERIAL_MODE)
     find_package(MPI REQUIRED)
 endif ()
 
-#if (JUPYTER_KERNEL)
-#    find_package(xeus-zmq 1.0 REQUIRED)
-#endif ()
-
-## config files ##
-if (JUPYTER_KERNEL)
-    set(LIBYT_KERNELSPEC_RELATIVE_PATH "share/jupyter/kernels/libyt_kernel")
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json
-                   ./${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json COPYONLY)
-endif ()
-
 ## sub directory ##
 add_subdirectory(vendor)                    # for vendoring
 add_subdirectory(src)                       # for library
+add_subdirectory(share)                     # for share
 add_subdirectory(example)                   # for example exe
-
-###### INSTALLATION RULE ###############################################################################################
-if (JUPYTER_KERNEL)
-    include(GNUInstallDirs)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json
-            DESTINATION "${LIBYT_KERNELSPEC_RELATIVE_PATH}")
-endif ()
