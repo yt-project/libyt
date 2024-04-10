@@ -8,7 +8,8 @@ add_library(yt SHARED
         yt_get_ParticlesPtr.cpp yt_getGridInfo.cpp yt_initialize.cpp yt_rma_field.cpp yt_run_ReloadScript.cpp
         yt_rma_particle.cpp yt_run.cpp yt_run_InteractiveMode.cpp yt_set_Parameters.cpp
         yt_set_UserParameter.cpp LibytProcessControl.cpp Timer.cpp TimerControl.cpp
-        libyt_python_shell.cpp libyt_kernel.cpp libyt_worker.cpp magic_command.cpp)
+        libyt_python_shell.cpp libyt_kernel.cpp libyt_worker.cpp magic_command.cpp
+)
 
 # set and print options and apply compile definition -D
 function(set_option option_name)
@@ -37,7 +38,8 @@ target_include_directories(yt PRIVATE
         ${PROJECT_SOURCE_DIR}/include
         $<$<NOT:$<BOOL:${SERIAL_MODE}>>:${MPI_INCLUDE_PATH}>
         ${Python_INCLUDE_DIRS}
-        $<$<BOOL:${INTERACTIVE_MODE}>:${Readline_INCLUDE_DIR}>)
+        $<$<BOOL:${INTERACTIVE_MODE}>:${Readline_INCLUDE_DIR}>
+)
 
 # link lib
 target_link_directories(yt PRIVATE
@@ -61,7 +63,8 @@ set(LIBYT_PUBLIC_HEADER
         "${PROJECT_SOURCE_DIR}/include/yt_type_field.h;"
         "${PROJECT_SOURCE_DIR}/include/yt_type_particle.h;"
         "${PROJECT_SOURCE_DIR}/include/yt_type_array.h;"
-        "${PROJECT_SOURCE_DIR}/include/yt_macro.h;")
+        "${PROJECT_SOURCE_DIR}/include/yt_macro.h;"
+)
 set_target_properties(yt PROPERTIES
         VERSION ${PROJECT_VERSION}                       # version
         SOVERSION ${PROJECT_VERSION_MAJOR}               # soversion (.so.x.y.z)
@@ -91,4 +94,5 @@ endif ()
 include(GNUInstallDirs)
 install(TARGETS yt
         LIBRARY DESTINATION lib
-        PUBLIC_HEADER DESTINATION include)
+        PUBLIC_HEADER DESTINATION include
+)
