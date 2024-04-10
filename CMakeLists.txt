@@ -10,9 +10,14 @@ option(JUPYTER_KERNEL    "Use Jupyter notebook interface"                       
 option(SUPPORT_TIMER     "Support time profiling"                                                             OFF)
 
 ## set paths ##
+# It is recommended that we always provide PYTHON_PATH and MPI_PATH.
+# libyt will also try to find the package if the paths weren't provided.
 set(PYTHON_PATH    "" CACHE PATH "Path to Python installation prefix (Always)")
 set(MPI_PATH       "" CACHE PATH "Path to MPI installation prefix (-DSERIAL_MODE=OFF)")
 set(READLINE_PATH  "" CACHE PATH "Path to Readline installation prefix (-DINTERACTIVE_MODE=ON)")
+
+## set paths (optional) ##
+# libyt will get the dependencies if it cannot find one when needed.
 set(nlohmann_json_DIR "" CACHE PATH "Path to nlohmann_jsonConfig.cmake (-DJUPYTER_KERNEL=ON)")
 set(cppzmq_DIR        "" CACHE PATH "Path to cppzmqConfig.cmake (-DJUPYTER_KERNEL=ON)")
 set(xtl_DIR           "" CACHE PATH "Path to xtlConfig.cmake (-DJUPYTER_KERNEL=ON)")
