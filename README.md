@@ -1,5 +1,6 @@
 # libyt
 [![CMake Build Test](https://github.com/cindytsai/libyt/actions/workflows/cmake-build-test.yml/badge.svg?branch=main)](https://github.com/cindytsai/libyt/actions/workflows/cmake-build-test.yml)
+[![Example Test Run](https://github.com/cindytsai/libyt/actions/workflows/example-test-run.yml/badge.svg?branch=main)](https://github.com/cindytsai/libyt/actions/workflows/example-test-run.yml)
 [![Documentation Status](https://readthedocs.org/projects/libyt/badge/?version=latest)](https://libyt.readthedocs.io/en/latest/?badge=latest)
 
 **_This repo is only for development purpose._**
