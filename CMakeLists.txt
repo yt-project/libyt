@@ -10,9 +10,14 @@ option(JUPYTER_KERNEL    "Use Jupyter notebook interface"                       
 option(SUPPORT_TIMER     "Support time profiling"                                                             OFF)
 
 ## set paths ##
+# It is recommended that we always provide PYTHON_PATH and MPI_PATH.
+# libyt will also try to find the package if the paths weren't provided.
 set(PYTHON_PATH    "" CACHE PATH "Path to Python installation prefix (Always)")
 set(MPI_PATH       "" CACHE PATH "Path to MPI installation prefix (-DSERIAL_MODE=OFF)")
 set(READLINE_PATH  "" CACHE PATH "Path to Readline installation prefix (-DINTERACTIVE_MODE=ON)")
+
+## set paths (optional) ##
+# libyt will get the dependencies if it cannot find one when needed.
 set(nlohmann_json_DIR "" CACHE PATH "Path to nlohmann_jsonConfig.cmake (-DJUPYTER_KERNEL=ON)")
 set(cppzmq_DIR        "" CACHE PATH "Path to cppzmqConfig.cmake (-DJUPYTER_KERNEL=ON)")
 set(xtl_DIR           "" CACHE PATH "Path to xtlConfig.cmake (-DJUPYTER_KERNEL=ON)")
@@ -26,35 +31,19 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## build static/shared library ##
-option(BUILD_SHARED_LIBS "Building using shared libraries"    ON )
+option(BUILD_SHARED_LIBS "Building using shared libraries"                                                    ON )
 
 ## find dependencies ##
+set(Python_ROOT_DIR ${PYTHON_PATH})
+find_package(Python COMPONENTS Development NumPy REQUIRED)
+
 if (NOT SERIAL_MODE)
     set(MPI_HOME ${MPI_PATH})
     find_package(MPI REQUIRED)
 endif ()
 
-if (JUPYTER_KERNEL)
-    find_package(xeus-zmq 1.0 REQUIRED)
-endif ()
-
-set(Python_ROOT_DIR ${PYTHON_PATH})
-find_package(Python COMPONENTS Development NumPy REQUIRED)
-
-## config files ##
-if (JUPYTER_KERNEL)
-    set(LIBYT_KERNELSPEC_RELATIVE_PATH "share/jupyter/kernels/libyt_kernel")
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json
-                   ./${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json COPYONLY)
-endif ()
-
 ## sub directory ##
+add_subdirectory(vendor)                    # for vendoring
 add_subdirectory(src)                       # for library
-#add_subdirectory(example)                   # for example exe
-
-###### INSTALLATION RULE ###############################################################################################
-if (JUPYTER_KERNEL)
-    include(GNUInstallDirs)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${LIBYT_KERNELSPEC_RELATIVE_PATH}/kernel.json
-            DESTINATION "${LIBYT_KERNELSPEC_RELATIVE_PATH}")
-endif ()
+add_subdirectory(share)                     # for share
+add_subdirectory(example)                   # for example exe
