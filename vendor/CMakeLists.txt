@@ -19,6 +19,8 @@ find_library(Readline_LIBRARY
 
 if (Readline_INCLUDE_DIR AND Readline_LIBRARY)
     message(STATUS "Found readline: ${Readline_LIBRARY}")
+else ()
+    message(FATAL_ERROR "Unable to find readline, please visit https://tiswww.case.edu/php/chet/readline/rltop.html for more information..." )
 endif ()
 
 endif ()
