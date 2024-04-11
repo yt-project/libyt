@@ -18,7 +18,15 @@ find_library(Readline_LIBRARY
 )
 
 if (Readline_INCLUDE_DIR AND Readline_LIBRARY)
-    message(STATUS "Found readline: ${Readline_LIBRARY}")
+    if (Readline_ROOT_DIR STREQUAL READLINE_PATH)
+        # TODO: make sure it gets the right readline
+        execute_process(COMMAND pkg-config --libs readline --static OUTPUT_VARIABLE Readline_LIBFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
+        set(Readline_LIBFLAGS ${Readline_LIBFLAGS} PARENT_SCOPE)
+    else ()
+        execute_process(COMMAND pkg-config --libs readline --static OUTPUT_VARIABLE Readline_LIBFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
+        set(Readline_LIBFLAGS ${Readline_LIBFLAGS} PARENT_SCOPE)
+    endif ()
+    message(STATUS "Found readline: ${Readline_LIBRARY} (link flags: ${Readline_LIBFLAGS})")
 else ()
     message(FATAL_ERROR "Unable to find readline, please visit https://tiswww.case.edu/php/chet/readline/rltop.html for more information..." )
 endif ()
