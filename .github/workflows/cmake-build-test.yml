@@ -24,8 +24,10 @@ jobs:
         platform:
           - os: ubuntu-latest
             mpi: 'openmpi'
+            check_shared_lib: ldd lib/libyt.so
           - os: macos-latest
             mpi: 'mpich'
+            check_shared_lib: otool -l lib/libyt.dylib
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
 
     steps:
@@ -61,6 +63,8 @@ jobs:
           cmake -B build -S . -DSERIAL_MODE=ON
           cmake --build build
           cmake --install build --prefix "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-serial-on"
+          cd "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-serial-on"
+          ${{ matrix.platform.check_shared_lib }}
 
       - name: Test Option -DINTERACTIVE_MODE=ON
         run: | 
@@ -69,6 +73,8 @@ jobs:
           cmake -B build -S . -DINTERACTIVE_MODE=ON
           cmake --build build
           cmake --install build --prefix "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-interactive-on"
+          cd "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-interactive-on"
+          ${{ matrix.platform.check_shared_lib }}
 
       - name: Test Option -DJUPYTER_KERNEL=ON
         run: |
@@ -77,6 +83,8 @@ jobs:
           cmake -B build -S . -DJUPYTER_KERNEL=ON
           cmake --build build
           cmake --install build --prefix "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-jupyter-on"
+          cd "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-jupyter-on"
+          ${{ matrix.platform.check_shared_lib }}
 
       - name: Test Option -DSUPPORT_TIMER=ON
         run: |
@@ -85,3 +93,5 @@ jobs:
           cmake -B build -S . -DSUPPORT_TIMER=ON
           cmake --build build
           cmake --install build --prefix "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-timer-on"
+          cd "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-timer-on"
+          ${{ matrix.platform.check_shared_lib }}
