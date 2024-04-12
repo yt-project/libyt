@@ -47,7 +47,7 @@ target_link_libraries(yt PRIVATE
         ${Python_LIBRARIES}
         Python::NumPy
         $<$<BOOL:${INTERACTIVE_MODE}>:${Readline_LIBRARY}>
-        $<$<BOOL:${INTERACTIVE_MODE}>:${Readline_LIBFLAGS}> # TODO: need to read from readline.pc Requires.private and Requires
+        $<$<BOOL:${INTERACTIVE_MODE}>:${Readline_LIBFLAGS}>
         $<$<BOOL:${JUPYTER_KERNEL}>:xeus-zmq>
 )
 
