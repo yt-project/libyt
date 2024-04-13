@@ -31,7 +31,7 @@ else ()
     message(FATAL_ERROR "Unable to find readline, please visit https://tiswww.case.edu/php/chet/readline/rltop.html for more information..." )
 endif ()
 
-endif ()
+endif () # if (INTERACTIVE_MODE)
 
 if (JUPYTER_KERNEL)
 
