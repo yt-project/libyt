@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Compile `libyt` in **interactive mode** ([`-DINTERACTIVE_MODE=ON`](../how-to-install.md#-dinteractive_mode)).
+- Compile `libyt` in **interactive mode** ([`-DINTERACTIVE_MODE=ON`](../how-to-install.md#-dinteractive_mode-off)).
 - Call libyt API [`yt_run_InteractiveMode`](../libyt-api/yt_run_interactivemode.md#yt_run_interactivemode).
 
 > {octicon}`info;1em;sd-text-info;` Interactive mode only works on local machine or submit the job to HPC platform using interactive jobs like `qsub -I` on PBS scheduler.

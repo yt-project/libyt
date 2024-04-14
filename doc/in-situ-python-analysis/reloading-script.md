@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Compile `libyt` in **interactive mode** ([`-DINTERACTIVE_MODE=ON`](../how-to-install.md#-dinteractive_mode)).
+- Compile `libyt` in **interactive mode** ([`-DINTERACTIVE_MODE=ON`](../how-to-install.md#-dinteractive_mode-off)).
 - Call libyt API [`yt_run_ReloadScript`](../libyt-api/yt_run_reloadscript.md#yt_run_reloadscript). 
 
 ## Reloading Script
@@ -61,5 +61,5 @@ def func():
 ## FAQs
 
 ### When Can I Reload Script?
-`libyt` supports reloading script feature if it is compiled with [`-DINTERACTIVE_MODE=ON`](../how-to-install.md#-dinteractive_mode).
+`libyt` supports reloading script feature if it is compiled with [`-DINTERACTIVE_MODE=ON`](../how-to-install.md#-dinteractive_mode-off).
 The root process reads the file, so it would work on your local desktop and in HPC clusters.

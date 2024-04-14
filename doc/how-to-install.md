@@ -2,7 +2,7 @@
 
 ## C Library -- libyt
 
-Go through [basic requirements](#basic-requirements) and [options](#options) and set the dependencies paths. Then compile and install `libyt` using CMake.
+Go through [prerequisites](#prerequisites) and [options](#options-default-value) and set the dependencies paths. Then compile and install `libyt` using CMake.
 
 
 ### Prerequisites
@@ -93,7 +93,7 @@ The options are mutually independent to each other.
 ### Step-by-Step Instructions
 1. Toggle options, set paths and generate files to build the project. This can be done through either (a) or (b):
 
-   (a) Set it through editing `CMakeLists.txt` at root directory. For example, this uses option [`-DSERIAL_MODE=OFF`](#-dserial_mode) and provides `MPI_PATH`:
+   (a) Set it through editing `CMakeLists.txt` at root directory. For example, this uses option [`-DSERIAL_MODE=OFF`](#-dserial_mode-off) and provides `MPI_PATH`:
    ```cmake
    option(SERIAL_MODE "Compile library for serial process" ON)
    set(MPI_PATH "<path-to-mpi-prefix>" CACHE PATH "Path to MPI installation prefix (-DSERIAL_MODE=OFF)")
