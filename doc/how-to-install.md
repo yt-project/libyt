@@ -101,7 +101,7 @@ The options are mutually independent to each other.
 | **Time Profiling** (ON)  | Support time profiling. (See [Time Profiling](./debug-and-profiling/time-profiling.md#time-profiling)) |                |
 :::
 
-### CMake
+### Step-by-Step Instructions
 1. Toggle options, set paths and generate files to build the project. This can be done through either (a) or (b):
 
    (a) Set it through editing `CMakeLists.txt` at root directory. For example, this uses option [`-DSERIAL_MODE=OFF`](#-dserial_mode) and provides `MPI_PATH`:
@@ -138,7 +138,7 @@ The options are mutually independent to each other.
    cmake --install <build-dir-name> --prefix <libyt-install-prefix> 
    ```
 
-#### Example
+### Example
 - The following builds `libyt` in serial mode using user designated GCC compiler and then installs the library in `/home/user/softwares/libyt`:
   ```bash
   cd libyt                                                     # go to project root directory
@@ -152,11 +152,11 @@ The options are mutually independent to each other.
 
 - The following builds `libyt` in parallel mode using user designated MPI compiler and then installs the library in `/home/user/softwares/libyt`:
   ```bash
-  cd libyt
-  rm -rf build
-  cmake -B build -S . -DSERIAL_MODE=OFF -DMPI_PATH=/software/openmpi/4.1.1-gnu
-  cmake --build build
-  cmake --install build --prefix /home/user/softwares/libyt
+  cd libyt                                                                       # go to project root directory
+  rm -rf build                                                                   # clean up previous build
+  cmake -B build -S . -DSERIAL_MODE=OFF -DMPI_PATH=/software/openmpi/4.1.1-gnu   # set mpi path and generate files for project
+  cmake --build build                                                            # build the project
+  cmake --install build --prefix /home/user/softwares/libyt                      # install
   ```
 
 ## Required Python Package
