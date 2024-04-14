@@ -5,9 +5,10 @@
 Go through [basic requirements](#basic-requirements) and [options](#options) and set the dependencies paths. Then compile and install `libyt` using CMake.
 
 
-### Basic Requirements
+### Prerequisites
 - CMake (>=3.15)
-- GCC compiler (>4.8): Should be able to support `c++14`.
+- pkg-config: Generally, Linux and macOS already have pkg-config installed.
+- GCC compiler (>4.8): It should be able to support `c++14`.
   - `CXX`: Path to `g++` compiler.
   - `CC`: Path to `gcc` compiler.
 - Python (>=3.7): 
@@ -41,7 +42,7 @@ The options are mutually independent to each other.
 
 `READLINE_PATH`
   ~ [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) installation prefix, the path should contain folders like `include`, `lib` etc. 
-    > {octicon}`info;1em;sd-text-info;` This library exists in Linux and MacOS generally. If it is inside the system, we don't need to explicitly provide the path.
+    > {octicon}`info;1em;sd-text-info;` Generally, this library exists in Linux and macOS, we don't need to explicitly provide the path.
 
 ##### `-DJUPYTER_KERNEL` (=`OFF`)
 
