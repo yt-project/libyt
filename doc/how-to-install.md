@@ -14,12 +14,10 @@ Go through [basic requirements](#basic-requirements) and [options](#options) and
   - `PYTHON_PATH`: Python installation prefix, the path should contain folders like `include`, `lib` etc. 
   - `NumPy`: Should have `NumPy` installed.
 
-### Options 
+### Options (=Default Value)
 The options are mutually independent to each other. 
 
-##### `-DSERIAL_MODE`
-
-- Default: `-DSERIAL_MODE=OFF`
+##### `-DSERIAL_MODE` (=`OFF`)
 
 |                     | Notes                      | Required Paths | Required Python Packages                     |
 |---------------------|----------------------------|----------------|----------------------------------------------|
@@ -40,9 +38,7 @@ The options are mutually independent to each other.
   ~ This is Python bindings for the Message Passing Interface (MPI) standard.
     > {octicon}`alert;1em;sd-text-danger;` Make sure `mpi4py` used in Python and MPI used in simulation are matched. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
 
-##### `-DINTERACTIVE_MODE`
-
-- Default: `-DINTERACTIVE_MODE=OFF`
+##### `-DINTERACTIVE_MODE` (=`OFF`)
 
 |                       | Notes                                                                                                                                                                                                                                                                                            | Required Paths   |
 |-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
@@ -52,9 +48,7 @@ The options are mutually independent to each other.
 `READLINE_PATH`
   ~ [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) installation prefix, the path should contain folders like `include`, `lib` etc.
 
-##### `-DJUPYTER_KERNEL`
-
-- Default: `-DJUPYTER_KERNEL=OFF`
+##### `-DJUPYTER_KERNEL` (=`OFF`)
 
 |                              | Notes                                                                                                                                                                             | Required Paths | Required Python Packages                                                                                                                                                                    |
 |------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -97,9 +91,7 @@ The options are mutually independent to each other.
   ~ Support auto-completion in Jupyter Notebook and JupyterLab. This is optional. (If you have IPython installed, you might already have this.)
 
 
-##### `-DSUPPORT_TIMER`
-
-- Default: `-DSUPPORT_TIMER=OFF`
+##### `-DSUPPORT_TIMER` (=`OFF`)
 
 :::{table}
 :width: 100%
