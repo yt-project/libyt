@@ -115,7 +115,7 @@ The options are mutually independent to each other.
 - **Dependency path** indicates the required path variable name in CMake, and the required version.
 - **Notes** are things worth notice.
 - **Option** indicates under what circumstances will we need this dependency.
-- **Get by libyt** indicates whether libyt will fetch and build the dependency itself, if the paths aren't provided. The downloaded content will be stored under `libyt/vendor`.
+- **Get by libyt** indicates whether libyt will fetch and build the dependency itself, if the paths aren't provided. The downloaded content will be stored under `libyt/vendor`, and `libyt` will link to dependencies inside this folder.
 
 | Dependency path                            | Notes                                                                                                                                                                                                                                                                                      | Option                  | Get by libyt |
 |--------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|:------------:|
@@ -143,40 +143,14 @@ The options are mutually independent to each other.
 | [`yt`](https://yt-project.org/)                                                               | The core analytic tool.                                                                                                                                                                                                                                                                          | Always                |
 | [`yt_libyt`](https://github.com/data-exp-lab/yt_libyt)                                        | `yt` frontend for `libyt`.                                                                                                                                                                                                                                                                       | Always                |
 | [`mpi4py`](https://mpi4py.readthedocs.io/en/stable/)                                          | Python bindings for the Message Passing Interface (MPI) standard. <br> {octicon}`alert;1em;sd-text-danger;` Make sure `mpi4py` used in Python and MPI used in simulation are matched. (Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).) | `-DSERIAL_MODE=OFF`   |
-| [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt)                                | Jupyter kernel provisioner for `libyt`.                                                                                                                                                                                                                                                          | `-DJUPYTER_KERNEL=ON` |
-| [`jupyter-client`](https://jupyter-client.readthedocs.io/en/latest/index.html) <br> (>=8.0.0) | Jupyter Client.                                                                                                                                                                                                                                                                                  | `-DJUPYTER_KERNEL=ON` |
 | [`jedi`](https://jedi.readthedocs.io/en/latest/)                                              | Support auto-completion in Jupyter Notebook and JupyterLab. (We will have this if IPython is already installed.)                                                                                                                                                                                 | `-DJUPYTER_KERNEL=ON` |
+| [`jupyter-client`](https://jupyter-client.readthedocs.io/en/latest/index.html) <br> (>=8.0.0) | Jupyter Client.                                                                                                                                                                                                                                                                                  | `-DJUPYTER_KERNEL=ON` |
+| [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt)                                | Jupyter kernel provisioner for `libyt`.                                                                                                                                                                                                                                                          | `-DJUPYTER_KERNEL=ON` |
 :::
 
-### yt
-- Project website: [https://yt-project.org/](https://yt-project.org/)
-- Install from PyPI:
-  ```bash
-  pip install yt
-  ```
-
-### yt_libyt
-- Project website: [https://github.com/data-exp-lab/yt_libyt](https://github.com/data-exp-lab/yt_libyt)
-- Install from source:
-  ```bash
-  git clone https://github.com/data-exp-lab/yt_libyt.git
-  cd yt_libyt
-  pip install .
-  ```
-
-- Install from PyPI:
-  ```bash
-  pip install yt-libyt
-  ```
-
-### jupyter_libyt
-- Project website: [https://github.com/yt-project/jupyter_libyt](https://github.com/yt-project/jupyter_libyt)
-- Install from source:
-  ```bash
-  git clone https://github.com/yt-project/jupyter_libyt.git
-  cd jupyter_libyt
-  pip install .
-  ```
+> {octicon}`alert;1em;sd-text-danger;` `jupyter-client` and `jupyter_libyt` are used for launching Jupyter Notebook and JupyterLab. Make sure the Python environment used for launching the notebook have them installed.
+> 
+> The Python used in in situ analysis which is also for compiling `libyt`, and the Python for launching Jupyter Notebook/JupyterLab might be different, especially when running `libyt` in HPC cluster. (See [Jupyter Notebook Access](./in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md))
 
 ## FAQs
 
