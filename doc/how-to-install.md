@@ -29,9 +29,7 @@ The options are mutually independent to each other.
 | **Serial Mode** (ON)    | Compile `libyt` using GCC.   |            |                                            |
 :::
 
-`mpi4py`
-  ~ This is Python bindings for the Message Passing Interface (MPI) standard.
-    > {octicon}`alert;1em;sd-text-danger;` Make sure `mpi4py` used in Python and MPI used in simulation are matched. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
+> {octicon}`alert;1em;sd-text-danger;` Make sure Python bindings for MPI (`mpi4py`), MPI used for compiling simulation and `libyt` are the same. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
 
 ##### `-DINTERACTIVE_MODE` (=`OFF`)
 
@@ -45,16 +43,6 @@ The options are mutually independent to each other.
 |                              | Notes                                                                                                                                                                             | Dependency                                                                                                 | Python dependency                                                                                                                                                                     |
 |------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Jupyter Kernel Mode** (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access](./in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access)) | `nlohmann_json_DIR` <br> `cppzmq_DIR` <br> `xtl_DIR` <br> `xeus_DIR` <br> `xeus-zmq_DIR` <br> `ZeroMQ_DIR` | [`jupyter_libyt`](#jupyter_libyt) <br> [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html) <br> [`jedi`](https://jedi.readthedocs.io/en/latest/)(Optional) |
-
-`jupyter_libyt`
-  ~ Customized kernel provisioner for libyt Jupyter kernel.
-
-`jupyter-client` (>=8.0.0)
-  ~ Jupyter client.
-
-`jedi`
-  ~ Support auto-completion in Jupyter Notebook and JupyterLab. This is optional. (If you have IPython installed, you might already have this.)
-
 
 ##### `-DSUPPORT_TIMER` (=`OFF`)
 
@@ -144,6 +132,19 @@ The options are mutually independent to each other.
 
 ## Python Dependency
 To use [`yt`](https://yt-project.org/) as the core analytic tool, we need to install `yt_libyt`, a `yt` frontend for `libyt`.
+
+:::{table}
+:width: 100%
+
+| Python package                  | Notes                                                                                                                                                                                                                                                                                                                                                                                        | Option                |
+|---------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|
+| `yt`                            | The core analytic tool. <br> ([https://yt-project.org/](https://yt-project.org/))                                                                                                                                                                                                                                                                                                            | Always                |
+| `yt_libyt`                      | `yt` frontend for `libyt`. <br> ([https://github.com/data-exp-lab/yt_libyt](https://github.com/data-exp-lab/yt_libyt))                                                                                                                                                                                                                                                                       | Always                |
+| `mpi4py`                        | Python bindings for the Message Passing Interface (MPI) standard. <br> {octicon}`alert;1em;sd-text-danger;` Make sure `mpi4py` used in Python and MPI used in simulation are matched. (Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).) <br> ([https://mpi4py.readthedocs.io/en/stable/](https://mpi4py.readthedocs.io/en/stable/)) | `-DSERIAL_MODE=OFF`   |
+| `jupyter_libyt`                 | Jupyter kernel provisioner for `libyt`. <br> ([https://github.com/yt-project/jupyter_libyt](https://github.com/yt-project/jupyter_libyt))                                                                                                                                                                                                                                                    | `-DJUPYTER_KERNEL=ON` |
+| `jupyter-client` <br> (>=8.0.0) | Jupyter Client.                                                                                                                                                                                                                                                                                                                                                                              | `-DJUPYTER_KERNEL=ON` |
+| `jedi`                          | Support auto-completion in Jupyter Notebook and JupyterLab. (We will have this if IPython is already installed.)                                                                                                                                                                                                                                                                             | `-DJUPYTER_KERNEL=ON` |
+:::
 
 ### yt
 - Project website: [https://yt-project.org/](https://yt-project.org/)
