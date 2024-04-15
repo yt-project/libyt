@@ -1,6 +1,6 @@
 # How to Install
 
-## C Library -- libyt
+## Building libyt C Library
 
 Go through [prerequisites](#prerequisites) and [options](#options-default-value) and set the dependencies paths. Then compile and install `libyt` using CMake.
 
@@ -12,7 +12,7 @@ Go through [prerequisites](#prerequisites) and [options](#options-default-value)
   - `CXX`: Path to `g++` compiler.
   - `CC`: Path to `gcc` compiler.
 - Python (>=3.7): 
-  - `PYTHON_PATH`: Python installation prefix, the path should contain folders like `include`, `lib` etc. 
+  - `PYTHON_PATH`: Python installation prefix, the path contains folders `include`, `lib` etc. 
   - `NumPy`: Should have `NumPy` installed.
 
 ### Options (=Default Value)
@@ -20,10 +20,14 @@ The options are mutually independent to each other.
 
 ##### `-DSERIAL_MODE` (=`OFF`)
 
-|                     | Notes                      | Required Paths | Required Python Packages                     |
-|---------------------|----------------------------|----------------|----------------------------------------------|
-| **Parallel Mode** (OFF) | Compile `libyt` using MPI. | - `MPI_PATH`   | - [`mpi4py`](https://mpi4py.readthedocs.io/) |
-| **Serial Mode** (ON)    | Compile `libyt` using GCC. |                |                                              |
+:::{table}
+:width: 100%
+
+|                         | Notes                        | Dependency | Python dependency                          |
+|-------------------------|------------------------------|------------|--------------------------------------------|
+| **Parallel Mode** (OFF) | Compile `libyt` using MPI.   | `MPI_PATH` | [`mpi4py`](https://mpi4py.readthedocs.io/) |
+| **Serial Mode** (ON)    | Compile `libyt` using GCC.   |            |                                            |
+:::
 
 `mpi4py`
   ~ This is Python bindings for the Message Passing Interface (MPI) standard.
@@ -31,16 +35,16 @@ The options are mutually independent to each other.
 
 ##### `-DINTERACTIVE_MODE` (=`OFF`)
 
-|                       | Notes                                                                                                                                                                                                                                                                                            | Required Paths   |
-|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
-| **Normal Mode** (OFF)     | Shut down and terminate all the processes including simulation, if error occurs during in situ analysis.                                                                                                                                                                                         |                  |
-| **Interactive Mode** (ON) | Will not terminate the processes if error occurs while doing in situ analysis and supports [Interactive Python Prompt](./in-situ-python-analysis/interactive-python-prompt.md#interactive-python-prompt) and [Reloading Script](./in-situ-python-analysis/reloading-script.md#reloading-script). | - `READLINE_PATH` |
+|                           | Notes                                                                                                                                                                                                                                                                                        | Dependency      |
+|---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------|
+| **Normal Mode** (OFF)     | Shut down and terminate all the processes including simulation, if error occurs during in situ analysis.                                                                                                                                                                                     |                 |
+| **Interactive Mode** (ON) | Will not terminate the processes if error occurs while doing in situ analysis. Support [Interactive Python Prompt](./in-situ-python-analysis/interactive-python-prompt.md#interactive-python-prompt) and [Reloading Script](./in-situ-python-analysis/reloading-script.md#reloading-script). | `READLINE_PATH` |
 
 ##### `-DJUPYTER_KERNEL` (=`OFF`)
 
-|                              | Notes                                                                                                                                                                             | Required Paths | Required Python Packages                                                                                                                                                                    |
-|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Jupyter Kernel Mode** (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access](./in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access)) | - `nlohmann_json_DIR` <br> - `cppzmq_DIR` <br> - `xtl_DIR` <br> - `xeus_DIR` <br> - `xeus-zmq_DIR` <br> - `ZeroMQ_DIR` <br> | - [`jupyter_libyt`](#jupyter_libyt) <br> - [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html) <br> - (Optional)[`jedi`](https://jedi.readthedocs.io/en/latest/) |
+|                              | Notes                                                                                                                                                                             | Dependency                                                                                                 | Python dependency                                                                                                                                                                     |
+|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Jupyter Kernel Mode** (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access](./in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access)) | `nlohmann_json_DIR` <br> `cppzmq_DIR` <br> `xtl_DIR` <br> `xeus_DIR` <br> `xeus-zmq_DIR` <br> `ZeroMQ_DIR` | [`jupyter_libyt`](#jupyter_libyt) <br> [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html) <br> [`jedi`](https://jedi.readthedocs.io/en/latest/)(Optional) |
 
 `jupyter_libyt`
   ~ Customized kernel provisioner for libyt Jupyter kernel.
@@ -57,9 +61,9 @@ The options are mutually independent to each other.
 :::{table}
 :width: 100%
 
-|                          | Notes                                                                                                  | Required Paths |
-|--------------------------|--------------------------------------------------------------------------------------------------------|----------------|
-| **Time Profiling** (ON)  | Support time profiling. (See [Time Profiling](./debug-and-profiling/time-profiling.md#time-profiling)) |                |
+|                          | Notes                                                                                                  |
+|--------------------------|--------------------------------------------------------------------------------------------------------|
+| **Time Profiling** (ON)  | Support time profiling. (See [Time Profiling](./debug-and-profiling/time-profiling.md#time-profiling)) |
 :::
 
 ### Dependency Table
@@ -67,7 +71,7 @@ The options are mutually independent to each other.
 - **Dependency path** indicates the required path variable name in CMake, and the required version.
 - **Notes** are things worth notice.
 - **Option** indicates under what circumstances will we need this dependency.
-- **Get by libyt** indicates whether libyt will fetch and build the dependency itself, if the paths aren't provided. The dependency will be stored under `libyt/vendor`.
+- **Get by libyt** indicates whether libyt will fetch and build the dependency itself, if the paths aren't provided. The downloaded content will be stored under `libyt/vendor`.
 
 | Dependency path                            | Notes                                                                                                                                                                                                                                                                                      | Option                  | Get by libyt |
 |--------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|:------------:|
@@ -138,7 +142,7 @@ The options are mutually independent to each other.
   cmake --install build --prefix /home/user/softwares/libyt                      # install
   ```
 
-## Required Python Package
+## Python Dependency
 To use [`yt`](https://yt-project.org/) as the core analytic tool, we need to install `yt_libyt`, a `yt` frontend for `libyt`.
 
 ### yt
