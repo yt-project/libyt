@@ -8,7 +8,7 @@
 - GCC compiler (>4.8): It should be able to support `c++14`.
   - `CXX`: Path to `g++` compiler.
   - `CC`: Path to `gcc` compiler.
-- Python (>=3.7): 
+- Python (>=3.7): The Python environment we want to use when doing in situ analysis.
   - `PYTHON_PATH`: Python installation prefix, the path contains folders `include`, `lib` etc. 
   - `NumPy`: Should have `NumPy` installed.
 
@@ -17,7 +17,7 @@
 
    (a) Set it through editing `CMakeLists.txt` at root directory. For example, this uses option [`-DSERIAL_MODE=OFF`](#-dserial_mode-off) and provides `MPI_PATH`:
    ```cmake
-   option(SERIAL_MODE "Compile library for serial process" ON)
+   option(SERIAL_MODE "Compile library for serial process" OFF)
    set(MPI_PATH "<path-to-mpi-prefix>" CACHE PATH "Path to MPI installation prefix (-DSERIAL_MODE=OFF)")
    ```
 
@@ -130,19 +130,22 @@ The options are mutually independent to each other.
 
 
 ## Python Dependency
-To use [`yt`](https://yt-project.org/) as the core analytic tool, we need to install `yt_libyt`, a `yt` frontend for `libyt`.
+
+- **Python package** required when performing in situ analysis.
+- **Notes** are things worth notice.
+- **Option** indicates under what circumstances will we need this package.
 
 :::{table}
 :width: 100%
 
-| Python package                  | Notes                                                                                                                                                                                                                                                                                                                                                                                        | Option                |
-|---------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|
-| `yt`                            | The core analytic tool. <br> ([https://yt-project.org/](https://yt-project.org/))                                                                                                                                                                                                                                                                                                            | Always                |
-| `yt_libyt`                      | `yt` frontend for `libyt`. <br> ([https://github.com/data-exp-lab/yt_libyt](https://github.com/data-exp-lab/yt_libyt))                                                                                                                                                                                                                                                                       | Always                |
-| `mpi4py`                        | Python bindings for the Message Passing Interface (MPI) standard. <br> {octicon}`alert;1em;sd-text-danger;` Make sure `mpi4py` used in Python and MPI used in simulation are matched. (Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).) <br> ([https://mpi4py.readthedocs.io/en/stable/](https://mpi4py.readthedocs.io/en/stable/)) | `-DSERIAL_MODE=OFF`   |
-| `jupyter_libyt`                 | Jupyter kernel provisioner for `libyt`. <br> ([https://github.com/yt-project/jupyter_libyt](https://github.com/yt-project/jupyter_libyt))                                                                                                                                                                                                                                                    | `-DJUPYTER_KERNEL=ON` |
-| `jupyter-client` <br> (>=8.0.0) | Jupyter Client.                                                                                                                                                                                                                                                                                                                                                                              | `-DJUPYTER_KERNEL=ON` |
-| `jedi`                          | Support auto-completion in Jupyter Notebook and JupyterLab. (We will have this if IPython is already installed.)                                                                                                                                                                                                                                                                             | `-DJUPYTER_KERNEL=ON` |
+| Python package                                                                                | Notes                                                                                                                                                                                                                                                                                            | Option                |
+|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|
+| [`yt`](https://yt-project.org/)                                                               | The core analytic tool.                                                                                                                                                                                                                                                                          | Always                |
+| [`yt_libyt`](https://github.com/data-exp-lab/yt_libyt)                                        | `yt` frontend for `libyt`.                                                                                                                                                                                                                                                                       | Always                |
+| [`mpi4py`](https://mpi4py.readthedocs.io/en/stable/)                                          | Python bindings for the Message Passing Interface (MPI) standard. <br> {octicon}`alert;1em;sd-text-danger;` Make sure `mpi4py` used in Python and MPI used in simulation are matched. (Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).) | `-DSERIAL_MODE=OFF`   |
+| [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt)                                | Jupyter kernel provisioner for `libyt`.                                                                                                                                                                                                                                                          | `-DJUPYTER_KERNEL=ON` |
+| [`jupyter-client`](https://jupyter-client.readthedocs.io/en/latest/index.html) <br> (>=8.0.0) | Jupyter Client.                                                                                                                                                                                                                                                                                  | `-DJUPYTER_KERNEL=ON` |
+| [`jedi`](https://jedi.readthedocs.io/en/latest/)                                              | Support auto-completion in Jupyter Notebook and JupyterLab. (We will have this if IPython is already installed.)                                                                                                                                                                                 | `-DJUPYTER_KERNEL=ON` |
 :::
 
 ### yt
