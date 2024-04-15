@@ -25,10 +25,6 @@ The options are mutually independent to each other.
 | **Parallel Mode** (OFF) | Compile `libyt` using MPI. | - `MPI_PATH`   | - [`mpi4py`](https://mpi4py.readthedocs.io/) |
 | **Serial Mode** (ON)    | Compile `libyt` using GCC. |                |                                              |
 
-`MPI_PATH`
-  ~ MPI installation prefix, the path should contain folders like `include`, `lib` etc.
-    > {octicon}`alert;1em;sd-text-danger;` Make sure you are using the same MPI to compile `libyt` and your simulation code.
-
 `mpi4py`
   ~ This is Python bindings for the Message Passing Interface (MPI) standard.
     > {octicon}`alert;1em;sd-text-danger;` Make sure `mpi4py` used in Python and MPI used in simulation are matched. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
@@ -40,35 +36,11 @@ The options are mutually independent to each other.
 | **Normal Mode** (OFF)     | Shut down and terminate all the processes including simulation, if error occurs during in situ analysis.                                                                                                                                                                                         |                  |
 | **Interactive Mode** (ON) | Will not terminate the processes if error occurs while doing in situ analysis and supports [Interactive Python Prompt](./in-situ-python-analysis/interactive-python-prompt.md#interactive-python-prompt) and [Reloading Script](./in-situ-python-analysis/reloading-script.md#reloading-script). | - `READLINE_PATH` |
 
-`READLINE_PATH`
-  ~ [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) installation prefix, the path should contain folders like `include`, `lib` etc. 
-    > {octicon}`info;1em;sd-text-info;` Generally, this library exists in Linux and macOS, we don't need to explicitly provide the path.
-
 ##### `-DJUPYTER_KERNEL` (=`OFF`)
 
 |                              | Notes                                                                                                                                                                             | Required Paths | Required Python Packages                                                                                                                                                                    |
 |------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Jupyter Kernel Mode** (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access](./in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access)) | - `nlohmann_json_DIR` <br> - `cppzmq_DIR` <br> - `xtl_DIR` <br> - `xeus_DIR` <br> - `xeus-zmq_DIR` <br> - `ZeroMQ_DIR` <br> | - [`jupyter_libyt`](#jupyter_libyt) <br> - [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html) <br> - (Optional)[`jedi`](https://jedi.readthedocs.io/en/latest/) |
-
-`nlohmann_json_DIR` (>=3.2.0, <4.0.0)
-  ~ Path to `nlohmann_jsonConfig.cmake` after installing [`nlohmann_json`](https://github.com/nlohmann/json).
-
-`cppzmq_DIR` (>=4.8.1, <5.0.0)
-  ~ Path to `cppzmqConfig.cmake` after installing [`cppzmq`](https://github.com/zeromq/cppzmq).
-
-`xtl_DIR` (>=0.7.0, <0.8.0)
-  ~ Path to `xtlConfig.cmake` after installing [`xtl`](https://github.com/xtensor-stack/xtl).
-
-`xeus_DIR` (>=3.0.0, <4.0.0)
-  ~ Path to `xeusConfig.cmake` after installing [`xeus`](https://github.com/jupyter-xeus/xeus).
-
-`xeus-zmq_DIR` (1.x release)
-  ~ Path to `xeus-zmqConfig.cmake` after installing [`xeus-zmq`](https://github.com/jupyter-xeus/xeus-zmq).
-
-`ZeroMQ_DIR` (>=4.2.5, <5.0.0)
-  ~ Path to `ZeroMQConfig.cmake` after installing [`ZeroMQ`](https://github.com/zeromq/libzmq). (Some system may already have ZeroMQ installed, which doesn't need to provide the path explicitly.)
-
-> {octicon}`info;1em;sd-text-info;` `libyt` will download and build all these dependencies (`nlohmann_json`, `cppzmq`, `xtl`, `xeus`, `xeus-zmq`, `ZeroMQ`), if we didn't provide the path. 
 
 `jupyter_libyt`
   ~ Customized kernel provisioner for libyt Jupyter kernel.
@@ -89,6 +61,24 @@ The options are mutually independent to each other.
 |--------------------------|--------------------------------------------------------------------------------------------------------|----------------|
 | **Time Profiling** (ON)  | Support time profiling. (See [Time Profiling](./debug-and-profiling/time-profiling.md#time-profiling)) |                |
 :::
+
+### Dependency Table
+
+- **Dependency path** indicates the required path variable name in CMake, and the required version.
+- **Notes** are things worth notice.
+- **Option** indicates under what circumstances will we need this dependency.
+- **Get by libyt** indicates whether libyt will fetch and build the dependency itself, if the paths aren't provided. The dependency will be stored under `libyt/vendor`.
+
+| Dependency path                            | Notes                                                                                                                                                                                                                                                                                      | Option                  | Get by libyt |
+|--------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|:------------:|
+| `MPI_PATH`                                 | MPI installation prefix. The path contains folders `include` and `lib`. <br> {octicon}`alert;1em;sd-text-danger;` Make sure you are using the same MPI to compile `libyt` and your simulation code.                                                                                        | `-DSERIAL_MODE=OFF`     |      No      |
+| `READLINE_PATH`                            | [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) installation prefix. The path contains folders `include` and `lib`. <br> {octicon}`info;1em;sd-text-info;` Generally, this library exists in Linux and macOS, we don't need to explicitly provide the path. | `-DINTERACTIVE_MODE=ON` |      No      |
+| `nlohmann_json_DIR` <br> (>=3.2.0, <4.0.0) | Path to `nlohmann_jsonConfig.cmake` after installing [`nlohmann_json`](https://github.com/nlohmann/json).                                                                                                                                                                                  | `-DJUPYTER_KERNEL=ON`   |     Yes      |
+| `xtl_DIR` <br> (>=0.7.0, <0.8.0)           | Path to `xtlConfig.cmake` after installing [`xtl`](https://github.com/xtensor-stack/xtl).                                                                                                                                                                                                  | `-DJUPYTER_KERNEL=ON`   |     Yes      |
+| `ZeroMQ_DIR` <br> (>=4.2.5, <5.0.0)        | Path to `ZeroMQConfig.cmake` after installing [`ZeroMQ`](https://github.com/zeromq/libzmq). (Some system may already have ZeroMQ installed.)                                                                                                                                               | `-DJUPYTER_KERNEL=ON`   |     Yes      |
+| `cppzmq_DIR` <br> (>=4.8.1, <5.0.0)        | Path to `cppzmqConfig.cmake` after installing [`cppzmq`](https://github.com/zeromq/cppzmq).                                                                                                                                                                                                | `-DJUPYTER_KERNEL=ON`   |     Yes      |
+| `xeus_DIR` <br> (>=3.0.0, <4.0.0)          | Path to `xeusConfig.cmake` after installing [`xeus`](https://github.com/jupyter-xeus/xeus).                                                                                                                                                                                                | `-DJUPYTER_KERNEL=ON`   |     Yes      | 
+| `xeus-zmq_DIR` <br> (1.x release)          | Path to `xeus-zmqConfig.cmake` after installing [`xeus-zmq`](https://github.com/jupyter-xeus/xeus-zmq).                                                                                                                                                                                    | `-DJUPYTER_KERNEL=ON`   |     Yes      | 
 
 ### Step-by-Step Instructions
 1. Toggle options, set paths and generate files to build the project. This can be done through either (a) or (b):
@@ -180,3 +170,6 @@ To use [`yt`](https://yt-project.org/) as the core analytic tool, we need to ins
   cd jupyter_libyt
   pip install .
   ```
+
+## FAQs
+
