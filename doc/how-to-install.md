@@ -6,69 +6,53 @@ Go through [Quick Install](#quick-install) and get all [Python Dependencies](#py
 Ignore [Details](#details) unless we want to tweak `libyt` based on our needs.
 
 ### Quick Install
+- **CMake** (>=3.15)
+- **pkg-config**: Generally, Linux and macOS already have pkg-config installed.
+- **GCC compiler** (>4.8): It should be able to support `c++14`.
   - `CXX`: Path to `g++` compiler.
   - `CC`: Path to `gcc` compiler.
-- Python (>=3.7): The Python environment we want to use when doing in situ analysis.
+- **Python** (>=3.7): The Python environment we want to use when doing in situ analysis.
   - `PYTHON_PATH`: Python installation prefix, the path contains folders `include`, `lib` etc. 
   - `NumPy`: Should have `NumPy` installed.
+  - Other [Python Dependencies](#python-dependencies)
+- **MPI**: MPI used for compiling simulations and `libyt` needs to be the same.
+  - `MPI_PATH`: MPI installation prefix, the path contains folders `include`, `lib` etc.
+- **Readline**: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) can get through system package manager. Generally, Linux and macOS already have `readline` installed.
+  - `READLINE_PATH`: `readline` installation prefix. Provide the path if it is not in system search path.
 
-### Step-by-Step Instructions
-1. Toggle options, set paths and generate files to build the project. This can be done through either (a) or (b):
 
-   (a) Set it through editing `CMakeLists.txt` at root directory. For example, this uses option [`-DSERIAL_MODE=OFF`](#-dserial_mode-off) and provides `MPI_PATH`:
-   ```cmake
-   option(SERIAL_MODE "Compile library for serial process" OFF)
-   set(MPI_PATH "<path-to-mpi-prefix>" CACHE PATH "Path to MPI installation prefix (-DSERIAL_MODE=OFF)")
-   ```
-
-   (b) Set the options and paths through command line. For example, the flags here are equivalent to the above:
+1. Shallow clone `libyt` and enter the folder:
    ```bash
-   -DSERIAL_MODE=OFF -DMPI_PATH=<path-to-mpi-prefix>
+   git clone --depth 1 https://github.com/yt-project/libyt "libyt"
+   cd libyt
    ```
-
-2. [Optional] Set the GCC compiler, export the environment variable `CC` to target `gcc` compiler and `CXX` to target `g++` compiler before running `cmake`. For example:
+2. [Optional] Set `gcc` and `g++` compiler:
    ```bash
-   export CC=/software/gcc/bin/gcc
-   export CXX=/software/gcc/bin/g++
+   export CC=<path-to-gcc>
+   export CXX=<path-to-g++>
    ```
-   > {octicon}`info;1em;sd-text-info;` It should support `c++14`.
-
-3. Generate files for project, `<1-(b)>` contains the flags in step 1-(b):
+3. Generate build files in `build` folder:
+   - **Serial Mode (using GCC)**:
+     ```bash
+     rm -rf build
+     cmake -S . -B build -DSERIAL_MODE=ON \
+                         -DINTERACTIVE_MODE=ON \
+                         -DJUPYTER_KERNEL=ON \
+                         -DPYTHON_PATH=<your-python-prefix>
+     ```
+   - **Parallel Mode (using MPI)**:
+     ```bash
+     rm -rf build
+     cmake -S . -B build -DINTERACTIVE_MODE=ON \
+                         -DJUPYTER_KERNEL=ON \
+                         -DPYTHON_PATH=<your-python-prefix> \
+                         -DMPI_PATH=<your-mpi-prefix>
+     ```
+4. Build project and install `libyt`:
    ```bash
-   cd libyt # go to the root of the project
-   cmake -B <build-dir-name> -S . <1-(b)>
+   cmake --build build 
+   cmake --install build --prefix <libyt-install-prefix>
    ```
-
-4. Build the project:
-   ```bash
-   cmake --build <build-dir-name>
-   ```
-
-5. Install the library:
-   ```bash
-   cmake --install <build-dir-name> --prefix <libyt-install-prefix> 
-   ```
-
-### Example
-- The following builds `libyt` in serial mode using user designated GCC compiler and then installs the library in `/home/user/softwares/libyt`:
-  ```bash
-  cd libyt                                                     # go to project root directory
-  export CC=/software/gcc/8.4.0/bin/gcc                        # set gcc compiler
-  export CXX=/software/gcc/8.4.0/bin/g++                       # set g++ compiler
-  rm -rf build                                                 # clean up previous build
-  cmake -B build -S . -DSERIAL_MODE=ON                         # generate files for project
-  cmake --build build                                          # build the project
-  cmake --install build --prefix /home/user/softwares/libyt    # install
-  ```
-
-- The following builds `libyt` in parallel mode using user designated MPI compiler and then installs the library in `/home/user/softwares/libyt`:
-  ```bash
-  cd libyt                                                                       # go to project root directory
-  rm -rf build                                                                   # clean up previous build
-  cmake -B build -S . -DSERIAL_MODE=OFF -DMPI_PATH=/software/openmpi/4.1.1-gnu   # set mpi path and generate files for project
-  cmake --build build                                                            # build the project
-  cmake --install build --prefix /home/user/softwares/libyt                      # install
-  ```
 
 ### Details
 
@@ -122,6 +106,7 @@ The options are mutually independent to each other.
 
 | Dependency path                            | Notes                                                                                                                                                                                                                                                                                      | Option                  | Get by libyt |
 |--------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|:------------:|
+| `PYTHON_PATH` <br> (>=3.7)                 | Python installation prefix, the path contains folders include, lib etc. <br> {octicon}`info;1em;sd-text-info;` The Python environemnt will be used in in situ analysis.                                                                                                                             | Always                  |     No       |
 | `MPI_PATH`                                 | MPI installation prefix. The path contains folders `include` and `lib`. <br> {octicon}`alert;1em;sd-text-danger;` Make sure you are using the same MPI to compile `libyt` and your simulation code.                                                                                        | `-DSERIAL_MODE=OFF`     |      No      |
 | `READLINE_PATH`                            | [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) installation prefix. The path contains folders `include` and `lib`. <br> {octicon}`info;1em;sd-text-info;` Generally, this library exists in Linux and macOS, we don't need to explicitly provide the path. | `-DINTERACTIVE_MODE=ON` |      No      |
 | `nlohmann_json_DIR` <br> (>=3.2.0, <4.0.0) | Path to `nlohmann_jsonConfig.cmake` after installing [`nlohmann_json`](https://github.com/nlohmann/json).                                                                                                                                                                                  | `-DJUPYTER_KERNEL=ON`   |     Yes      |
@@ -130,6 +115,8 @@ The options are mutually independent to each other.
 | `cppzmq_DIR` <br> (>=4.8.1, <5.0.0)        | Path to `cppzmqConfig.cmake` after installing [`cppzmq`](https://github.com/zeromq/cppzmq).                                                                                                                                                                                                | `-DJUPYTER_KERNEL=ON`   |     Yes      |
 | `xeus_DIR` <br> (>=3.0.0, <4.0.0)          | Path to `xeusConfig.cmake` after installing [`xeus`](https://github.com/jupyter-xeus/xeus).                                                                                                                                                                                                | `-DJUPYTER_KERNEL=ON`   |     Yes      | 
 | `xeus-zmq_DIR` <br> (1.x release)          | Path to `xeus-zmqConfig.cmake` after installing [`xeus-zmq`](https://github.com/jupyter-xeus/xeus-zmq).                                                                                                                                                                                    | `-DJUPYTER_KERNEL=ON`   |     Yes      | 
+
+> {octicon}`info;1em;sd-text-info;` If our system doesn't have `readline` installed, use system package manager (ex: `brew`, `apt`) to install. If we want to compile and install from the source code ourselves, make sure `--with-curses` is used when configuring.
 
 #### Step-by-Step Instructions
 1. Toggle options, set paths and generate files to build the project. This can be done through either (a) or (b):
