@@ -180,3 +180,15 @@ The options are mutually independent to each other.
 
 ## FAQs
 
+### Get Errors when Using CMake
+
+Make sure the folder where CMake generates build files to is empty or not exist yet by removing the folder:
+```bash
+cd libyt
+rm -rf <build-folder>
+cmake -S . -B <build-folder>
+```
+
+### Unable to Link to Dependencies Fetched by libyt After Installation
+
+Keep `libyt` project repo after installation. `libyt` fetches and stores dependencies under `libyt/vendor` folder, so that the content can be reused in different builds.
