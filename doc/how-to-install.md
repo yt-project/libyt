@@ -1,9 +1,9 @@
 # How to Install
 
-## libyt C Library
+> {octicon}`info;1em;sd-text-info;` Go through [Quick Install](#quick-install) and get all [Python Dependencies](#python-dependencies) to get full feature of `libyt`.
+> Ignore [Details](#details) unless we want to tweak `libyt` based on our needs.
 
-Go through [Quick Install](#quick-install) and get all [Python Dependencies](#python-dependencies) to get full feature of `libyt`.
-Ignore [Details](#details) unless we want to tweak `libyt` based on our needs.
+## libyt C Library
 
 ### Quick Install
 - **CMake** (>=3.15)
@@ -17,7 +17,7 @@ Ignore [Details](#details) unless we want to tweak `libyt` based on our needs.
   - Other [Python Dependencies](#python-dependencies)
 - **MPI**: MPI used for compiling simulations and `libyt` needs to be the same.
   - `MPI_PATH`: MPI installation prefix, the path contains folders `include`, `lib` etc.
-- **Readline**: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) can get through system package manager. Generally, Linux and macOS already have `readline` installed.
+- **Readline**: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) is already installed on Linux and macOS generally. If not, we can get through system package manager or compile from source ourselves. (Use `--with-curses` when configuring if we compile from source.)
   - `READLINE_PATH`: `readline` installation prefix. Provide the path if it is not in system search path.
 
 
