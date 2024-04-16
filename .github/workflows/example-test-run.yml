@@ -82,26 +82,26 @@ jobs:
 
       - name: Prepare Test
         run: |
-          cd ${{ github.workspace }}/example
+          cd ${{ github.workspace }}/example/amr-example
           cp ${{ github.workspace }}/.github/tests/test-DataIO/DataIOTest.py .
 
       - name: Generate Density Data for Testing
         run: |
-          cd ${{ github.workspace }}/example
+          cd ${{ github.workspace }}/example/amr-example
           cp ${{ github.workspace }}/.github/tools/generate_density_data.cpp .
           g++ -o generate_density_data generate_density_data.cpp
           ./generate_density_data
 
       - name: Test Run and DataIO Test - example - Serial
         run: |
-          cd ${{ github.workspace }}/example
+          cd ${{ github.workspace }}/example/amr-example
           make clean
           make OPTIONS=-DSERIAL_MODE LIBYT_PATH="${{ env.LIBYT_SERIAL_INSTALL_PATH }}"
           ./example DataIOTest.py
 
-      - name: Test Run and DataIO Test - example - Parallel (MPI 3)
+      - name: Test Run and DataIO Test - example - Parallel (MPI Size 3)
         run: |
-          cd ${{ github.workspace }}/example
+          cd ${{ github.workspace }}/example/amr-example
           make clean
           make LIBYT_PATH="${{ env.LIBYT_PARALLEL_INSTALL_PATH }}"
           OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./example DataIOTest.py
