@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Checkout libyt repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: CMake Version
         run: cmake --version
