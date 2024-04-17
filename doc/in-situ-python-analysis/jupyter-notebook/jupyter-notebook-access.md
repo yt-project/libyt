@@ -11,7 +11,7 @@ remote-cluster
 
 - Compile `libyt` in **jupyter kernel mode** ([`-DJUPYTER_KERNEL=ON`](../../how-to-install.md#-djupyter_kernel-off)).
 - Call libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt_run_jupyterkernel).
-- Python package [`jupyter_libyt`](../../how-to-install.md#jupyter_libyt), [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html), and [`jedi`](https://jedi.readthedocs.io/en/latest/).
+- Python package [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt), [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html), and [`jedi`](https://jedi.readthedocs.io/en/latest/).
 
 ## Setting Up
 
@@ -22,7 +22,7 @@ We need another process to start Jupyter Notebook/JupyterLab and connect to liby
 
 > {octicon}`info;1em;sd-text-info;` The process of starting Jupyter Notebook/JupyterLab and running simulation are separate and independent.
 
-1. Get [`jupyter_libyt`](../../how-to-install.md#jupyter_libyt) and [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html).
+1. Get [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt) and [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html).
 2. After installing `libyt`, add `<libyt-install-prefix>/share/jupyter` to [`JUPYTER_PATH`](https://docs.jupyter.org/en/latest/use/jupyter-directories.html#envvar-JUPYTER_PATH).
    ```bash
    export JUPYTER_PATH=<libyt-install-prefix>/share/jupyter:$JUPYTER_PATH

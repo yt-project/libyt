@@ -20,7 +20,7 @@ The example initializes `libyt`, loads data to `libyt` in simulation's iterative
 
 ## How to Compile and Run
 
-1. Install `libyt` with [`-DSERIAL_MODE=OFF`](./how-to-install.md#-dserial_mode-off) and install Python package [`yt_libyt`](./how-to-install.md#yt_libyt).
+1. Install `libyt` with [`-DSERIAL_MODE=OFF`](./how-to-install.md#-dserial_mode-off) and install Python package [`yt_libyt`](https://github.com/data-exp-lab/yt_libyt).
 2. Install [`yt`](https://yt-project.org/). This example uses `yt` as the core analytic method.
 3. Update `MPI_PATH` and `LIBYT_PATH` in `example/Makefile`, which is their installation prefix. The folder should contain `include`, `lib` etc.
    ```makefile
