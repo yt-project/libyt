@@ -12,9 +12,9 @@ It is an in situ analysis tool that allows researchers to analyze and visualize 
 :hidden:
 
 quick-start
+example
 how-to-install
 how-it-works
-example
 libyt-api/index
 in-situ-python-analysis/index
 debug-and-profiling/index
