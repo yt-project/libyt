@@ -1,7 +1,7 @@
 # Using yt
 
 ## Requirements
-- Python package [`yt`](https://yt-project.org/) and [`yt_libyt`](../how-to-install.md#yt_libyt).
+- Python package [`yt`](https://yt-project.org/) and [`yt_libyt`](https://github.com/data-exp-lab/yt_libyt).
 - If it is for parallel computing in **parallel mode** ([`-DSERIAL_MODE=OFF`](../how-to-install.md#-dserial_mode-off)), it needs [`mpi4py`](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
 
 ## Use yt for Parallel Computing

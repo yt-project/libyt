@@ -1,11 +1,11 @@
 # How to Install
 
-> {octicon}`info;1em;sd-text-info;` Go through [Quick Install](#quick-install) and get all [Python Dependencies](#python-dependencies) to get full feature of `libyt`.
+> {octicon}`info;1em;sd-text-info;` Go through [Install](#install) and get all [Python Dependencies](#python-dependencies) to get full feature of `libyt`.
 > Ignore [Details](#details) unless we want to tweak `libyt` based on our needs.
 
 ## libyt C Library
 
-### Quick Install
+### Install
 - **CMake** (>=3.15)
 - **pkg-config**: Generally, Linux and macOS already have pkg-config installed.
 - **GCC compiler** (>4.8): It should be able to support `c++14`.
@@ -83,9 +83,9 @@ The options are mutually independent to each other.
 
 ###### `-DJUPYTER_KERNEL` (=`OFF`)
 
-|                              | Notes                                                                                                                                                                             | Dependency                                                                                                 | Python dependency                                                                                                                                                                     |
-|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Jupyter Kernel Mode** (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access](./in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access)) | `nlohmann_json_DIR` <br> `cppzmq_DIR` <br> `xtl_DIR` <br> `xeus_DIR` <br> `xeus-zmq_DIR` <br> `ZeroMQ_DIR` | [`jupyter_libyt`](#jupyter_libyt) <br> [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html) <br> [`jedi`](https://jedi.readthedocs.io/en/latest/)(Optional) |
+|                              | Notes                                                                                                                                                                             | Dependency                                                                                                 | Python dependency                                                                                                                                                                                                  |
+|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Jupyter Kernel Mode** (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access](./in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access)) | `nlohmann_json_DIR` <br> `cppzmq_DIR` <br> `xtl_DIR` <br> `xeus_DIR` <br> `xeus-zmq_DIR` <br> `ZeroMQ_DIR` | [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt) <br> [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html) <br> [`jedi`](https://jedi.readthedocs.io/en/latest/)(Optional) |
 
 ###### `-DSUPPORT_TIMER` (=`OFF`)
 
