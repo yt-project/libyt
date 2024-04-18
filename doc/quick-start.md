@@ -1,7 +1,9 @@
 # Quick Start
 
-The quick start initializes `libyt`, runs Python functions defined in inline Python script, activates interactive prompt, and then finalizes it.
-It does not load any data from C/C++ application to Python yet. The Python prompt is just simple Python prompt.
+The quick start initializes `libyt`, runs Python functions defined in inline Python script, activates Python prompt, and then finalizes it.
+It does not load any data from C/C++ application to Python yet. The Python prompt is just raw Python interpreter activate by libyt API.
+
+After reading quick start, we will have an overview of how to use `libyt` for in situ analysis.
 
 ### Building and Running the Project
 
@@ -90,4 +92,21 @@ It does not load any data from C/C++ application to Python yet. The Python promp
 
 ### What's Next
 
+###### Loading Data using libyt API and Do Analysis using yt and Python
+Quick start has no data loaded to Python, so we are only playing with a raw Python interpreter. 
+`libyt` currently supports adaptive mesh refinement (AMR) data structures.
+The following shows how to load AMR data and do in situ analysis using [`yt`](https://yt-project.org/)
+- [Example](./example.md)
 
+###### Other Python Entry Points for Interactive Data Analysis
+Besides Python prompt user interface ([`yt_run_InteractiveMode`](./libyt-api/yt_run_interactivemode.md)) shown here, `libyt` also supports file-based Python prompt ([`yt_run_ReloadScript`](./libyt-api/yt_run_reloadscript.md)) and Jupyter Notebook / JupyterLab access ([`yt_run_JupyterKernel`](./libyt-api/yt_run_jupyterkernel.md)).
+
+**To try file-based Python prompt:**
+1. Go to `quick-start` build folder.
+2. Create `LIBYT_RELOAD`. The file is signal for `libyt` to decide whether to launch the file-based Python prompt.
+3. Run the program. See more in [Reload Script](./in-situ-python-analysis/reloading-script.md).
+
+**To try Jupyter Notebook / JupyterLab access:**
+1. Go to `quick-start` build folder.
+2. Create `LIBYT_JUPYTER`. The file is signal for `libyt` to decide whether to launch Jupyter kernel used for Jupyter Notebook / JupyterLab access.
+3. Run the program. See more in [Jupyter Notebook Access](./in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md).
