@@ -1,3 +1,12 @@
+/*
+ * [Description]
+ *   The quick start initializes `libyt`, runs Python functions defined in inline Python script,
+ *   activates Python prompt, and then finalizes it.
+ *   It does not load any data from C/C++ application to Python yet.
+ *   The Python prompt is just raw Python interpreter activate by libyt API.
+ *
+ *   After reading quick start, we will have an overview of how to use `libyt` for in situ analysis.
+ */
 #include <iostream>
 
 #ifndef SERIAL_MODE
