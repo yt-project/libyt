@@ -79,7 +79,8 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
         // if every function works fine, leave reloading script mode,
         // otherwise create flag file to indicate it enters the mode
         if (!enter_reload) {
-            log_info("No failed inline functions ... leaving reload script mode\n");
+            log_info("No failed inline functions and no file '%s' detected, leaving reload script mode ... \n",
+                     flag_file_name);
             return YT_SUCCESS;
         } else {
             if (g_myrank == g_myroot) {
