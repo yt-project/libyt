@@ -30,9 +30,9 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // =======================================
-    // Execute Python Function
-    // =======================================
+    // ==========================================================
+    // Execute Python functions and activate Python entry points
+    // ==========================================================
     if (yt_run_Function("print_hello_world") != YT_SUCCESS) {
         exit(EXIT_FAILURE);
     }
@@ -41,7 +41,20 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    // Activate Python prompt
     if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
+        exit(EXIT_FAILURE);
+    }
+
+    // Activate file-based Python prompt where inputs and outputs are all present through files
+    if (yt_run_ReloadScript("LIBYT_RELOAD", "RELOAD", "test_reload.py") != YT_SUCCESS) {
+        fprintf(stderr, "ERROR: yt_run_ReloadScript failed!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Activate libyt Jupyter kernel and enable access through Jupyter Notebook / JupyterLab
+    if (yt_run_JupyterKernel("LIBYT_JUPYTER", false) != YT_SUCCESS) {
+        fprintf(stderr, "ERROR: yt_run_JupyterKernel failed!\n");
         exit(EXIT_FAILURE);
     }
 
