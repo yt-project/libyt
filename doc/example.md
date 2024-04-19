@@ -84,6 +84,9 @@ The example initializes `libyt`, loads data to `libyt` in every simulation time 
      :align: center
      :scale: 50%
      ```
+   
+   After loading simulation data using libyt API, we call Python function using [`yt_run_Function`](./libyt-api/run-python-function.md#yt_run_function)/[`yt_run_FunctionArguments`](./libyt-api/run-python-function.md#yt_run_functionarguments) and use `yt` to analyze the data and plot figures. For how to use `yt` see:
+     - [Using `yt`](./in-situ-python-analysis/using-yt.md)
 
 ## What's Next
 
