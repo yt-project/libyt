@@ -20,7 +20,7 @@
 - **Readline**: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) is already installed on Linux and macOS generally. If not, we can get through system package manager or compile from source ourselves. (Use `--with-curses` when configuring if we compile from source.)
   - `READLINE_PATH`: `readline` installation prefix. Provide the path if it is not in system search path.
 
-Follow the steps to install `libyt` that is fault-tolerant to Python code, and supports interactive Python prompt, reloading script, and Jupyter Notebook access.
+**Follow the steps to install `libyt` that is fault-tolerant to Python code, and supports interactive Python prompt, reloading script, and Jupyter Notebook access:**
 
 1. Shallow clone `libyt` and enter the folder:
    ```bash

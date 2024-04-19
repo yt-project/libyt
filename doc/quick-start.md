@@ -10,7 +10,7 @@ After reading quick start, we will have an overview of how to use `libyt` for in
 > {octicon}`info;1em;sd-text-info;` This demonstration assumes the operating system is either Linux or macOS.
 
 1. Follow [Install](./how-to-install.md#install).
-2. Enter quick start folder assuming we build the project under `libyt/build`:
+2. Enter quick start folder. Assume we build the project under `libyt/build`:
    ```bash
    cd libyt                        # go to libyt project root folder
    cd build/example/quick-start    # go to quick start folder
@@ -20,7 +20,6 @@ After reading quick start, we will have an overview of how to use `libyt` for in
      ```bash
      ./quick-start
      ```
-     
    - **Parallel Mode (using MPI)**:
      ```bash
      mpirun -np 2 ./quick-start
@@ -67,6 +66,7 @@ After reading quick start, we will have an overview of how to use `libyt` for in
    def print_hello_world():
        print("HELLO WORLD!!")
 
+   
    def print_args(*args):
        for i in args:
            print(type(i), i)
