@@ -1,8 +1,8 @@
 # Example
 
-The [`example`](https://github.com/yt-project/libyt/blob/main/example) demonstrates how to implement `libyt` in adaptive mesh refinement (AMR) grid simulation.
+The [`example`](https://github.com/yt-project/libyt/blob/main/example/amr-example/example.cpp) demonstrates how to implement `libyt` in an adaptive mesh refinement (AMR) grid simulation.
 The example has a set of pre-calculated data.
-It assigns the data to MPI processes randomly to simulate the actual code of having data distributed on different processes. (Though in real world, data won't distribute randomly.) 
+It assigns the data to MPI processes randomly to simulate data distributed on different processes. (Though in real world, data won't distribute randomly.) 
 
 The steps related to implementation of `libyt` is commented like this:
 ```c++
@@ -16,7 +16,6 @@ The steps related to implementation of `libyt` is commented like this:
 ```
 
 The example initializes `libyt`, loads data to `libyt` in every simulation time step in the iterative process and uses [`yt`](https://yt-project.org/) to do in situ Python analysis, and finalizes it before terminating the simulation. 
-The code can be found in [`example/amr-example/example.cpp`](https://github.com/yt-project/libyt/blob/main/example/amr-example/example.cpp).
 
 ## Building and Running the Example
 
@@ -36,21 +35,16 @@ The code can be found in [`example/amr-example/example.cpp`](https://github.com/
    ```bash
    cd libyt/example/amr-example
    ```
-3. Update `MPI_PATH` and `LIBYT_PATH` in `Makefile`. They are installation prefix. The prefix will contain `include` and `lib` folder.
-   ```makefile
-   MPI_PATH := $(YOUR_MPI_PATH)
-   LIBYT_PATH := $(YOUR_LIBYT_PATH)
-   ```
-   > {octicon}`alert;1em;sd-text-danger;` Make sure you are using the same MPI to compile `libyt` and the example.
-4. Compile the code:
+3. Compile the code:
    - **Serial Mode (using GCC)**:
      ```bash
-     make OPTIONS=-DSERIAL_MODE 
+     make OPTIONS=-DSERIAL_MODE LIBYT_PATH=<libyt-install-prefix>
      ```
    - **Parallel Mode (using MPI)**:
      ```bash
-     make
+     make MPI_PATH=<mpi-install-prefix> LIBYT_PATH=<libyt-install-prefix> 
      ```
+     > {octicon}`alert;1em;sd-text-danger;` Make sure you are using the same MPI to compile `libyt` and the example.
 
 ### Running the Example
 
