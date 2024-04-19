@@ -65,8 +65,25 @@ The code can be found in [`example/amr-example/example.cpp`](https://github.com/
       ```
 2. The output results we get from the first step:
    - Density projection along z-axis, `FigName000000000_Projection_z_density.png`:
-     ![](_static/img/AMRExample-Step1-ProjDensZ.png)
 
+     ```{image} _static/img/AMRExample-Step1-ProjDensZ.png
+     :align: center
+     :scale: 50%
+     ```
+   - Density profile with respect to x coordinate, `FigName000000000_1d-Profile_x_density.png`:
+
+     ```{image} _static/img/AMRExample-Step1-ProfDensX.png
+     :align: center
+     :scale: 50%
+     ```
+     
+   - Slice plot of the reciprocal of the density field, `FigName000000000_Slice_z_InvDens.png`:
+
+     ```{image} _static/img/AMRExample-Step1-SliceInvDensZ.png
+     :align: center
+     :scale: 50%
+     ```
+     
 
 ## What's Next
 
