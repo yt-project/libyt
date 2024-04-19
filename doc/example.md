@@ -1,6 +1,9 @@
 # Example
 
-The [`example`](https://github.com/yt-project/libyt/blob/main/example) demonstrates how to implement `libyt` in adaptive mesh refinement simulation.
+The [`example`](https://github.com/yt-project/libyt/blob/main/example) demonstrates how to implement `libyt` in adaptive mesh refinement (AMR) grid simulation.
+The example has a set of pre-calculated data.
+It assigns the data to MPI processes randomly to simulate the actual code of having data distributed on different processes. (Though in real world, data won't distribute randomly.) 
+
 The steps related to implementation of `libyt` is commented like this:
 ```c++
 // ==========================================
@@ -12,33 +15,60 @@ The steps related to implementation of `libyt` is commented like this:
 // ==========================================
 ```
 
-The example has a set of pre-calculated data.
-It assigns the data to MPI processes randomly to simulate the actual code of having data distributed on different processes. (Though in real world, data won't distribute randomly.) 
+The example initializes `libyt`, loads data to `libyt` in every simulation time step in the iterative process and uses [`yt`](https://yt-project.org/) to do in situ Python analysis, and finalizes it before terminating the simulation. 
+The code can be found in [`example/amr-example/example.cpp`](https://github.com/yt-project/libyt/blob/main/example/amr-example/example.cpp).
 
-The example initializes `libyt`, loads data to `libyt` in simulation's iterative process inside for loop, and finalizes it before terminating the simulation. To know the step by step details, see [`example/example.cpp`](https://github.com/yt-project/libyt/blob/main/example/example.cpp).
+## Building and Running the Example
 
+### Using CMake
 
-## How to Compile and Run
+1. Follow [Install](./how-to-install.md#install).
+2. Enter example folder. Assume we build the project under `libyt/build`:
+   ```bash
+   cd libyt                        # go to libyt project root folder
+   cd build/example/amr-example    # go to example folder
+   ```
 
-1. Install `libyt` with [`-DSERIAL_MODE=OFF`](./how-to-install.md#-dserial_mode-off) and install Python package [`yt_libyt`](https://github.com/data-exp-lab/yt_libyt).
-2. Install [`yt`](https://yt-project.org/). This example uses `yt` as the core analytic method.
-3. Update `MPI_PATH` and `LIBYT_PATH` in `example/Makefile`, which is their installation prefix. The folder should contain `include`, `lib` etc.
+### Using Make
+
+1. Follow [Install](./how-to-install.md#install).
+2. Go to `libyt/example/amr-example` folder.
+   ```bash
+   cd libyt/example/amr-example
+   ```
+3. Update `MPI_PATH` and `LIBYT_PATH` in `Makefile`. They are installation prefix. The prefix will contain `include` and `lib` folder.
    ```makefile
    MPI_PATH := $(YOUR_MPI_PATH)
    LIBYT_PATH := $(YOUR_LIBYT_PATH)
    ```
    > {octicon}`alert;1em;sd-text-danger;` Make sure you are using the same MPI to compile `libyt` and the example.
-4. Go to `example` folder and compile.
-   ```bash
-   make clean
-   make
-   ```
-5. Run `example`.
-   ```bash
-   mpirun -np 4 ./example
-   ```
+4. Compile the code:
+   - **Serial Mode (using GCC)**:
+     ```bash
+     make OPTIONS=-DSERIAL_MODE 
+     ```
+   - **Parallel Mode (using MPI)**:
+     ```bash
+     make
+     ```
 
-## Playground
+### Running the Example
+
+1. Run the example:
+    - **Serial Mode (using GCC)**:
+      ```bash
+      ./example
+      ```
+    - **Parallel Mode (using MPI)**:
+      ```bash
+      mpirun -np 2 ./example
+      ```
+2. The output results we get from the first step:
+   - Density projection along z-axis, `FigName000000000_Projection_z_density.png`:
+     ![](_static/img/AMRExample-Step1-ProjDensZ.png)
+
+
+## What's Next
 
 ### Activate Interactive Mode
 
