@@ -78,6 +78,12 @@ The example initializes `libyt`, loads data to `libyt` in every simulation time 
      :scale: 50%
      ```
      
+   - Particle plot of the level of a grid. Each grid has one particle with its position set at the center of the grid with value equals to grid level. The result is `FigName000000000_Particle_z_Level.png`. We can only see some tiny dots in the figure, since there is only one particle in each grid. (The plot tries to demonstrate the particle functionality.)
+
+     ```{image} _static/img/AMRExample-Step1-ParticleLevelZ.png
+     :align: center
+     :scale: 50%
+     ```
 
 ## What's Next
 
