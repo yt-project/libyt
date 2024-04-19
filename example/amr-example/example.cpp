@@ -444,16 +444,16 @@ int main(int argc, char* argv[]) {
         // =======================================================================================================
         // Only supports when compiling libyt in interactive mode (-DINTERACTIVE_MODE)
         // Start reloading script if error occurred when running inline functions, or it detects "LIBYT_STOP" file.
-        // if (yt_run_ReloadScript("LIBYT_STOP", "RELOAD", "test_reload.py") != YT_SUCCESS) {
-        //     fprintf(stderr, "ERROR: yt_run_ReloadScript failed!\n");
-        //     exit(EXIT_FAILURE);
-        // }
+        if (yt_run_ReloadScript("LIBYT_RELOAD", "RELOAD", "test_reload.py") != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_run_ReloadScript failed!\n");
+            exit(EXIT_FAILURE);
+        }
 
         // Interactive prompt will start only if it detects "LIBYT_STOP" file.
-        // if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
-        //     fprintf(stderr, "ERROR: yt_run_InteractiveMode failed!\n");
-        //     exit(EXIT_FAILURE);
-        // }
+        if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_run_InteractiveMode failed!\n");
+            exit(EXIT_FAILURE);
+        }
 
         // =======================================================================================================
         // libyt: 9. activate libyt Jupyter kernel for Jupyter Notebook / JupyterLab access
@@ -462,10 +462,10 @@ int main(int argc, char* argv[]) {
         // Activate libyt kernel when detects "LIBYT_STOP" file.
         // False for making libyt find empty port to bind to by itself.
         // True for using connection file provided by user, file name must be "libyt_kernel_connection.json".
-        // if (yt_run_JupyterKernel("LIBYT_STOP", false) != YT_SUCCESS) {
-        //     fprintf(stderr, "ERROR: yt_run_JupyterKernel failed!\n");
-        //     exit(EXIT_FAILURE);
-        // }
+        if (yt_run_JupyterKernel("LIBYT_JUPYTER", false) != YT_SUCCESS) {
+            fprintf(stderr, "ERROR: yt_run_JupyterKernel failed!\n");
+            exit(EXIT_FAILURE);
+        }
 
         // =================================================
         // libyt: 10. finish in-situ analysis, clean up libyt
