@@ -278,7 +278,7 @@ int LibytPythonShell::set_exception_hook() {
 //                     (9)  def                                   -> 1
 //                     (10) while                                 -> 1
 //                     (11) with                                  -> 1
-//                     We will drop numbers in the error message and strip trailing white spaces,
+//                     We will drop every string after first number occurs in the error message,
 //                     since (5)~(11) will print the line no in it in Python >= 3.11.
 //                  3. Error messages are version dependent.
 //                  4. s_NotDone_ErrMsg's and s_NotDone_PyErr's elements are one-to-one relationship.
@@ -322,14 +322,22 @@ int LibytPythonShell::init_not_done_err_msg() {
                                                                  std::string("with open('') as f:")};
 
     // get python error type and its statement.
-    PyObject *py_src, *py_exc, *py_val, *py_traceback, *py_obj;
-    const char* err_msg;
     for (int i = 0; i < s_NotDone_Num; i++) {
+        PyObject *py_src, *py_exc, *py_val, *py_traceback, *py_obj;
+        const char* err_msg;
+        std::string err_msg_str;
+
         py_src = Py_CompileString(not_done_statement[i].c_str(), "<get err msg>", Py_single_input);
         PyErr_Fetch(&py_exc, &py_val, &py_traceback);
         PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
 
-        s_NotDone_ErrMsg[i] = std::string(err_msg);
+        err_msg_str = std::string(err_msg);
+        std::size_t found = err_msg_str.find_first_of("1234567890");
+        if (found != std::string::npos) {
+            s_NotDone_ErrMsg[i] = err_msg_str.substr(0, found);
+        } else {
+            s_NotDone_ErrMsg[i] = err_msg_str;
+        }
         s_NotDone_PyErr[i] = py_exc;
 
         // dereference
