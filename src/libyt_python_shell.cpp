@@ -265,8 +265,21 @@ int LibytPythonShell::set_exception_hook() {
 // Static Method :  init_not_done_err_msg
 //
 // Notes         :  1. This is a static method.
-//                  2. Identify error messages that will show up when inputing statements like class, def
-//                     if, and triple quotes etc.
+//                  2. The not-done-error message initialized are those that can span multi-line.
+//                     There are '29' cases:
+//                     (1)  """ | '''                             -> 2
+//                     (2)  [r|u|f|b|rf|rb](""" | ''')            -> 12
+//                     (3)  <some-statement> \                    -> 1
+//                     (4)  ( | [ | {                             -> 3
+//                     (5)  if / if-else / if-elif                -> 3
+//                     (6)  try / try-except / try-except-finally -> 3
+//                     (7)  class                                 -> 1
+//                     (8)  for                                   -> 1
+//                     (9)  def                                   -> 1
+//                     (10) while                                 -> 1
+//                     (11) with                                  -> 1
+//                     We will drop numbers in the error message and strip trailing white spaces,
+//                     since (5)~(11) will print the line no in it in Python >= 3.11.
 //                  3. Error messages are version dependent.
 //                  4. s_NotDone_ErrMsg's and s_NotDone_PyErr's elements are one-to-one relationship.
 //
@@ -277,9 +290,36 @@ int LibytPythonShell::set_exception_hook() {
 int LibytPythonShell::init_not_done_err_msg() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    // error msg from not done yet statement to grab
-    std::array<std::string, s_NotDone_Num> not_done_statement = {
-        std::string("if 1==1:\n"), std::string("tri = \"\"\"\n"), std::string("print(\n")};
+    // statement that can have newline in it
+    std::array<std::string, s_NotDone_Num> not_done_statement = {std::string("\"\"\""),
+                                                                 std::string("'''"),
+                                                                 std::string("r\"\"\""),
+                                                                 std::string("u\"\"\""),
+                                                                 std::string("f\"\"\""),
+                                                                 std::string("b\"\"\""),
+                                                                 std::string("rf\"\"\""),
+                                                                 std::string("rb\"\"\""),
+                                                                 std::string("r'''"),
+                                                                 std::string("u'''"),
+                                                                 std::string("f'''"),
+                                                                 std::string("b'''"),
+                                                                 std::string("rf'''"),
+                                                                 std::string("rb'''"),
+                                                                 std::string("a = 1+\\\n"),
+                                                                 std::string("("),
+                                                                 std::string("["),
+                                                                 std::string("{"),
+                                                                 std::string("if 1==1:"),
+                                                                 std::string("if 1==1:\n  pass\nelse:"),
+                                                                 std::string("if 1==1:\n  pass\nelif 2==2:"),
+                                                                 std::string("try:"),
+                                                                 std::string("try:\n  pass\nexcept:"),
+                                                                 std::string("try:\n  pass\nfinally:"),
+                                                                 std::string("class A:"),
+                                                                 std::string("for _ in range(1):"),
+                                                                 std::string("def func():"),
+                                                                 std::string("while(False):"),
+                                                                 std::string("with open('') as f:")};
 
     // get python error type and its statement.
     PyObject *py_src, *py_exc, *py_val, *py_traceback, *py_obj;
