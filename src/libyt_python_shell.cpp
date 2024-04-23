@@ -7,6 +7,7 @@
 
 #include "yt_combo.h"
 
+static bool check_backslash_exist(const std::string& code);
 static bool check_colon_exist(const std::string& code);
 
 std::array<std::string, LibytPythonShell::s_NotDone_Num> LibytPythonShell::s_NotDone_ErrMsg;
@@ -388,15 +389,14 @@ int LibytPythonShell::init_script_namespace() {
 //                  4. s_NotDone_ErrMsg's and s_NotDone_PyErr's elements are one-to-one relationship.
 //                     Some of them might have error of same type and same messages, but that really depends
 //                     on the python version.
-//                  5. The rule to check if it is done:
-//                     (1) Compare the current error instance's message to msg initialized by init_not_done_err_msg,
+//                  5. The rule to check if it is done in this order:
+//                     (1) If code end by '\', it is not done yet.
+//                     (2) Compare the current error instance's message to msg initialized by init_not_done_err_msg,
 //                         neglecting the line no at the end. (Since Python >= 3.11, it includes line no in it)
-//                     (2) If the error is caused by bracket not closing (s_NotDoneErrMsg[i], i = 0~17),
+//                     (3) If the error is caused by bracket not closing (s_NotDoneErrMsg[i], i = 0~17),
 //                         then it is user-not-done-yet.
 //                         If the error is caused by multi-line statement keywords, we need to check if the last line
 //                         contains ':'.
-//                         TODO: currently commented out, not sure if I still need this if I force it to be \n\n at the
-//                         end
 //
 // Arguments     :  const std::string& code : code to check
 //
@@ -406,6 +406,11 @@ bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     bool user_not_done = false;
+
+    if (check_backslash_exist(code)) {
+        user_not_done = true;
+        return user_not_done;
+    }
 
     for (int i = 0; i < s_NotDone_Num; i++) {
         // check error type
@@ -422,12 +427,12 @@ bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
                 if (i < 18) {
                     user_not_done = true;
                 } else {
-                    // ending with "\n\n" means it is done typing, this is also for preventing uncaught rules.
-                    std::size_t two_newline_position = code.rfind("\n\n");
-                    if (two_newline_position != std::string::npos && two_newline_position != code.length() - 2) {
-                        user_not_done = true;
-                    }
-                    // user_not_done = check_colon_exist(code);
+                    // ending with "\n\n\n" means it is done typing, this is also for preventing uncaught rules.
+                    // std::size_t three_newline_position = code.rfind("\n\n\n");
+                    // if (three_newline_position != std::string::npos && three_newline_position != code.length() - 3) {
+                    //    user_not_done = true;
+                    //}
+                    user_not_done = check_colon_exist(code);
                 }
             }
 
@@ -750,6 +755,20 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_file(const std:
 
     return output;
 }
+
+//-------------------------------------------------------------------------------------------------------
+// Function      :  check_backslash_exist
+//
+// Notes         :  1. Find if last line contains '\'
+//                  2. An indentation error caused by user-not-done-yet will contain ':' in the last line.
+//                  3. TODO: make it search from behind, and ignore #
+//
+// Arguments     :  const char *code : code
+//
+// Return        :  false : no '\' at the end, neglecting \n
+//                  true  : has '\' at the last character, neglecting \n
+//-------------------------------------------------------------------------------------------------------
+static bool check_backslash_exist(const std::string& code) { return code.at(code.length() - 2) == '\\'; }
 
 //-------------------------------------------------------------------------------------------------------
 // Function      :  check_colon_exist
