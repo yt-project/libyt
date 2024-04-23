@@ -43,7 +43,7 @@ public:
     static int init_not_done_err_msg();
     static int init_script_namespace();
     static PyObject* get_script_namespace() { return s_PyGlobals; }
-    static bool is_not_done_err_msg(const char* code);
+    static bool is_not_done_err_msg(const std::string& code);
     static CodeValidity check_code_validity(const std::string& code, bool prompt_env = false,
                                             const char* cell_name = "<libyt-stdin>");
     static std::array<AccumulatedOutputString, 2> execute_cell(const std::array<std::string, 2>& code_split = {"", ""},
