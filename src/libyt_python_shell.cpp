@@ -267,18 +267,17 @@ int LibytPythonShell::set_exception_hook() {
 //
 // Notes         :  1. This is a static method.
 //                  2. The not-done-error message initialized are those that can span multi-line.
-//                     There are '29' cases:
+//                     There are '28' cases:
 //                     (1)  """ | '''                             -> 2
 //                     (2)  [r|u|f|b|rf|rb](""" | ''')            -> 12
-//                     (3)  <some-statement> \                    -> 1
-//                     (4)  ( | [ | {                             -> 3
-//                     (5)  if / if-else / if-elif                -> 3
-//                     (6)  try / try-except / try-except-finally -> 3
-//                     (7)  class                                 -> 1
-//                     (8)  for                                   -> 1
-//                     (9)  def                                   -> 1
-//                     (10) while                                 -> 1
-//                     (11) with                                  -> 1
+//                     (3)  ( | [ | {                             -> 3
+//                     (4)  if / if-else / if-elif                -> 3
+//                     (5)  try / try-except / try-except-finally -> 3
+//                     (6)  class                                 -> 1
+//                     (7)  for                                   -> 1
+//                     (8)  def                                   -> 1
+//                     (9)  while                                 -> 1
+//                     (10) with                                  -> 1
 //                     We will drop every string after first number occurs in the error message,
 //                     since (5)~(11) will print the line no in it in Python >= 3.11.
 //                     TODO: Be careful that the lineno (if it has) is at the end of the string,
@@ -308,7 +307,6 @@ int LibytPythonShell::init_not_done_err_msg() {
                                                                  std::string("b'''"),
                                                                  std::string("rf'''"),
                                                                  std::string("rb'''"),
-                                                                 std::string("a = 1+\\\n"),
                                                                  std::string("("),
                                                                  std::string("["),
                                                                  std::string("{"),
@@ -390,13 +388,12 @@ int LibytPythonShell::init_script_namespace() {
 //                     Some of them might have error of same type and same messages, but that really depends
 //                     on the python version.
 //                  5. The rule to check if it is done in this order:
-//                     (1) If code end by '\', it is not done yet.
-//                     (2) Compare the current error instance's message to msg initialized by init_not_done_err_msg,
-//                         neglecting the line no at the end. (Since Python >= 3.11, it includes line no in it)
-//                     (3) If the error is caused by bracket not closing (s_NotDoneErrMsg[i], i = 0~17),
+//                     (1) If last line of the code is ended by '\', it is not done yet.
+//                     (2) If last line colon exist and have keywords (related to colon):
+//                         (2)-1 compare to the error msg from (s_NotDoneErrMsg[i], i = 17~27), if it's the same,
+//                               then it's not done yet.
+//                     (3) If the error is caused by bracket not closing (s_NotDoneErrMsg[i], i = 0~16),
 //                         then it is user-not-done-yet.
-//                         If the error is caused by multi-line statement keywords, we need to check if the last line
-//                         contains ':'.
 //
 // Arguments     :  const std::string& code : code to check
 //
@@ -759,14 +756,13 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_file(const std:
 //-------------------------------------------------------------------------------------------------------
 // Function      :  check_backslash_exist
 //
-// Notes         :  1. Find if last line contains '\'
-//                  2. An indentation error caused by user-not-done-yet will contain ':' in the last line.
-//                  3. TODO: make it search from behind, and ignore #
+// Notes         :  1. Find if last line ends with '\' and does not have comments '#'
+//                  2. TODO: make it search from behind, and ignore #, rename the function
 //
 // Arguments     :  const char *code : code
 //
-// Return        :  false : no '\' at the end, neglecting \n
-//                  true  : has '\' at the last character, neglecting \n
+// Return        :  false : last line has no '\' at the very end, neglecting the comments
+//                  true  : last line has '\' at the very end, neglecting the comments
 //-------------------------------------------------------------------------------------------------------
 static bool check_backslash_exist(const std::string& code) { return code.at(code.length() - 2) == '\\'; }
 
@@ -775,6 +771,7 @@ static bool check_backslash_exist(const std::string& code) { return code.at(code
 //
 // Notes         :  1. This function is used for distinguishing keywords for multi-line and the true error.
 //                  2. An indentation error caused by user-not-done-yet will contain ':' in the last line.
+//                  3. TODO: make it search from behind, and ignore #, rename the function
 //
 // Arguments     :  const char *code : code
 //
