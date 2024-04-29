@@ -10,8 +10,8 @@
 static bool check_backslash_exist(const std::string& code);
 static bool check_colon_exist(const std::string& code);
 
-std::array<std::string, LibytPythonShell::s_NotDone_Num> LibytPythonShell::s_NotDone_ErrMsg;
-std::array<PyObject*, LibytPythonShell::s_NotDone_Num> LibytPythonShell::s_NotDone_PyErr;
+std::vector<std::string> LibytPythonShell::s_NotDone_ErrMsg;
+std::vector<PyObject*> LibytPythonShell::s_NotDone_PyErr;
 PyObject* LibytPythonShell::s_PyGlobals;
 
 //-------------------------------------------------------------------------------------------------------
@@ -293,37 +293,38 @@ int LibytPythonShell::init_not_done_err_msg() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // statement that can have newline in it
-    std::array<std::string, s_NotDone_Num> not_done_statement = {std::string("\"\"\""),
-                                                                 std::string("'''"),
-                                                                 std::string("r\"\"\""),
-                                                                 std::string("u\"\"\""),
-                                                                 std::string("f\"\"\""),
-                                                                 std::string("b\"\"\""),
-                                                                 std::string("rf\"\"\""),
-                                                                 std::string("rb\"\"\""),
-                                                                 std::string("r'''"),
-                                                                 std::string("u'''"),
-                                                                 std::string("f'''"),
-                                                                 std::string("b'''"),
-                                                                 std::string("rf'''"),
-                                                                 std::string("rb'''"),
-                                                                 std::string("("),
-                                                                 std::string("["),
-                                                                 std::string("{"),
-                                                                 std::string("if 1==1:"),
-                                                                 std::string("if 1==1:\n  pass\nelse:"),
-                                                                 std::string("if 1==1:\n  pass\nelif 2==2:"),
-                                                                 std::string("try:"),
-                                                                 std::string("try:\n  pass\nexcept:"),
-                                                                 std::string("try:\n  pass\nfinally:"),
-                                                                 std::string("class A:"),
-                                                                 std::string("for _ in range(1):"),
-                                                                 std::string("def func():"),
-                                                                 std::string("while(False):"),
-                                                                 std::string("with open('') as f:")};
+    // TODO: change to vector, since these is 'match' and 'case' after Python 3.10, use vector instead of array
+    std::vector<std::string> not_done_statement = {std::string("\"\"\""),
+                                                   std::string("'''"),
+                                                   std::string("r\"\"\""),
+                                                   std::string("u\"\"\""),
+                                                   std::string("f\"\"\""),
+                                                   std::string("b\"\"\""),
+                                                   std::string("rf\"\"\""),
+                                                   std::string("rb\"\"\""),
+                                                   std::string("r'''"),
+                                                   std::string("u'''"),
+                                                   std::string("f'''"),
+                                                   std::string("b'''"),
+                                                   std::string("rf'''"),
+                                                   std::string("rb'''"),
+                                                   std::string("("),
+                                                   std::string("["),
+                                                   std::string("{"),
+                                                   std::string("if 1==1:"),
+                                                   std::string("if 1==1:\n  pass\nelse:"),
+                                                   std::string("if 1==1:\n  pass\nelif 2==2:"),
+                                                   std::string("try:"),
+                                                   std::string("try:\n  pass\nexcept:"),
+                                                   std::string("try:\n  pass\nfinally:"),
+                                                   std::string("class A:"),
+                                                   std::string("for _ in range(1):"),
+                                                   std::string("def func():"),
+                                                   std::string("while(False):"),
+                                                   std::string("with open('') as f:")};
 
     // get python error type and its statement.
-    for (int i = 0; i < s_NotDone_Num; i++) {
+    for (int i = 0; i < not_done_statement.size(); i++) {
         PyObject *py_src, *py_exc, *py_val, *py_traceback, *py_obj;
         const char* err_msg;
         std::string err_msg_str;
@@ -335,12 +336,12 @@ int LibytPythonShell::init_not_done_err_msg() {
         err_msg_str = std::string(err_msg);
         std::size_t found = err_msg_str.find_first_of("1234567890");
         if (found != std::string::npos) {
-            s_NotDone_ErrMsg[i] = err_msg_str.substr(0, found);
+            s_NotDone_ErrMsg.emplace_back(err_msg_str.substr(0, found));
         } else {
-            s_NotDone_ErrMsg[i] = err_msg_str;
+            s_NotDone_ErrMsg.emplace_back(err_msg_str);
         }
         s_NotDone_ErrMsg[i].shrink_to_fit();
-        s_NotDone_PyErr[i] = py_exc;
+        s_NotDone_PyErr.push_back(py_exc);
 
         // dereference
         Py_XDECREF(py_src);
@@ -392,6 +393,7 @@ int LibytPythonShell::init_script_namespace() {
 //                     (2) If last line colon exist and have keywords (related to colon):
 //                         (2)-1 compare to the error msg from (s_NotDoneErrMsg[i], i = 17~27), if it's the same,
 //                               then it's not done yet.
+//                         (2)-2 parse the lineno, if it's the last line, then it's not done yet.
 //                     (3) If the error is caused by bracket not closing (s_NotDoneErrMsg[i], i = 0~16),
 //                         then it is user-not-done-yet.
 //
@@ -409,7 +411,8 @@ bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
         return user_not_done;
     }
 
-    for (int i = 0; i < s_NotDone_Num; i++) {
+    // TODO: (START HERE) remove this i, and add 'match' and 'case' in it.
+    for (int i = 0; i < s_NotDone_ErrMsg.size(); i++) {
         // check error type
         if (PyErr_ExceptionMatches(s_NotDone_PyErr[i])) {
             // fetch err msg

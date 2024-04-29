@@ -21,9 +21,8 @@ struct CodeValidity {
 
 class LibytPythonShell {
 private:
-    static const int s_NotDone_Num = 28;
-    static std::array<std::string, s_NotDone_Num> s_NotDone_ErrMsg;
-    static std::array<PyObject*, s_NotDone_Num> s_NotDone_PyErr;
+    static std::vector<std::string> s_NotDone_ErrMsg;
+    static std::vector<PyObject*> s_NotDone_PyErr;
 
     std::string m_PromptHistory;
     int m_PromptHistoryCount;
