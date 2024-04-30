@@ -775,15 +775,24 @@ static std::vector<ErrorTypeMsg> generate_err_msg(const std::vector<std::string>
     std::vector<ErrorTypeMsg> generated_error_msg;
 
     for (int i = 0; i < statements.size(); i++) {
-        PyObject *py_src, *py_exc, *py_val, *py_traceback, *py_obj;
-        const char* err_msg;
+        PyObject *py_src, *py_exc, *py_val;
         std::string err_msg_str;
 
         py_src = Py_CompileString(statements[i].c_str(), "<get err msg>", Py_single_input);
-        PyErr_Fetch(&py_exc, &py_val, &py_traceback);  // TODO: (Start here)
-        PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+        PyObject* py_exc_raw = PyErr_GetRaisedException();
+        py_exc = (PyObject*)Py_TYPE(py_exc_raw);
+        py_val = PyObject_GetAttrString(py_exc_raw, "msg");
+        err_msg_str = std::string(PyUnicode_AsUTF8(py_val));
+#else
+        PyObject *py_traceback, *py_obj;
+        const char* err_msg;
+        PyErr_Fetch(&py_exc, &py_val, &py_traceback);
+        PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
         err_msg_str = std::string(err_msg);
+#endif
+
         std::size_t found = err_msg_str.find_first_of("1234567890");
         if (found != std::string::npos) {
             ErrorTypeMsg error_type_msg = {py_exc, err_msg_str.substr(0, found)};
@@ -798,8 +807,13 @@ static std::vector<ErrorTypeMsg> generate_err_msg(const std::vector<std::string>
         Py_XDECREF(py_src);
         Py_XDECREF(py_exc);
         Py_XDECREF(py_val);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+        Py_XDECREF(py_exc_raw);
+#else
         Py_XDECREF(py_traceback);
         Py_XDECREF(py_obj);
+#endif
+
         PyErr_Clear();
     }
 
