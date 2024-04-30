@@ -7,11 +7,12 @@
 
 #include "yt_combo.h"
 
+static std::vector<ErrorTypeMsg> generate_err_msg(const std::vector<std::string>& statements);
 static bool check_backslash_exist(const std::string& code);
 static bool check_colon_exist(const std::string& code);
 
-std::vector<std::string> LibytPythonShell::s_NotDone_ErrMsg;
-std::vector<PyObject*> LibytPythonShell::s_NotDone_PyErr;
+std::vector<ErrorTypeMsg> LibytPythonShell::s_Bracket_NotDoneErr;
+std::vector<ErrorTypeMsg> LibytPythonShell::s_CompoundKeyword_NotDoneErr;
 PyObject* LibytPythonShell::s_PyGlobals;
 
 //-------------------------------------------------------------------------------------------------------
@@ -267,23 +268,24 @@ int LibytPythonShell::set_exception_hook() {
 //
 // Notes         :  1. This is a static method.
 //                  2. The not-done-error message initialized are those that can span multi-line.
-//                     There are '28' cases:
-//                     (1)  """ | '''                             -> 2
-//                     (2)  [r|u|f|b|rf|rb](""" | ''')            -> 12
-//                     (3)  ( | [ | {                             -> 3
-//                     (4)  if / if-else / if-elif                -> 3
-//                     (5)  try / try-except / try-except-finally -> 3
-//                     (6)  class                                 -> 1
-//                     (7)  for                                   -> 1
-//                     (8)  def                                   -> 1
-//                     (9)  while                                 -> 1
-//                     (10) with                                  -> 1
+//                     s_Bracket_NotDoneErr:
+//                       (1)  """ | '''
+//                       (2)  [r|u|f|b|rf|rb](""" | ''')
+//                       (3)  ( | [ | {
+//                     s_CompoundKeyword_NotDoneErr:
+//                       (1)  if / if-else / if-elif
+//                       (2)  try / try-except / try-except-finally
+//                       (3)  class
+//                       (4)  for
+//                       (5)  def
+//                       (6)  while
+//                       (7)  with
+//                       (8)  match / match-case
 //                     We will drop every string after first number occurs in the error message,
 //                     since (5)~(11) will print the line no in it in Python >= 3.11.
 //                     TODO: Be careful that the lineno (if it has) is at the end of the string,
 //                           we should put this inside the test.
 //                  3. Error messages are version dependent.
-//                  4. s_NotDone_ErrMsg's and s_NotDone_PyErr's elements are one-to-one relationship.
 //
 // Arguments     :  None
 //
@@ -294,62 +296,40 @@ int LibytPythonShell::init_not_done_err_msg() {
 
     // statement that can have newline in it
     // TODO: change to vector, since these is 'match' and 'case' after Python 3.10, use vector instead of array
-    std::vector<std::string> not_done_statement = {std::string("\"\"\""),
-                                                   std::string("'''"),
-                                                   std::string("r\"\"\""),
-                                                   std::string("u\"\"\""),
-                                                   std::string("f\"\"\""),
-                                                   std::string("b\"\"\""),
-                                                   std::string("rf\"\"\""),
-                                                   std::string("rb\"\"\""),
-                                                   std::string("r'''"),
-                                                   std::string("u'''"),
-                                                   std::string("f'''"),
-                                                   std::string("b'''"),
-                                                   std::string("rf'''"),
-                                                   std::string("rb'''"),
-                                                   std::string("("),
-                                                   std::string("["),
-                                                   std::string("{"),
-                                                   std::string("if 1==1:"),
-                                                   std::string("if 1==1:\n  pass\nelse:"),
-                                                   std::string("if 1==1:\n  pass\nelif 2==2:"),
-                                                   std::string("try:"),
-                                                   std::string("try:\n  pass\nexcept:"),
-                                                   std::string("try:\n  pass\nfinally:"),
-                                                   std::string("class A:"),
-                                                   std::string("for _ in range(1):"),
-                                                   std::string("def func():"),
-                                                   std::string("while(False):"),
-                                                   std::string("with open('') as f:")};
+    std::vector<std::string> bracket_statement = {
+        std::string("\"\"\""),  std::string("'''"),     std::string("r\"\"\""),  std::string("u\"\"\""),
+        std::string("f\"\"\""), std::string("b\"\"\""), std::string("rf\"\"\""), std::string("rb\"\"\""),
+        std::string("r'''"),    std::string("u'''"),    std::string("f'''"),     std::string("b'''"),
+        std::string("rf'''"),   std::string("rb'''"),   std::string("("),        std::string("["),
+        std::string("{")};
+
+    std::vector<std::string> compound_keyword = {std::string("if 1==1:"),
+                                                 std::string("if 1==1:\n  pass\nelse:"),
+                                                 std::string("if 1==1:\n  pass\nelif 2==2:"),
+                                                 std::string("try:"),
+                                                 std::string("try:\n  pass\nexcept:"),
+                                                 std::string("try:\n  pass\nfinally:"),
+                                                 std::string("class A:"),
+                                                 std::string("for _ in range(1):"),
+                                                 std::string("def func():"),
+                                                 std::string("while(False):"),
+                                                 std::string("with open('') as f:")};
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 10
+    compound_keyword.emplace_back("match (100):");
+    compound_keyword.emplace_back("match (100):\n  case 100:");
+#endif
 
     // get python error type and its statement.
-    for (int i = 0; i < not_done_statement.size(); i++) {
-        PyObject *py_src, *py_exc, *py_val, *py_traceback, *py_obj;
-        const char* err_msg;
-        std::string err_msg_str;
+    s_Bracket_NotDoneErr = std::move(generate_err_msg(bracket_statement));
+    s_CompoundKeyword_NotDoneErr = std::move(generate_err_msg(compound_keyword));
 
-        py_src = Py_CompileString(not_done_statement[i].c_str(), "<get err msg>", Py_single_input);
-        PyErr_Fetch(&py_exc, &py_val, &py_traceback);
-        PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
+    for (int i = 0; i < bracket_statement.size(); i++) {
+        std::cout << "[FLAG] " << bracket_statement[i] << " ----> " << s_Bracket_NotDoneErr[i].error_msg << std::endl;
+    }
 
-        err_msg_str = std::string(err_msg);
-        std::size_t found = err_msg_str.find_first_of("1234567890");
-        if (found != std::string::npos) {
-            s_NotDone_ErrMsg.emplace_back(err_msg_str.substr(0, found));
-        } else {
-            s_NotDone_ErrMsg.emplace_back(err_msg_str);
-        }
-        s_NotDone_ErrMsg[i].shrink_to_fit();
-        s_NotDone_PyErr.push_back(py_exc);
-
-        // dereference
-        Py_XDECREF(py_src);
-        Py_XDECREF(py_exc);
-        Py_XDECREF(py_val);
-        Py_XDECREF(py_traceback);
-        Py_XDECREF(py_obj);
-        PyErr_Clear();
+    for (int i = 0; i < compound_keyword.size(); i++) {
+        std::cout << "[FLAG] " << compound_keyword[i] << " ----> " << s_CompoundKeyword_NotDoneErr[i].error_msg
+                  << std::endl;
     }
 
     return YT_SUCCESS;
@@ -412,9 +392,9 @@ bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
     }
 
     // TODO: (START HERE) remove this i, and add 'match' and 'case' in it.
-    for (int i = 0; i < s_NotDone_ErrMsg.size(); i++) {
+    for (int i = 0; i < s_Bracket_NotDoneErr.size(); i++) {
         // check error type
-        if (PyErr_ExceptionMatches(s_NotDone_PyErr[i])) {
+        if (PyErr_ExceptionMatches(s_Bracket_NotDoneErr[i].py_error_type)) {
             // fetch err msg
             PyObject *py_exc, *py_val, *py_traceback, *py_obj;
             const char* err_msg = "";
@@ -423,7 +403,7 @@ bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
             std::string err_msg_str = std::string(err_msg);
 
             // check error msg
-            if (err_msg_str.find(s_NotDone_ErrMsg[i]) == 0) {
+            if (err_msg_str.find(s_Bracket_NotDoneErr[i].error_msg) == 0) {
                 // 'i' 0~16 is the range where error msgs are generated by brackets or '\'
                 if (i < 17) {
                     user_not_done = true;
@@ -758,6 +738,55 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_file(const std:
 }
 
 //-------------------------------------------------------------------------------------------------------
+// Function      :  generate_err_msg
+//
+// Notes         :  1. Generate error msg.
+//
+// Arguments     :  const std::vector<std::string>& statements : a list of fail statements
+//
+// Return        :  std::vector<ErrorTypeMsg> : a list of error type and its error msg,
+//                                              it is a 1-to-1 relationship to statements passed in.
+//-------------------------------------------------------------------------------------------------------
+static std::vector<ErrorTypeMsg> generate_err_msg(const std::vector<std::string>& statements) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    std::vector<ErrorTypeMsg> generated_error_msg;
+
+    for (int i = 0; i < statements.size(); i++) {
+        PyObject *py_src, *py_exc, *py_val, *py_traceback, *py_obj;
+        const char* err_msg;
+        std::string err_msg_str;
+
+        py_src = Py_CompileString(statements[i].c_str(), "<get err msg>", Py_single_input);
+        PyErr_Fetch(&py_exc, &py_val, &py_traceback);  // TODO: (Start here)
+        PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
+
+        err_msg_str = std::string(err_msg);
+        std::size_t found = err_msg_str.find_first_of("1234567890");
+        if (found != std::string::npos) {
+            ErrorTypeMsg error_type_msg = {py_exc, err_msg_str.substr(0, found)};
+            generated_error_msg.emplace_back(error_type_msg);
+        } else {
+            ErrorTypeMsg error_type_msg = {py_exc, err_msg_str};
+            generated_error_msg.emplace_back(error_type_msg);
+        }
+        generated_error_msg[i].error_msg.shrink_to_fit();
+
+        // dereference
+        Py_XDECREF(py_src);
+        Py_XDECREF(py_exc);
+        Py_XDECREF(py_val);
+        Py_XDECREF(py_traceback);
+        Py_XDECREF(py_obj);
+        PyErr_Clear();
+    }
+
+    generated_error_msg.shrink_to_fit();
+
+    return generated_error_msg;
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Function      :  check_backslash_exist
 //
 // Notes         :  1. Find if last line ends with '\' and does not have comments '#'
@@ -793,7 +822,7 @@ static bool check_backslash_exist(const std::string& code) {
 //
 // Notes         :  1. This function is used for distinguishing keywords for multi-line and the true error.
 //                  2. An indentation error caused by user-not-done-yet will end with ':' in the last line.
-//                  3. TODO: make it search from behind, and ignore #, rename the function
+//                  3. TODO: rename the function
 //
 // Arguments     :  const std::string& code : full code to check
 //
@@ -822,7 +851,6 @@ static bool check_colon_exist(const std::string& code) {
         return false;
     } else {
         if (last_line_start_no < found_char) {
-            std::cout << "[FLAG] found : at " << found_char << std::endl;
             return code.at(found_char) == ':';
         } else {
             return false;
