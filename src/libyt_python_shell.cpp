@@ -4,16 +4,17 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <string>
 
 #include "yt_combo.h"
 
-static std::vector<ErrorTypeMsg> generate_err_msg(const std::vector<std::string>& statements);
+static std::vector<std::string> generate_err_msg(const std::vector<std::string>& statements);
 static bool last_line_has_backslash(const std::string& code);
 static bool last_line_has_colon(const std::string& code);
 
-std::vector<ErrorTypeMsg> LibytPythonShell::s_Bracket_NotDoneErr;
-std::vector<ErrorTypeMsg> LibytPythonShell::s_CompoundKeyword_NotDoneErr;
+std::vector<std::string> LibytPythonShell::s_Bracket_NotDoneErr;
+std::vector<std::string> LibytPythonShell::s_CompoundKeyword_NotDoneErr;
 PyObject* LibytPythonShell::s_PyGlobals;
 
 //-------------------------------------------------------------------------------------------------------
@@ -323,13 +324,13 @@ int LibytPythonShell::init_not_done_err_msg() {
     s_Bracket_NotDoneErr = std::move(generate_err_msg(bracket_statement));
     s_CompoundKeyword_NotDoneErr = std::move(generate_err_msg(compound_keyword));
 
+    // TODO: remove debug msg
     for (int i = 0; i < bracket_statement.size(); i++) {
-        std::cout << "[FLAG] " << bracket_statement[i] << " ----> " << s_Bracket_NotDoneErr[i].error_msg << std::endl;
+        std::cout << "[FLAG] " << bracket_statement[i] << " ----> " << s_Bracket_NotDoneErr[i] << std::endl;
     }
 
     for (int i = 0; i < compound_keyword.size(); i++) {
-        std::cout << "[FLAG] " << compound_keyword[i] << " ----> " << s_CompoundKeyword_NotDoneErr[i].error_msg
-                  << std::endl;
+        std::cout << "[FLAG] " << compound_keyword[i] << " ----> " << s_CompoundKeyword_NotDoneErr[i] << std::endl;
     }
 
     return YT_SUCCESS;
@@ -384,26 +385,8 @@ bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
 
     // (1) check if last line has '\'
     if (last_line_has_backslash(code)) {
+        std::cout << "[FLAG] check point '\\'" << std::endl;
         user_not_done = true;
-        return user_not_done;
-    }
-
-    // check error type, see if we should continue parsing and compare the message
-    bool match_compoundkeyword_errtype = false, match_bracket_errtype = false;
-    for (int i = 0; i < s_CompoundKeyword_NotDoneErr.size(); i++) {
-        if (PyErr_ExceptionMatches(s_CompoundKeyword_NotDoneErr[i].py_error_type)) {
-            match_compoundkeyword_errtype = true;
-            break;
-        }
-    }
-    for (int i = 0; i < s_Bracket_NotDoneErr.size(); i++) {
-        if (PyErr_ExceptionMatches(s_Bracket_NotDoneErr[i].py_error_type)) {
-            match_bracket_errtype = true;
-            break;
-        }
-    }
-    if (!match_bracket_errtype && !match_compoundkeyword_errtype) {
-        user_not_done = false;
         return user_not_done;
     }
 
@@ -419,24 +402,24 @@ bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
 
     // (2) error msg matches && if ':' exist && lineno is at last line
     std::size_t line_count = std::count(code.begin(), code.end(), '\n');
-    if (match_compoundkeyword_errtype) {
-        bool match_compoundkeyword_errmsg = false;
-        for (int i = 0; i < s_CompoundKeyword_NotDoneErr.size(); i++) {
-            if (err_msg_str.find(s_CompoundKeyword_NotDoneErr[i].error_msg) == 0) {
-                match_compoundkeyword_errmsg = true;
-                break;
-            }
-        }
-
-        if (match_compoundkeyword_errmsg && last_line_has_colon(code) && err_lineno == line_count) {
-            user_not_done = true;
+    bool match_compoundkeyword_errmsg = false;
+    for (int i = 0; i < s_CompoundKeyword_NotDoneErr.size(); i++) {
+        if (err_msg_str.find(s_CompoundKeyword_NotDoneErr[i]) == 0) {
+            match_compoundkeyword_errmsg = true;
+            break;
         }
     }
 
+    if (match_compoundkeyword_errmsg && last_line_has_colon(code) && err_lineno == line_count) {
+        std::cout << "[FLAG] check point match compound keyword" << std::endl;
+        user_not_done = true;
+    }
+
     // (3) check if it is caused by brackets
-    if (!user_not_done && match_bracket_errtype) {
+    if (!user_not_done) {
         for (int i = 0; i < s_Bracket_NotDoneErr.size(); i++) {
-            if (err_msg_str.find(s_Bracket_NotDoneErr[i].error_msg) == 0) {
+            if (err_msg_str.find(s_Bracket_NotDoneErr[i]) == 0) {
+                std::cout << "[FLAG] check point match bracket, i = " << i << std::endl;
                 user_not_done = true;
                 break;
             }
@@ -762,17 +745,18 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_file(const std:
 //-------------------------------------------------------------------------------------------------------
 // Function      :  generate_err_msg
 //
-// Notes         :  1. Generate error msg.
+// Notes         :  1. Generate error msg that are caused by user not-done-yet.
+//                  2. The error msg drops everything after the numbers.
 //
 // Arguments     :  const std::vector<std::string>& statements : a list of fail statements
 //
-// Return        :  std::vector<ErrorTypeMsg> : a list of error type and its error msg,
-//                                              it is a 1-to-1 relationship to statements passed in.
+// Return        :  std::vector<std::string> : a list of error msg, neglecting everything after numbers
+//                                             if there is.
 //-------------------------------------------------------------------------------------------------------
-static std::vector<ErrorTypeMsg> generate_err_msg(const std::vector<std::string>& statements) {
+static std::vector<std::string> generate_err_msg(const std::vector<std::string>& statements) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    std::vector<ErrorTypeMsg> generated_error_msg;
+    std::vector<std::string> generated_error_msg;
 
     for (int i = 0; i < statements.size(); i++) {
         PyObject *py_src, *py_exc, *py_val;
@@ -781,9 +765,8 @@ static std::vector<ErrorTypeMsg> generate_err_msg(const std::vector<std::string>
         py_src = Py_CompileString(statements[i].c_str(), "<get err msg>", Py_single_input);
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
-        PyObject* py_exc_raw = PyErr_GetRaisedException();
-        py_exc = (PyObject*)Py_TYPE(py_exc_raw);
-        py_val = PyObject_GetAttrString(py_exc_raw, "msg");
+        py_exc = PyErr_GetRaisedException();
+        py_val = PyObject_GetAttrString(py_exc, "msg");
         err_msg_str = std::string(PyUnicode_AsUTF8(py_val));
 #else
         PyObject *py_traceback, *py_obj;
@@ -795,20 +778,17 @@ static std::vector<ErrorTypeMsg> generate_err_msg(const std::vector<std::string>
 
         std::size_t found = err_msg_str.find_first_of("1234567890");
         if (found != std::string::npos) {
-            ErrorTypeMsg error_type_msg = {py_exc, err_msg_str.substr(0, found)};
-            generated_error_msg.emplace_back(error_type_msg);
+            generated_error_msg.emplace_back(err_msg_str.substr(0, found));
         } else {
-            ErrorTypeMsg error_type_msg = {py_exc, err_msg_str};
-            generated_error_msg.emplace_back(error_type_msg);
+            generated_error_msg.emplace_back(err_msg_str);
         }
-        generated_error_msg[i].error_msg.shrink_to_fit();
+        generated_error_msg[i].shrink_to_fit();
 
         // dereference
         Py_XDECREF(py_src);
-        Py_XDECREF(py_exc);
         Py_XDECREF(py_val);
+        Py_XDECREF(py_exc);
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
-        Py_XDECREF(py_exc_raw);
 #else
         Py_XDECREF(py_traceback);
         Py_XDECREF(py_obj);

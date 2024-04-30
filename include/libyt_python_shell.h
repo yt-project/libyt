@@ -14,11 +14,6 @@ struct AccumulatedOutputString {
     AccumulatedOutputString();
 };
 
-struct ErrorTypeMsg {
-    PyObject* py_error_type;
-    std::string error_msg;
-};
-
 struct CodeValidity {
     std::string is_valid;
     std::string error_msg;
@@ -26,8 +21,8 @@ struct CodeValidity {
 
 class LibytPythonShell {
 private:
-    static std::vector<ErrorTypeMsg> s_Bracket_NotDoneErr;
-    static std::vector<ErrorTypeMsg> s_CompoundKeyword_NotDoneErr;
+    static std::vector<std::string> s_Bracket_NotDoneErr;
+    static std::vector<std::string> s_CompoundKeyword_NotDoneErr;
 
     std::string m_PromptHistory;
     int m_PromptHistoryCount;
