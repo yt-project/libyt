@@ -25,7 +25,7 @@ jobs:
           - os: ubuntu-latest
             mpi: 'openmpi'
             check_shared_lib: ldd lib/libyt.so
-          - os: macos-latest
+          - os: macos-14
             mpi: 'mpich'
             check_shared_lib: otool -l lib/libyt.dylib
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
