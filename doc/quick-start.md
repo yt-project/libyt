@@ -22,8 +22,9 @@ After reading quick start, we will have an overview of how to use `libyt` for in
      ```
    - **Parallel Mode (using MPI)**:
      ```bash
-     mpirun -np 2 ./quick-start
+     OMPI_MCA_osc=sm,pt2pt mpirun -np 2 ./quick-start
      ```
+     > {octicon}`info;1em;sd-text-info;` `OMPI_MCA_osc=sm,pt2pt` is for using one-sided MPI communications.
 4. This is the last few lines of the output if we run in serial mode. (If we run in parallel mode, then there will be multiple `HELLO WORLD!!` and `<class 'str'> 1 ...` printed.)
    ```text
    [YT_INFO   ] Importing YT inline analysis script "inline_script" ... done

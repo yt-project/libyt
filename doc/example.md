@@ -55,8 +55,9 @@ The example initializes `libyt`, loads data to `libyt` in every simulation time 
       ```
     - **Parallel Mode (using MPI)**:
       ```bash
-      mpirun -np 2 ./example
+      OMPI_MCA_osc=sm,pt2pt mpirun -np 2 ./example
       ```
+      > {octicon}`info;1em;sd-text-info;` `OMPI_MCA_osc=sm,pt2pt` is for using one-sided MPI communications.
 2. The output results we get from the first step:
    - Density projection along z-axis, `FigName000000000_Projection_z_density.png`:
 
