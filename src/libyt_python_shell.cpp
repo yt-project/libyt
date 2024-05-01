@@ -2,15 +2,19 @@
 
 #include "libyt_python_shell.h"
 
+#include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <string>
 
 #include "yt_combo.h"
 
-static bool check_colon_exist(const char* code);
+static std::vector<std::string> generate_err_msg(const std::vector<std::string>& statements);
+static bool last_line_has_backslash(const std::string& code);
+static bool last_line_has_colon(const std::string& code);
 
-std::array<std::string, LibytPythonShell::s_NotDone_Num> LibytPythonShell::s_NotDone_ErrMsg;
-std::array<PyObject*, LibytPythonShell::s_NotDone_Num> LibytPythonShell::s_NotDone_PyErr;
+std::vector<std::string> LibytPythonShell::s_Bracket_NotDoneErr;
+std::vector<std::string> LibytPythonShell::s_CompoundKeyword_NotDoneErr;
 PyObject* LibytPythonShell::s_PyGlobals;
 
 //-------------------------------------------------------------------------------------------------------
@@ -265,10 +269,25 @@ int LibytPythonShell::set_exception_hook() {
 // Static Method :  init_not_done_err_msg
 //
 // Notes         :  1. This is a static method.
-//                  2. Identify error messages that will show up when inputing statements like class, def
-//                     if, and triple quotes etc.
+//                  2. The not-done-error message initialized are those that can span multi-line.
+//                     s_Bracket_NotDoneErr:
+//                       (1)  """ | '''
+//                       (2)  [r|u|f|b|rf|rb](""" | ''')
+//                       (3)  ( | [ | {
+//                     s_CompoundKeyword_NotDoneErr:
+//                       (1)  if / if-else / if-elif
+//                       (2)  try / try-except / try-except-finally
+//                       (3)  class
+//                       (4)  for
+//                       (5)  def
+//                       (6)  while
+//                       (7)  with
+//                       (8)  match / match-case
+//                     We will drop every string after first number occurs in the error message,
+//                     since some of them will print the lineno and it is Python version dependent.
+//                     TODO: Be careful that the lineno (if it has) is at the end of the string,
+//                           we should put this inside the test.
 //                  3. Error messages are version dependent.
-//                  4. s_NotDone_ErrMsg's and s_NotDone_PyErr's elements are one-to-one relationship.
 //
 // Arguments     :  None
 //
@@ -277,28 +296,41 @@ int LibytPythonShell::set_exception_hook() {
 int LibytPythonShell::init_not_done_err_msg() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    // error msg from not done yet statement to grab
-    std::array<std::string, s_NotDone_Num> not_done_statement = {
-        std::string("if 1==1:\n"), std::string("tri = \"\"\"\n"), std::string("print(\n")};
+    // statement that can have newline in it
+    std::vector<std::string> bracket_statement = {
+        std::string("\"\"\""),  std::string("'''"),     std::string("r\"\"\""),  std::string("u\"\"\""),
+        std::string("f\"\"\""), std::string("b\"\"\""), std::string("rf\"\"\""), std::string("rb\"\"\""),
+        std::string("r'''"),    std::string("u'''"),    std::string("f'''"),     std::string("b'''"),
+        std::string("rf'''"),   std::string("rb'''"),   std::string("("),        std::string("["),
+        std::string("{")};
+
+    std::vector<std::string> compound_keyword = {std::string("if 1==1:"),
+                                                 std::string("if 1==1:\n  pass\nelse:"),
+                                                 std::string("if 1==1:\n  pass\nelif 2==2:"),
+                                                 std::string("try:"),
+                                                 std::string("try:\n  pass\nexcept:"),
+                                                 std::string("try:\n  pass\nfinally:"),
+                                                 std::string("class A:"),
+                                                 std::string("for _ in range(1):"),
+                                                 std::string("def func():"),
+                                                 std::string("while(False):"),
+                                                 std::string("with open('') as f:")};
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 10
+    compound_keyword.emplace_back("match (100):");
+    compound_keyword.emplace_back("match (100):\n  case 100:");
+#endif
 
     // get python error type and its statement.
-    PyObject *py_src, *py_exc, *py_val, *py_traceback, *py_obj;
-    const char* err_msg;
-    for (int i = 0; i < s_NotDone_Num; i++) {
-        py_src = Py_CompileString(not_done_statement[i].c_str(), "<get err msg>", Py_single_input);
-        PyErr_Fetch(&py_exc, &py_val, &py_traceback);
-        PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
+    s_Bracket_NotDoneErr = std::move(generate_err_msg(bracket_statement));
+    s_CompoundKeyword_NotDoneErr = std::move(generate_err_msg(compound_keyword));
 
-        s_NotDone_ErrMsg[i] = std::string(err_msg);
-        s_NotDone_PyErr[i] = py_exc;
+    // TODO: remove debug msg
+    for (int i = 0; i < bracket_statement.size(); i++) {
+        std::cout << "[FLAG] " << bracket_statement[i] << " ----> " << s_Bracket_NotDoneErr[i] << std::endl;
+    }
 
-        // dereference
-        Py_XDECREF(py_src);
-        Py_XDECREF(py_exc);
-        Py_XDECREF(py_val);
-        Py_XDECREF(py_traceback);
-        Py_XDECREF(py_obj);
-        PyErr_Clear();
+    for (int i = 0; i < compound_keyword.size(); i++) {
+        std::cout << "[FLAG] " << compound_keyword[i] << " ----> " << s_CompoundKeyword_NotDoneErr[i] << std::endl;
     }
 
     return YT_SUCCESS;
@@ -330,56 +362,101 @@ int LibytPythonShell::init_script_namespace() {
 // Static Method :  is_not_done_err_msg
 //
 // Notes         :  1. This is a static method.
-//                  2. Check current Python state to see if it is error msg that is caused by user input
-//                     not done yet. Which means there is error buffer.
+//                  2. Check if the error buffer is error msg that is caused by user input
+//                     not done yet. The error msg is initialized in init_not_done_err_msg.
 //                  3. If it is indeed caused by user not done its input, clear error buffer. If not,
-//                     restore the buffer and let yt_run_InteractiveMode print the error msg.
-//                  4. s_NotDone_ErrMsg's and s_NotDone_PyErr's elements are one-to-one relationship. Make
-//                     sure to go through every element, since some of them might have error of same type
-//                     but with different err msg.
-//                  5. IndentationError (s_NotDon_PyErr[0]) can be caused by multi-line statement (with ':'),
-//                     or simply an error.
+//                     restore the buffer and let others deal with the error msg.
+//                  4. The rule to check if it is a real error or not-yet-done is in this order:
+//                     (1) If last line of the code is ended by '\', it is not-yet-done.
+//                     (2) If match error msg of s_CompoundKeyword_NotDoneErr:
+//                         (2)-1 and if colon exist at last line and err lineno at the last line,
+//                               then it's a user not-yet-done.
+//                     (3) If the error is caused by bracket not closing s_Bracket_NotDoneErr,
+//                         then it is not-yet-done.
 //
-// Arguments     :  None
+// Arguments     :  const std::string& code : code to check
 //
-// Return        :  true / false : true for user hasn't done inputting yet.
+// Return        :  true / false : true for not-yet-done, false for a real error.
 //-------------------------------------------------------------------------------------------------------
-bool LibytPythonShell::is_not_done_err_msg(const char* code) {
+bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     bool user_not_done = false;
 
-    for (int i = 0; i < s_NotDone_Num; i++) {
-        // check error type
-        if (PyErr_ExceptionMatches(s_NotDone_PyErr[i])) {
-            // fetch err msg
-            PyObject *py_exc, *py_val, *py_traceback, *py_obj;
-            const char* err_msg = "";
-            PyErr_Fetch(&py_exc, &py_val, &py_traceback);
-            PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
+    // (1) check if last line has '\'
+    if (last_line_has_backslash(code)) {
+        std::cout << "[FLAG] check point '\\'" << std::endl;
+        user_not_done = true;
+        return user_not_done;
+    }
 
-            // check error msg
-            if (s_NotDone_ErrMsg[i].compare(err_msg) == 0) {
-                // if it is IndentationError (i == 0), then check if the last line contains ':' (a multi-line statement)
-                if (i == 0) {
-                    user_not_done = check_colon_exist(code);
-                } else {
-                    user_not_done = true;
-                }
-            }
+    // parse error msg and lineno
+    std::string err_msg_str;
+    long err_lineno;
 
-            if (user_not_done) {
-                // decrease reference error msg
-                Py_XDECREF(py_exc);
-                Py_XDECREF(py_val);
-                Py_XDECREF(py_traceback);
-                Py_XDECREF(py_obj);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+    PyObject *py_exc, *py_msg, *py_lineno;
+    py_exc = PyErr_GetRaisedException();
+    py_msg = PyObject_GetAttrString(py_exc, "msg");
+    py_lineno = PyObject_GetAttrString(py_exc, "lineno");
+    err_msg_str = std::string(PyUnicode_AsUTF8(py_msg));
+    err_lineno = PyLong_AsLong(py_lineno);
+    Py_DECREF(py_msg);
+    Py_DECREF(py_lineno);
+#else
+    // parse error
+    PyObject *py_exc, *py_val, *py_traceback, *py_obj;
+    const char* err_msg = "";
+    PyErr_Fetch(&py_exc, &py_val, &py_traceback);
+    PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
+
+    // get error msg and lineno
+    err_msg_str = std::string(err_msg);
+    err_lineno = PyLong_AsLong(PyTuple_GetItem(py_obj, 1));
+#endif
+
+    // (2) error msg matches && if ':' exist && lineno is at last line
+    std::size_t line_count = std::count(code.begin(), code.end(), '\n');
+    bool match_compoundkeyword_errmsg = false;
+    for (int i = 0; i < s_CompoundKeyword_NotDoneErr.size(); i++) {
+        if (err_msg_str.find(s_CompoundKeyword_NotDoneErr[i]) == 0) {
+            match_compoundkeyword_errmsg = true;
+            break;
+        }
+    }
+
+    if (match_compoundkeyword_errmsg && last_line_has_colon(code) && err_lineno == line_count) {
+        std::cout << "[FLAG] check point match compound keyword" << std::endl;
+        user_not_done = true;
+    }
+
+    // (3) check if it is caused by brackets
+    if (!user_not_done) {
+        for (int i = 0; i < s_Bracket_NotDoneErr.size(); i++) {
+            if (err_msg_str.find(s_Bracket_NotDoneErr[i]) == 0) {
+                std::cout << "[FLAG] check point match bracket, i = " << i << std::endl;
+                user_not_done = true;
                 break;
-            } else {
-                // restore err msg, and I no longer own py_exc's, py_val's, and py_traceback's reference
-                PyErr_Restore(py_exc, py_val, py_traceback);
             }
         }
+    }
+
+    // deal with reference or restore error buffer
+    if (user_not_done) {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+        Py_XDECREF(py_exc);
+#else
+        Py_XDECREF(py_exc);
+        Py_XDECREF(py_val);
+        Py_XDECREF(py_traceback);
+        Py_XDECREF(py_obj);
+#endif
+    } else {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+        PyErr_SetRaisedException(py_exc);
+#else
+        PyErr_Restore(py_exc, py_val, py_traceback);
+#endif
     }
 
     return user_not_done;
@@ -416,7 +493,7 @@ CodeValidity LibytPythonShell::check_code_validity(const std::string& code, bool
 
     if (py_test_compile != NULL) {
         code_validity.is_valid = "complete";
-    } else if (prompt_env && is_not_done_err_msg(code.c_str())) {
+    } else if (prompt_env && is_not_done_err_msg(code)) {
         code_validity.is_valid = "incomplete";
     } else {
         code_validity.is_valid = "invalid";
@@ -689,43 +766,133 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_file(const std:
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Function      :  check_colon_exist
+// Function      :  generate_err_msg
 //
-// Notes         :  1. This function gets called when detects s_NotDone_PyErr[0] ("if 1==1:\n") error.
-//                  2. If it is a true indentation error (which means a syntax err), then the code buffer
-//                     will reset.
-//                  3. An indentation error caused by user-not-done-yet will contain ':' in the last line.
+// Notes         :  1. Generate error msg that are caused by user not-done-yet.
+//                  2. The error msg drops everything after the numbers.
+//
+// Arguments     :  const std::vector<std::string>& statements : a list of fail statements
+//
+// Return        :  std::vector<std::string> : a list of error msg, neglecting everything after numbers
+//                                             if there is.
+//-------------------------------------------------------------------------------------------------------
+static std::vector<std::string> generate_err_msg(const std::vector<std::string>& statements) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    std::vector<std::string> generated_error_msg;
+
+    for (int i = 0; i < statements.size(); i++) {
+        PyObject *py_src, *py_exc, *py_val;
+        std::string err_msg_str;
+
+        py_src = Py_CompileString(statements[i].c_str(), "<get err msg>", Py_single_input);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+        py_exc = PyErr_GetRaisedException();
+        py_val = PyObject_GetAttrString(py_exc, "msg");
+        err_msg_str = std::string(PyUnicode_AsUTF8(py_val));
+#else
+        PyObject *py_traceback, *py_obj;
+        const char* err_msg;
+        PyErr_Fetch(&py_exc, &py_val, &py_traceback);
+        PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
+        err_msg_str = std::string(err_msg);
+#endif
+
+        std::size_t found = err_msg_str.find_first_of("1234567890");
+        if (found != std::string::npos) {
+            generated_error_msg.emplace_back(err_msg_str.substr(0, found));
+        } else {
+            generated_error_msg.emplace_back(err_msg_str);
+        }
+        generated_error_msg[i].shrink_to_fit();
+
+        // dereference
+        Py_XDECREF(py_src);
+        Py_XDECREF(py_val);
+        Py_XDECREF(py_exc);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#else
+        Py_XDECREF(py_traceback);
+        Py_XDECREF(py_obj);
+#endif
+
+        PyErr_Clear();
+    }
+
+    generated_error_msg.shrink_to_fit();
+
+    return generated_error_msg;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Function      :  last_line_has_backslash
+//
+// Notes         :  1. Find if last line ends with '\' and does not have comments '#'
+//                  2. Code passed in always ends with '\n'.
 //
 // Arguments     :  const char *code : code
 //
-// Return        :  false : It is a true indentation error caused by user error.
-//                  true  : Indentation error caused by user not done inputting yet.
+// Return        :  false : last line has no '\' at the very end, neglecting the comments
+//                  true  : last line has '\' at the very end, neglecting the comments
 //-------------------------------------------------------------------------------------------------------
-static bool check_colon_exist(const char* code) {
-    std::string code_str = std::string(code);
-    std::size_t start_pos = 0, found;
-    bool last_line_has_colon = false;
+static bool last_line_has_backslash(const std::string& code) {
+    SET_TIMER(__PRETTY_FUNCTION__);
 
-    while (code_str.length() > 0) {
-        found = code_str.find('\n', start_pos);
-        if (found != std::string::npos) {
-            last_line_has_colon = false;
+    std::size_t code_len = code.length();
 
-            // check if the line contains ':' only
-            for (std::size_t i = start_pos; i < found; i++) {
-                if (code_str.at(i) == ':') {
-                    last_line_has_colon = true;
-                    break;
-                }
-            }
-        } else {
-            break;
-        }
+    // find last line, and since code always ends with '\n', ignore it
+    std::size_t last_line_start_no = code.rfind('\n', code_len - 2);
 
-        start_pos = found + 1;
+    // check if last line have '#'
+    std::size_t found_pound;
+    if (last_line_start_no != std::string::npos) {
+        found_pound = code.find('#', last_line_start_no);
+    } else {
+        found_pound = code.find('#');
     }
 
-    return last_line_has_colon;
+    return code.at(code_len - 2) == '\\' && found_pound == std::string::npos;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Function      :  last_line_has_colon
+//
+// Notes         :  1. This function is used for distinguishing keywords for multi-line and the true error.
+//                  2. An indentation error caused by user-not-done-yet will end with ':' in the last line.
+//
+// Arguments     :  const std::string& code : full code to check
+//
+// Return        :  true  : contains valid ':' in the last line at the end
+//                  false : doesn't contain ':' in the last line at the end
+//-------------------------------------------------------------------------------------------------------
+static bool last_line_has_colon(const std::string& code) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    std::size_t code_len = code.length();
+
+    // find last line, and since code always ends with '\n', ignore it
+    std::size_t last_line_start_no = code.rfind('\n', code_len - 2);
+    if (last_line_start_no == std::string::npos) {
+        last_line_start_no = 0;
+    }
+
+    // find first '#' in last line
+    std::size_t last_line_found_pound = code.find('#', last_line_start_no);
+
+    // find last character that is not spaces or tabs
+    std::size_t found_char = code.find_last_not_of("\t\n\v\f\r ", last_line_found_pound);
+
+    // make sure the char is at the last line, then compare and make sure it is ':'
+    if (found_char == std::string::npos) {
+        return false;
+    } else {
+        if (last_line_start_no < found_char) {
+            return code.at(found_char) == ':';
+        } else {
+            return false;
+        }
+    }
 }
 
 #endif  // #if defined( INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
