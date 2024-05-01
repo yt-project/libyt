@@ -24,7 +24,7 @@ def yt_inline_ProjectionPlot( fields ):
     # Do yt operation
     prjz = yt.ProjectionPlot(ds, 'z', fields)
 
-    # Include this line, otherwise yt will save one copy in each rank.
+    # Save figure only on root process
     if yt.is_root():
         prjz.save()
 
@@ -37,13 +37,6 @@ def yt_inline_ProfilePlot():
 
 def yt_inline_ParticlePlot():
     ds = yt_libyt.libytDataset()
-
-    ## ParticleProjectionPlot
-    #==========================
-    # par = yt.ParticleProjectionPlot(ds, "z")
-
-    ## ParticlePlot
-    #==========================
     par = yt.ParticlePlot(ds, "particle_position_x", "particle_position_y", "Level", center = 'c')
 
     if yt.is_root():
