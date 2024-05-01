@@ -390,15 +390,30 @@ bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
         return user_not_done;
     }
 
+    // parse error msg and lineno
+    std::string err_msg_str;
+    long err_lineno;
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+    PyObject *py_exc, *py_msg, *py_lineno;
+    py_exc = PyErr_GetRaisedException();
+    py_msg = PyObject_GetAttrString(py_exc, "msg");
+    py_lineno = PyObject_GetAttrString(py_exc, "lineno");
+    err_msg_str = std::string(PyUnicode_AsUTF8(py_msg));
+    err_lineno = PyLong_AsLong(py_lineno);
+    Py_DECREF(py_msg);
+    Py_DECREF(py_lineno);
+#else
     // parse error
     PyObject *py_exc, *py_val, *py_traceback, *py_obj;
     const char* err_msg = "";
-    PyErr_Fetch(&py_exc, &py_val, &py_traceback);  // TODO: PyErr_GetRaisedException
+    PyErr_Fetch(&py_exc, &py_val, &py_traceback);
     PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
 
     // get error msg and lineno
-    std::string err_msg_str = std::string(err_msg);
-    long err_lineno = PyLong_AsLong(PyTuple_GetItem(py_obj, 1));
+    err_msg_str = std::string(err_msg);
+    err_lineno = PyLong_AsLong(PyTuple_GetItem(py_obj, 1));
+#endif
 
     // (2) error msg matches && if ':' exist && lineno is at last line
     std::size_t line_count = std::count(code.begin(), code.end(), '\n');
@@ -428,12 +443,20 @@ bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
 
     // deal with reference or restore error buffer
     if (user_not_done) {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+        Py_XDECREF(py_exc);
+#else
         Py_XDECREF(py_exc);
         Py_XDECREF(py_val);
         Py_XDECREF(py_traceback);
         Py_XDECREF(py_obj);
+#endif
     } else {
-        PyErr_Restore(py_exc, py_val, py_traceback);  // TODO:  PyErr_SetRaisedException()
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+        PyErr_SetRaisedException(py_exc);
+#else
+        PyErr_Restore(py_exc, py_val, py_traceback);
+#endif
     }
 
     return user_not_done;
