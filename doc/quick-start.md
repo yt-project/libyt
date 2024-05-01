@@ -81,6 +81,7 @@ After reading quick start, we will have an overview of how to use `libyt` for in
    >>>
    ```
    This is a Python prompt activated by libyt API, and it also prints out [Status Board](./in-situ-python-analysis/libyt-defined-command.md#status-board) which shows the Python function status.
+   The prompt will only be activated if `LIBYT_STOP` file is detected.
    ```c++
    if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
        exit(EXIT_FAILURE);
