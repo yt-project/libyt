@@ -35,14 +35,6 @@ After reading quick start, we will have an overview of how to use `libyt` for in
    <class 'int'> 2
    <class 'float'> 3.0
    [YT_INFO   ] Performing YT inline analysis print_args('1',2,3.0) ... done.
-   =====================================================================
-   Inline Function                              Status         Run
-   ---------------------------------------------------------------------
-   * print_hello_world                          success         V
-   * print_args                                 success         V
-   =====================================================================
-   [YT_INFO   ] Flag file 'LIBYT_STOP' is detected ... entering interactive mode
-   >>> 
    ```
 
    In the quick start example, we call Python function defined in `inline_script.py` using [`yt_run_Function`](./libyt-api/run-python-function.md#yt_run_function)/[`yt_run_FunctionArguments`](./libyt-api/run-python-function.md#yt_run_functionarguments).
@@ -74,16 +66,33 @@ After reading quick start, we will have an overview of how to use `libyt` for in
 
    The demo prints `HELLO WORLD!!` and prints input arguments passed into libyt API. 
    When calling the API, every process runs the Python code synchronously, and each process prints the same output. Thus, there will be multiple outputs if we run in parallel mode.
+   
    In actual production run, Python package, like [`yt`](https://yt-project.org/), uses [`mpi4py`](https://mpi4py.readthedocs.io/en/stable/) to make each process collaborates and conduct analysis using Python.
 
-   The [Status Board](./in-situ-python-analysis/libyt-defined-command.md#status-board) shows the function status.
+5. After outputs from the Python functions, we see:
+   ```text
+   =====================================================================
+   Inline Function                              Status         Run
+   ---------------------------------------------------------------------
+   * print_hello_world                          success         V
+   * print_args                                 success         V
+   =====================================================================
+   [YT_INFO   ] Flag file 'LIBYT_STOP' is detected ... entering interactive mode
+   >>>
+   ```
+   This is a Python prompt activated by libyt API, and it also prints out [Status Board](./in-situ-python-analysis/libyt-defined-command.md#status-board) which shows the Python function status.
+   ```c++
+   if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
+       exit(EXIT_FAILURE);
+   }
+   ```
 
-5. The Python prompt accepts:
+   The Python prompt accepts:
    - [libyt Defined Commands](./in-situ-python-analysis/libyt-defined-command.md) to control Python function calls, retrieve error messages, etc. Type `%libyt help` to see the help messages.
    - Python statements
 
-   This is like normal Python prompt. The prompt takes inputs from the user, and then it broadcast the inputs to other MPI processes (if we run in parallel mode), finally every process runs the Python code synchronously.
-   Since there is currently no data loaded, we are just playing with a normal Python prompt activate through libyt API.
+   This is like normal Python prompt. The prompt takes inputs from the user, and then it broadcast the inputs to other MPI processes (if we run in parallel mode), finally every process runs the same Python code synchronously.
+   Since there is currently no data loaded, we are just playing with a normal Python prompt activate through libyt API ([`yt_run_InteractiveMode`](./libyt-api/yt_run_interactivemode.md)).
 
 6. Enter `%libyt exit` will exit the prompt:
    ```shell
