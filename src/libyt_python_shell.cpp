@@ -324,15 +324,6 @@ int LibytPythonShell::init_not_done_err_msg() {
     s_Bracket_NotDoneErr = std::move(generate_err_msg(bracket_statement));
     s_CompoundKeyword_NotDoneErr = std::move(generate_err_msg(compound_keyword));
 
-    // TODO: remove debug msg
-    for (int i = 0; i < bracket_statement.size(); i++) {
-        std::cout << "[FLAG] " << bracket_statement[i] << " ----> " << s_Bracket_NotDoneErr[i] << std::endl;
-    }
-
-    for (int i = 0; i < compound_keyword.size(); i++) {
-        std::cout << "[FLAG] " << compound_keyword[i] << " ----> " << s_CompoundKeyword_NotDoneErr[i] << std::endl;
-    }
-
     return YT_SUCCESS;
 }
 
@@ -385,7 +376,6 @@ bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
 
     // (1) check if last line has '\'
     if (last_line_has_backslash(code)) {
-        std::cout << "[FLAG] check point '\\'" << std::endl;
         user_not_done = true;
         return user_not_done;
     }
@@ -426,7 +416,6 @@ bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
     }
 
     if (match_compoundkeyword_errmsg && last_line_has_colon(code) && err_lineno == line_count) {
-        std::cout << "[FLAG] check point match compound keyword" << std::endl;
         user_not_done = true;
     }
 
@@ -434,7 +423,6 @@ bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
     if (!user_not_done) {
         for (int i = 0; i < s_Bracket_NotDoneErr.size(); i++) {
             if (err_msg_str.find(s_Bracket_NotDoneErr[i]) == 0) {
-                std::cout << "[FLAG] check point match bracket, i = " << i << std::endl;
                 user_not_done = true;
                 break;
             }
