@@ -33,15 +33,9 @@ else
 	endif
 endif
 
-ifeq ($(LIBYT_PATH),)
-	LIB     += -L../lib -lyt
-	RPATH   += -Wl,-rpath,../lib
-	INCLUDE += -I../include
-else
-	LIB     += -L$(LIBYT_PATH)/lib -lyt
-	RPATH   += -Wl,-rpath,$(LIBYT_PATH)/lib
-	INCLUDE += -I$(LIBYT_PATH)/include
-endif
+LIB     += -L$(LIBYT_PATH)/lib -lyt
+RPATH   += -Wl,-rpath,$(LIBYT_PATH)/lib
+INCLUDE += -I$(LIBYT_PATH)/include
 
 $(BIN): $(FILE)
 	$(COMPILER) $(OPTIONS) $(INCLUDE) -o $(BIN) $(FILE) $(LIB) $(RPATH)
