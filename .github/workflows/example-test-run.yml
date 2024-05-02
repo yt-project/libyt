@@ -52,12 +52,7 @@ jobs:
 
       - name: Install yt, mpi4py, and yt_libyt
         run: |
-          pip install mpi4py yt
-          cd ${{ github.workspace }}
-          cd ..
-          git clone --depth 1 -b libyt-dev --single-branch "https://github.com/cindytsai/yt_libyt.git" yt_libyt
-          cd yt_libyt
-          pip install .
+          pip install mpi4py yt yt_libyt
 
       - name: Update GitHub Environment Variables
         run: |
