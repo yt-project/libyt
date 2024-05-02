@@ -1,6 +1,6 @@
 # Example
 
-The [`example`](https://github.com/yt-project/libyt/blob/main/example/amr-example/example.cpp) demonstrates how to implement `libyt` in an adaptive mesh refinement (AMR) grid simulation.
+The example `libyt/example/amr-example` demonstrates how to implement `libyt` in an adaptive mesh refinement (AMR) grid simulation.
 The example has a set of pre-calculated data.
 It assigns the data to MPI processes randomly to simulate data distributed on different processes. (Though in real world, data won't distribute randomly.) 
 
@@ -55,90 +55,88 @@ The example initializes `libyt`, loads data to `libyt` in every simulation time 
       ```
     - **Parallel Mode (using MPI)**:
       ```bash
-      mpirun -np 2 ./example
+      OMPI_MCA_osc=sm,pt2pt mpirun -np 2 ./example
       ```
+      > {octicon}`info;1em;sd-text-info;` `OMPI_MCA_osc=sm,pt2pt` is for using one-sided MPI communications.
 2. The output results we get from the first step:
    - Density projection along z-axis, `FigName000000000_Projection_z_density.png`:
 
+     ```{tab} ProjectionPlot
      ```{image} _static/img/AMRExample-Step1-ProjDensZ.png
      :align: center
      :scale: 50%
      ```
+
+     ```{tab} Python
+     ```python
+     def yt_inline_ProjectionPlot( fields ):
+         ds = yt_libyt.libytDataset()
+         prjz = yt.ProjectionPlot(ds, 'z', fields)
+     
+         if yt.is_root():
+             prjz.save()
+     ```     
+
    - Density profile with respect to x coordinate, `FigName000000000_1d-Profile_x_density.png`:
 
+     ```{tab} ProfilePlot
      ```{image} _static/img/AMRExample-Step1-ProfDensX.png
      :align: center
      :scale: 50%
      ```
      
+     ```{tab} Python
+     ```python
+     def yt_inline_ProfilePlot():
+         ds = yt_libyt.libytDataset()
+         profile = yt.ProfilePlot(ds, "x", ["density"])
+     
+         if yt.is_root():
+             profile.save()
+     ```
+
    - Slice plot of the reciprocal of the density field, `FigName000000000_Slice_z_InvDens.png`:
 
+     ```{tab} SlicePlot
      ```{image} _static/img/AMRExample-Step1-SliceInvDensZ.png
      :align: center
      :scale: 50%
      ```
      
+     ```{tab} Python
+     ```python
+     def yt_derived_field_demo():
+         ds = yt_libyt.libytDataset()
+         slc = yt.SlicePlot(ds, "z", ("gamer", "InvDens"))
+   
+         if yt.is_root():
+             slc.save()
+     ```
+     
    - Particle plot of the level of a grid. Each grid has one particle with its position set at the center of the grid with value equals to grid level. The result is `FigName000000000_Particle_z_Level.png`. We can only see some tiny dots in the figure, since there is only one particle in each grid. (The plot tries to demonstrate the particle functionality.)
 
+     ```{tab} ParticlePlot
      ```{image} _static/img/AMRExample-Step1-ParticleLevelZ.png
      :align: center
      :scale: 50%
      ```
+     
+     ```{tab} Python
+     ```python
+     def yt_inline_ParticlePlot():
+         ds = yt_libyt.libytDataset()
+         par = yt.ParticlePlot(ds, "particle_position_x", "particle_position_y", "Level", center = 'c')
+     
+         if yt.is_root():
+             par.save()
+     ```
    
-   After loading simulation data using libyt API, we call Python function using [`yt_run_Function`](./libyt-api/run-python-function.md#yt_run_function)/[`yt_run_FunctionArguments`](./libyt-api/run-python-function.md#yt_run_functionarguments) and use `yt` to analyze the data and plot figures. For how to use `yt` see:
+   After loading simulation data using libyt API, we call Python functions defined in `inline_script.py` using [`yt_run_Function`](./libyt-api/run-python-function.md#yt_run_function)/[`yt_run_FunctionArguments`](./libyt-api/run-python-function.md#yt_run_functionarguments) and use `yt` to analyze the data and plot figures. For how to use `yt` see:
      - [Using `yt`](./in-situ-python-analysis/using-yt.md)
 
 ## What's Next
 
-### Activate Interactive Mode
-
-To try out **interactive mode**, compile `libyt` with [`-DINTERACTIVE_MODE=ON`](./how-to-install.md#-dinteractive_mode-off).
-Interactive mode supports [Reloading Script](./in-situ-python-analysis/reloading-script.md#reloading-script) and [Interactive Python Prompt](./in-situ-python-analysis/interactive-python-prompt.md#interactive-python-prompt) features.
-
-Un-comment these blocks in `example.cpp`:
-```c++
-// file: example/example.cpp
-// =======================================================================================================
-// libyt: 9. activate python prompt in interactive mode
-// =======================================================================================================
-// Only supports when compiling libyt in interactive mode (-DINTERACTIVE_MODE)
-// Start reloading script if error occurred when running inline functions, or it detects "LIBYT_STOP" file.
-if (yt_run_ReloadScript("LIBYT_STOP", "RELOAD", "test_reload.py") != YT_SUCCESS) {
-    fprintf(stderr, "ERROR: yt_run_ReloadScript failed!\n");
-    exit(EXIT_FAILURE);
-}
-
-// Interactive prompt will start only if it detects "LIBYT_STOP" file.
-if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
-    fprintf(stderr, "ERROR: yt_run_InteractiveMode failed!\n");
-    exit(EXIT_FAILURE);
-}
-```
-
-### Activate libyt Jupyter Kernel
-
-To try out **jupyter kernel mode**, compile `libyt` with [`-DJUPYTER_KERNEL=ON`](./how-to-install.md#-djupyter_kernel-off).
-
-Then un-comment this block in `example.cpp`:
-```c++
-// file: example/example.cpp
-// =======================================================================================================
-// libyt: 9. activate libyt Jupyter kernel for Jupyter Notebook / JupyterLab access
-// =======================================================================================================
-// Only supports when compiling libyt in jupyter kernel mode (-DJUPYTER_KERNEL)
-// Activate libyt kernel when detects "LIBYT_STOP" file.
-// False for making libyt find empty port to bind to by itself.
-// True for using connection file provided by user, file name must be "libyt_kernel_connection.json".
-if (yt_run_JupyterKernel("LIBYT_STOP", false) != YT_SUCCESS) {
-    fprintf(stderr, "ERROR: yt_run_JupyterKernel failed!\n");
-    exit(EXIT_FAILURE);
-}
-```
-
-Create `LIBYT_STOP` and put it in the same folder where example executable is.
-`libyt` will launch libyt Jupyter kernel and bind to unused ports automatically. See [Jupyter Notebook Access](./in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access).
-
-### Update Python Script
+###### Change Python Script Name
 The example uses `inline_script.py` for in situ Python analysis. 
 To change the Python script name, simpy change `param_libyt.script` and do not include file extension `.py` in `example.cpp`. 
 
@@ -152,3 +150,19 @@ param_libyt.check_data = false;          // check passed in data or not
 
 To know more about writing inline Python script, you can refer to [Using Python for In Situ Analysis in libyt](./in-situ-python-analysis/index.md#using-python-for-in-situ-analysis-in-libyt).
 
+###### Other Python Entry Points for Interactive Data Analysis
+
+**To try interactive Python prompt:**
+1. Go to `amr-example` build folder.
+2. Create `LIBYT_STOP`. The file is signal for `libyt` to decide whether to launch the file-based Python prompt.
+3. Run the program. See more in [Interactive Python Prompt](./in-situ-python-analysis/interactive-python-prompt.md).
+
+**To try file-based Python prompt:**
+1. Go to `amr-example` build folder.
+2. Create `LIBYT_RELOAD`. The file is signal for `libyt` to decide whether to launch the file-based Python prompt.
+3. Run the program. See more in [Reload Script](./in-situ-python-analysis/reloading-script.md).
+
+**To try Jupyter Notebook / JupyterLab access:**
+1. Go to `amr-example` build folder.
+2. Create `LIBYT_JUPYTER`. The file is signal for `libyt` to decide whether to launch Jupyter kernel used for Jupyter Notebook / JupyterLab access.
+3. Run the program. See more in [Jupyter Notebook Access](./in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md).
