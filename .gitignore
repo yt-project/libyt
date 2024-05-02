@@ -9,3 +9,4 @@ vendor/nlohmann_json/
 vendor/xeus/
 vendor/xeus-zmq/
 vendor/xtl/
+vendor/libzmq/
