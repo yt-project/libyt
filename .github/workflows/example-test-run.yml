@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  cmake-build-test:
+  example-test-run:
     runs-on: ${{ matrix.platform.os }}
     strategy:
       fail-fast: false

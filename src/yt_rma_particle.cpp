@@ -7,7 +7,8 @@
 #include "LibytProcessControl.h"
 #include "big_mpi.h"
 #include "libyt.h"
-#include "yt_combo.h"
+
+static int get_particle_data(const long gid, const char* ptype, const char* attr, yt_data* par_data);
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  yt_rma_particle
@@ -151,7 +152,7 @@ int yt_rma_particle::prepare_data(long& gid) {
         // get data_ptr: check if the data can be get in libyt.particle_data[g.id][ptype][attr] first,
         // if not, generate data in get_par_attr
         yt_data par_array;
-        if (yt_getGridInfo_ParticleData(gid, m_ParticleType, m_AttributeName, &par_array) == YT_SUCCESS) {
+        if (get_particle_data(gid, m_ParticleType, m_AttributeName, &par_array) == YT_SUCCESS) {
             data_ptr = par_array.data_ptr;
             to_free = false;
         } else {
@@ -397,6 +398,71 @@ int yt_rma_particle::get_fetched_data(long* gid, const char** ptype, const char*
     // Pop back fetched data.
     m_Fetched.pop_back();
     m_FetchedData.pop_back();
+
+    return YT_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Private Function :  get_particle_data
+// Description      :  Get libyt.particle_data of ptype attr attributes in the grid with grid id = gid.
+//
+// Note             :  1. It searches libyt.particle_data[gid][ptype][attr], and return YT_FAIL if it cannot
+//                        find corresponding data.
+//                     2. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+//                     3. User should cast to their own datatype after receiving the pointer.
+//                     4. Returns an existing data pointer and data dimensions user passed in,
+//                        and does not make a copy of it!!
+//                     5. For 1-dim data (like particles), the higher dimensions is set to 0.
+//                     6. TODO: This is a COPY of yt_getGridInfo_ParticleData, but doesn't print error msg.
+//                              Will abstracting the layer when refactoring.
+//
+// Parameter        :  const long   gid              : Target grid id.
+//                     const char  *ptype            : Target particle type.
+//                     const char  *attr             : Target attribute name.
+//                     yt_data     *par_data         : Store the yt_data struct pointer that points to data.
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+static int get_particle_data(const long gid, const char* ptype, const char* attr, yt_data* par_data) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    if (!LibytProcessControl::Get().commit_grids) {
+        YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
+                 __FUNCTION__);
+    }
+
+    // get dictionary libyt.particle_data[gid][ptype]
+    PyObject* py_grid_id = PyLong_FromLong(gid);
+    PyObject* py_ptype = PyUnicode_FromString(ptype);
+    PyObject* py_attr = PyUnicode_FromString(attr);
+
+    if (PyDict_Contains(g_py_particle_data, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype) != 1 ||
+        PyDict_Contains(PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr) != 1) {
+        Py_DECREF(py_grid_id);
+        Py_DECREF(py_ptype);
+        Py_DECREF(py_attr);
+        return YT_FAIL;
+    }
+    PyArrayObject* py_data = (PyArrayObject*)PyDict_GetItem(
+        PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr);
+
+    Py_DECREF(py_grid_id);
+    Py_DECREF(py_ptype);
+    Py_DECREF(py_attr);
+
+    // extracting py_data to par_data
+    npy_intp* py_data_dims = PyArray_DIMS(py_data);
+    (*par_data).data_dimensions[0] = (int)py_data_dims[0];
+    (*par_data).data_dimensions[1] = 0;
+    (*par_data).data_dimensions[2] = 0;
+
+    (*par_data).data_ptr = PyArray_DATA(py_data);
+
+    PyArray_Descr* py_data_info = PyArray_DESCR(py_data);
+    if (get_yt_dtype_from_npy(py_data_info->type_num, &(*par_data).data_dtype) != YT_SUCCESS) {
+        return YT_FAIL;
+    }
 
     return YT_SUCCESS;
 }

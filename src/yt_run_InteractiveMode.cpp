@@ -2,10 +2,10 @@
 #include "yt_combo.h"
 
 #ifdef INTERACTIVE_MODE
-#include <ctype.h>
 #include <readline/readline.h>
 #include <sys/stat.h>
 
+#include <cctype>
 #include <string>
 
 #include "LibytProcessControl.h"
