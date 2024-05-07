@@ -21,7 +21,7 @@ The example initializes `libyt`, loads data to `libyt` in every simulation time 
 
 ### Using CMake
 
-1. Follow [Install](./how-to-install.md#install).
+1. Follow [Install](./how-to-install/how-to-install.md#install).
 2. Enter example folder. Assume we build the project under `libyt/build`:
    ```bash
    cd libyt                        # go to libyt project root folder
@@ -30,7 +30,7 @@ The example initializes `libyt`, loads data to `libyt` in every simulation time 
 
 ### Using Make
 
-1. Follow [Install](./how-to-install.md#install).
+1. Follow [Install](./how-to-install/how-to-install.md#install).
 2. Go to `libyt/example/amr-example` folder.
    ```bash
    cd libyt/example/amr-example
