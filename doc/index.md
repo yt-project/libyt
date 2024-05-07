@@ -14,7 +14,7 @@ It is an in situ analysis tool that allows researchers to analyze and visualize 
 
 quick-start
 example
-how-to-install
+how-to-install/how-to-install
 how-it-works
 in-situ-python-analysis/index
 FAQs
@@ -30,7 +30,7 @@ debug-and-profiling/index
 
 #### Contents
 - [**Quick Start**](./quick-start.md)
-- [**How to Install**](./how-to-install.md#how-to-install): how to get `libyt`?
+- [**How to Install**](./how-to-install/how-to-install.md#how-to-install): how to get `libyt`?
 - [**How it Works**](./how-it-works.md): what is happening behind the scene?
 - [**Example**](./example.md): this demonstrates how to implement `libyt` in simulation step by step.
 - [**libyt API**](./libyt-api/index.md): this is for simulation developers that wish to implement `libyt`.
