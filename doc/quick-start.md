@@ -101,6 +101,8 @@ After reading quick start, we will have an overview of how to use `libyt` for in
    >>> %libyt exit
    ```
 
+---
+
 ### What's Next
 
 ###### Loading Data using libyt API and Do Analysis using yt and Python
