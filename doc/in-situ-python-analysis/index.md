@@ -23,9 +23,9 @@ faq
 ## User Interface
 
 - [**libyt Defined Commands**](./libyt-defined-command.md#libyt-defined-commands): the commands allow users to load script, export history, set function to run or idle, etc.
-- [**Interactive Python Prompt**](./interactive-python-prompt.md#interactive-python-prompt): the prompt can process Python statements and give feedback instantly. ([`-DINTERACTIVE_MODE=ON`](../how-to-install/how-to-install.md#-dinteractive_mode-off))
-- [**Reloading Script**](./reloading-script.md#reloading-script): this allows reloading Python script. ([`-DINTERACTIVE_MODE=ON`](../how-to-install/how-to-install.md#-dinteractive_mode-off))
-- [**Jupyter Notebook Access**](./jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access): this allows accessing and analyzing simulation data through JupyterLab/Jupyter Notebook. ([`-DJUPYTER_KERNEL=ON`](../how-to-install/how-to-install.md#-djupyter_kernel-off))
+- [**Interactive Python Prompt**](./interactive-python-prompt.md#interactive-python-prompt): the prompt can process Python statements and give feedback instantly. ([`-DINTERACTIVE_MODE=ON`](../how-to-install/details.md#-dinteractive_mode-off))
+- [**Reloading Script**](./reloading-script.md#reloading-script): this allows reloading Python script. ([`-DINTERACTIVE_MODE=ON`](../how-to-install/details.md#-dinteractive_mode-off))
+- [**Jupyter Notebook Access**](./jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access): this allows accessing and analyzing simulation data through JupyterLab/Jupyter Notebook. ([`-DJUPYTER_KERNEL=ON`](../how-to-install/details.md#-djupyter_kernel-off))
 
 ## Limitations
 
