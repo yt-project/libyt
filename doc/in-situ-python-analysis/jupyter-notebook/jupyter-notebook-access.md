@@ -9,7 +9,7 @@ remote-cluster
 
 ## Requirements
 
-- Compile `libyt` in **jupyter kernel mode** ([`-DJUPYTER_KERNEL=ON`](../../how-to-install/how-to-install.md#-djupyter_kernel-off)).
+- Compile `libyt` in **jupyter kernel mode** ([`-DJUPYTER_KERNEL=ON`](../../how-to-install/details.md#-djupyter_kernel-off)).
 - Call libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt_run_jupyterkernel).
 - Python package [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt), [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html), and [`jedi`](https://jedi.readthedocs.io/en/latest/).
 
@@ -45,7 +45,7 @@ We need another process to start Jupyter Notebook/JupyterLab and connect to liby
 
 ### Running Simulation
 
-1. Compile `libyt` in **jupyter kernel mode** ([`-DJUPYTER_KERNEL=ON`](../../how-to-install/how-to-install.md#-djupyter_kernel-off)).
+1. Compile `libyt` in **jupyter kernel mode** ([`-DJUPYTER_KERNEL=ON`](../../how-to-install/details.md#-djupyter_kernel-off)).
 2. Call libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt_run_jupyterkernel). When flag file is detected, `libyt` will activate libyt kernel.
 3. libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt_run_jupyterkernel) returns `YT_SUCCESS` after libyt kernel shuts down (see [How to Exit](#how-to-exit)).
 4. Simulation can continue its process.
