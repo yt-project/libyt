@@ -1,68 +1,11 @@
-# How to Install
-
-> {octicon}`info;1em;sd-text-info;` Go through [Install](#install) and get all [Python Dependencies](#python-dependencies) to get full feature of `libyt`.
-> Ignore [Details](#details) unless we want to tweak `libyt` based on our needs.
-
-## libyt C Library
-
-### Install
-- **CMake** (>=3.15)
-- **pkg-config**: Generally, Linux and macOS already have pkg-config installed.
-- **GCC compiler** (>4.8): It should be able to support `c++14`.
-  - `CXX`: Path to `g++` compiler.
-  - `CC`: Path to `gcc` compiler.
-- **Python** (>=3.7): The Python environment we want to use when doing in situ analysis.
-  - `PYTHON_PATH`: Python installation prefix, the path contains folders `include`, `lib` etc. 
-  - `NumPy`: Should have `NumPy` installed.
-  - Other [Python Dependencies](#python-dependencies)
-- **MPI**: MPI used for compiling simulations and `libyt` needs to be the same.
-  - `MPI_PATH`: MPI installation prefix, the path contains folders `include`, `lib` etc.
-- **Readline**: [GNU `readline` library](https://tiswww.case.edu/php/chet/readline/rltop.html) is already installed on Linux and macOS generally. If not, we can get through system package manager or compile from source ourselves. (Use `--with-curses` when configuring if we compile from source.)
-  - `READLINE_PATH`: `readline` installation prefix. Provide the path if it is not in system search path.
-
-**Follow the steps to install `libyt` that is fault-tolerant to Python code, and supports interactive Python prompt, reloading script, and Jupyter Notebook access:**
-
-1. Shallow clone `libyt` and enter the folder:
-   ```bash
-   git clone --depth 1 https://github.com/yt-project/libyt "libyt"
-   cd libyt
-   ```
-2. [Optional] Set `gcc` and `g++` compiler:
-   ```bash
-   export CC=<path-to-gcc>
-   export CXX=<path-to-g++>
-   ```
-3. Generate build files in `build` folder:
-   - **Serial Mode (using GCC)**:
-     ```bash
-     rm -rf build
-     cmake -S . -B build -DSERIAL_MODE=ON \
-                         -DINTERACTIVE_MODE=ON \
-                         -DJUPYTER_KERNEL=ON \
-                         -DPYTHON_PATH=<your-python-prefix>
-     ```
-   - **Parallel Mode (using MPI)**:
-     ```bash
-     rm -rf build
-     cmake -S . -B build -DINTERACTIVE_MODE=ON \
-                         -DJUPYTER_KERNEL=ON \
-                         -DPYTHON_PATH=<your-python-prefix> \
-                         -DMPI_PATH=<your-mpi-prefix>
-     ```
-4. Build project and install `libyt`:
-   ```bash
-   cmake --build build 
-   cmake --install build --prefix <libyt-install-prefix>
-   ```
-
-### Details
+# Details
 
 This section lists all options and its related dependencies.
 
-#### Options (=Default Value)
-The options are mutually independent to each other. 
+## Options (=Default Value)
+The options are mutually independent to each other.
 
-###### `-DSERIAL_MODE` (=`OFF`)
+### `-DSERIAL_MODE` (=`OFF`)
 
 :::{table}
 :width: 100%
@@ -75,30 +18,30 @@ The options are mutually independent to each other.
 
 > {octicon}`alert;1em;sd-text-danger;` Make sure Python bindings for MPI (`mpi4py`), MPI used for compiling simulation and `libyt` are the same. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
 
-###### `-DINTERACTIVE_MODE` (=`OFF`)
+### `-DINTERACTIVE_MODE` (=`OFF`)
 
 |                           | Notes                                                                                                                                                                                                                                                                                        | Dependency      |
 |---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------|
 | **Normal Mode** (OFF)     | Shut down and terminate all the processes including simulation, if error occurs during in situ analysis.                                                                                                                                                                                     |                 |
-| **Interactive Mode** (ON) | Will not terminate the processes if error occurs while doing in situ analysis. Support [Interactive Python Prompt](./in-situ-python-analysis/interactive-python-prompt.md#interactive-python-prompt) and [Reloading Script](./in-situ-python-analysis/reloading-script.md#reloading-script). | `READLINE_PATH` |
+| **Interactive Mode** (ON) | Will not terminate the processes if error occurs while doing in situ analysis. Support [Interactive Python Prompt](../in-situ-python-analysis/interactive-python-prompt.md#interactive-python-prompt) and [Reloading Script](../in-situ-python-analysis/reloading-script.md#reloading-script). | `READLINE_PATH` |
 
-###### `-DJUPYTER_KERNEL` (=`OFF`)
+### `-DJUPYTER_KERNEL` (=`OFF`)
 
 |                              | Notes                                                                                                                                                                             | Dependency                                                                                                 | Python dependency                                                                                                                                                                                                  |
 |------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Jupyter Kernel Mode** (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access](./in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access)) | `nlohmann_json_DIR` <br> `cppzmq_DIR` <br> `xtl_DIR` <br> `xeus_DIR` <br> `xeus-zmq_DIR` <br> `ZeroMQ_DIR` | [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt) <br> [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html) <br> [`jedi`](https://jedi.readthedocs.io/en/latest/)(Optional) |
+| **Jupyter Kernel Mode** (ON) | Activate Jupyter kernel and enable JupyterLab UI. (See  [Jupyter Notebook Access](../in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md#jupyter-notebook-access)) | `nlohmann_json_DIR` <br> `cppzmq_DIR` <br> `xtl_DIR` <br> `xeus_DIR` <br> `xeus-zmq_DIR` <br> `ZeroMQ_DIR` | [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt) <br> [`jupyter-client`](https://jupyter-client.readthedocs.io/en/stable/index.html) <br> [`jedi`](https://jedi.readthedocs.io/en/latest/)(Optional) |
 
-###### `-DSUPPORT_TIMER` (=`OFF`)
+### `-DSUPPORT_TIMER` (=`OFF`)
 
 :::{table}
 :width: 100%
 
 |                          | Notes                                                                                                  |
 |--------------------------|--------------------------------------------------------------------------------------------------------|
-| **Time Profiling** (ON)  | Support time profiling. (See [Time Profiling](./debug-and-profiling/time-profiling.md#time-profiling)) |
+| **Time Profiling** (ON)  | Support time profiling. (See [Time Profiling](../debug-and-profiling/time-profiling.md#time-profiling)) |
 :::
 
-#### Dependencies
+## Dependencies
 
 - **Dependency path** indicates the required path variable name in CMake, and the required version.
 - **Notes** are things worth notice.
@@ -119,7 +62,32 @@ The options are mutually independent to each other.
 
 > {octicon}`info;1em;sd-text-info;` If our system doesn't have `readline` installed, use system package manager (ex: `brew`, `apt`) to install. If we want to compile and install from the source code ourselves, make sure `--with-curses` is used when configuring.
 
-#### Step-by-Step Instructions
+## Python Dependencies
+
+- **Python package** required when performing in situ analysis.
+- **Notes** are things worth notice.
+- **Option** indicates under what circumstances will we need this package.
+
+:::{table}
+:width: 100%
+
+| Python package                                                                                | Notes                                                                                                                                                                                                                                                                                            | Option                |
+|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|
+| [`NumPy`](https://numpy.org/) <br> (<2.0)                                                     | The fundamental package for scientific computing with Python.                                                                                                                                                                                                                                    | Always                |
+| [`yt`](https://yt-project.org/)                                                               | The core analytic tool.                                                                                                                                                                                                                                                                          | Always                |
+| [`yt_libyt`](https://github.com/data-exp-lab/yt_libyt)                                        | `yt` frontend for `libyt`.                                                                                                                                                                                                                                                                       | Always                |
+| [`mpi4py`](https://mpi4py.readthedocs.io/en/stable/)                                          | Python bindings for the Message Passing Interface (MPI) standard. <br> {octicon}`alert;1em;sd-text-danger;` Make sure `mpi4py` used in Python and MPI used in simulation are matched. (Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).) | `-DSERIAL_MODE=OFF`   |
+| [`jedi`](https://jedi.readthedocs.io/en/latest/)                                              | Support auto-completion in Jupyter Notebook and JupyterLab. (We will have this if IPython is already installed.)                                                                                                                                                                                 | `-DJUPYTER_KERNEL=ON` |
+| [`jupyter-client`](https://jupyter-client.readthedocs.io/en/latest/index.html) <br> (>=8.0.0) | Jupyter Client.                                                                                                                                                                                                                                                                                  | `-DJUPYTER_KERNEL=ON` |
+| [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt)                                | Jupyter kernel provisioner for `libyt`.                                                                                                                                                                                                                                                          | `-DJUPYTER_KERNEL=ON` |
+:::
+
+> {octicon}`alert;1em;sd-text-danger;` `jupyter-client` and `jupyter_libyt` are used for launching Jupyter Notebook and JupyterLab. Make sure the Python environment used for launching the notebook have them installed.
+>
+> The Python used in in situ analysis which is also for compiling `libyt` and the Python for launching Jupyter Notebook/JupyterLab might be different.
+> For example, when running `libyt` in HPC cluster and connecting to it through your local laptop. (See [Jupyter Notebook Access](../in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md))
+
+## Step-by-Step Instructions
 1. Toggle options, set paths and generate files to build the project. This can be done through either (a) or (b):
 
    (a) Set it through editing `CMakeLists.txt` at root directory. For example, this uses option [`-DSERIAL_MODE=OFF`](#-dserial_mode-off) and provides `MPI_PATH`:
@@ -156,7 +124,7 @@ The options are mutually independent to each other.
    cmake --install <build-dir-name> --prefix <libyt-install-prefix> 
    ```
 
-#### Example
+### Examples
 - The following builds `libyt` in serial mode using user designated GCC compiler and then installs the library in `/home/user/softwares/libyt`:
   ```bash
   cd libyt                                                     # go to project root directory
@@ -176,43 +144,3 @@ The options are mutually independent to each other.
   cmake --build build                                                            # build the project
   cmake --install build --prefix /home/user/softwares/libyt                      # install
   ```
-
-## Python Dependencies
-
-- **Python package** required when performing in situ analysis.
-- **Notes** are things worth notice.
-- **Option** indicates under what circumstances will we need this package.
-
-:::{table}
-:width: 100%
-
-| Python package                                                                                | Notes                                                                                                                                                                                                                                                                                            | Option                |
-|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|
-| [`NumPy`](https://numpy.org/) <br> (<2.0)                                                     | The fundamental package for scientific computing with Python.                                                                                                                                                                                                                                    | Always                |
-| [`yt`](https://yt-project.org/)                                                               | The core analytic tool.                                                                                                                                                                                                                                                                          | Always                |
-| [`yt_libyt`](https://github.com/data-exp-lab/yt_libyt)                                        | `yt` frontend for `libyt`.                                                                                                                                                                                                                                                                       | Always                |
-| [`mpi4py`](https://mpi4py.readthedocs.io/en/stable/)                                          | Python bindings for the Message Passing Interface (MPI) standard. <br> {octicon}`alert;1em;sd-text-danger;` Make sure `mpi4py` used in Python and MPI used in simulation are matched. (Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).) | `-DSERIAL_MODE=OFF`   |
-| [`jedi`](https://jedi.readthedocs.io/en/latest/)                                              | Support auto-completion in Jupyter Notebook and JupyterLab. (We will have this if IPython is already installed.)                                                                                                                                                                                 | `-DJUPYTER_KERNEL=ON` |
-| [`jupyter-client`](https://jupyter-client.readthedocs.io/en/latest/index.html) <br> (>=8.0.0) | Jupyter Client.                                                                                                                                                                                                                                                                                  | `-DJUPYTER_KERNEL=ON` |
-| [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt)                                | Jupyter kernel provisioner for `libyt`.                                                                                                                                                                                                                                                          | `-DJUPYTER_KERNEL=ON` |
-:::
-
-> {octicon}`alert;1em;sd-text-danger;` `jupyter-client` and `jupyter_libyt` are used for launching Jupyter Notebook and JupyterLab. Make sure the Python environment used for launching the notebook have them installed.
-> 
-> The Python used in in situ analysis which is also for compiling `libyt` and the Python for launching Jupyter Notebook/JupyterLab might be different.
-> For example, when running `libyt` in HPC cluster and connecting to it through your local laptop. (See [Jupyter Notebook Access](./in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md))
-
-## FAQs
-
-### Get Errors when Using CMake
-
-Make sure the folder where CMake generates build files to is empty or not exist yet by removing the folder:
-```bash
-cd libyt
-rm -rf <build-folder>
-cmake -S . -B <build-folder>
-```
-
-### Unable to Link to Dependencies Fetched by libyt After Installation
-
-Keep `libyt` project repo after installation. `libyt` fetches and stores dependencies under `libyt/vendor` folder, so that the content can be reused in different builds.
