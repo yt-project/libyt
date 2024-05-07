@@ -9,7 +9,7 @@ After reading quick start, we will have an overview of how to use `libyt` for in
 
 > {octicon}`info;1em;sd-text-info;` This demonstration assumes the operating system is either Linux or macOS.
 
-1. Follow [Install](./how-to-install/how-to-install.md#libyt-c-library).
+1. Follow [Install](./how-to-install/how-to-install.md#libyt).
 2. Enter quick start folder. Assume we build the project under `libyt/build`:
    ```bash
    cd libyt                        # go to libyt project root folder
