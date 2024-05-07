@@ -10,13 +10,21 @@ It is an in situ analysis tool that allows researchers to analyze and visualize 
 
 ```{toctree}
 :hidden:
+:caption: For users
 
 quick-start
 example
 how-to-install
 how-it-works
-libyt-api/index
 in-situ-python-analysis/index
+FAQs
+```
+
+```{toctree}
+:hidden:
+:caption: For developers
+
+libyt-api/index
 debug-and-profiling/index
 ```
 
