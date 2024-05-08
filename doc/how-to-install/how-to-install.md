@@ -6,7 +6,7 @@
 details
 ```
 
-```{seealso}
+```{note}
 Go through this page to install `libyt` that is
  fault-tolerant to Python code, supports interactive Python prompt, supports reloading script, and supports Jupyter Notebook access.
  
@@ -93,15 +93,5 @@ To turn off some of the features, go to [Details](./details.md).
 
 ## FAQs
 
-### Get Errors when Using CMake
-
-Make sure the folder where CMake generates build files to is empty or not exist yet by removing the folder:
-```bash
-cd libyt
-rm -rf <build-folder>
-cmake -S . -B <build-folder>
-```
-
-### Unable to Link to Dependencies Fetched by libyt After Installation
-
-Keep `libyt` project repo after installation. `libyt` fetches and stores dependencies under `libyt/vendor` folder, so that the content can be reused in different builds.
+- [Get Errors when Using CMake](../FAQs.md#get-errors-when-using-cmake)
+- [Unable to Link to Dependencies Fetched by libyt After Installation](../FAQs.md#unable-to-link-to-dependencies-fetched-by-libyt-after-installation)

@@ -97,21 +97,7 @@ libyt inherits field information (ex: units, name aliases) defined in yt fronten
 
 ## FAQs
 
-### Why Does my Program Hang and How Do I Solve It?
-Though `libyt` can execute any Python module, when it comes to reading simulation data, it requires every MPI process to participate.
-The program hanging problem is due to only some MPI processes are accessing the data, but not all of them.
-
-**Please do**:
-1. Check if there is an `if` statements that makes MPI processes non-symmetric. For example, only root process runs the statement:
-    ```python
-    def func():
-        if yt.is_root():
-            ...  # <-- This statement only executes in MPI root rank
-    ```
-2. Move the statement out of `if yt.is_root()` (for the case here).
-
-> {octicon}`calendar;1em;sd-text-secondary;` When accessing simulation data, `libyt` requires every process to participate.
-> We are working on this in both `yt` and `libyt`.
+- [Why Does my Program Hang and How Do I Solve It?](../FAQs.md#why-does-my-program-hang-and-how-do-i-solve-it)
 
 
 [^1]: `annotate_quiver`, `annotate_cquiver`, `annotate_velocity`, `annotate_line_integral_convolution`, `annotate_magnetic_field`, and `annotate_particles`
