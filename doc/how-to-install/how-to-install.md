@@ -6,7 +6,7 @@
 details
 ```
 
-```{note}
+```{seealso}
 Go through this page to install `libyt` that is
  fault-tolerant to Python code, supports interactive Python prompt, supports reloading script, and supports Jupyter Notebook access.
  
@@ -86,10 +86,12 @@ To turn off some of the features, go to [Details](./details.md).
 | [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt)                 |                  |  Jupyter kernel provisioner for `libyt`.                                                                                                                                                                                                                                                          | `-DJUPYTER_KERNEL=ON`                                                                                                                                                                                                                                                                             |
 :::
 
-> {octicon}`alert;1em;sd-text-danger;` `jupyter-client` and `jupyter_libyt` are used for launching Jupyter Notebook and JupyterLab. Make sure the Python environment used for launching the notebook have them installed.
-> 
-> The Python used in in situ analysis which is also for compiling `libyt` and the Python for launching Jupyter Notebook/JupyterLab might be different.
-> For example, when running `libyt` in HPC cluster and connecting to it through your local laptop. (See [Jupyter Notebook Access](../in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md))
+```{note}
+`jupyter-client` and `jupyter_libyt` are used for launching Jupyter Notebook and JupyterLab. Make sure the Python environment used for launching the notebook have them installed.
+
+The Python used in in situ analysis which is also for compiling `libyt` and the Python used for launching Jupyter Notebook/JupyterLab might be different.
+For example, when running `libyt` in HPC cluster, the Python environment is different from the one starting Jupyter Notebook on your local laptop. (See [Jupyter Notebook Access](../in-situ-python-analysis/jupyter-notebook/jupyter-notebook-access.md))
+```
 
 ## FAQs
 
