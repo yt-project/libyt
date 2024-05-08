@@ -11,7 +11,6 @@ interactive-python-prompt
 reloading-script
 jupyter-notebook/jupyter-notebook-access
 limitation
-faq
 ```
 
 ## Using Python for In Situ Analysis in libyt
@@ -31,6 +30,3 @@ faq
 
 - [**Limitations in MPI Related Python Tasks**](./limitation.md#limitations-in-mpi-related-python-tasks)
 
-## FAQs
-
-- [**How Does libyt Run Python Script?**](./faq.md#how-does-libyt-run-python-script)

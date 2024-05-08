@@ -44,12 +44,5 @@ Then it will exit the API [`yt_run_InteractiveMode`](../libyt-api/yt_run_interac
 
 ## FAQs
 
-### Why Can't I Find the Prompt `>>>`?
-`>>> `  is probably immersed inside the output. 
-We can hit enter again, which is to provide an empty statement, and it will come out. 
-
-We can make prompt more smoothly by setting [`YT_VERBOSE`](../libyt-api/yt_initialize.md#yt_param_libyt) to `YT_VERBOSE_INFO`.
-
-### Where Can I Use Interactive Mode?
-`libyt` interactive Python prompt only works on local machine or submit the job to HPC platforms using interactive jobs like `qsub -I` in PBS scheduler. 
-The reason is that the user interface is exposed in the terminal.
+- [Why Can't I Find the Prompt `>>>`?](../FAQs.md#why-cant-i-find-the-prompt-)
+- [Where Can I Use Interactive Mode?](../FAQs.md#where-can-i-use-interactive-mode)

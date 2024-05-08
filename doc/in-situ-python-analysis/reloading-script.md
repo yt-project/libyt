@@ -56,10 +56,5 @@ def func():
 ```
 
 ## Known Limitations
+
 - See [Limitations in MPI Related Python Tasks](./limitation.md#limitations-in-mpi-related-python-tasks).
-
-## FAQs
-
-### When Can I Reload Script?
-`libyt` supports reloading script feature if it is compiled with [`-DINTERACTIVE_MODE=ON`](../how-to-install/details.md#-dinteractive_mode-off).
-The root process reads the file, so it would work on your local desktop and in HPC clusters.
