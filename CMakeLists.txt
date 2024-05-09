@@ -35,7 +35,7 @@ option(BUILD_SHARED_LIBS "Building using shared libraries"                      
 
 ## find dependencies ##
 set(Python_ROOT_DIR ${PYTHON_PATH})
-find_package(Python COMPONENTS Development NumPy REQUIRED)
+find_package(Python 3.7 COMPONENTS Development NumPy REQUIRED)
 
 if (NOT SERIAL_MODE)
     set(MPI_HOME ${MPI_PATH})
