@@ -97,7 +97,7 @@ libyt inherits field information (ex: units, name aliases) defined in yt fronten
 
 ## FAQs
 
-- [Why Does my Program Hang and How Do I Solve It?](../FAQs.md#why-does-my-program-hang-and-how-do-i-solve-it)
+- [Why does my program hang and how do I solve it?](../FAQs.md#why-does-my-program-hang-and-how-do-i-solve-it)
 
 
 [^1]: `annotate_quiver`, `annotate_cquiver`, `annotate_velocity`, `annotate_line_integral_convolution`, `annotate_magnetic_field`, and `annotate_particles`
