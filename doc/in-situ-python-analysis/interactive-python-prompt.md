@@ -44,5 +44,5 @@ Then it will exit the API [`yt_run_InteractiveMode`](../libyt-api/yt_run_interac
 
 ## FAQs
 
-- [Why Can't I Find the Prompt `>>>`?](../FAQs.md#why-cant-i-find-the-prompt-)
-- [Where Can I Use Interactive Mode?](../FAQs.md#where-can-i-use-interactive-mode)
+- [Why can't I find the prompt `>>>`?](../FAQs.md#why-cant-i-find-the-prompt-)
+- [Where can I use interactive mode?](../FAQs.md#where-can-i-use-interactive-mode)

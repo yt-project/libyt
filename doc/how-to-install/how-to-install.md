@@ -22,13 +22,12 @@ To turn off some of the features, go to [Details](./details.md).
 - **Compiler** (>4.8): It should be able to support `c++14`.
   - `CXX`: Path to `g++` compiler.
   - `CC`: Path to `gcc` compiler.
-- **[Python](https://www.python.org/)** (>=3.7): The Python environment we want to use when doing in situ analysis.
-  - `PYTHON_PATH`: Python installation prefix, the path contains folders `include`, `lib` etc. 
-  - `NumPy`: Should have `NumPy` installed.
-  - Other [Python Dependencies](#python-dependencies)
+- **[Python](https://www.python.org/)** (>=3.7): The Python environment we want to use when doing in situ analysis. (If we compile it from source, use `--enable-shared` when configuring.)
+  - `PYTHON_PATH`: Python installation prefix, the path contains folders `include`, `lib` etc.
+  - `numpy` and other [Python Dependencies](#python-dependencies)
 - **[OpenMPI](https://www.open-mpi.org/)** or **[MPICH](https://www.mpich.org/)**: MPI used for compiling simulations and `libyt` needs to be the same.
   - `MPI_PATH`: MPI installation prefix, the path contains folders `include`, `lib` etc.
-- **[Readline](https://tiswww.case.edu/php/chet/readline/rltop.html)**: Readline library is already installed on Linux and macOS generally. If not, we can get through system package manager or compile from source ourselves. (Use `--with-curses` when configuring if we compile from source.)
+- **[Readline](https://tiswww.case.edu/php/chet/readline/rltop.html)**: Readline library is already installed on Linux and macOS generally. If not, we can get through system package manager or compile from source ourselves. (If we compile it from source, use `--with-curses` when configuring.)
   - `READLINE_PATH`: `readline` installation prefix. Provide the path if it is not in system search path.
 
 **Follow the steps to install `libyt` that is fault-tolerant to Python code, and supports interactive Python prompt, reloading script, and Jupyter Notebook access:**
@@ -67,7 +66,6 @@ To turn off some of the features, go to [Details](./details.md).
    ```
 5. `libyt` is now installed at `<libyt-install-prefix>` folder.
 
-
 ## Python Dependencies
 
 - **Option** indicates under what circumstances will we need this package.
@@ -95,5 +93,6 @@ For example, when running `libyt` in HPC cluster, the Python environment is diff
 
 ## FAQs
 
-- [Get Errors when Using CMake](../FAQs.md#get-errors-when-using-cmake)
-- [Unable to Link to Dependencies Fetched by libyt After Installation](../FAQs.md#unable-to-link-to-dependencies-fetched-by-libyt-after-installation)
+- [Get errors when using CMake](../FAQs.md#get-errors-when-using-cmake)
+- [Get errors when linking shared library libyt.so](../FAQs.md#get-errors-when-linking-shared-library-libytso)
+- [Unable to link to dependencies fetched by libyt after installation](../FAQs.md#unable-to-link-to-dependencies-fetched-by-libyt-after-installation)
