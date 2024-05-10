@@ -29,11 +29,16 @@ debug-and-profiling/index
 ```
 
 #### Contents
+
+**For users:**
 - [**Quick Start**](./quick-start.md)
+- [**Example**](./example.md): this demonstrates how to implement `libyt` in an amr simulation step by step.
 - [**How to Install**](./how-to-install/how-to-install.md#how-to-install): how to get `libyt`?
 - [**How it Works**](./how-it-works.md): what is happening behind the scene?
-- [**Example**](./example.md): this demonstrates how to implement `libyt` in simulation step by step.
-- [**libyt API**](./libyt-api/index.md): this is for simulation developers that wish to implement `libyt`.
 - [**In Situ Python Analysis**](./in-situ-python-analysis/index.md): this is for users that are using `libyt` to do in situ analysis.
+- [**FAQs**](./FAQs.md)
+
+**For simulation developers:**
+- [**libyt API**](./libyt-api/index.md): this is for simulation developers that wish to implement `libyt`.
 - [**Debug and Time Profiling**](./debug-and-profiling/index.md): how to check inputs and run time profiling in `libyt`.
 
