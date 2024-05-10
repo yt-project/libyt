@@ -37,8 +37,3 @@ debug-and-profiling/index
 - [**In Situ Python Analysis**](./in-situ-python-analysis/index.md): this is for users that are using `libyt` to do in situ analysis.
 - [**Debug and Time Profiling**](./debug-and-profiling/index.md): how to check inputs and run time profiling in `libyt`.
 
-#### Label Meanings
-- {octicon}`pencil;1em;sd-text-warning;` means `libyt` only borrows the variable and does not make a copy.
-- {octicon}`info;1em;sd-text-info;` means more information on this topic.
-- {octicon}`alert;1em;sd-text-danger;` means things we should be careful.
-- {octicon}`calendar;1em;sd-text-secondary;` means things we are trying to improve.
