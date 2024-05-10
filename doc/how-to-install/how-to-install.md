@@ -17,17 +17,27 @@ To turn off some of the features, go to [Details](./details.md).
 
 **Requirements:**
 
-- **[CMake](https://cmake.org/)** (>=3.15)
-- **[pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/)**: Generally, Linux and macOS already have pkg-config installed.
-- **Compiler** (>4.8): It should be able to support `c++14`.
-  - `CXX`: Path to `g++` compiler.
+**[CMake](https://cmake.org/)** (>=3.15)
+: A software build system.
+
+**[pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/)**
+: Generally, Linux and macOS already have pkg-config installed. It is a helper tool for finding libraries and compiling applications.
+
+**Compiler** (It should support `c++14`)
+: - `CXX`: Path to `g++` compiler.
   - `CC`: Path to `gcc` compiler.
-- **[Python](https://www.python.org/)** (>=3.7): The Python environment we want to use when doing in situ analysis. (If we compile it from source, use `--enable-shared` when configuring.)
+
+**[Python](https://www.python.org/)** (>=3.7)
+: The Python environment we want to use when doing in situ analysis. If we compile it from source, use `--enable-shared` when configuring.
   - `PYTHON_PATH`: Python installation prefix, the path contains folders `include`, `lib` etc.
   - `numpy` and other [Python Dependencies](#python-dependencies)
-- **[OpenMPI](https://www.open-mpi.org/)** or **[MPICH](https://www.mpich.org/)**: MPI used for compiling simulations and `libyt` needs to be the same.
+
+**[OpenMPI](https://www.open-mpi.org/)** or **[MPICH](https://www.mpich.org/)**
+: MPI used for compiling simulations and for compiling `libyt` should be the same.
   - `MPI_PATH`: MPI installation prefix, the path contains folders `include`, `lib` etc.
-- **[Readline](https://tiswww.case.edu/php/chet/readline/rltop.html)**: Readline library is already installed on Linux and macOS generally. If not, we can get through system package manager or compile from source ourselves. (If we compile it from source, use `--with-curses` when configuring.)
+
+**[Readline](https://tiswww.case.edu/php/chet/readline/rltop.html)**
+: Readline library is already installed on Linux and macOS generally. If not, we can get through system package manager or compile from source ourselves. If we compile it from source, use `--with-curses` when configuring.
   - `READLINE_PATH`: `readline` installation prefix. Provide the path if it is not in system search path.
 
 **Follow the steps to install `libyt` that is fault-tolerant to Python code, and supports interactive Python prompt, reloading script, and Jupyter Notebook access:**
