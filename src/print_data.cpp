@@ -37,6 +37,7 @@ int print_yt_param_yt(const yt_param_yt& param_yt) {
     log_debug("   %-*s = %13.7e\n", width_scalar, "length_unit", param_yt.length_unit);
     log_debug("   %-*s = %13.7e\n", width_scalar, "mass_unit", param_yt.mass_unit);
     log_debug("   %-*s = %13.7e\n", width_scalar, "time_unit", param_yt.time_unit);
+    log_debug("   %-*s = %13.7e\n", width_scalar, "velocity_unit", param_yt.velocity_unit);
     if (param_yt.magnetic_unit == DBL_UNDEFINED)
         log_debug("   %-*s = %s\n", width_scalar, "magnetic_unit", "NOT SET, and will be set to 1.");
     else
