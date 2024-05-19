@@ -34,6 +34,7 @@ import libyt
 |       `param_yt["length_unit"]`       |       `length_unit`       |  `yt_set_Parameters`  |                                      |
 |        `param_yt["mass_unit"]`        |        `mass_unit`        |  `yt_set_Parameters`  |                                      |
 |        `param_yt["time_unit"]`        |        `time_unit`        |  `yt_set_Parameters`  |                                      |
+|      `param_yt["velocity_unit"]`      |      `velocity_unit`      |  `yt_set_Parameters`  |                                      |
 |      `param_yt["magnetic_unit"]`      |      `magnetic_unit`      |  `yt_set_Parameters`  | - Will be set to 1, if it's not set. |
 | `param_yt["cosmological_simulation"]` | `cosmological_simulation` |  `yt_set_Parameters`  |                                      |
 |     `param_yt["dimensionality"]`      |     `dimensionality`      |  `yt_set_Parameters`  |                                      |

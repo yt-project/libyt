@@ -33,6 +33,8 @@ int yt_set_Parameters( yt_param_yt *param_yt )
   - Usage: Simulation mass unit in g (CGS).
 - `double time_unit` (Default=`DBL_UNDEFINED`)
   - Usage: Simulation time unit in s (CGS).
+- `double velocity_unit` (Default=`DBL_UNDEFINED`)
+  - Usage: Simulation velocity unit in cm / s (CGS).
 - `double magnetic_unit` (Default=`1.0`)
   - Usage: Simulation magnetic unit in gauss.
 - `int periodicity[3]` (Default=`INT_UNDEFINED`)
@@ -72,18 +74,19 @@ int yt_set_Parameters( yt_param_yt *param_yt )
 ## Example
 ```cpp
 yt_param_yt param_yt;
-param_yt.frontend = "gamer";                          // simulation frontend that libyt borrows field info from
-param_yt.fig_basename = "FigName";                    // figure base name (default=Fig)
-param_yt.length_unit = 3.0857e21;                     // length unit (cm)
-param_yt.mass_unit = 1.9885e33;                       // mass unit (g)
-param_yt.time_unit = 3.1557e13;                       // time unit (sec)
-param_yt.current_time = time;                         // simulation time in code units
-param_yt.dimensionality = 3;                          // dimensionality, support 3 only
-param_yt.refine_by = REFINE_BY;                       // refinement factor between a grid and its subgrid
-param_yt.num_grids = num_grids;                       // number of grids
-param_yt.num_grids_local = num_grids_local;           // number of local grids
-param_yt.num_fields = num_fields + 1;                 // number of fields, addition one for derived field demo
-param_yt.num_par_types = num_par_types;               // number of particle types
+param_yt.frontend = "gamer";                                         // simulation frontend that libyt borrows field info from
+param_yt.fig_basename = "FigName";                                   // figure base name (default=Fig)
+param_yt.length_unit = 3.0857e21;                                    // length unit (cm)
+param_yt.mass_unit = 1.9885e33;                                      // mass unit (g)
+param_yt.time_unit = 3.1557e13;                                      // time unit (sec)
+param_yt.velocity_unit = param_yt.length_unit / param_yt.time_unit;  // velocity unit (cm/s)
+param_yt.current_time = time;                                        // simulation time in code units
+param_yt.dimensionality = 3;                                         // dimensionality, support 3 only
+param_yt.refine_by = REFINE_BY;                                      // refinement factor between a grid and its subgrid
+param_yt.num_grids = num_grids;                                      // number of grids
+param_yt.num_grids_local = num_grids_local;                          // number of local grids
+param_yt.num_fields = num_fields + 1;                                // number of fields, addition one for derived field demo
+param_yt.num_par_types = num_par_types;                              // number of particle types
 
 yt_par_type par_type_list[num_par_types];
 par_type_list[0].par_type = "io";
