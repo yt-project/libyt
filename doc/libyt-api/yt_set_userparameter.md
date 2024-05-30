@@ -2,14 +2,14 @@
 
 ## `yt_set_UserParameter*`
 ```cpp
-int yt_set_UserParameterInt       ( const char *key, const int n, const int       *input );
-int yt_set_UserParameterLong      ( const char *key, const int n, const long      *input );
-int yt_set_UserParameterLongLong  ( const char *key, const int n, const long long *input );
-int yt_set_UserParameterUint      ( const char *key, const int n, const uint      *input );
-int yt_set_UserParameterUlong     ( const char *key, const int n, const ulong     *input );
-int yt_set_UserParameterFloat     ( const char *key, const int n, const float     *input );
-int yt_set_UserParameterDouble    ( const char *key, const int n, const double    *input );
-int yt_set_UserParameterString    ( const char *key,              const char      *input );
+int yt_set_UserParameterInt       ( const char *key, const int n, const int           *input );
+int yt_set_UserParameterLong      ( const char *key, const int n, const long          *input );
+int yt_set_UserParameterLongLong  ( const char *key, const int n, const long long     *input );
+int yt_set_UserParameterUint      ( const char *key, const int n, const unsigned int  *input );
+int yt_set_UserParameterUlong     ( const char *key, const int n, const unsigned long *input );
+int yt_set_UserParameterFloat     ( const char *key, const int n, const float         *input );
+int yt_set_UserParameterDouble    ( const char *key, const int n, const double        *input );
+int yt_set_UserParameterString    ( const char *key,              const char          *input );
 ```
 - Usage: Add code or user specific parameters that is used in your input yt [`frontend`](./yt_set_parameters.md#yt_param_yt) `XXXDataset` class. `libyt` borrows field information (`class XXXFieldInfo`), so we need to set them properly. `libyt` will add them to `libytDataset` class as new attributes. You can also add whatever variables you like, it will be stored under [`libyt.param_user`](../in-situ-python-analysis/libyt-python-module.md#param_user).
 - Return: `YT_SUCCESS` or `YT_FAIL`
