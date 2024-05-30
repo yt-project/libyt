@@ -211,8 +211,8 @@ int main(int argc, char* argv[]) {
         // demo of some other parameters we can add
         const int user_int = 1;
         const long user_long = 2;
-        const uint user_uint = 3;
-        const ulong user_ulong = 4;
+        const unsigned int user_uint = 3;
+        const unsigned long user_ulong = 4;
         const float user_float = 5.0;
         const double user_double = 6.0;
         const char* user_string = "my_string";
