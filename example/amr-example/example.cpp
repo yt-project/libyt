@@ -171,6 +171,7 @@ int main(int argc, char* argv[]) {
         param_yt.current_time = time;                                        // simulation time in code units
         param_yt.dimensionality = 3;                                         // dimensionality, support 3 only
         param_yt.refine_by = REFINE_BY;              // refinement factor between a grid and its subgrid
+        param_yt.index_offset = 1;                   // grid id starts at 1. (default is 0-indexed)
         param_yt.num_grids = num_grids;              // number of grids
         param_yt.num_grids_local = num_grids_local;  // number of local grids
         param_yt.num_fields = num_fields + 1;        // number of fields, addition one for derived field demo
