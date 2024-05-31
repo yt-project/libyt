@@ -83,6 +83,7 @@ int yt_set_Parameters(yt_param_yt* param_yt) {
     add_dict_scalar(g_py_param_yt, "length_unit", g_param_yt.length_unit);
     add_dict_scalar(g_py_param_yt, "mass_unit", g_param_yt.mass_unit);
     add_dict_scalar(g_py_param_yt, "time_unit", g_param_yt.time_unit);
+    add_dict_scalar(g_py_param_yt, "velocity_unit", g_param_yt.velocity_unit);
 
     if (g_param_yt.magnetic_unit == DBL_UNDEFINED) {
         add_dict_scalar(g_py_param_yt, "magnetic_unit", 1);

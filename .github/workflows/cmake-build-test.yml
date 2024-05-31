@@ -1,4 +1,4 @@
-# Test if it can run on multiplatform and both in serial (gcc) and parallel (openmpi)
+# Test if libyt can build with different options, download dependencies, and install and link correctly.
 
 name: CMake Build Test
 
@@ -24,80 +24,74 @@ jobs:
         platform:
           - os: ubuntu-latest
             mpi: 'openmpi'
-          - os: macos-latest
+            check_shared_lib: ldd lib/libyt.so
+          - os: macos-12
             mpi: 'mpich'
+            check_shared_lib: otool -l lib/libyt.dylib
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
 
     steps:
       - name: Checkout libyt repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: CMake Version
         run: cmake --version
 
       - name: Setup Python ${{ matrix.python-version }} environment
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
           cache: 'pip'
       - run: |
           python -m pip install --upgrade pip
-          pip install -r ${{ github.workspace }}/.github/tools/requirements.txt
+          pip install numpy
 
       - name: Setup MPI environment
         uses: mpi4py/setup-mpi@v1
         with:
           mpi: ${{ matrix.platform.mpi }}
 
-      - name: Install yt, mpi4py, and yt_libyt
-        run: |
-          pip install mpi4py yt
-          pip install yt-libyt
-
       - name: Update GitHub Environment Variables
         run: |
-          echo "LIBYT_PARALLEL_INSTALL_PATH=${{ github.workspace }}/libyt_parallel" >> $GITHUB_ENV
-          echo "LIBYT_SERIAL_INSTALL_PATH=${{ github.workspace }}/libyt_serial" >> $GITHUB_ENV
+          echo "LIBYT_TEST_INSTALL_FOLDER=${{ github.workspace }}/libyt_installation" >> $GITHUB_ENV
 
-      - name: Build libyt -- Parallel (MPI)
+      - name: Test Option -DSERIAL_MODE=ON
         run: | 
           cd ${{ github.workspace }}
           rm -rf build
-          cmake -B build -S .
+          cmake -B build -S . -DSERIAL_MODE=ON
           cmake --build build
-          cmake --install build --prefix "${{ env.LIBYT_PARALLEL_INSTALL_PATH }}"
+          cmake --install build --prefix "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-serial-on"
+          cd "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-serial-on"
+          ${{ matrix.platform.check_shared_lib }}
 
-      - name: Build libyt -- Serial (GCC)
+      - name: Test Option -DINTERACTIVE_MODE=ON
         run: | 
           cd ${{ github.workspace }}
-          rm -rf build-serial
-          cmake -B build-serial -S . -DSERIAL_MODE=ON
-          cmake --build build-serial
-          cmake --install build-serial --prefix "${{ env.LIBYT_SERIAL_INSTALL_PATH }}"
+          rm -rf build
+          cmake -B build -S . -DINTERACTIVE_MODE=ON
+          cmake --build build
+          cmake --install build --prefix "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-interactive-on"
+          cd "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-interactive-on"
+          ${{ matrix.platform.check_shared_lib }}
 
-      - name: Prepare Test
+      - name: Test Option -DJUPYTER_KERNEL=ON
         run: |
-          cd ${{ github.workspace }}/example
-          cp ${{ github.workspace }}/.github/tests/test-DataIO/DataIOTest.py .
+          cd ${{ github.workspace }}
+          rm -rf build
+          cmake -B build -S . -DJUPYTER_KERNEL=ON
+          cmake --build build
+          cmake --install build --prefix "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-jupyter-on"
+          cd "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-jupyter-on"
+          ${{ matrix.platform.check_shared_lib }}
 
-      - name: Generate Density Data for Testing
+      - name: Test Option -DSUPPORT_TIMER=ON
         run: |
-          cd ${{ github.workspace }}/example
-          cp ${{ github.workspace }}/.github/tools/generate_density_data.cpp .
-          g++ -o generate_density_data generate_density_data.cpp
-          ./generate_density_data
-
-      - name: Test Run and DataIO Test - example - Serial
-        run: |
-          cd ${{ github.workspace }}/example
-          make clean
-          make OPTIONS=-DSERIAL_MODE LIBYT_PATH="${{ env.LIBYT_SERIAL_INSTALL_PATH }}"
-          ./example DataIOTest.py
-
-      - name: Test Run and DataIO Test - example - Parallel (MPI 3)
-        run: |
-          cd ${{ github.workspace }}/example
-          make clean
-          make LIBYT_PATH="${{ env.LIBYT_PARALLEL_INSTALL_PATH }}"
-          OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./example DataIOTest.py
+          cd ${{ github.workspace }}
+          rm -rf build
+          cmake -B build -S . -DSUPPORT_TIMER=ON
+          cmake --build build
+          cmake --install build --prefix "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-timer-on"
+          cd "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-timer-on"
+          ${{ matrix.platform.check_shared_lib }}

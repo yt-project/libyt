@@ -2,7 +2,7 @@
 
 ## How to Configure
 
-Compile `libyt` with [`-DSUPPORT_TIMER=ON`](../how-to-install.md#-dsupport_timer).
+Compile `libyt` with [`-DSUPPORT_TIMER=ON`](../how-to-install/details.md#-dsupport_timer-off).
 
 ## Chrome Tracing -- Visualizing the Profile
 1. Since each process dumps its profile `libytTimeProfile_MPI*.json` separately, we run the following to concatenate all of them:
