@@ -7,10 +7,6 @@
 /
 ********************************************************************************/
 
-// short names for unsigned types
-typedef unsigned int uint;
-typedef unsigned long int ulong;
-
 // enumerate types
 typedef enum yt_verbose { YT_VERBOSE_OFF = 0, YT_VERBOSE_INFO, YT_VERBOSE_WARNING, YT_VERBOSE_DEBUG } yt_verbose;
 

@@ -27,6 +27,7 @@
 //                length_unit             : Simulation length unit in cm (CGS)
 //                mass_unit               : Simulation mass   unit in g  (CGS)
 //                time_unit               : Simulation time   unit in s  (CGS)
+//                velocity_unit           : Simulation velocity unit in cm / s (CGS)
 //                magnetic_unit           : Simulation magnetic unit in gauss
 //                refine_by               : Refinement factor between a grid and its subgrid
 //                index_offset            : Offset of the index.
@@ -53,6 +54,7 @@ typedef struct yt_param_yt {
     double length_unit;
     double mass_unit;
     double time_unit;
+    double velocity_unit;
     double magnetic_unit;
     int periodicity[3];
     int cosmological_simulation;
@@ -90,6 +92,7 @@ typedef struct yt_param_yt {
         length_unit = DBL_UNDEFINED;
         mass_unit = DBL_UNDEFINED;
         time_unit = DBL_UNDEFINED;
+        velocity_unit = DBL_UNDEFINED;
         magnetic_unit = DBL_UNDEFINED;
 
         for (int d = 0; d < 3; d++) {

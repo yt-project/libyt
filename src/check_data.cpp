@@ -345,6 +345,7 @@ int check_yt_param_yt(const yt_param_yt& param_yt) {
     if (param_yt.length_unit == DBL_UNDEFINED) YT_ABORT("\"%s\" has not been set!\n", "length_unit");
     if (param_yt.mass_unit == DBL_UNDEFINED) YT_ABORT("\"%s\" has not been set!\n", "mass_unit");
     if (param_yt.time_unit == DBL_UNDEFINED) YT_ABORT("\"%s\" has not been set!\n", "time_unit");
+    if (param_yt.velocity_unit == DBL_UNDEFINED) YT_ABORT("\"%s\" has not been set!\n", "velocity_unit");
     if (param_yt.magnetic_unit == DBL_UNDEFINED) log_warning("\"%s\" has not been set!\n", "magnetic_unit");
 
     for (int d = 0; d < 3; d++) {

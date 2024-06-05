@@ -7,9 +7,10 @@
 // Function    :  add_dict_scalar
 // Description :  Auxiliary function for adding a scalar item to a Python dictionary
 //
-// Note        :  1. Overloaded with various data types: float, double, int, long, uint, ulong
-//                   ==> (float,double)        are converted to double internally
-//                       (int,long,uint,ulong) are converted to long internally
+// Note        :  1. Overloaded with various data types: float, double, int, long, unsigned int, unsigned long
+//                   ==> (float,double)                        are converted to double internally
+//                       (int,long,unsigned int,unsigned long) are converted to long internally
+//                       (long long)                           are converted to long long internally
 //
 // Parameter   :  dict  : Target Python dictionary
 //                key   : Dictionary key
@@ -31,15 +32,16 @@ int add_dict_scalar(PyObject* dict, const char* key, const T value) {
     if (typeid(T) == typeid(float) || typeid(T) == typeid(double))
         py_obj = PyFloat_FromDouble((double)value);
 
-    else if (typeid(T) == typeid(int) || typeid(T) == typeid(long) || typeid(T) == typeid(uint) ||
-             typeid(T) == typeid(ulong))
+    else if (typeid(T) == typeid(int) || typeid(T) == typeid(long) || typeid(T) == typeid(unsigned int) ||
+             typeid(T) == typeid(unsigned long))
         py_obj = PyLong_FromLong((long)value);
 
     else if (typeid(T) == typeid(long long))
         py_obj = PyLong_FromLongLong((long long)value);
 
     else
-        YT_ABORT("Unsupported data type (only support float, double, int, long, long long, uint, ulong)!\n");
+        YT_ABORT(
+            "Unsupported data type (only support float, double, int, long, long long, unsigned int, unsigned long)!\n");
 
     // insert "value" into "dict" with "key"
     if (PyDict_SetItemString(dict, key, py_obj) != 0)
@@ -56,10 +58,10 @@ int add_dict_scalar(PyObject* dict, const char* key, const T value) {
 // Function    :  add_dict_vector_n
 // Description :  Auxiliary function for adding an n-element vector item to a Python dictionary
 //
-// Note        :  1. Overloaded with various data types: float, double, int, long, uint, ulong
-//                   ==> (float,double)        are converted to double internally
-//                       (int,long,uint,ulong) are converted to long internally
-//                       (long long)           are converted to long long internally
+// Note        :  1. Overloaded with various data types: float, double, int, long, unsigned int, unsigned long
+//                   ==> (float,double)                        are converted to double internally
+//                       (int,long,unsigned int,unsigned long) are converted to long internally
+//                       (long long)                           are converted to long long internally
 //
 // Parameter   :  dict   : Target Python dictionary
 //                key    : Dictionary key
@@ -84,8 +86,8 @@ int add_dict_vector_n(PyObject* dict, const char* key, const int len, const T* v
             for (Py_ssize_t v = 0; v < VecSize; v++) {
                 PyTuple_SET_ITEM(tuple, v, PyFloat_FromDouble((double)vector[v]));
             }
-        } else if (typeid(T) == typeid(int) || typeid(T) == typeid(long) || typeid(T) == typeid(uint) ||
-                   typeid(T) == typeid(ulong)) {
+        } else if (typeid(T) == typeid(int) || typeid(T) == typeid(long) || typeid(T) == typeid(unsigned int) ||
+                   typeid(T) == typeid(unsigned long)) {
             for (Py_ssize_t v = 0; v < VecSize; v++) {
                 PyTuple_SET_ITEM(tuple, v, PyLong_FromLong((long)vector[v]));
             }
@@ -94,7 +96,8 @@ int add_dict_vector_n(PyObject* dict, const char* key, const int len, const T* v
                 PyTuple_SET_ITEM(tuple, v, PyLong_FromLongLong((long long)vector[v]));
             }
         } else {
-            YT_ABORT("Unsupported data type (only support float, double, int, long, long long, uint, ulong)!\n");
+            YT_ABORT("Unsupported data type (only support float, double, int, long, long long, unsigned int, unsigned "
+                     "long)!\n");
         }
     } else {
         YT_ABORT("Creating a tuple object (key = \"%s\") ... failed!\n", key);
@@ -148,16 +151,18 @@ template int add_dict_scalar<double>(PyObject* dict, const char* key, const doub
 template int add_dict_scalar<int>(PyObject* dict, const char* key, const int value);
 template int add_dict_scalar<long>(PyObject* dict, const char* key, const long value);
 template int add_dict_scalar<long long>(PyObject* dict, const char* key, const long long value);
-template int add_dict_scalar<uint>(PyObject* dict, const char* key, const uint value);
-template int add_dict_scalar<ulong>(PyObject* dict, const char* key, const ulong value);
+template int add_dict_scalar<unsigned int>(PyObject* dict, const char* key, const unsigned int value);
+template int add_dict_scalar<unsigned long>(PyObject* dict, const char* key, const unsigned long value);
 
 template int add_dict_vector_n<float>(PyObject* dict, const char* key, const int len, const float* vector);
 template int add_dict_vector_n<double>(PyObject* dict, const char* key, const int len, const double* vector);
 template int add_dict_vector_n<int>(PyObject* dict, const char* key, const int len, const int* vector);
 template int add_dict_vector_n<long>(PyObject* dict, const char* key, const int len, const long* vector);
 template int add_dict_vector_n<long long>(PyObject* dict, const char* key, const int len, const long long* vector);
-template int add_dict_vector_n<uint>(PyObject* dict, const char* key, const int len, const uint* vector);
-template int add_dict_vector_n<ulong>(PyObject* dict, const char* key, const int len, const ulong* vector);
+template int add_dict_vector_n<unsigned int>(PyObject* dict, const char* key, const int len,
+                                             const unsigned int* vector);
+template int add_dict_vector_n<unsigned long>(PyObject* dict, const char* key, const int len,
+                                              const unsigned long* vector);
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  add_dict_field_list

@@ -24,7 +24,7 @@ jobs:
         platform:
           - os: ubuntu-latest
             mpi: 'openmpi'
-          - os: macos-latest
+          - os: macos-12
             mpi: 'mpich'
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
 
@@ -36,7 +36,7 @@ jobs:
         run: cmake --version
 
       - name: Setup Python ${{ matrix.python-version }} environment
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
@@ -52,12 +52,7 @@ jobs:
 
       - name: Install yt, mpi4py, and yt_libyt
         run: |
-          pip install mpi4py yt
-          cd ${{ github.workspace }}
-          cd ..
-          git clone --depth 1 -b libyt-dev --single-branch "https://github.com/cindytsai/yt_libyt.git" yt_libyt
-          cd yt_libyt
-          pip install .
+          pip install mpi4py yt yt_libyt
 
       - name: Update GitHub Environment Variables
         run: |

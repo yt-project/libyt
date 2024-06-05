@@ -21,7 +21,7 @@ The example initializes `libyt`, loads data to `libyt` in every simulation time 
 
 ### Using CMake
 
-1. Follow [Install](./how-to-install.md#install).
+1. Follow [Install](./how-to-install/how-to-install.md#libyt).
 2. Enter example folder. Assume we build the project under `libyt/build`:
    ```bash
    cd libyt                        # go to libyt project root folder
@@ -30,7 +30,7 @@ The example initializes `libyt`, loads data to `libyt` in every simulation time 
 
 ### Using Make
 
-1. Follow [Install](./how-to-install.md#install).
+1. Follow [Install](./how-to-install/how-to-install.md#libyt).
 2. Go to `libyt/example/amr-example` folder.
    ```bash
    cd libyt/example/amr-example
@@ -133,6 +133,8 @@ The example initializes `libyt`, loads data to `libyt` in every simulation time 
    
    After loading simulation data using libyt API, we call Python functions defined in `inline_script.py` using [`yt_run_Function`](./libyt-api/run-python-function.md#yt_run_function)/[`yt_run_FunctionArguments`](./libyt-api/run-python-function.md#yt_run_functionarguments) and use `yt` to analyze the data and plot figures. For how to use `yt` see:
      - [Using `yt`](./in-situ-python-analysis/using-yt.md)
+
+---
 
 ## What's Next
 
