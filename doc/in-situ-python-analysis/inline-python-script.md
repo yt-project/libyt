@@ -11,13 +11,13 @@ The namespace contains function objects in the script. We can use [`yt_run_Funct
 and [`yt_run_FunctionArguments`](../libyt-api/run-python-function.md#yt_run_functionarguments) to call them during simulation process.
 
 ## What Happens if the Python Function Crashed During the Analysis?
-If `libyt` is compiled in **normal mode** ([`-DINTERACTIVE_MODE=OFF`](../how-to-install.md#-dinteractive_mode-off)), it is not fault-tolerant to Python, 
+If `libyt` is compiled in **normal mode** ([`-DINTERACTIVE_MODE=OFF`](../how-to-install/details.md#-dinteractive_mode-off)), it is not fault-tolerant to Python, 
 so the whole simulation will shut down.
 
-Use **interactive mode** ([`-DINTERACTIVE_MODE=ON`](../how-to-install.md#-dinteractive_mode-off)) or **jupyter kernel mode** ([`-DJUPYTER_KERNEL=ON`](../how-to-install.md#-djupyter_kernel-off)) if we want our in situ Python analysis to be fault-tolerant.
+Use **interactive mode** ([`-DINTERACTIVE_MODE=ON`](../how-to-install/details.md#-dinteractive_mode-off)) or **jupyter kernel mode** ([`-DJUPYTER_KERNEL=ON`](../how-to-install/details.md#-djupyter_kernel-off)) if we want our in situ Python analysis to be fault-tolerant.
 
 ## Can I Update Python Functions Defined in the Script?
-We can only update Python functions in **interactive mode** ([`-DINTERACTIVE_MODE=ON`](../how-to-install.md#-dinteractive_mode-off)) or **jupyter kernel mode** ([`-DJUPYTER_KERNEL=ON`](../how-to-install.md#-djupyter_kernel-off)).
+We can only update Python functions in **interactive mode** ([`-DINTERACTIVE_MODE=ON`](../how-to-install/details.md#-dinteractive_mode-off)) or **jupyter kernel mode** ([`-DJUPYTER_KERNEL=ON`](../how-to-install/details.md#-djupyter_kernel-off)).
 
 Since every new added Python object is maintained inside inline Python script's namespace, you can update a Python function by re-define the function again, so that the old function is overwritten.
 

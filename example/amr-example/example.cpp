@@ -162,19 +162,20 @@ int main(int argc, char* argv[]) {
         // libyt: 2. provide YT-specific parameters
         // ==========================================
         yt_param_yt param_yt;
-        param_yt.frontend = "gamer";                 // simulation frontend that libyt borrows field info from
-        param_yt.fig_basename = "FigName";           // figure base name (default=Fig)
-        param_yt.length_unit = 3.0857e21;            // length unit (cm)
-        param_yt.mass_unit = 1.9885e33;              // mass unit (g)
-        param_yt.time_unit = 3.1557e13;              // time unit (sec)
-        param_yt.current_time = time;                // simulation time in code units
-        param_yt.dimensionality = 3;                 // dimensionality, support 3 only
+        param_yt.frontend = "gamer";        // simulation frontend that libyt borrows field info from
+        param_yt.fig_basename = "FigName";  // figure base name (default=Fig)
+        param_yt.length_unit = 3.0857e21;   // length unit (cm)
+        param_yt.mass_unit = 1.9885e33;     // mass unit (g)
+        param_yt.time_unit = 3.1557e13;     // time unit (sec)
+        param_yt.velocity_unit = param_yt.length_unit / param_yt.time_unit;  // velocity unit (cm/s)
+        param_yt.current_time = time;                                        // simulation time in code units
+        param_yt.dimensionality = 3;                                         // dimensionality, support 3 only
         param_yt.refine_by = REFINE_BY;              // refinement factor between a grid and its subgrid
         param_yt.index_offset = 1;                   // grid id starts at 1. (default is 0-indexed)
         param_yt.num_grids = num_grids;              // number of grids
         param_yt.num_grids_local = num_grids_local;  // number of local grids
         param_yt.num_fields = num_fields + 1;        // number of fields, addition one for derived field demo
-        param_yt.num_par_types = num_par_types;      // number of particle types (or species)
+        param_yt.num_par_types = num_par_types;      // number of particle types
 
         yt_par_type par_type_list[num_par_types];
         par_type_list[0].par_type = "io";
@@ -211,8 +212,8 @@ int main(int argc, char* argv[]) {
         // demo of some other parameters we can add
         const int user_int = 1;
         const long user_long = 2;
-        const uint user_uint = 3;
-        const ulong user_ulong = 4;
+        const unsigned int user_uint = 3;
+        const unsigned long user_ulong = 4;
         const float user_float = 5.0;
         const double user_double = 6.0;
         const char* user_string = "my_string";
