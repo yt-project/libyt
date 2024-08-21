@@ -23,8 +23,6 @@ static int set_particle_data(yt_grid* grid);
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int append_grid(yt_grid* grid) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
     // export grid info to libyt.hierarchy
     PyArrayObject* py_array_obj;
 
@@ -76,8 +74,6 @@ int append_grid(yt_grid* grid) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 static int set_field_data(yt_grid* grid) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
     yt_field* field_list = LibytProcessControl::Get().field_list;
 
     PyObject *py_grid_id, *py_field_labels, *py_field_data;
@@ -179,8 +175,6 @@ static int set_field_data(yt_grid* grid) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 static int set_particle_data(yt_grid* grid) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
     yt_particle* particle_list = LibytProcessControl::Get().particle_list;
 
     PyObject *py_grid_id, *py_ptype_labels, *py_attributes, *py_data;
