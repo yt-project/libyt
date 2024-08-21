@@ -25,8 +25,6 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int get_npy_dtype(yt_dtype data_type, int* npy_dtype) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
     switch (data_type) {
         case YT_FLOAT:
             *npy_dtype = NPY_FLOAT;
@@ -103,8 +101,6 @@ int get_npy_dtype(yt_dtype data_type, int* npy_dtype) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int get_yt_dtype_from_npy(int npy_dtype, yt_dtype* data_dtype) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
     switch (npy_dtype) {
         case NPY_FLOAT:
             *data_dtype = YT_FLOAT;
@@ -173,8 +169,6 @@ int get_yt_dtype_from_npy(int npy_dtype, yt_dtype* data_dtype) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int get_mpi_dtype(yt_dtype data_type, MPI_Datatype* mpi_dtype) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
     switch (data_type) {
         case YT_FLOAT:
             *mpi_dtype = MPI_FLOAT;
@@ -258,8 +252,6 @@ int get_mpi_dtype(yt_dtype data_type, MPI_Datatype* mpi_dtype) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int get_dtype_size(yt_dtype data_type, int* dtype_size) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
     switch (data_type) {
         case YT_FLOAT:
             *dtype_size = sizeof(float);
@@ -343,8 +335,6 @@ int get_dtype_size(yt_dtype data_type, int* dtype_size) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int get_dtype_typeid(yt_dtype data_type, const std::type_info** dtype_id) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
     switch (data_type) {
         case YT_FLOAT:
             *dtype_id = &typeid(float);
@@ -430,8 +420,6 @@ int get_dtype_typeid(yt_dtype data_type, const std::type_info** dtype_id) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int get_dtype_allocation(yt_dtype data_type, unsigned long length, void** data_ptr) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
     switch (data_type) {
         case YT_FLOAT:
             *data_ptr = malloc(length * sizeof(float));
@@ -532,8 +520,6 @@ int get_dtype_allocation(yt_dtype data_type, unsigned long length, void** data_p
 //-------------------------------------------------------------------------------------------------------
 int big_MPI_Get_dtype(void* recv_buff, long data_len, yt_dtype* data_dtype, MPI_Datatype* mpi_dtype, int get_rank,
                       MPI_Aint base_address, MPI_Win* window) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
     switch (*data_dtype) {
         case YT_FLOAT:
             return big_MPI_Get<float>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
