@@ -28,7 +28,7 @@ private:
     int get_func_status(const std::string& funcname);
 
 public:
-    MagicCommand() : m_Command(""), m_Undefine(true), m_OutputData(){};
+    MagicCommand() : m_Command(""), m_Undefine(true), m_OutputData() {};
     OutputData& run(const std::string& command = std::string(""));
 };
 
