@@ -325,7 +325,7 @@ nl::json LibytKernel::kernel_info_request_impl() {
     // helper
     libyt_kernel_info["help_links"] = nl::json::array();
     libyt_kernel_info["help_links"][0] =
-        nl::json::object({{"text", "libyt Kernel Documents"}, {"url", "https://yt-project.github.io/libyt/"}});
+        nl::json::object({{"text", "libyt Kernel Documents"}, {"url", "https://libyt.readthedocs.io/en/latest/"}});
 
     // status
     libyt_kernel_info["status"] = "ok";
