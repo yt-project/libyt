@@ -32,8 +32,8 @@ void LibytKernel::configure_impl() {
 
     PyObject* py_module_jedi = PyImport_ImportModule("jedi");
     if (py_module_jedi == NULL) {
-        log_info("Unable to import jedi, jedi auto-completion library is disabled\n");
-        log_info("See https://jedi.readthedocs.io/ \n");
+        log_info(
+            "Unable to import jedi, jedi auto-completion library is disabled (See https://jedi.readthedocs.io/)\n");
         m_py_jedi_interpreter = NULL;
     } else {
         m_py_jedi_interpreter = PyObject_GetAttrString(py_module_jedi, "Interpreter");
@@ -187,8 +187,8 @@ nl::json LibytKernel::complete_request_impl(const std::string& code, int cursor_
 
     // Check if jedi has successfully import
     if (m_py_jedi_interpreter == NULL) {
-        log_info("Unable to import jedi, jedi auto-completion library is disabled\n");
-        log_info("See https://jedi.readthedocs.io/ \n");
+        log_info(
+            "Unable to import jedi, jedi auto-completion library is disabled (See https://jedi.readthedocs.io/)\n");
         return xeus::create_complete_reply({}, cursor_pos, cursor_pos);
     }
 
