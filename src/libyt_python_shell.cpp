@@ -469,8 +469,12 @@ CodeValidity LibytPythonShell::check_code_validity(const std::string& code, bool
 
     CodeValidity code_validity;
 
-    PyRun_SimpleString("import sys, io\n");
-    PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
+    // clear error buffer before redirecting stderr
+    PyErr_Clear();
+    PyRun_SimpleString("import sys, io");
+    PyRun_SimpleString("sys.OUTPUT_STDERR=''");
+    PyRun_SimpleString("stderr_buf=io.StringIO()");
+    PyRun_SimpleString("sys.stderr=stderr_buf");
 
     PyObject* py_test_compile;
     if (prompt_env) {
