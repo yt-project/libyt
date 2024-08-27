@@ -68,7 +68,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
                                            bool store_history, nl::json user_expressions, bool allow_stdin) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    std::string cell_name = std::string("In [") + std::to_string(execution_counter) + std::string("]");
+    std::string cell_name = std::string("<In [") + std::to_string(execution_counter) + std::string("]>");
 
     // Find if '%' is the first non-space character, if so, redirect jobs to define command
     std::size_t found = code.find_first_not_of("\t\n\v\f\r ");
