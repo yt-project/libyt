@@ -469,6 +469,8 @@ CodeValidity LibytPythonShell::check_code_validity(const std::string& code, bool
 
     CodeValidity code_validity;
 
+    // clear error buffer before redirecting stderr
+    PyErr_Clear();
     PyRun_SimpleString("import sys, io\n");
     PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
 
@@ -561,6 +563,7 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std:
 #endif
 
     // Clear the template buffer and redirect stdout, stderr
+    PyErr_Clear();
     PyRun_SimpleString("import sys, io\n");
     PyRun_SimpleString("sys.OUTPUT_STDOUT=''\nstdout_buf=io.StringIO()\nsys.stdout=stdout_buf\n");
     PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");

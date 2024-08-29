@@ -32,8 +32,8 @@ void LibytKernel::configure_impl() {
 
     PyObject* py_module_jedi = PyImport_ImportModule("jedi");
     if (py_module_jedi == NULL) {
-        log_info("Unable to import jedi, jedi auto-completion library is disabled\n");
-        log_info("See https://jedi.readthedocs.io/ \n");
+        log_info(
+            "Unable to import jedi, jedi auto-completion library is disabled (See https://jedi.readthedocs.io/)\n");
         m_py_jedi_interpreter = NULL;
     } else {
         m_py_jedi_interpreter = PyObject_GetAttrString(py_module_jedi, "Interpreter");
@@ -68,7 +68,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
                                            bool store_history, nl::json user_expressions, bool allow_stdin) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    std::string cell_name = std::string("In [") + std::to_string(execution_counter) + std::string("]");
+    std::string cell_name = std::string("<In [") + std::to_string(execution_counter) + std::string("]>");
 
     // Find if '%' is the first non-space character, if so, redirect jobs to define command
     std::size_t found = code.find_first_not_of("\t\n\v\f\r ");
@@ -187,8 +187,8 @@ nl::json LibytKernel::complete_request_impl(const std::string& code, int cursor_
 
     // Check if jedi has successfully import
     if (m_py_jedi_interpreter == NULL) {
-        log_info("Unable to import jedi, jedi auto-completion library is disabled\n");
-        log_info("See https://jedi.readthedocs.io/ \n");
+        log_info(
+            "Unable to import jedi, jedi auto-completion library is disabled (See https://jedi.readthedocs.io/)\n");
         return xeus::create_complete_reply({}, cursor_pos, cursor_pos);
     }
 
@@ -325,7 +325,7 @@ nl::json LibytKernel::kernel_info_request_impl() {
     // helper
     libyt_kernel_info["help_links"] = nl::json::array();
     libyt_kernel_info["help_links"][0] =
-        nl::json::object({{"text", "libyt Kernel Documents"}, {"url", "https://yt-project.github.io/libyt/"}});
+        nl::json::object({{"text", "libyt Kernel Documents"}, {"url", "https://libyt.readthedocs.io/en/latest/"}});
 
     // status
     libyt_kernel_info["status"] = "ok";
