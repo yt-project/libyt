@@ -43,15 +43,18 @@ int main(int argc, char* argv[]) {
     // Execute Python functions and activate Python entry points
     // ==========================================================
     if (yt_run_Function("print_hello_world") != YT_SUCCESS) {
+        fprintf(stderr, "ERROR: yt_run_Function failed!\n");
         exit(EXIT_FAILURE);
     }
 
     if (yt_run_FunctionArguments("print_args", 3, "\'1\'", "2", "3.0") != YT_SUCCESS) {
+        fprintf(stderr, "ERROR: yt_run_FunctionArguments failed!\n");
         exit(EXIT_FAILURE);
     }
 
     // Activate Python prompt
     if (yt_run_InteractiveMode("LIBYT_STOP") != YT_SUCCESS) {
+        fprintf(stderr, "ERROR: yt_run_InteractiveMode failed!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -64,6 +67,12 @@ int main(int argc, char* argv[]) {
     // Activate libyt Jupyter kernel and enable access through Jupyter Notebook / JupyterLab
     if (yt_run_JupyterKernel("LIBYT_JUPYTER", false) != YT_SUCCESS) {
         fprintf(stderr, "ERROR: yt_run_JupyterKernel failed!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Free and reset the state
+    if (yt_free() != YT_SUCCESS) {
+        fprintf(stderr, "ERROR: yt_free() failed!\n");
         exit(EXIT_FAILURE);
     }
 
