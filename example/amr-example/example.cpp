@@ -208,6 +208,10 @@ int main(int argc, char* argv[]) {
         yt_set_UserParameterInt("mhd", 1, &mhd);
         const int srhd = 0;
         yt_set_UserParameterInt("srhd", 1, &srhd);
+        const int opt_unit = 0;
+        yt_set_UserParameterInt("opt_unit", 1, &opt_unit);
+        const float mu = 0.6;
+        yt_set_UserParameterFloat("mu", 1, &mu);
 
         // demo of some other parameters we can add
         const int user_int = 1;

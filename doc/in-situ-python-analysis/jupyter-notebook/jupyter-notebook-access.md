@@ -39,7 +39,7 @@ We need another process to start Jupyter Notebook/JupyterLab and connect to liby
 4. Launch Jupyter Notebook/JupyterLab
    ```bash
    jupyter notebook # launch Jupyter Notebook
-   jupyter-lab      # launch JupyterLab
+   jupyter lab      # launch JupyterLab
    ```
 5. Click `Libyt` to connect to libyt kernel once the simulation is running and libyt kernel is activated.
 
