@@ -47,7 +47,7 @@ Please go through [Login Node](#login-node) before going through [Local Laptop](
 2. Launch Jupyter Notebook / JupyterLab in no-browser mode with port `XXXX` and allowing access from other IP address (`--ip="0.0.0.0"`):
    ```bash
    jupyter notebook --no-browser --port=XXXX --ip="0.0.0.0"
-   jupyter-lab --no-browser --port=XXXX --ip="0.0.0.0"
+   jupyter lab --no-browser --port=XXXX --ip="0.0.0.0"
    ```
    Change `XXXX` to some unused port on login node, this is just a placeholder.
 3. You should see something like:
