@@ -7,7 +7,7 @@
 
 class TimerControl {
 public:
-    TimerControl(){};
+    TimerControl() {};
     void CreateFile(const char* filename, int rank);
     void WriteProfile(const char* func_name, long long start, long long end, uint32_t thread_id);
 
