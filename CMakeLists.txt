@@ -8,11 +8,13 @@ option(SERIAL_MODE       "Compile library for serial process"                   
 option(INTERACTIVE_MODE  "Use interactive mode"                                                               OFF)
 option(JUPYTER_KERNEL    "Use Jupyter notebook interface"                                                     OFF)
 option(SUPPORT_TIMER     "Support time profiling"                                                             OFF)
+option(USE_PYBIND11      "Use pybind11"                                                                       OFF) # TODO: remove it later
 
 ## set paths ##
 # It is recommended that we always provide PYTHON_PATH and MPI_PATH.
 # libyt will also try to find the package if the paths weren't provided.
 set(PYTHON_PATH    "" CACHE PATH "Path to Python installation prefix (Always)")
+set(PYBIND11_PATH  "" CACHE PATH "Path to pybind11Config.cmake (Always)")
 set(MPI_PATH       "" CACHE PATH "Path to MPI installation prefix (-DSERIAL_MODE=OFF)")
 set(READLINE_PATH  "" CACHE PATH "Path to Readline installation prefix (-DINTERACTIVE_MODE=ON)")
 
@@ -35,7 +37,11 @@ option(BUILD_SHARED_LIBS "Building using shared libraries"                      
 
 ## find dependencies ##
 set(Python_ROOT_DIR ${PYTHON_PATH})
+set(pybind11_DIR ${PYBIND11_PATH})
 find_package(Python 3.7 COMPONENTS Development NumPy REQUIRED)
+if (USE_PYBIND11)
+    find_package(pybind11 REQUIRED)
+endif ()
 
 if (NOT SERIAL_MODE)
     set(MPI_HOME ${MPI_PATH})

@@ -25,6 +25,7 @@ set_option(SERIAL_MODE)
 set_option(INTERACTIVE_MODE)
 set_option(JUPYTER_KERNEL)
 set_option(SUPPORT_TIMER)
+set_option(USE_PYBIND11)
 
 # find package
 if (JUPYTER_KERNEL)
@@ -50,6 +51,9 @@ target_link_libraries(yt PRIVATE
         $<$<BOOL:${INTERACTIVE_MODE}>:${Readline_LIBFLAGS}>
         $<$<BOOL:${JUPYTER_KERNEL}>:xeus-zmq>
 )
+if (USE_PYBIND11)
+    target_link_libraries(yt PUBLIC pybind11::embed)
+endif()
 
 # set properties
 set(LIBYT_PUBLIC_HEADER
