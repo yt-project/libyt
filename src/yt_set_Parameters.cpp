@@ -2,6 +2,10 @@
 #include "libyt.h"
 #include "yt_combo.h"
 
+#ifdef USE_PYBIND11
+#include "pybind11/embed.h"
+#endif
+
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_set_Parameters
 // Description :  Set YT-specific parameters
@@ -69,6 +73,42 @@ int yt_set_Parameters(yt_param_yt* param_yt) {
         g_param_yt.fig_basename = fig_basename;
     }
 
+#ifdef USE_PYBIND11
+    pybind11::module_ libyt = pybind11::module_::import("libyt");
+    pybind11::dict py_param_yt = libyt.attr("param_yt");
+
+    py_param_yt["frontend"] = g_param_yt.frontend;
+    py_param_yt["fig_basename"] = g_param_yt.fig_basename;
+    py_param_yt["current_time"] = g_param_yt.current_time;
+    py_param_yt["current_redshift"] = g_param_yt.current_redshift;
+    py_param_yt["omega_lambda"] = g_param_yt.omega_lambda;
+    py_param_yt["omega_matter"] = g_param_yt.omega_matter;
+    py_param_yt["hubble_constant"] = g_param_yt.hubble_constant;
+    py_param_yt["length_unit"] = g_param_yt.length_unit;
+    py_param_yt["mass_unit"] = g_param_yt.mass_unit;
+    py_param_yt["time_unit"] = g_param_yt.time_unit;
+    py_param_yt["velocity_unit"] = g_param_yt.velocity_unit;
+    py_param_yt["cosmological_simulation"] = g_param_yt.cosmological_simulation;
+    py_param_yt["dimensionality"] = g_param_yt.dimensionality;
+    py_param_yt["refine_by"] = g_param_yt.refine_by;
+    py_param_yt["index_offset"] = g_param_yt.index_offset;
+    py_param_yt["num_grids"] = g_param_yt.num_grids;
+
+    if (g_param_yt.magnetic_unit == DBL_UNDEFINED) {
+        py_param_yt["magnetic_unit"] = 1.0;
+    } else {
+        py_param_yt["magnetic_unit"] = g_param_yt.magnetic_unit;
+    }
+
+    py_param_yt["domain_dimensions"] = pybind11::make_tuple(
+        g_param_yt.domain_dimensions[0], g_param_yt.domain_dimensions[1], g_param_yt.domain_dimensions[2]);
+    py_param_yt["domain_left_edge"] = pybind11::make_tuple(
+        g_param_yt.domain_left_edge[0], g_param_yt.domain_left_edge[1], g_param_yt.domain_left_edge[2]);
+    py_param_yt["domain_right_edge"] = pybind11::make_tuple(
+        g_param_yt.domain_right_edge[0], g_param_yt.domain_right_edge[1], g_param_yt.domain_right_edge[2]);
+    py_param_yt["periodicity"] =
+        pybind11::make_tuple(g_param_yt.periodicity[0], g_param_yt.periodicity[1], g_param_yt.periodicity[2]);
+#else
     // export data to libyt.param_yt
     // strings
     add_dict_string(g_py_param_yt, "frontend", g_param_yt.frontend);
@@ -102,6 +142,7 @@ int yt_set_Parameters(yt_param_yt* param_yt) {
     add_dict_vector_n(g_py_param_yt, "domain_right_edge", 3, g_param_yt.domain_right_edge);
     add_dict_vector_n(g_py_param_yt, "periodicity", 3, g_param_yt.periodicity);
     add_dict_vector_n(g_py_param_yt, "domain_dimensions", 3, g_param_yt.domain_dimensions);
+#endif  // #ifdef USE_PYBIND11
 
     log_debug("Inserting YT parameters to libyt.param_yt ... done\n");
 
