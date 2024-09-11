@@ -113,12 +113,6 @@ int yt_commit() {
     }
 #endif
 
-    // fill libyt.hierarchy with NumPy arrays allocated but uninitialized
-    if (allocate_hierarchy() == YT_SUCCESS)
-        log_debug("Allocating libyt.hierarchy ... done\n");
-    else
-        YT_ABORT("Allocating libyt.hierarchy ... failed!\n");
-
     yt_grid* grids_local = LibytProcessControl::Get().grids_local;
 
 #ifndef SERIAL_MODE
@@ -184,6 +178,12 @@ int yt_commit() {
         big_MPI_Bcast<long>(RootRank, g_param_yt.num_grids, (void*)particle_count_list_full[s], &yt_long_mpi_type);
     }
 #endif
+
+    // fill libyt.hierarchy with NumPy arrays or memoryviews
+    if (allocate_hierarchy() == YT_SUCCESS)
+        log_debug("Allocating libyt.hierarchy ... done\n");
+    else
+        YT_ABORT("Allocating libyt.hierarchy ... failed!\n");
 
 #ifndef SERIAL_MODE
     // append grid to YT
