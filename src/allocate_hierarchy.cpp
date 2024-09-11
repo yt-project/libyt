@@ -1,8 +1,13 @@
+#include "LibytProcessControl.h"
 #include "yt_combo.h"
+
+#ifdef USE_PYBIND11
+#include "pybind11/embed.h"
+#endif
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  allocate_hierarchy
-// Description :  Fill the libyt.hierarchy dictionary with NumPy arrays allocated but uninitialized
+// Description :  Fill the libyt.hierarchy dictionary with NumPy arrays or memoryviews
 //
 // Note        :  1. Called by yt_commit(), since it needs param_yt.num_grids.
 //                2. These NumPy array will be set when calling yt_commit().
@@ -14,6 +19,7 @@
 int allocate_hierarchy() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
+#ifndef USE_PYBIND11
     // remove all key-value pairs if one wants to overwrite the existing dictionary
     // ==> it should happen only if one calls yt_set_Parameters() more than once
     if (PyDict_Size(g_py_hierarchy) > 0) {
@@ -51,6 +57,48 @@ int allocate_hierarchy() {
         ADD_DICT(g_param_yt.num_par_types, "par_count_list", NPY_LONG)
     }
 #undef ADD_DICT
+#else
+    LibytProcessControl::Get().grid_left_edge = new double[g_param_yt.num_grids * 3];
+    LibytProcessControl::Get().grid_right_edge = new double[g_param_yt.num_grids * 3];
+    LibytProcessControl::Get().grid_dimensions = new int[g_param_yt.num_grids * 3];
+    LibytProcessControl::Get().grid_parent_id = new long[g_param_yt.num_grids];
+    LibytProcessControl::Get().grid_levels = new int[g_param_yt.num_grids];
+    LibytProcessControl::Get().proc_num = new int[g_param_yt.num_grids];
+
+    pybind11::module_ libyt = pybind11::module_::import("libyt");
+    pybind11::dict py_hierarchy = libyt.attr("hierarchy");
+
+    py_hierarchy["grid_left_edge"] =
+        pybind11::memoryview::from_buffer(LibytProcessControl::Get().grid_left_edge,     // buffer pointer
+                                          std::vector<long>({g_param_yt.num_grids, 3}),  // shape (rows, cols)
+                                          {sizeof(double) * 3, sizeof(double)}           // strides in bytes
+        );
+    py_hierarchy["grid_right_edge"] =
+        pybind11::memoryview::from_buffer(LibytProcessControl::Get().grid_right_edge,    // buffer pointer
+                                          std::vector<long>({g_param_yt.num_grids, 3}),  // shape (rows, cols)
+                                          {sizeof(double) * 3, sizeof(double)}           // strides in bytes
+        );
+    py_hierarchy["grid_dimensions"] =
+        pybind11::memoryview::from_buffer(LibytProcessControl::Get().grid_dimensions,    // buffer pointer
+                                          std::vector<long>({g_param_yt.num_grids, 3}),  // shape (rows, cols)
+                                          {sizeof(int) * 3, sizeof(int)}                 // strides in bytes
+        );
+    py_hierarchy["grid_parent_id"] =
+        pybind11::memoryview::from_buffer(LibytProcessControl::Get().grid_parent_id,     // buffer pointer
+                                          std::vector<long>({g_param_yt.num_grids, 1}),  // shape (rows)
+                                          {sizeof(long), sizeof(long)}                   // strides in bytes
+        );
+    py_hierarchy["grid_levels"] =
+        pybind11::memoryview::from_buffer(LibytProcessControl::Get().grid_levels,        // buffer pointer
+                                          std::vector<long>({g_param_yt.num_grids, 1}),  // shape (rows)
+                                          {sizeof(int), sizeof(int)}                     // strides in bytes
+        );
+    py_hierarchy["proc_num"] =
+        pybind11::memoryview::from_buffer(LibytProcessControl::Get().proc_num,           // buffer pointer
+                                          std::vector<long>({g_param_yt.num_grids, 1}),  // shape (rows)
+                                          {sizeof(int), sizeof(int)}                     // strides in bytes
+        );
+#endif  // #ifndef USE_PYBIND11
 
     return YT_SUCCESS;
 
