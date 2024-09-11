@@ -146,12 +146,6 @@ int yt_set_Parameters(yt_param_yt* param_yt) {
 
     log_debug("Inserting YT parameters to libyt.param_yt ... done\n");
 
-    // fill libyt.hierarchy with NumPy arrays allocated but uninitialized
-    if (allocate_hierarchy() == YT_SUCCESS)
-        log_debug("Allocating libyt.hierarchy ... done\n");
-    else
-        YT_ABORT("Allocating libyt.hierarchy ... failed!\n");
-
     // if num_fields > 0, which means we want to load fields
     if (g_param_yt.num_fields > 0) {
         LibytProcessControl::Get().field_list = new yt_field[g_param_yt.num_fields];
