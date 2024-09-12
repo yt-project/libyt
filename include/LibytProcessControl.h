@@ -42,6 +42,7 @@ public:
     long* grid_parent_id;
     int* grid_levels;
     int* proc_num;
+    long* par_count_list;
 #endif
 
     // Singleton Methods

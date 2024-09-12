@@ -51,6 +51,7 @@ LibytProcessControl LibytProcessControl::s_Instance;
 //               grid_parent_id      :
 //               grid_levels         :
 //               proc_num            :
+//               par_count_list      :
 //-------------------------------------------------------------------------------------------------------
 LibytProcessControl::LibytProcessControl() {
     // Check points for libyt process
@@ -74,6 +75,7 @@ LibytProcessControl::LibytProcessControl() {
     grid_parent_id = nullptr;
     grid_levels = nullptr;
     proc_num = nullptr;
+    par_count_list = nullptr;
 #endif
 }
 

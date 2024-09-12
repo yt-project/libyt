@@ -64,6 +64,11 @@ int allocate_hierarchy() {
     LibytProcessControl::Get().grid_parent_id = new long[g_param_yt.num_grids];
     LibytProcessControl::Get().grid_levels = new int[g_param_yt.num_grids];
     LibytProcessControl::Get().proc_num = new int[g_param_yt.num_grids];
+    if (g_param_yt.num_par_types > 0) {
+        LibytProcessControl::Get().par_count_list = new long[g_param_yt.num_grids * g_param_yt.num_par_types];
+    } else {
+        LibytProcessControl::Get().par_count_list = nullptr;
+    }
 
     pybind11::module_ libyt = pybind11::module_::import("libyt");
     pybind11::dict py_hierarchy = libyt.attr("hierarchy");
@@ -98,6 +103,14 @@ int allocate_hierarchy() {
                                           std::vector<long>({g_param_yt.num_grids, 1}),  // shape (rows)
                                           {sizeof(int), sizeof(int)}                     // strides in bytes
         );
+    if (g_param_yt.num_par_types > 0) {
+        py_hierarchy["par_count_list"] = pybind11::memoryview::from_buffer(
+            LibytProcessControl::Get().par_count_list,                            // buffer pointer
+            std::vector<long>({g_param_yt.num_grids, g_param_yt.num_par_types}),  // shape (rows, cols)
+            {sizeof(long) * g_param_yt.num_par_types, sizeof(long)}               // strides in bytes
+        );
+    }
+
 #endif  // #ifndef USE_PYBIND11
 
     return YT_SUCCESS;
