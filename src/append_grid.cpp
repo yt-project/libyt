@@ -24,6 +24,7 @@ static int set_particle_data(yt_grid* grid);
 //-------------------------------------------------------------------------------------------------------
 int append_grid(yt_grid* grid) {
     // export grid info to libyt.hierarchy
+#ifndef USE_PYBIND11
     PyArrayObject* py_array_obj;
 
 // convenient macro
@@ -47,9 +48,22 @@ int append_grid(yt_grid* grid) {
     if (g_param_yt.num_par_types > 0) {
         FILL_ARRAY("par_count_list", grid->par_count_list, g_param_yt.num_par_types, npy_long)
     }
+#undef FILL_ARRAY
+#else
+    long index = grid->id - g_param_yt.index_offset;
+    for (int d = 0; d < 3; d++) {
+        LibytProcessControl::Get().grid_left_edge[index * 3 + d] = grid->left_edge[d];
+        LibytProcessControl::Get().grid_right_edge[index * 3 + d] = grid->right_edge[d];
+        LibytProcessControl::Get().grid_dimensions[index * 3 + d] = grid->grid_dimensions[d];
+    }
+    LibytProcessControl::Get().grid_parent_id[index] = grid->parent_id;
+    LibytProcessControl::Get().grid_levels[index] = grid->level;
+    LibytProcessControl::Get().proc_num[index] = grid->proc_num;
+#endif  // #ifndef USE_PYBIND11
 
     log_debug("Inserting grid [%ld] info to libyt.hierarchy ... done\n", grid->id);
 
+    // export grid data and particle data to libyt.grid_data and libyt.particle_data
     if (grid->field_data != nullptr && set_field_data(grid) != YT_SUCCESS) {
         YT_ABORT("Failed to append grid [%ld] field data.\n", grid->id);
     }
@@ -58,8 +72,6 @@ int append_grid(yt_grid* grid) {
     }
 
     return YT_SUCCESS;
-
-#undef FILL_ARRAY
 }
 
 //-------------------------------------------------------------------------------------------------------
