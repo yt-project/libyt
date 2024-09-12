@@ -156,12 +156,12 @@ int yt_commit() {
             if (g_param_yt.num_grids > 0) delete[] hierarchy_full;
             if (g_param_yt.num_grids_local > 0) delete[] hierarchy_local;
             if (g_param_yt.num_par_types > 0) {
-                delete[] particle_count_list_full;
-                delete[] particle_count_list_local;
                 for (int s = 0; s < g_param_yt.num_par_types; s++) {
                     if (g_param_yt.num_grids > 0) delete[] particle_count_list_full[s];
                     if (g_param_yt.num_grids_local > 0) delete[] particle_count_list_local[s];
                 }
+                delete[] particle_count_list_full;
+                delete[] particle_count_list_local;
             }
 #endif
             YT_ABORT("Validating the parent-children relationship ... failed!\n")
@@ -229,12 +229,12 @@ int yt_commit() {
             if (g_param_yt.num_grids > 0) delete[] hierarchy_full;
             if (g_param_yt.num_grids_local > 0) delete[] hierarchy_local;
             if (g_param_yt.num_par_types > 0) {
-                delete[] particle_count_list_full;
-                delete[] particle_count_list_local;
                 for (int s = 0; s < g_param_yt.num_par_types; s++) {
                     if (g_param_yt.num_grids > 0) delete[] particle_count_list_full[s];
                     if (g_param_yt.num_grids_local > 0) delete[] particle_count_list_local[s];
                 }
+                delete[] particle_count_list_full;
+                delete[] particle_count_list_local;
             }
             delete[] grid_combine.par_count_list;
             YT_ABORT("Failed to append grid [ %ld ]!\n", grid_combine.id);
