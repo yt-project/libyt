@@ -69,6 +69,18 @@ int yt_free() {
         delete[] grids_local;
     }
 
+#ifdef USE_PYBIND11
+    delete[] LibytProcessControl::Get().grid_left_edge;
+    delete[] LibytProcessControl::Get().grid_right_edge;
+    delete[] LibytProcessControl::Get().grid_dimensions;
+    delete[] LibytProcessControl::Get().grid_parent_id;
+    delete[] LibytProcessControl::Get().grid_levels;
+    delete[] LibytProcessControl::Get().proc_num;
+    if (g_param_yt.num_par_types > 0) {
+        delete[] LibytProcessControl::Get().par_count_list;
+    }
+#endif
+
     // Reset data in libyt module
     PyDict_Clear(g_py_grid_data);
     PyDict_Clear(g_py_particle_data);
