@@ -59,6 +59,11 @@ int append_grid(yt_grid* grid) {
     LibytProcessControl::Get().grid_parent_id[index] = grid->parent_id;
     LibytProcessControl::Get().grid_levels[index] = grid->level;
     LibytProcessControl::Get().proc_num[index] = grid->proc_num;
+    if (g_param_yt.num_par_types > 0) {
+        for (int p = 0; p < g_param_yt.num_par_types; p++) {
+            LibytProcessControl::Get().par_count_list[index * g_param_yt.num_par_types + p] = grid->par_count_list[p];
+        }
+    }
 #endif  // #ifndef USE_PYBIND11
 
     log_debug("Inserting grid [%ld] info to libyt.hierarchy ... done\n", grid->id);
