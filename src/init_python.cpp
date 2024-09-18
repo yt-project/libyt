@@ -10,6 +10,10 @@ static int import_numpy();
 // Description :  Initialize Python interpreter
 //
 // Note        :  1. Called by yt_initialize()
+//                2. Initialize Python interpreter and Numpy.
+//                3. Set up identifier flag:
+//                   sys._parallel = True --> run yt in inline mode
+//                   sys._interactive_mode = True --> mpi does not abort when there is error (ABORT)
 //
 // Parameter   :  argc : Argument count
 //                argv : Argument vector
@@ -19,26 +23,13 @@ static int import_numpy();
 int init_python(int argc, char* argv[]) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    // initialize Python interpreter
-    Py_SetProgramName(Py_DecodeLocale("yt_inline", NULL));
-
     // 0: skips the initialization registration of signal handlers
     Py_InitializeEx(0);
-
     if (Py_IsInitialized())
         log_debug("Initializing Python interpreter ... done\n");
     else {
         YT_ABORT("Initializing Python interpreter ... failed!\n");
     }
-
-    //   Probably can encode some settings, but since we aren't use them, comment them out.
-    //   This needs extra care and consider different Python versions.
-    //   wchar_t **wchar_t_argv = (wchar_t **) malloc(argc * sizeof(wchar_t *));
-    //   for (int i = 0; i < argc; i = i+1) {
-    //	    printf("argv[%d] = %s\n", i, argv[i]);
-    //      wchar_t_argv[i] = Py_DecodeLocale(argv[0], NULL);;
-    //   }
-    //   PySys_SetArgv( argc, wchar_t_argv );
 
     // import numpy
     if (import_numpy())
@@ -50,33 +41,45 @@ int init_python(int argc, char* argv[]) {
         YT_ABORT("Importing NumPy ... failed!\n");
     }
 
-// add the current location to the module search path
-#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    if (PyRun_SimpleString("import sys, traceback, inspect; sys.path.insert(0,'.')") == 0)
-#else
-    if (PyRun_SimpleString("import sys; sys.path.insert(0,'.')") == 0)
-#endif
+    // add the current location to the module search path
+    if (PyRun_SimpleString("import sys; sys.path.insert(0, '.')") == 0) {
         log_debug("Adding search path for modules ... done\n");
-    else
+    } else {
         YT_ABORT("Adding search path for modules ... failed!\n");
+    }
 
-        // set up yt config
-        // (sys._parallel = True --> run yt in parallel )
-        // (sys._interactive_mode = True --> mpi does not abort when there is error)
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    if (PyRun_SimpleString("sys._parallel = True; sys._interactive_mode = True") == 0)
-#else
-    if (PyRun_SimpleString("sys._parallel = True") == 0)
+    // import traceback and inspect for interactive mode
+    if (PyRun_SimpleString("import traceback, inspect") == 0) {
+        log_debug("Import traceback and inspect ... done\n");
+    } else {
+        YT_ABORT("Import traceback and inspect ... failed!\n");
+    }
 #endif
-        log_debug("Setting up config ... done\n");
-    else
-        YT_ABORT("Setting up config ... failed\n");
+
+    // set up identifier flag
+    // (sys._parallel = True --> run yt in parallel in inline mode)
+    if (PyRun_SimpleString("sys._parallel = True") == 0) {
+        log_debug("Set sys._parallel=True ... done\n");
+    } else {
+        YT_ABORT("Set sys._parallel=True ... failed\n");
+    }
+
+    // (sys._interactive_mode = True --> mpi does not abort when there is error)
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
+    if (PyRun_SimpleString("sys._interactive_mode = True") == 0) {
+        log_debug("Set sys._interactive_mode=True ... done\n");
+    } else {
+        YT_ABORT("Set sys._interactive_mode=True ... failed\n");
+    }
+#endif
 
     // import the garbage collector interface
-    if (PyRun_SimpleString("import gc") == 0)
-        log_debug("Importing Python garbage collector ... done\n");
-    else
-        YT_ABORT("Importing Python garbage collector ... failed!\n");
+    if (PyRun_SimpleString("import gc") == 0) {
+        log_debug("Import Python garbage collector ... done\n");
+    } else {
+        YT_ABORT("Import Python garbage collector ... failed!\n");
+    }
 
     return YT_SUCCESS;
 
