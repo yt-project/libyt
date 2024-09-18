@@ -8,7 +8,7 @@ add_library(yt SHARED
         yt_get_ParticlesPtr.cpp yt_getGridInfo.cpp yt_initialize.cpp yt_rma_field.cpp yt_run_ReloadScript.cpp
         yt_rma_particle.cpp yt_run.cpp yt_run_InteractiveMode.cpp yt_set_Parameters.cpp
         yt_set_UserParameter.cpp LibytProcessControl.cpp Timer.cpp TimerControl.cpp
-        libyt_python_shell.cpp libyt_kernel.cpp libyt_worker.cpp magic_command.cpp
+        libyt_python_shell.cpp libyt_kernel.cpp libyt_worker.cpp magic_command.cpp libyt_python_module.cpp
 )
 
 # set and print options and apply compile definition -D
