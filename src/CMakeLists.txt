@@ -46,14 +46,11 @@ target_include_directories(yt PRIVATE
 target_link_libraries(yt PRIVATE
         $<$<NOT:$<BOOL:${SERIAL_MODE}>>:MPI::MPI_CXX>
         ${Python_LIBRARIES}
-        Python::NumPy
+        $<$<BOOL:${USE_PYBIND11}>:pybind11::embed> Python::NumPy
         $<$<BOOL:${INTERACTIVE_MODE}>:${Readline_LIBRARY}>
         $<$<BOOL:${INTERACTIVE_MODE}>:${Readline_LIBFLAGS}>
         $<$<BOOL:${JUPYTER_KERNEL}>:xeus-zmq>
 )
-if (USE_PYBIND11)
-    target_link_libraries(yt PUBLIC pybind11::embed)
-endif()
 
 # set properties
 set(LIBYT_PUBLIC_HEADER
