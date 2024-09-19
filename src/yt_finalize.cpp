@@ -2,6 +2,10 @@
 #include "libyt.h"
 #include "yt_combo.h"
 
+#ifdef USE_PYBIND11
+#include "pybind11/embed.h"
+#endif
+
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_finalize
 // Description :  Undo all initializations done by yt_initialize()
@@ -25,8 +29,12 @@ int yt_finalize() {
     // check if all the libyt allocated resource are freed
     if (!LibytProcessControl::Get().free_gridsPtr) YT_ABORT("Please invoke yt_free() before calling yt_finalize().\n");
 
+#ifndef USE_PYBIND11
     // free all libyt resources
     Py_Finalize();
+#else
+    pybind11::finalize_interpreter();
+#endif
 
     LibytProcessControl::Get().libyt_initialized = false;
 
