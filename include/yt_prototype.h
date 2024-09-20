@@ -6,6 +6,10 @@
 
 #include "yt_type.h"
 
+#ifdef USE_PYBIND11
+#include "pybind11/numpy.h"
+#endif
+
 #ifndef SERIAL_MODE
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_hierarchy
@@ -54,6 +58,10 @@ int get_dtype_size(yt_dtype data_type, int* dtype_size);
 int get_dtype_typeid(yt_dtype data_type, const std::type_info** dtype_id);
 int get_dtype_allocation(yt_dtype data_type, unsigned long length, void** data_ptr);
 int get_yt_dtype_from_npy(int npy_dtype, yt_dtype* data_dtype);
+#ifdef USE_PYBIND11
+pybind11::array get_pybind11_allocate_array_dtype(yt_dtype data_type, const std::vector<int>& shape,
+                                                  const std::vector<int>& stride);
+#endif
 int append_grid(yt_grid* grid);
 
 int check_field_list();
