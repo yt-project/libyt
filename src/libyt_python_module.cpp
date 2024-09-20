@@ -56,9 +56,7 @@ pybind11::array derived_func(long gid, const char* field_name) {
         if (strcmp(field_list[v].field_name, field_name) == 0) {
             field_id = v;
             field_dtype = field_list[v].field_dtype;
-            if (field_list[v].derived_func != nullptr) {
-                derived_func = field_list[v].derived_func;
-            }
+            derived_func = field_list[v].derived_func;
             break;
         }
     }
@@ -69,15 +67,15 @@ pybind11::array derived_func(long gid, const char* field_name) {
     }
     if (derived_func == nullptr) {
         // TODO: should test this part.
-        std::string error_msg = "In field_list, field_name [ " + std::string(field_list[field_id].field_name) +
-                                " ], derived_func did not set properly.\n";
+        std::string error_msg =
+            "In field_list, field_name [ " + std::string(field_name) + " ], derived_func did not set properly.\n";
         // TODO: should use pybind11::set_error, but it's not working.
         PyErr_SetString(PyExc_NotImplementedError, error_msg.c_str());
         throw pybind11::error_already_set();
     }
     if (field_dtype == YT_DTYPE_UNKNOWN) {
-        std::string error_msg = "In field_list, field_name [ " + std::string(field_list[field_id].field_name) +
-                                " ], field_dtype did not set properly.\n";
+        std::string error_msg =
+            "In field_list, field_name [ " + std::string(field_name) + " ], field_dtype did not set properly.\n";
         throw pybind11::value_error(error_msg.c_str());
     }
 
@@ -103,7 +101,7 @@ pybind11::array derived_func(long gid, const char* field_name) {
     }
 
     // Generate derived field data
-    std::vector<int> shape, stride;
+    std::vector<long> shape, stride;
     int dtype_size;
     get_dtype_size(field_dtype, &dtype_size);
     if (field_list[field_id].contiguous_in_x) {

@@ -575,8 +575,8 @@ int big_MPI_Get_dtype(void* recv_buff, long data_len, yt_dtype* data_dtype, MPI_
 #endif
 
 #ifdef USE_PYBIND11
-pybind11::array get_pybind11_allocate_array_dtype(yt_dtype data_type, const std::vector<int>& shape,
-                                                  const std::vector<int>& stride) {
+pybind11::array get_pybind11_allocate_array_dtype(yt_dtype data_type, const std::vector<long>& shape,
+                                                  const std::vector<long>& stride) {
     switch (data_type) {
         case YT_FLOAT:
             return pybind11::array_t<float>(shape, stride);
