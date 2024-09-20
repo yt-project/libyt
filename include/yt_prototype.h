@@ -59,8 +59,8 @@ int get_dtype_typeid(yt_dtype data_type, const std::type_info** dtype_id);
 int get_dtype_allocation(yt_dtype data_type, unsigned long length, void** data_ptr);
 int get_yt_dtype_from_npy(int npy_dtype, yt_dtype* data_dtype);
 #ifdef USE_PYBIND11
-pybind11::array get_pybind11_allocate_array_dtype(yt_dtype data_type, const std::vector<int>& shape,
-                                                  const std::vector<int>& stride);
+pybind11::array get_pybind11_allocate_array_dtype(yt_dtype data_type, const std::vector<long>& shape,
+                                                  const std::vector<long>& stride);
 #endif
 int append_grid(yt_grid* grid);
 
