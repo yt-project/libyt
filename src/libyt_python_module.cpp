@@ -14,16 +14,16 @@
 //                2. These function will be called in python, so the parameters indicate python
 //                   input type.
 //
-// Lists       :       Python Method         C Extension Function
+// Lists       :       Python Method           C Extension Function
 //              .............................................................
-//                     derived_func          libyt_field_derived_func
+//                     derived_func(int, str)  derived_func(long, const char*)
 //                     get_particle          libyt_particle_get_particle
 //                     get_field_remote      libyt_field_get_field_remote
 //                     get_particle_remote   libyt_particle_get_particle_remote
 //-------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  libyt_field_derived_func
+// Function    :  derived_func
 // Description :  Use the derived function inside yt_field struct to generate the field, then pass back
 //                to Python.
 //
@@ -31,8 +31,7 @@
 //                2. This function only needs to deal with the local grids.
 //                3. The returned numpy array data type is according to field's field_dtype defined at
 //                   yt_field.
-//                4. grid_dimensions[3] is in [x][y][z] coordinate.
-//                5. Now, input from Python only contains gid and field name. In the future, when we
+//                4. Now, input from Python only contains gid and field name. In the future, when we
 //                   support hybrid OpenMP/MPI, it can accept list and a string.
 //
 // Python Parameter     :          int : GID of the grid
