@@ -42,9 +42,7 @@
 // Return      :  numpy.3darray
 //-------------------------------------------------------------------------------------------------------
 pybind11::array derived_func(long gid, const char* field_name) {
-#ifdef SUPPORT_TIMER
-    SET_TIMER(__PRETTY_FUNCTION__, &timer_control);
-#endif
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     // Get field info and catch error
     void (*derived_func)(const int, const long*, const char*, yt_array*) = nullptr;
@@ -146,9 +144,7 @@ pybind11::array derived_func(long gid, const char* field_name) {
 // Return      :  numpy.1darray
 //-------------------------------------------------------------------------------------------------------
 pybind11::array get_particle(long gid, const char* ptype, const char* attr_name) {
-#ifdef SUPPORT_TIMER
-    SET_TIMER(__PRETTY_FUNCTION__, &timer_control);
-#endif
+    SET_TIMER(__PRETTY_FUNCTION__);
 
     // Get particle info and catch error
     void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*) = nullptr;
@@ -238,9 +234,8 @@ pybind11::array get_particle(long gid, const char* ptype, const char* attr_name)
 }
 
 PYBIND11_EMBEDDED_MODULE(libyt, m) {
-#ifdef SUPPORT_TIMER
-    SET_TIMER(__PRETTY_FUNCTION__, &timer_control);
-#endif
+    SET_TIMER(__PRETTY_FUNCTION__);
+
     m.attr("param_yt") = pybind11::dict();
     m.attr("param_user") = pybind11::dict();
     m.attr("hierarchy") = pybind11::dict();
