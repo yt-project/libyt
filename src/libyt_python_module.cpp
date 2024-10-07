@@ -6,6 +6,9 @@
 #include "pybind11/numpy.h"
 #include "pybind11/pytypes.h"
 #include "yt_combo.h"
+#include "yt_rma_field.h"
+#include "yt_rma_particle.h"
+#include "yt_type_array.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Description :  List of libyt C extension python methods built using Pybind11 API
@@ -64,10 +67,8 @@ pybind11::array derived_func(long gid, const char* field_name) {
         throw pybind11::value_error(error_msg.c_str());
     }
     if (derived_func == nullptr) {
-        // TODO: should test this part.
         std::string error_msg =
-            "In field_list, field_name [ " + std::string(field_name) + " ], derived_func did not set properly.\n";
-        // TODO: should use pybind11::set_error, but it's not working.
+            "In field_list, field_name [ " + std::string(field_name) + " ], derived_func did not set properly.";
         PyErr_SetString(PyExc_NotImplementedError, error_msg.c_str());
         throw pybind11::error_already_set();
     }
@@ -205,6 +206,7 @@ pybind11::array get_particle(long gid, const char* ptype, const char* attr_name)
     if (array_length == 0) {
         // TODO: can I do this??? Even if I cannot, just return a dummy array, yt_libyt filters particle 0 too.
         // but should find a better solution too.
+        // It returns a numpy.ndarray with () object
         return pybind11::none();
     }
     if (array_length < 0) {
