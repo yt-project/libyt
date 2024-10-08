@@ -1,5 +1,7 @@
 #ifdef USE_PYBIND11
 
+#include <iostream>
+
 #include "LibytProcessControl.h"
 #include "libyt.h"
 #include "pybind11/embed.h"
@@ -179,7 +181,7 @@ pybind11::array get_particle(long gid, const char* ptype, const char* attr_name)
     }
     if (get_par_attr == nullptr) {
         std::string error_msg =
-            "In particle_list, par_type [ " + std::string(ptype) + " ], get_par_attr did not set properly.\n";
+            "In particle_list, par_type [ " + std::string(ptype) + " ], get_par_attr did not set properly.";
         PyErr_SetString(PyExc_NotImplementedError, error_msg.c_str());
         throw pybind11::error_already_set();
     }
@@ -235,6 +237,102 @@ pybind11::array get_particle(long gid, const char* ptype, const char* attr_name)
     return static_cast<pybind11::array>(output);
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Function    :  get_field_remote
+// Description :  Get non-local field data from remote ranks.
+//
+// Note        :  1. Support only grid dimension = 3 for now.
+//                2. We return in dictionary objects.
+//                3. We assume that the fname_list passed in has the same fname order in each rank.
+//                4. This function will get all the desired fields and grids.
+//                5. Directly return None if it is in SERIAL_MODE.
+//                   TODO: Not sure if this would affect the performance. And do I even need this?
+//
+// Parameter   :  list obj : fname_list    : list of field name to get.
+//                     int : len_fname_list: length of fname_list.
+//                list obj : to_prepare   : list of grid ids you need to prepare.
+//                list obj : nonlocal_id  : nonlocal grid id that you want to get.
+//                list obj : nonlocal_rank: where to get those nonlocal grid.
+//
+// Return      :  dict obj data[grid id][field_name][:,:,:] or None if it is serial mode
+//-------------------------------------------------------------------------------------------------------
+pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_fname_list,
+                                  const pybind11::list& py_to_prepare, int len_to_prepare,
+                                  const pybind11::list& py_nonlocal_id, const pybind11::list& py_nonlocal_rank,
+                                  int len_nonlocal) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+#ifndef SERIAL_MODE
+    pybind11::dict py_output = pybind11::dict();
+    pybind11::dict py_field;
+    for (auto py_fname : py_fname_list) {
+        // initialize RMA
+        yt_rma_field RMAOperation = yt_rma_field(py_fname.cast<std::string>().c_str(), len_to_prepare, len_nonlocal);
+
+        // prepare data
+        for (auto py_gid : py_to_prepare) {
+            long gid = py_gid.cast<long>();
+            if (RMAOperation.prepare_data(gid) != YT_SUCCESS) {
+                std::string error_msg = "Something went wrong in yt_rma_field when preparing data.";
+                PyErr_SetString(PyExc_RuntimeError, error_msg.c_str());
+                throw pybind11::error_already_set();
+            }
+        }
+
+        // Gather all prepared data and using rank 0 as root
+        RMAOperation.gather_all_prepare_data(0);
+
+        // Fetch remote data
+        for (int i = 0; i < len_nonlocal; i++) {
+            long get_gid = py_nonlocal_id[i].cast<long>();
+            int get_rank = py_nonlocal_rank[i].cast<int>();
+            if (RMAOperation.fetch_remote_data(get_gid, get_rank) != YT_SUCCESS) {
+                std::string error_msg = "Something went wrong in yt_rma_field when fetching remote data.";
+                PyErr_SetString(PyExc_RuntimeError, error_msg.c_str());
+                throw pybind11::error_already_set();
+            }
+        }
+
+        // Clean up prepared data
+        RMAOperation.clean_up();
+
+        // Get fetched data, wrap them, and bind to Python dictionary
+        PyObject* py_data;
+        for (int i = 0; i < len_nonlocal; i++) {
+            // (1) Get fetched data
+            long gid;
+            const char* fname = nullptr;
+            yt_dtype data_dtype;
+            int data_dim[3];
+            void* data_ptr = nullptr;
+            if (RMAOperation.get_fetched_data(&gid, &fname, &data_dtype, &data_dim, &data_ptr) != YT_SUCCESS) {
+                break;
+            }
+
+            // (2) Wrap data_ptr to numpy array and make it owned by Python
+            npy_intp npy_dim[3] = {data_dim[0], data_dim[1], data_dim[2]};
+            int npy_dtype;
+            get_npy_dtype(data_dtype, &npy_dtype);
+            py_data = PyArray_SimpleNewFromData(3, npy_dim, npy_dtype, data_ptr);
+            PyArray_ENABLEFLAGS((PyArrayObject*)py_data, NPY_ARRAY_OWNDATA);
+
+            // (3) Build Python dictionary data[grid id][field_name][:,:,:]
+            if (!py_output.contains(pybind11::int_(gid))) {
+                py_field = pybind11::dict();
+                py_output[pybind11::int_(gid)] = py_field;
+            } else {
+                py_field = py_output[pybind11::int_(gid)];
+            }
+            py_field[fname] = py_data;  // TODO: Needs test
+            Py_DECREF(py_data);
+        }
+    }
+    return py_output;
+#else   // #ifndef SERIAL_MODE
+    return pybind11::none();
+#endif  // #ifndef SERIAL_MODE
+}
+
 PYBIND11_EMBEDDED_MODULE(libyt, m) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -261,6 +359,7 @@ PYBIND11_EMBEDDED_MODULE(libyt, m) {
 
     m.def("derived_func", &derived_func, pybind11::return_value_policy::take_ownership);
     m.def("get_particle", &get_particle, pybind11::return_value_policy::take_ownership);
+    m.def("get_field_remote", &get_field_remote, pybind11::return_value_policy::take_ownership);
 }
 
 #endif  // #ifdef USE_PYBIND11
