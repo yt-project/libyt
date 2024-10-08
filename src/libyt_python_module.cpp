@@ -348,9 +348,25 @@ PYBIND11_EMBEDDED_MODULE(libyt, m) {
 
     m.attr("libyt_info")["version"] =
         pybind11::make_tuple(LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION, LIBYT_MICRO_VERSION);
+
+#ifdef SERIAL_MODE
     m.attr("libyt_info")["SERIAL_MODE"] = pybind11::bool_(true);
+#else
+    m.attr("libyt_info")["SERIAL_MODE"] = pybind11::bool_(false);
+#endif
+
+#ifdef INTERACTIVE_MODE
+    m.attr("libyt_info")["INTERACTIVE_MODE"] = pybind11::bool_(true);
+#else
     m.attr("libyt_info")["INTERACTIVE_MODE"] = pybind11::bool_(false);
+#endif
+
+#ifdef JUPYTER_KERNEL
+    m.attr("libyt_info")["JUPYTER_KERNEL"] = pybind11::bool_(true);
+#else
     m.attr("libyt_info")["JUPYTER_KERNEL"] = pybind11::bool_(false);
+#endif
+
 #ifdef SUPPORT_TIMER
     m.attr("libyt_info")["SUPPORT_TIMER"] = pybind11::bool_(true);
 #else
