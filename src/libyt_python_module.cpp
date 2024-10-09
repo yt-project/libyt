@@ -364,15 +364,15 @@ pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind1
 
 #ifndef SERIAL_MODE
     pybind11::dict py_output = pybind11::dict();
-    for (auto py_ptype : py_ptf_keys) {
-        for (auto py_attr : py_ptf[py_ptype]) {
+    for (auto& py_ptype : py_ptf_keys) {
+        for (auto& py_attr : py_ptf[py_ptype]) {
             // initialize RMA
             yt_rma_particle RMAOperation =
                 yt_rma_particle(py_ptype.cast<std::string>().c_str(), py_attr.cast<std::string>().c_str(),
                                 len_to_prepare, len_nonlocal);
 
             // prepare data
-            for (auto py_gid : py_to_prepare) {
+            for (auto& py_gid : py_to_prepare) {
                 long gid = py_gid.cast<long>();
                 if (RMAOperation.prepare_data(gid) != YT_SUCCESS) {
                     std::string error_msg = "Something went wrong in yt_rma_particle when preparing data.";
@@ -399,7 +399,7 @@ pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind1
             RMAOperation.clean_up();
 
             // Get fetched data, wrap them, and bind to Python dictionary
-            PyObject* py_data;
+            PyObject* py_data = nullptr;
             for (int i = 0; i < len_nonlocal; i++) {
                 // (1) Get fetched data
                 long gid;
@@ -414,21 +414,27 @@ pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind1
                 }
 
                 // (2) Wrap data_ptr to numpy array and make it owned by Python
-                npy_intp npy_dim[1] = {data_length};
-                int npy_dtype;
-                get_npy_dtype(data_dtype, &npy_dtype);
-                py_data = PyArray_SimpleNewFromData(1, npy_dim, npy_dtype, data_ptr);
-                PyArray_ENABLEFLAGS((PyArrayObject*)py_data, NPY_ARRAY_OWNDATA);
+                if (data_length > 0) {
+                    npy_intp npy_dim[1] = {data_length};
+                    int npy_dtype;
+                    get_npy_dtype(data_dtype, &npy_dtype);
+                    py_data = PyArray_SimpleNewFromData(1, npy_dim, npy_dtype, data_ptr);
+                    PyArray_ENABLEFLAGS((PyArrayObject*)py_data, NPY_ARRAY_OWNDATA);
+                }
 
-                // (3) Build Python dictionary data[grid id][ptype][attr]
+                // (3) Build Python dictionary data[grid id][ptype][attr] = py_data or None
                 if (!py_output.contains(pybind11::int_(gid))) {
                     py_output[pybind11::int_(gid)] = pybind11::dict();
                 }
                 if (!py_output[pybind11::int_(gid)].contains(ptype)) {
                     py_output[pybind11::int_(gid)][ptype] = pybind11::dict();
                 }
-                py_output[pybind11::int_(gid)][ptype][attr_name] = py_data;
-                Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.
+                if (data_length > 0) {
+                    py_output[pybind11::int_(gid)][ptype][attr_name] = py_data;
+                    Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.}
+                } else {
+                    py_output[pybind11::int_(gid)][ptype][attr_name] = pybind11::none();
+                }
             }
         }
     }
