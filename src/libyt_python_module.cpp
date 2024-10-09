@@ -323,8 +323,8 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
             } else {
                 py_field = py_output[pybind11::int_(gid)];
             }
-            py_field[fname] = py_data;  // TODO: Needs test
-            Py_DECREF(py_data);
+            py_field[fname] = py_data;
+            Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.
         }
     }
     return py_output;
