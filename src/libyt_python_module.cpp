@@ -333,6 +333,111 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
 #endif  // #ifndef SERIAL_MODE
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Function    :  get_particle_remote
+// Description :  Get non-local particle data from remote ranks.
+//
+// Note        :  1. We return in dictionary objects.
+//                2. We assume that the list of to-get attribute has the same ptype and attr order in each
+//                   rank.
+//                3. If there are no particles in one grid, then we write Py_None to it.
+//                4. Directly return None if it is in SERIAL_MODE
+//                   TODO: Not sure if this would affect the performance. And do I even need this?
+//                         Wondering if pybind11 do dynamic casting back to a dictionary.
+//                5. TODO: Some of the passed in arguments are not used, will fix it and define new API in the future.
+//                         get_field_remote and get_particle_remote should be merged.
+//
+// Parameter   :  dict obj : ptf          : {<ptype>: [<attr1>, <attr2>, ...]} particle type and attributes
+//                                          to read.
+//                iterable obj : ptf_keys : list of ptype keys.
+//                list obj : to_prepare   : list of grid ids you need to prepare.
+//                list obj : nonlocal_id  : nonlocal grid id that you want to get.
+//                list obj : nonlocal_rank: where to get those nonlocal grid.
+//
+// Return      :  dict obj data[grid id][ptype][attribute]
+//-------------------------------------------------------------------------------------------------------
+pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind11::iterable& py_ptf_keys,
+                                     const pybind11::list& py_to_prepare, int len_to_prepare,
+                                     const pybind11::list& py_nonlocal_id, const pybind11::list& py_nonlocal_rank,
+                                     int len_nonlocal) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+#ifndef SERIAL_MODE
+    pybind11::dict py_output = pybind11::dict();
+    for (auto py_ptype : py_ptf_keys) {
+        for (auto py_attr : py_ptf[py_ptype]) {
+            // initialize RMA
+            yt_rma_particle RMAOperation =
+                yt_rma_particle(py_ptype.cast<std::string>().c_str(), py_attr.cast<std::string>().c_str(),
+                                len_to_prepare, len_nonlocal);
+
+            // prepare data
+            for (auto py_gid : py_to_prepare) {
+                long gid = py_gid.cast<long>();
+                if (RMAOperation.prepare_data(gid) != YT_SUCCESS) {
+                    std::string error_msg = "Something went wrong in yt_rma_particle when preparing data.";
+                    PyErr_SetString(PyExc_RuntimeError, error_msg.c_str());
+                    throw pybind11::error_already_set();
+                }
+            }
+
+            // Gather all prepared data and using rank 0 as root
+            RMAOperation.gather_all_prepare_data(0);
+
+            // Fetch remote data
+            for (int i = 0; i < len_nonlocal; i++) {
+                long get_gid = py_nonlocal_id[i].cast<long>();
+                int get_rank = py_nonlocal_rank[i].cast<int>();
+                if (RMAOperation.fetch_remote_data(get_gid, get_rank) != YT_SUCCESS) {
+                    std::string error_msg = "Something went wrong in yt_rma_particle when fetching remote data.";
+                    PyErr_SetString(PyExc_RuntimeError, error_msg.c_str());
+                    throw pybind11::error_already_set();
+                }
+            }
+
+            // Clean up
+            RMAOperation.clean_up();
+
+            // Get fetched data, wrap them, and bind to Python dictionary
+            PyObject* py_data;
+            for (int i = 0; i < len_nonlocal; i++) {
+                // (1) Get fetched data
+                long gid;
+                const char* ptype = nullptr;
+                const char* attr_name = nullptr;
+                yt_dtype data_dtype;
+                long data_length;
+                void* data_ptr = nullptr;
+                if (RMAOperation.get_fetched_data(&gid, &ptype, &attr_name, &data_dtype, &data_length, &data_ptr) !=
+                    YT_SUCCESS) {
+                    break;
+                }
+
+                // (2) Wrap data_ptr to numpy array and make it owned by Python
+                npy_intp npy_dim[1] = {data_length};
+                int npy_dtype;
+                get_npy_dtype(data_dtype, &npy_dtype);
+                py_data = PyArray_SimpleNewFromData(1, npy_dim, npy_dtype, data_ptr);
+                PyArray_ENABLEFLAGS((PyArrayObject*)py_data, NPY_ARRAY_OWNDATA);
+
+                // (3) Build Python dictionary data[grid id][ptype][attr]
+                if (!py_output.contains(pybind11::int_(gid))) {
+                    py_output[pybind11::int_(gid)] = pybind11::dict();
+                }
+                if (!py_output[pybind11::int_(gid)].contains(ptype)) {
+                    py_output[pybind11::int_(gid)][ptype] = pybind11::dict();
+                }
+                py_output[pybind11::int_(gid)][ptype][attr_name] = py_data;
+                Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.
+            }
+        }
+    }
+    return py_output;
+#else   // #ifndef SERIAL_MODE
+    return pybind11::none();
+#endif  // #ifndef SERIAL_MODE
+}
+
 PYBIND11_EMBEDDED_MODULE(libyt, m) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -376,6 +481,7 @@ PYBIND11_EMBEDDED_MODULE(libyt, m) {
     m.def("derived_func", &derived_func, pybind11::return_value_policy::take_ownership);
     m.def("get_particle", &get_particle, pybind11::return_value_policy::take_ownership);
     m.def("get_field_remote", &get_field_remote, pybind11::return_value_policy::take_ownership);
+    m.def("get_particle_remote", &get_particle_remote, pybind11::return_value_policy::take_ownership);
 }
 
 #endif  // #ifdef USE_PYBIND11
