@@ -1,4 +1,7 @@
 ### libyt COMPILATION ###
+# configure version number
+configure_file(${PROJECT_SOURCE_DIR}/include/libyt.h.in ${PROJECT_SOURCE_DIR}/include/libyt.h @ONLY)
+
 # old tangled libyt stuff combined as a whole (will definitely split to smaller modules in future version)
 add_library(yt SHARED
         add_dict.cpp allocate_hierarchy.cpp append_grid.cpp check_data.cpp
