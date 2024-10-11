@@ -1,4 +1,14 @@
 ### libyt COMPILATION ###
+# find dependencies
+find_package(Python 3.7 COMPONENTS Development NumPy REQUIRED)
+if (USE_PYBIND11)
+    find_package(pybind11 REQUIRED)
+endif ()
+
+if (NOT SERIAL_MODE)
+    find_package(MPI REQUIRED)
+endif ()
+
 # configure version number
 configure_file(${PROJECT_SOURCE_DIR}/include/libyt.h.in ${PROJECT_SOURCE_DIR}/include/libyt.h @ONLY)
 
