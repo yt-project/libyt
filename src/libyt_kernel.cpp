@@ -6,7 +6,7 @@
 
 #include "libyt.h"
 #include "libyt_python_shell.h"
-#include "magic_command.h"
+#include "new_magic_command.h"
 #include "yt_combo.h"
 
 static std::vector<std::string> split(const std::string& code, const char* c);
@@ -78,16 +78,16 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
         int indicator = 2;
         MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
-        MagicCommand command;
-        OutputData command_output = command.run(code.substr(found, code.length() - found));
+        NewMagicCommand command(NewMagicCommand::EntryPoint::kLibytJupyterKernel);
+        MagicCommandOutput command_output = command.Run(code.substr(found, code.length() - found));
 
         // publish result and error
-        if (command_output.output.length() > 0) {
+        if (!command_output.output.empty()) {
             nlohmann::json pub_data;
             pub_data[command_output.mimetype.c_str()] = command_output.output.c_str();
             publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
         }
-        if (command_output.error.length() > 0) {
+        if (!command_output.error.empty()) {
             publish_execution_error("LibytMagicCommandError", "", split(command_output.error, "\n"));
         }
 

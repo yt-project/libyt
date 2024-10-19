@@ -6,10 +6,11 @@
 #include <sys/stat.h>
 
 #include <cctype>
+#include <iostream>
 #include <string>
 
 #include "LibytProcessControl.h"
-#include "define_command.h"
+#include "new_magic_command.h"
 #endif
 
 //-------------------------------------------------------------------------------------------------------
@@ -108,9 +109,11 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                     MPI_Bcast(&indicator, 1, MPI_INT, root, MPI_COMM_WORLD);
 #endif
                     // run libyt command
-                    define_command command;
-                    std::array<bool, 2> command_result = command.run(&(input_line[first_char]));
-                    done = command_result[0];
+                    NewMagicCommand command(NewMagicCommand::EntryPoint::kLibytInteractiveMode);
+                    MagicCommandOutput command_result = command.Run(&(input_line[first_char]));
+                    std::cout << command_result.output << std::endl;
+                    std::cout << command_result.error << std::endl;
+                    done = command_result.exit_entry_point;
 #ifndef SERIAL_MODE
                     MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -196,9 +199,9 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
 
             if (indicator == 0) {
                 // call libyt command, if indicator is 0
-                define_command command;
-                std::array<bool, 2> command_result = command.run();
-                done = command_result[0];
+                NewMagicCommand command(NewMagicCommand::EntryPoint::kLibytInteractiveMode);
+                MagicCommandOutput command_result = command.Run();
+                done = command_result.exit_entry_point;
             } else {
                 // Execute code, the code must be a vaild code and successfully compile now
                 std::array<AccumulatedOutputString, 2> temp_output = LibytPythonShell::execute_prompt();
