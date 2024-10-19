@@ -597,11 +597,195 @@ int NewMagicCommand::GetFunctionStatusMarkdown(const std::vector<std::string>& a
 
     command_undefined_ = false;
 
-    // TODO: START HERE
+    if (args.size() != 3) {
+        output_.status = "Error";
+        output_.error = std::string("Usage: %libyt status function_name\n"
+                                    "Description: Get function_name status and information.\n");
+        return YT_FAIL;
+    }
 
-    return 0;
+    // Get function index
+    int index = g_func_status_list.get_func_index(args[2].c_str());
+    if (index == -1) {
+        output_.status = "Error";
+        output_.error = std::string("Function '") + args[2] + std::string("' not found\n");
+        return YT_FAIL;
+    }
+
+    // Get function status and error msg and format it in markdown
+    output_.mimetype = "text/markdown";
+    output_.status = "Success";
+
+    int status = g_func_status_list[index].get_status();
+    if (g_myrank == root_) {
+        output_.output += std::string("#### `") + args[2] + std::string("`\n");
+
+        // Execute status
+        output_.output += std::string("- **Execute status in previous call:** ");
+        if (status == 1) {
+            output_.output += std::string("_Success_\n");
+        } else if (status == 0) {
+            output_.output += std::string("_Failed_\n");
+        } else if (status == -1) {
+            output_.output += std::string("_Idle_\n");
+        }
+
+        // Function call in next iteration
+        output_.output += std::string("- **Function call in next iteration:** ");
+        if (g_func_status_list[index].get_run() == 1) {
+            output_.output += std::string("`") + g_func_status_list[index].get_full_func_name() + std::string("`\n");
+        } else {
+            output_.output += std::string("(None)\n");
+        }
+
+        // Function definition
+        output_.output += std::string("- **Current function definition:**\n");
+        output_.output += std::string("  ```python\n");
+
+        std::string func_body = g_func_status_list[index].get_func_body();
+        std::size_t start_pos = 0, found;
+        while (true) {
+            found = func_body.find('\n', start_pos);
+            if (found != std::string::npos) {
+                output_.output +=
+                    std::string("  ") + func_body.substr(start_pos, found - start_pos) + std::string("\n");
+            } else {
+                output_.output += std::string("  ") + func_body.substr(start_pos) + std::string("\n");
+                break;
+            }
+            start_pos = found + 1;
+        }
+        output_.output += std::string("  ```\n");
+    }
+
+    // Call getting error message if it has (status == 0), this is a collective call
+    if (status == 0) {
+        std::vector<std::string> output_error = g_func_status_list[index].get_error_msg();
+        if (g_myrank == root_) {
+            output_.output += std::string("- **Error message from previous call:**\n");
+            for (size_t r = 0; r < output_error.size(); r++) {
+                if (output_error[r].empty()) continue;
+
+                output_.output +=
+                    std::string("<details><summary>MPI Process ") + std::to_string(r) + (" </summary><p>");
+
+                std::size_t start_pos = 0, found;
+                while (true) {
+                    found = output_error[r].find('\n', start_pos);
+                    if (found != std::string::npos) {
+                        output_.output += output_error[r].substr(start_pos, found - start_pos) + std::string("<br>");
+                    } else {
+                        output_.output += output_error[r].substr(start_pos);
+                        break;
+                    }
+                    start_pos = found + 1;
+                }
+
+                output_.output += std::string("</p></details>");
+            }
+        }
+    }
+
+    return YT_SUCCESS;
 }
-int NewMagicCommand::GetFunctionStatusText(const std::vector<std::string>& args) { return 0; }
+
+//-------------------------------------------------------------------------------------------------------
+// Class      :  MagicCommand
+// Method     :  GetFunctionStatusText
+//
+// Notes      :  1. Get function status and print error msg if it has.
+//               2. libyt.interactive_mode["func_err_msg"] only stores function's error msg when using
+//                  yt_run_Function/yt_run_FunctionArguments.
+//               3. Fetch libyt.interactive_mode["func_err_msg"], it is a collective call.
+//               4. Only store output on root.
+//
+// Arguments  :  const std::vector<std::string>& args : Full magic commands. (ex: %libyt status func)
+//
+// Return     :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int NewMagicCommand::GetFunctionStatusText(const std::vector<std::string>& args) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    command_undefined_ = false;
+
+    if (args.size() != 3) {
+        output_.status = "Error";
+        output_.error = std::string("Usage: %libyt status function_name\n"
+                                    "Description: Get function_name status and information.\n");
+        return YT_FAIL;
+    }
+
+    // Get function index
+    int index = g_func_status_list.get_func_index(args[2].c_str());
+    if (index == -1) {
+        output_.status = "Error";
+        output_.error = std::string("Function '") + args[2] + std::string("' not found\n");
+        return YT_FAIL;
+    }
+
+    // Get function status and error msg and format it in plain text
+    output_.status = "Success";
+
+    int status = g_func_status_list[index].get_status();
+    if (g_myrank == root_) {
+        // Get status
+        output_.output += g_func_status_list[index].get_func_name() + std::string(" ... ");
+        if (status == 1) {
+            output_.output += std::string("success\n");
+        } else if (status == 0) {
+            output_.output += std::string("failed\n");
+        } else if (status == -1) {
+            output_.output += std::string("idle\n");
+        }
+
+        // Get function definition
+        output_.output += std::string("\033[1;35m[Function Def]\033[0;37m\n");
+        std::string func_body = g_func_status_list[index].get_func_body();
+        std::size_t start_pos = 0, found;
+        while (true) {
+            found = func_body.find('\n', start_pos);
+            if (found != std::string::npos) {
+                output_.output +=
+                    std::string("  ") + func_body.substr(start_pos, found - start_pos) + std::string("\n");
+            } else {
+                output_.output += std::string("  ") + func_body.substr(start_pos) + std::string("\n");
+                break;
+            }
+            start_pos = found + 1;
+        }
+    }
+
+    // Get error msg if it failed when running in yt_run_Function/yt_run_FunctionArguments. (collective call)
+    if (status == 0) {
+        std::vector<std::string> output_error = g_func_status_list[index].get_error_msg();
+        if (g_myrank == root_) {
+            output_.output += std::string("\033[1;35m[Error Msg]\033[0;37m\n");
+            for (size_t r = 0; r < output_error.size(); r++) {
+#ifndef SERIAL_MODE
+                output_.output += std::string("\033[1;36m  [ MPI process ") + std::to_string(r) + (" ]\033[0;37m\n");
+#endif
+                if (output_error[r].empty()) {
+                    output_.output += std::string("  (none)\n");
+                    continue;
+                }
+
+                std::size_t start_pos = 0, found;
+                while (true) {
+                    found = output_error[r].find('\n', start_pos);
+                    if (found != std::string::npos) {
+                        output_.output += output_error[r].substr(start_pos, found - start_pos) + std::string("\n");
+                    } else {
+                        output_.output += output_error[r].substr(start_pos);
+                        break;
+                    }
+                    start_pos = found + 1;
+                }
+            }
+        }
+    }
+
+    return YT_SUCCESS;
+}
 
 // TODO: also implement coloring text functionality
 
