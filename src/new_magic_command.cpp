@@ -854,7 +854,11 @@ int NewMagicCommand::GetFunctionStatusText(const std::vector<std::string>& args)
         }
 
         // Get function definition
-        output_.output += std::string("\033[1;35m[Function Def]\033[0;37m\n");
+        if (entry_point_ == kLibytInteractiveMode) {
+            output_.output += std::string("\033[1;35m[Function Def]\033[0;37m\n");
+        } else {
+            output_.output += std::string("[Function Def]\n");
+        }
         std::string func_body = g_func_status_list[index].get_func_body();
         std::size_t start_pos = 0, found;
         while (true) {
@@ -874,10 +878,19 @@ int NewMagicCommand::GetFunctionStatusText(const std::vector<std::string>& args)
     if (status == 0) {
         std::vector<std::string> output_error = g_func_status_list[index].get_error_msg();
         if (g_myrank == root_) {
-            output_.output += std::string("\033[1;35m[Error Msg]\033[0;37m\n");
+            if (entry_point_ == kLibytInteractiveMode) {
+                output_.output += std::string("\033[1;35m[Error Msg]\033[0;37m\n");
+            } else {
+                output_.output += std::string("[Error Msg]\n");
+            }
             for (size_t r = 0; r < output_error.size(); r++) {
 #ifndef SERIAL_MODE
-                output_.output += std::string("\033[1;36m  [ MPI process ") + std::to_string(r) + (" ]\033[0;37m\n");
+                if (entry_point_ == kLibytInteractiveMode) {
+                    output_.output +=
+                        std::string("\033[1;36m  [ MPI process ") + std::to_string(r) + (" ]\033[0;37m\n");
+                } else {
+                    output_.output += std::string("  [ MPI process ") + std::to_string(r) + (" ]\n");
+                }
 #endif
                 if (output_error[r].empty()) {
                     output_.output += std::string("    (none)\n");
