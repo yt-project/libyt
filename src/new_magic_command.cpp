@@ -178,6 +178,7 @@ int NewMagicCommand::Exit() {
 // Method     :  GetStatusHtml
 //
 // Notes      :  1. Get all the function status in html format, without error msg.
+//               2. Getting function information (status) is a collective call .
 //
 // Arguments  :  None
 //
@@ -188,10 +189,51 @@ int NewMagicCommand::GetStatusHtml() {
 
     command_undefined_ = false;
 
-    // TODO: move html part to this method and use GetSummaryMethod.
     output_.status = "Success";
     output_.mimetype = "text/html";
-    output_.output = std::move(g_func_status_list.get_summary_html());
+
+    const char* kSuccessCell =
+        "<td><span style=\"color:#28B463;font-weight:bold;font-family:'arial'\">Success</span></td>";
+    const char* kFailedCell =
+        "<td><span style=\"color:#E74C3C;font-weight:bold;font-family:'arial'\">Failed</span></td>";
+    const char* kIdleCell = "<td><span style=\"color:#2874A6;font-weight:bold;font-family:'arial'\">Idle</span></td>";
+    const char* kUnknownCell =
+        "<td><span style=\"color:#A569BD;font-weight:bold;font-family:'arial'\">Unknown</span></td>";
+    const char* kWillRunCell = "<td><span style=\"color:#F1C40F;font-weight:bold;font-family:'arial'\">V</span></td>";
+    const char* kWillIdleCell = "<td><span style=\"color:#F1C40F;font-weight:bold;font-family:'arial'\">X</span></td>";
+
+    output_.output += "<table style=\"width: 100%\"><tr><th>Inline Function</th><th>Status</th><th>Run</th></tr>";
+
+    for (int i = 0; i < g_func_status_list.size(); i++) {
+        // Get function name
+        output_.output += "<tr><td style=\"text-alight: left;\"><span style=\"font-family:'Courier New'\">";
+        output_.output += g_func_status_list[i].get_func_name();
+        output_.output += "</span></td>";
+
+        // Get function status
+        int status = g_func_status_list[i].get_status();
+        if (status == 0) {
+            output_.output += kFailedCell;
+        } else if (status == 1) {
+            output_.output += kSuccessCell;
+        } else if (status == -1) {
+            output_.output += kIdleCell;
+        } else {
+            output_.output += kUnknownCell;
+        }
+
+        // Get function run status
+        int run = g_func_status_list[i].get_run();
+        if (run == 1) {
+            output_.output += kWillRunCell;
+        } else {
+            output_.output += kWillIdleCell;
+        }
+
+        output_.output += "</tr>";
+    }
+
+    output_.output += "</table>";
 
     return YT_SUCCESS;
 }
@@ -201,6 +243,8 @@ int NewMagicCommand::GetStatusHtml() {
 // Method     :  GetStatusText
 //
 // Notes      :  1. Get all the function status, without error msg.
+//               2. Getting function information (status) is a collective call.
+//               3. TODO: It should also be called in yt_run_InteractiveMode/yt_run_ReloadScript
 //
 // Arguments  :  None
 //
@@ -213,20 +257,84 @@ int NewMagicCommand::GetStatusText() {
 
     output_.status = "Success";
 
-    // TODO: (EXTRA CARE)
-    // TODO: single out to GetSummary in function_status_list
-    // TODO: single out a colored text static function
-    bool status = false;
+    const char* kSuccess = "success     ";
+    const char* kFailed = "failed      ";
+    const char* kIdle = "idle        ";
+    const char* kUnknown = "unknown     ";
+    const char* kV = "    V";
+    const char* kX = "    X";
+
     if (entry_point_ == kLibytInteractiveMode) {
-        status = g_func_status_list.print_summary();
-    } else if (entry_point_ == kLibytReloadScript) {
-        // TODO: this is for temporary use, will print the summary in yt_run_ReloadScript
-        status = g_func_status_list.print_summary_to_file("DEBUG-libyt_summary.txt");
-    } else {
-        return YT_FAIL;
+        kSuccess = "\033[1;32msuccess     ";
+        kFailed = "\033[1;31mfailed      ";
+        kIdle = "\033[1;34midle        ";
+        kUnknown = "\033[0;37munknown     ";
+        kV = "\033[1;33m    V";
+        kX = "\033[1;33m    X";
     }
 
-    return status;
+    const int kStringMaxSize = 1024;
+    char dest[kStringMaxSize];
+    int snprintf_return = -1;
+
+    if (entry_point_ == kLibytInteractiveMode) {
+        output_.output += "\033[1;37m";
+    }
+
+    snprintf(dest, kStringMaxSize,
+             "==========================================================================\n"
+             "  %-40s     %-12s   %s\n"
+             "--------------------------------------------------------------------------\n",
+             "Inline Function", "Status", "Run/Idle");
+    output_.output += dest;
+
+    for (int i = 0; i < g_func_status_list.size(); i++) {
+        // Get function name
+        snprintf_return = snprintf(dest, kStringMaxSize, "  * %-43s", g_func_status_list[i].get_func_name());
+        if (entry_point_ == kLibytInteractiveMode) {
+            output_.output += "\033[1;37m";
+        }
+        if (snprintf_return >= 0 && snprintf_return <= kStringMaxSize) {
+            output_.output += dest;
+        } else {
+            output_.status = "Error";
+            output_.error = "Function name too long.\n";
+            return YT_FAIL;
+        }
+
+        // Get function status and run
+        int run = g_func_status_list[i].get_run();
+        int status = g_func_status_list[i].get_status();
+        if (status == 0) {
+            output_.output += kFailed;
+        } else if (status == 1) {
+            output_.output += kSuccess;
+        } else if (status == -1) {
+            output_.output += kIdle;
+        } else {
+            output_.output += kUnknown;
+            output_.error += std::string("Unknown status code ") + std::to_string(status) + std::string("\n");
+        }
+
+        if (run == 1) {
+            output_.output += kV;
+        } else {
+            output_.output += kX;
+        }
+
+        output_.output += "\n";
+    }
+
+    if (entry_point_ == kLibytInteractiveMode) {
+        output_.output += "\033[1;37m";
+    }
+    output_.output += "==========================================================================\n";
+
+    // Make sure it goes back to default color white
+    printf("\033[0;37m");
+    fflush(stdout);
+
+    return YT_SUCCESS;
 }
 
 //-------------------------------------------------------------------------------------------------------
