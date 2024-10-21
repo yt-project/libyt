@@ -114,8 +114,8 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
         // responsible for getting reload instruction and broadcast to non-root rank
         if (g_myrank == g_myroot) {
             // block and detect <reload_file_name> or <reload_file_name>_EXIT every 2 sec
-            log_info("Create '%s' file to reload script, or create '%s' file to exit.\n", reload_file_name,
-                     reload_exit_filename.c_str());
+            log_info("Create '%s' file to reload script '%s', or create '%s' file to exit.\n", reload_file_name,
+                     script_name, reload_exit_filename.c_str());
             bool get_reload_state = false;
             while (!get_reload_state) {
                 if (detect_file(reload_file_name)) {
@@ -238,8 +238,13 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
                     MagicCommandOutput command_result = command.Run(line);
-                    reload_result_file << command_result.output << std::endl;
-                    reload_result_file << command_result.error << std::endl;
+                    reload_result_file << "====== Libyt Command: " << line << " ======\n";
+                    if (!command_result.output.empty()) {
+                        reload_result_file << command_result.output << std::endl;
+                    }
+                    if (!command_result.error.empty()) {
+                        reload_result_file << command_result.error << std::endl;
+                    }
                     reload_success = reload_success & (command_result.status == "Success");
                 }
                 reload_result_file.close();

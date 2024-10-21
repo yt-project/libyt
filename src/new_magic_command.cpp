@@ -156,6 +156,13 @@ int NewMagicCommand::Exit() {
             "\"%libyt exit\" is not supported in Jupyter, please use frontend UI 'shutdown' to exit libyt kernel.");
 
         return YT_FAIL;
+    } else if (entry_point_ == kLibytReloadScript) {
+        output_.exit_entry_point = false;
+        output_.status = "Error";
+        output_.error =
+            std::string("\"%libyt exit\" is not supported in reloading script, please create flagged file to exit.");
+
+        return YT_FAIL;
     } else {
         g_libyt_python_shell.clear_prompt_history();
 
@@ -274,7 +281,7 @@ int NewMagicCommand::GetHelpMsgText() {
     // TODO: make it colored???
     output_.status = "Success";
     output_.output =
-        std::string("Usage:  %%libyt COMMAND\n"
+        std::string("Usage:  %libyt COMMAND\n"
                     "Commands:\n"
                     "  help                             Print help messages.\n"
                     "  exit                             Exit entry point.\n"
@@ -765,7 +772,7 @@ int NewMagicCommand::GetFunctionStatusText(const std::vector<std::string>& args)
                 output_.output += std::string("\033[1;36m  [ MPI process ") + std::to_string(r) + (" ]\033[0;37m\n");
 #endif
                 if (output_error[r].empty()) {
-                    output_.output += std::string("  (none)\n");
+                    output_.output += std::string("    (none)\n");
                     continue;
                 }
 
@@ -773,6 +780,7 @@ int NewMagicCommand::GetFunctionStatusText(const std::vector<std::string>& args)
                 while (true) {
                     found = output_error[r].find('\n', start_pos);
                     if (found != std::string::npos) {
+                        output_.output += std::string("    ");
                         output_.output += output_error[r].substr(start_pos, found - start_pos) + std::string("\n");
                     } else {
                         output_.output += output_error[r].substr(start_pos);
