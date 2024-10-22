@@ -3,7 +3,7 @@
 
 #include <mpi.h>
 
-#include "new_magic_command.h"
+#include "magic_command.h"
 #include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ void LibytWorker::start() {
                 break;
             }
             case 2: {
-                NewMagicCommand command(NewMagicCommand::EntryPoint::kLibytJupyterKernel);
+                MagicCommand command(MagicCommand::EntryPoint::kLibytJupyterKernel);
                 MagicCommandOutput temp = command.Run();
                 break;
             }
