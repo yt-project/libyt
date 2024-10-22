@@ -244,7 +244,6 @@ int NewMagicCommand::GetStatusHtml() {
 //
 // Notes      :  1. Get all the function status, without error msg.
 //               2. Getting function information (status) is a collective call.
-//               3. TODO: It should also be called in yt_run_InteractiveMode/yt_run_ReloadScript
 //
 // Arguments  :  None
 //
@@ -326,13 +325,12 @@ int NewMagicCommand::GetStatusText() {
     }
 
     if (entry_point_ == kLibytInteractiveMode) {
-        output_.output += "\033[1;37m";
+        output_.output += "\033[1;37m"
+                          "==========================================================================\n"
+                          "\033[0;37m";
+    } else {
+        output_.output += "==========================================================================\n";
     }
-    output_.output += "==========================================================================\n";
-
-    // Make sure it goes back to default color white
-    printf("\033[0;37m");
-    fflush(stdout);
 
     return YT_SUCCESS;
 }
@@ -915,7 +913,5 @@ int NewMagicCommand::GetFunctionStatusText(const std::vector<std::string>& args)
 
     return YT_SUCCESS;
 }
-
-// TODO: also implement coloring text functionality
 
 #endif  // #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
