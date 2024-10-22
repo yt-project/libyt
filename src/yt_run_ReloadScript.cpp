@@ -13,7 +13,7 @@
 #include <thread>
 
 #include "LibytProcessControl.h"
-#include "new_magic_command.h"
+#include "magic_command.h"
 
 static bool detect_file(const char* flag_file);
 #endif
@@ -63,7 +63,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
     if (g_func_status_list.run_func() != YT_SUCCESS) {
         YT_ABORT("Something went wrong when running new added functions\n");
     }
-    NewMagicCommand command(NewMagicCommand::EntryPoint::kLibytReloadScript);
+    MagicCommand command(MagicCommand::EntryPoint::kLibytReloadScript);
     MagicCommandOutput command_result = command.Run("%libyt status");
     if (g_myroot == g_myrank) {
         std::cout << command_result.output << std::endl;
