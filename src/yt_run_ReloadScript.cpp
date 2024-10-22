@@ -60,10 +60,14 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
     fflush(stderr);
 
     // run new added function and output func_status summary
-    if (g_func_status_list.run_func() != YT_SUCCESS)
+    if (g_func_status_list.run_func() != YT_SUCCESS) {
         YT_ABORT("Something went wrong when running new added functions\n");
-    if (g_func_status_list.print_summary() != YT_SUCCESS)
-        YT_ABORT("Something went wrong when summarizing inline function status\n");
+    }
+    NewMagicCommand command(NewMagicCommand::EntryPoint::kLibytReloadScript);
+    MagicCommandOutput command_result = command.Run("%libyt status");
+    if (g_myroot == g_myrank) {
+        std::cout << command_result.output << std::endl;
+    }
 
     // check if we need to enter reload script phase
     bool remove_flag_file = false;
@@ -231,13 +235,12 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 // Loading libyt commands, continue loading even if one of the command failed,
                 // because they are independent.
                 reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
-                NewMagicCommand command(NewMagicCommand::EntryPoint::kLibytReloadScript);
                 while (std::getline(libyt_command_buffer, line, '\n')) {
 #ifndef SERIAL_MODE
                     int indicator = 0;
                     MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
-                    MagicCommandOutput command_result = command.Run(line);
+                    command_result = command.Run(line);
                     reload_result_file << "====== Libyt Command: " << line << " ======\n";
                     if (!command_result.output.empty()) {
                         reload_result_file << command_result.output << std::endl;
@@ -288,8 +291,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     break;
                 }
                 case 0: {
-                    NewMagicCommand command(NewMagicCommand::EntryPoint::kLibytReloadScript);
-                    MagicCommandOutput command_result = command.Run();
+                    command_result = command.Run();
                     break;
                 }
                 case 1: {
