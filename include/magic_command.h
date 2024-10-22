@@ -1,35 +1,45 @@
-#ifndef __MAGIC_COMMAND_H__
-#define __MAGIC_COMMAND_H__
+#ifndef LIBYT_PROJECT_INCLUDE_MAGIC_COMMAND_H_
+#define LIBYT_PROJECT_INCLUDE_MAGIC_COMMAND_H_
 
 #include <string>
 #include <vector>
 
-struct OutputData {
-    std::string status;
+struct MagicCommandOutput {
+    bool exit_entry_point;
+    std::string status;  // TODO: do I need it?
     std::string mimetype;
     std::string output;
     std::string error;
+
+    MagicCommandOutput() : exit_entry_point(false), status("Unknown"), mimetype("text/plain"){};
 };
 
 class MagicCommand {
-private:
-    std::string m_Command;
-    bool m_Undefine;
-    OutputData m_OutputData;
-    static int s_Root;
+public:
+    enum EntryPoint { kLibytInteractiveMode = 0, kLibytReloadScript = 1, kLibytJupyterKernel = 2 };
 
-    int exit();
-    int get_status();
-    int get_help_msg();
-    int load_script(const std::string& filename);
-    int export_script(const std::string& filename);
-    int set_func_run(const std::string& funcname, bool run);
-    int set_func_run(const std::string& funcname, bool run, std::vector<std::string>& arg_list);
-    int get_func_status(const std::string& funcname);
+private:
+    std::string command_;
+    MagicCommandOutput output_;
+    EntryPoint entry_point_;
+    bool command_undefined_;
+    static int root_;
+
+    int Exit();
+    int GetStatusHtml();
+    int GetStatusText();
+    int GetHelpMsgMarkdown();
+    int GetHelpMsgText();
+    int LoadScript(const std::vector<std::string>& args);
+    int ExportScript(const std::vector<std::string>& args);
+    int SetFunctionRun(const std::vector<std::string>& args);
+    int SetFunctionIdle(const std::vector<std::string>& args);
+    int GetFunctionStatusMarkdown(const std::vector<std::string>& args);
+    int GetFunctionStatusText(const std::vector<std::string>& args);
 
 public:
-    MagicCommand() : m_Command(""), m_Undefine(true), m_OutputData() {};
-    OutputData& run(const std::string& command = std::string(""));
+    explicit MagicCommand(EntryPoint entry_point) : output_(), entry_point_(entry_point), command_undefined_(true){};
+    MagicCommandOutput& Run(const std::string& command = std::string(""));
 };
 
-#endif  //__MAGIC_COMMAND_H__
+#endif  // LIBYT_PROJECT_INCLUDE_MAGIC_COMMAND_H_

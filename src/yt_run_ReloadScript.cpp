@@ -13,7 +13,7 @@
 #include <thread>
 
 #include "LibytProcessControl.h"
-#include "define_command.h"
+#include "magic_command.h"
 
 static bool detect_file(const char* flag_file);
 #endif
@@ -60,10 +60,14 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
     fflush(stderr);
 
     // run new added function and output func_status summary
-    if (g_func_status_list.run_func() != YT_SUCCESS)
+    if (g_func_status_list.run_func() != YT_SUCCESS) {
         YT_ABORT("Something went wrong when running new added functions\n");
-    if (g_func_status_list.print_summary() != YT_SUCCESS)
-        YT_ABORT("Something went wrong when summarizing inline function status\n");
+    }
+    MagicCommand command(MagicCommand::EntryPoint::kLibytReloadScript);
+    MagicCommandOutput command_result = command.Run("%libyt status");
+    if (g_myroot == g_myrank) {
+        std::cout << command_result.output << std::endl;
+    }
 
     // check if we need to enter reload script phase
     bool remove_flag_file = false;
@@ -114,8 +118,8 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
         // responsible for getting reload instruction and broadcast to non-root rank
         if (g_myrank == g_myroot) {
             // block and detect <reload_file_name> or <reload_file_name>_EXIT every 2 sec
-            log_info("Create '%s' file to reload script, or create '%s' file to exit.\n", reload_file_name,
-                     reload_exit_filename.c_str());
+            log_info("Create '%s' file to reload script '%s', or create '%s' file to exit.\n", reload_file_name,
+                     script_name, reload_exit_filename.c_str());
             bool get_reload_state = false;
             while (!get_reload_state) {
                 if (detect_file(reload_file_name)) {
@@ -230,15 +234,23 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
 
                 // Loading libyt commands, continue loading even if one of the command failed,
                 // because they are independent.
-                define_command command(reloading_filename);
+                reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
                 while (std::getline(libyt_command_buffer, line, '\n')) {
 #ifndef SERIAL_MODE
                     int indicator = 0;
                     MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
 #endif
-                    std::array<bool, 2> command_result = command.run(line);
-                    reload_success = reload_success & command_result[1];
+                    command_result = command.Run(line);
+                    reload_result_file << "====== Libyt Command: " << line << " ======\n";
+                    if (!command_result.output.empty()) {
+                        reload_result_file << command_result.output << std::endl;
+                    }
+                    if (!command_result.error.empty()) {
+                        reload_result_file << command_result.error << std::endl;
+                    }
+                    reload_success = reload_success & (command_result.status == "Success");
                 }
+                reload_result_file.close();
             }
 
             // remove previous <reload_file_name>_SUCCESS or <reload_file_name>_FAILED and
@@ -279,8 +291,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     break;
                 }
                 case 0: {
-                    define_command command(reloading_filename);
-                    std::array<bool, 2> command_result = command.run();
+                    command_result = command.Run();
                     break;
                 }
                 case 1: {
