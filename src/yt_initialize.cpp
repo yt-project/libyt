@@ -66,8 +66,10 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
     log_info("   counter = %ld\n", g_param_libyt.counter);
     log_info("check_data = %s\n", (g_param_libyt.check_data ? "true" : "false"));
 
+#ifndef USE_PYBIND11
     // create libyt module, should be before init_python
     if (create_libyt_module() == YT_FAIL) return YT_FAIL;
+#endif
 
     // initialize Python interpreter
     if (init_python(argc, argv) == YT_FAIL) return YT_FAIL;

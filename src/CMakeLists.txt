@@ -1,4 +1,14 @@
 ### libyt COMPILATION ###
+# find dependencies
+find_package(Python 3.7 COMPONENTS Development NumPy REQUIRED)
+if (USE_PYBIND11)
+    find_package(pybind11 REQUIRED)
+endif ()
+
+if (NOT SERIAL_MODE)
+    find_package(MPI REQUIRED)
+endif ()
+
 # old tangled libyt stuff combined as a whole (will definitely split to smaller modules in future version)
 add_library(yt SHARED
         add_dict.cpp allocate_hierarchy.cpp append_grid.cpp check_data.cpp
@@ -8,7 +18,7 @@ add_library(yt SHARED
         yt_get_ParticlesPtr.cpp yt_getGridInfo.cpp yt_initialize.cpp yt_rma_field.cpp yt_run_ReloadScript.cpp
         yt_rma_particle.cpp yt_run.cpp yt_run_InteractiveMode.cpp yt_set_Parameters.cpp
         yt_set_UserParameter.cpp LibytProcessControl.cpp Timer.cpp TimerControl.cpp
-        libyt_python_shell.cpp libyt_kernel.cpp libyt_worker.cpp magic_command.cpp
+        libyt_python_shell.cpp libyt_kernel.cpp libyt_worker.cpp magic_command.cpp libyt_python_module.cpp
 )
 
 # set and print options and apply compile definition -D
@@ -25,6 +35,7 @@ set_option(SERIAL_MODE)
 set_option(INTERACTIVE_MODE)
 set_option(JUPYTER_KERNEL)
 set_option(SUPPORT_TIMER)
+set_option(USE_PYBIND11)
 
 # find package
 if (JUPYTER_KERNEL)
@@ -45,7 +56,7 @@ target_include_directories(yt PRIVATE
 target_link_libraries(yt PRIVATE
         $<$<NOT:$<BOOL:${SERIAL_MODE}>>:MPI::MPI_CXX>
         ${Python_LIBRARIES}
-        Python::NumPy
+        $<$<BOOL:${USE_PYBIND11}>:pybind11::embed> Python::NumPy
         $<$<BOOL:${INTERACTIVE_MODE}>:${Readline_LIBRARY}>
         $<$<BOOL:${INTERACTIVE_MODE}>:${Readline_LIBFLAGS}>
         $<$<BOOL:${JUPYTER_KERNEL}>:xeus-zmq>

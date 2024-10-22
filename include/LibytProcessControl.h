@@ -34,6 +34,17 @@ public:
     yt_grid* grids_local;
     int* num_grids_local_MPI;
 
+#ifdef USE_PYBIND11
+    // Hierarchy
+    double* grid_left_edge;
+    double* grid_right_edge;
+    int* grid_dimensions;
+    long* grid_parent_id;
+    int* grid_levels;
+    int* proc_num;
+    long* par_count_list;
+#endif
+
     // Singleton Methods
     LibytProcessControl(const LibytProcessControl& other) = delete;
     LibytProcessControl& operator=(const LibytProcessControl& other) = delete;

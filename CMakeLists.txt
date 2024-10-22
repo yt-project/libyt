@@ -8,6 +8,7 @@ option(SERIAL_MODE       "Compile library for serial process"                   
 option(INTERACTIVE_MODE  "Use interactive mode"                                                               OFF)
 option(JUPYTER_KERNEL    "Use Jupyter notebook interface"                                                     OFF)
 option(SUPPORT_TIMER     "Support time profiling"                                                             OFF)
+option(USE_PYBIND11      "Use pybind11"                                                                       ON )
 
 ## set paths ##
 # It is recommended that we always provide PYTHON_PATH and MPI_PATH.
@@ -18,6 +19,7 @@ set(READLINE_PATH  "" CACHE PATH "Path to Readline installation prefix (-DINTERA
 
 ## set paths (optional) ##
 # libyt will get the dependencies if it cannot find one when needed.
+set(PYBIND11_PATH     "" CACHE PATH "Path to pybind11Config.cmake (Always)")
 set(nlohmann_json_DIR "" CACHE PATH "Path to nlohmann_jsonConfig.cmake (-DJUPYTER_KERNEL=ON)")
 set(cppzmq_DIR        "" CACHE PATH "Path to cppzmqConfig.cmake (-DJUPYTER_KERNEL=ON)")
 set(xtl_DIR           "" CACHE PATH "Path to xtlConfig.cmake (-DJUPYTER_KERNEL=ON)")
@@ -33,13 +35,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 ## build static/shared library ##
 option(BUILD_SHARED_LIBS "Building using shared libraries"                                                    ON )
 
-## find dependencies ##
-set(Python_ROOT_DIR ${PYTHON_PATH})
-find_package(Python 3.7 COMPONENTS Development NumPy REQUIRED)
+# run test ##
+option(LIBYT_RUN_TEST    "Run unit test"                                                                      OFF)
 
+## set path for dependencies ##
+set(Python_ROOT_DIR ${PYTHON_PATH})
+if (USE_PYBIND11)
+    set(pybind11_DIR ${PYBIND11_PATH})
+endif ()
 if (NOT SERIAL_MODE)
     set(MPI_HOME ${MPI_PATH})
-    find_package(MPI REQUIRED)
 endif ()
 
 ## sub directory ##

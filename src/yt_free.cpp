@@ -2,6 +2,10 @@
 #include "libyt.h"
 #include "yt_combo.h"
 
+#ifdef USE_PYBIND11
+#include "pybind11/embed.h"
+#endif
+
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_free()
 // Description :  Refresh the python yt state after finish inline-analysis
@@ -69,6 +73,19 @@ int yt_free() {
         delete[] grids_local;
     }
 
+#ifdef USE_PYBIND11
+    delete[] LibytProcessControl::Get().grid_left_edge;
+    delete[] LibytProcessControl::Get().grid_right_edge;
+    delete[] LibytProcessControl::Get().grid_dimensions;
+    delete[] LibytProcessControl::Get().grid_parent_id;
+    delete[] LibytProcessControl::Get().grid_levels;
+    delete[] LibytProcessControl::Get().proc_num;
+    if (g_param_yt.num_par_types > 0) {
+        delete[] LibytProcessControl::Get().par_count_list;
+    }
+#endif
+
+#ifndef USE_PYBIND11
     // Reset data in libyt module
     PyDict_Clear(g_py_grid_data);
     PyDict_Clear(g_py_particle_data);
@@ -78,6 +95,22 @@ int yt_free() {
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     PyDict_Clear(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"));
 #endif
+#else
+    pybind11::module_ libyt = pybind11::module_::import("libyt");
+
+    const char* keys_to_clear[] = {"grid_data", "particle_data", "hierarchy", "param_yt", "param_user"};
+    const int keys_len = 5;
+    for (int i = 0; i < keys_len; i++) {
+        pybind11::dict py_dict = libyt.attr(keys_to_clear[i]);
+        py_dict.clear();
+    }
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
+    pybind11::dict py_interactive_mode = libyt.attr("interactive_mode");
+    pybind11::dict py_func_err_msg = py_interactive_mode["func_err_msg"];
+    py_func_err_msg.clear();
+#endif
+#endif
+
     PyRun_SimpleString("gc.collect()");
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
