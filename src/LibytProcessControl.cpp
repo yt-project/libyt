@@ -1,9 +1,12 @@
 #ifndef SERIAL_MODE
 #include <mpi.h>
 #endif
-#include <string>
 
 #include "LibytProcessControl.h"
+
+#ifdef USE_PYBIND11
+#include "pybind11/embed.h"
+#endif
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytProcessControl
@@ -41,6 +44,14 @@ LibytProcessControl LibytProcessControl::s_Instance;
 //               grids_local         : a data structure for storing local grids hierarchy and data memory
 //                                     mapping temporary.
 //               num_grids_local_MPI : for gathering different MPI processes hierarchy.
+//
+//               grid_left_edge      : AMR hierarchy for Pybind11.
+//               grid_right_edge     :
+//               grid_dimensions     :
+//               grid_parent_id      :
+//               grid_levels         :
+//               proc_num            :
+//               par_count_list      :
 //-------------------------------------------------------------------------------------------------------
 LibytProcessControl::LibytProcessControl() {
     // Check points for libyt process
@@ -56,6 +67,16 @@ LibytProcessControl::LibytProcessControl() {
     particle_list = nullptr;
     grids_local = nullptr;
     num_grids_local_MPI = nullptr;
+
+#ifdef USE_PYBIND11
+    grid_left_edge = nullptr;
+    grid_right_edge = nullptr;
+    grid_dimensions = nullptr;
+    grid_parent_id = nullptr;
+    grid_levels = nullptr;
+    proc_num = nullptr;
+    par_count_list = nullptr;
+#endif
 }
 
 //-------------------------------------------------------------------------------------------------------

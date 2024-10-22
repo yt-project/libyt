@@ -3,6 +3,11 @@
 #include "LibytProcessControl.h"
 #include "yt_combo.h"
 
+#ifdef USE_PYBIND11
+#include "pybind11/embed.h"
+#endif
+
+#ifndef USE_PYBIND11
 //-------------------------------------------------------------------------------------------------------
 // Function    :  add_dict_scalar
 // Description :  Auxiliary function for adding a scalar item to a Python dictionary
@@ -163,6 +168,7 @@ template int add_dict_vector_n<unsigned int>(PyObject* dict, const char* key, co
                                              const unsigned int* vector);
 template int add_dict_vector_n<unsigned long>(PyObject* dict, const char* key, const int len,
                                               const unsigned long* vector);
+#endif  // #ifndef USE_PYBIND11
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  add_dict_field_list
@@ -177,12 +183,12 @@ template int add_dict_vector_n<unsigned long>(PyObject* dict, const char* key, c
 //                6. Dictionary structure loaded in python:
 //            field_list_dict    field_info_dict        info_list     name_alias_list
 //                   |               |                      |               |
-//                   { <field_name>: {"attribute"       : [ <field_unit>, [<field_name_alias>, ], <field_display_name>]
+//                   { <field_name>: {"attribute"       : ( <field_unit>, (<field_name_alias>, ), <field_display_name>)
 //                                    "field_type"      :  <field_type>,
 //                                    "contiguous_in_x" :  true / false
-//                                    "ghost_cell"      : [ beginning of 0-dim, ending of 0-dim,
+//                                    "ghost_cell"      : ( beginning of 0-dim, ending of 0-dim,
 //                                                          beginning of 1-dim, ending of 1-dim,
-//                                                          beginning of 2-dim, ending of 2-dim  ] },
+//                                                          beginning of 2-dim, ending of 2-dim  ) },
 //                   }
 //
 // Parameter   :  None
@@ -192,6 +198,7 @@ template int add_dict_vector_n<unsigned long>(PyObject* dict, const char* key, c
 int add_dict_field_list() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
+#ifndef USE_PYBIND11
     PyObject* field_list_dict = PyDict_New();
     PyObject *key, *val;
 
@@ -346,6 +353,30 @@ int add_dict_field_list() {
     }
 
     Py_DECREF(field_list_dict);
+#else
+    pybind11::module_ libyt = pybind11::module_::import("libyt");
+    pybind11::dict py_param_yt = libyt.attr("param_yt");
+    pybind11::dict py_field_list = pybind11::dict();
+    py_param_yt["field_list"] = py_field_list;
+
+    yt_field* field_list = LibytProcessControl::Get().field_list;
+
+    for (int i = 0; i < g_param_yt.num_fields; i++) {
+        py_field_list[field_list[i].field_name] = pybind11::dict();
+
+        pybind11::tuple py_name_alias = pybind11::tuple(field_list[i].num_field_name_alias);
+        for (int a = 0; a < field_list[i].num_field_name_alias; a++) {
+            py_name_alias[a] = field_list[i].field_name_alias[a];
+        }
+        py_field_list[field_list[i].field_name]["attribute"] =
+            pybind11::make_tuple(field_list[i].field_unit, py_name_alias, field_list[i].field_display_name);
+        py_field_list[field_list[i].field_name]["field_type"] = field_list[i].field_type;
+        py_field_list[field_list[i].field_name]["contiguous_in_x"] = pybind11::bool_(field_list[i].contiguous_in_x);
+        py_field_list[field_list[i].field_name]["ghost_cell"] = pybind11::make_tuple(
+            field_list[i].field_ghost_cell[0], field_list[i].field_ghost_cell[1], field_list[i].field_ghost_cell[2],
+            field_list[i].field_ghost_cell[3], field_list[i].field_ghost_cell[4], field_list[i].field_ghost_cell[5]);
+    }
+#endif  // #ifndef USE_PYBIND11
 
     return YT_SUCCESS;
 }
@@ -364,10 +395,10 @@ int add_dict_field_list() {
 //                6. Dictionary structure loaded in python:
 //      particle_list_dict   species_dict     attr_dict        attr_list  name_alias_list
 //              |                 |               |                |              |
-//              { <par_type>: { "attribute" : { <attr_name1> : [ <attr_unit>, [<attr_name_alias>], <attr_display_name>],
-//                                              <attr_name2> : [ <attr_unit>, [<attr_name_alias>],
-//                                              <attr_display_name>]},
-//                              "particle_coor_label" : [ <coor_x>, <coor_y>, <coor_z>]},
+//              { <par_type>: { "attribute" : { <attr_name1> : ( <attr_unit>, (<attr_name_alias>), <attr_display_name>),
+//                                              <attr_name2> : ( <attr_unit>, (<attr_name_alias>),
+//                                              <attr_display_name>)},
+//                              "particle_coor_label" : (<coor_x>, <coor_y>, <coor_z>),
 //                                                      |
 //                                                      |
 //                                                   coor_list
@@ -380,6 +411,7 @@ int add_dict_field_list() {
 int add_dict_particle_list() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
+#ifndef USE_PYBIND11
     PyObject* particle_list_dict = PyDict_New();
     PyObject *key, *val;
 
@@ -595,6 +627,36 @@ int add_dict_particle_list() {
         YT_ABORT("Inserting dictionary [particle_list] item to libyt ... failed!\n");
     }
     Py_DECREF(particle_list_dict);
+#else
+    pybind11::module_ libyt = pybind11::module_::import("libyt");
+    pybind11::dict py_param_yt = libyt.attr("param_yt");
+    pybind11::dict py_particle_list = pybind11::dict();
+    py_param_yt["particle_list"] = py_particle_list;
+
+    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
+
+    for (int i = 0; i < g_param_yt.num_par_types; i++) {
+        py_particle_list[particle_list[i].par_type] = pybind11::dict();
+
+        pybind11::dict py_attr_dict = pybind11::dict();
+        py_particle_list[particle_list[i].par_type]["attribute"] = py_attr_dict;
+        for (int v = 0; v < particle_list[i].num_attr; v++) {
+            pybind11::tuple py_name_alias = pybind11::tuple(particle_list[i].attr_list[v].num_attr_name_alias);
+            for (int a = 0; a < particle_list[i].attr_list[v].num_attr_name_alias; a++) {
+                py_name_alias[a] = particle_list[i].attr_list[v].attr_name_alias[a];
+            }
+
+            py_attr_dict[particle_list[i].attr_list[v].attr_name] =
+                pybind11::make_tuple(particle_list[i].attr_list[v].attr_unit, py_name_alias,
+                                     particle_list[i].attr_list[v].attr_display_name);
+        }
+
+        py_particle_list[particle_list[i].par_type]["particle_coor_label"] =
+            pybind11::make_tuple(particle_list[i].coor_x, particle_list[i].coor_y, particle_list[i].coor_z);
+        py_particle_list[particle_list[i].par_type]["label"] = i;
+    }
+
+#endif
 
     return YT_SUCCESS;
 }

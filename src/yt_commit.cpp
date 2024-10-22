@@ -7,19 +7,18 @@
 // Function    :  yt_commit
 // Description :  Add local grids, append field list and particle list info to the libyt Python module.
 //
-// Note        :  1. Must call yt_set_Parameters() in advance, which will preallocate memory for NumPy arrays.
-//                2. Must call yt_get_FieldsPtr (if num_fields>0), yt_get_ParticlesPtr (if num_par_types>0),
+// Note        :  1. Must call yt_get_FieldsPtr (if num_fields>0), yt_get_ParticlesPtr (if num_par_types>0),
 //                   yt_get_GridsPtr, which gets data info from user.
-//                3. Check the local grids, field list, and particle list.
-//                4. Append field_list info and particle_list info to libyt.param_yt['field_list'] and
+//                2. Check the local grids, field list, and particle list.
+//                3. Append field_list info and particle_list info to libyt.param_yt['field_list'] and
 //                   libyt.param_yt['particle_list'].
-//                5. Gather hierarchy in different rank, and check hierarchy in check_hierarchy(), excluding
+//                4. Gather hierarchy in different rank, and check hierarchy in check_hierarchy(), excluding
 //                   particles.
-//                6. If there is particle, we gather different particle type separately.
-//                7. Pass the grids and hierarchy to YT in function append_grid().
-//                8. We assume that one grid contains all the fields belong to that grid.
-//                9. Free g_param_yt.grids_local, after we have passed all grid info and data in.
-//               10. TODO: this can be more memory efficient when gathering hierarchy.
+//                5. If there is particle, we gather different particle type separately.
+//                6. Pass the grids and hierarchy to YT in function append_grid().
+//                7. We assume that one grid contains all the fields belong to that grid.
+//                8. Free g_param_yt.grids_local, after we have passed all grid info and data in.
+//                9. TODO: this can be more memory efficient when gathering hierarchy.
 //
 // Parameter   :
 //
@@ -157,12 +156,12 @@ int yt_commit() {
             if (g_param_yt.num_grids > 0) delete[] hierarchy_full;
             if (g_param_yt.num_grids_local > 0) delete[] hierarchy_local;
             if (g_param_yt.num_par_types > 0) {
-                delete[] particle_count_list_full;
-                delete[] particle_count_list_local;
                 for (int s = 0; s < g_param_yt.num_par_types; s++) {
                     if (g_param_yt.num_grids > 0) delete[] particle_count_list_full[s];
                     if (g_param_yt.num_grids_local > 0) delete[] particle_count_list_local[s];
                 }
+                delete[] particle_count_list_full;
+                delete[] particle_count_list_local;
             }
 #endif
             YT_ABORT("Validating the parent-children relationship ... failed!\n")
@@ -179,6 +178,12 @@ int yt_commit() {
         big_MPI_Bcast<long>(RootRank, g_param_yt.num_grids, (void*)particle_count_list_full[s], &yt_long_mpi_type);
     }
 #endif
+
+    // fill libyt.hierarchy with NumPy arrays or memoryviews
+    if (allocate_hierarchy() == YT_SUCCESS)
+        log_debug("Allocating libyt.hierarchy ... done\n");
+    else
+        YT_ABORT("Allocating libyt.hierarchy ... failed!\n");
 
 #ifndef SERIAL_MODE
     // append grid to YT
@@ -224,12 +229,12 @@ int yt_commit() {
             if (g_param_yt.num_grids > 0) delete[] hierarchy_full;
             if (g_param_yt.num_grids_local > 0) delete[] hierarchy_local;
             if (g_param_yt.num_par_types > 0) {
-                delete[] particle_count_list_full;
-                delete[] particle_count_list_local;
                 for (int s = 0; s < g_param_yt.num_par_types; s++) {
                     if (g_param_yt.num_grids > 0) delete[] particle_count_list_full[s];
                     if (g_param_yt.num_grids_local > 0) delete[] particle_count_list_local[s];
                 }
+                delete[] particle_count_list_full;
+                delete[] particle_count_list_local;
             }
             delete[] grid_combine.par_count_list;
             YT_ABORT("Failed to append grid [ %ld ]!\n", grid_combine.id);

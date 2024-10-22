@@ -11,6 +11,11 @@
 #include "yt_rma_particle.h"
 #include "yt_type_array.h"
 
+#ifdef USE_PYBIND11
+#include "pybind11/embed.h"
+#endif
+
+#ifndef USE_PYBIND11
 //-------------------------------------------------------------------------------------------------------
 // Description :  List of libyt C extension python methods
 //
@@ -732,6 +737,7 @@ int create_libyt_module() {
 
     return YT_SUCCESS;
 }
+#endif  // #ifndef USE_PYBIND11
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  init_libyt_module
@@ -742,6 +748,9 @@ int create_libyt_module() {
 //                3. In INTERACTIVE_MODE:
 //                   (1) libyt.interactive_mode["script_globals"] = sys.modules["<script>"].__dict__
 //                   (2) libyt.interactive_mode["func_err_msg"] = dict()
+//                4. Bind g_py_grid_data/g_py_particle_data/g_py_hierarchy/g_py_param_yt/g_py_param_user/
+//                   g_py_libyt_info to dictionary under libyt Python module.
+//                   (TODO: This is only needed in Pybind11)
 //
 // Parameter   :  None
 //
@@ -755,6 +764,19 @@ int init_libyt_module() {
         log_debug("Import libyt module ... done\n");
     else
         YT_ABORT("Import libyt module ... failed!\n");
+
+#ifdef USE_PYBIND11
+    pybind11::module_ libyt = pybind11::module_::import("libyt");
+    g_py_grid_data = libyt.attr("grid_data").ptr();
+    g_py_particle_data = libyt.attr("particle_data").ptr();
+    g_py_hierarchy = libyt.attr("hierarchy").ptr();
+    g_py_param_yt = libyt.attr("param_yt").ptr();
+    g_py_param_user = libyt.attr("param_user").ptr();
+    g_py_libyt_info = libyt.attr("libyt_info").ptr();
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
+    g_py_interactive_mode = libyt.attr("interactive_mode").ptr();
+#endif
+#endif
 
     // check if script exist
     if (g_myrank == 0) {

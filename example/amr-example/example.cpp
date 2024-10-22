@@ -215,24 +215,26 @@ int main(int argc, char* argv[]) {
 
         // demo of some other parameters we can add
         const int user_int = 1;
-        const long user_long = 2;
-        const unsigned int user_uint = 3;
-        const unsigned long user_ulong = 4;
-        const float user_float = 5.0;
-        const double user_double = 6.0;
+        const int user_int3[3] = {2, 3, 4};
+        const long user_long = 5;
+        const long long user_long_long = 6;
+        const unsigned int user_uint = 7;
+        const unsigned long user_ulong = 8;
+        const float user_float = 9.0;
+        const double user_double = 10.0;
+        const double user_double3[3] = {11.0, 12.0, 13.0};
         const char* user_string = "my_string";
-        const int user_int3[3] = {7, 8, 9};
-        const double user_double3[3] = {10.0, 11.0, 12.0};
 
         yt_set_UserParameterInt("user_int", 1, &user_int);
+        yt_set_UserParameterInt("user_int3", 3, user_int3);
         yt_set_UserParameterLong("user_long", 1, &user_long);
+        yt_set_UserParameterLongLong("user_long_long", 1, &user_long_long);
         yt_set_UserParameterUint("user_uint", 1, &user_uint);
         yt_set_UserParameterUlong("user_ulong", 1, &user_ulong);
         yt_set_UserParameterFloat("user_float", 1, &user_float);
         yt_set_UserParameterDouble("user_double", 1, &user_double);
-        yt_set_UserParameterString("user_string", user_string);
-        yt_set_UserParameterInt("user_int3", 3, user_int3);
         yt_set_UserParameterDouble("user_double3", 3, user_double3);
+        yt_set_UserParameterString("user_string", user_string);
 
         // ==========================================
         // libyt: 4. set field information

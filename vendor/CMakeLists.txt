@@ -1,5 +1,19 @@
 include(FetchContent)
 
+if (USE_PYBIND11)
+
+find_package(pybind11 QUIET)
+if (NOT pybind11_FOUND)
+    message(STATUS "Unable to find pybind11, getting dependency...")
+    find_package(Python 3.7 COMPONENTS Interpreter REQUIRED)
+    execute_process(COMMAND ${Python_EXECUTABLE} -m pip install --target ${PROJECT_SOURCE_DIR}/vendor/pybind11 pybind11)
+    set(pybind11_DIR ${PROJECT_SOURCE_DIR}/vendor/pybind11/pybind11/share/cmake/pybind11 PARENT_SCOPE)
+else ()
+    message(STATUS "Found pybind11: ${pybind11_INCLUDE_DIR} (found version \"${pybind11_VERSION}\")")
+endif ()
+
+endif() # if (USE_PYBIND11)
+
 if (INTERACTIVE_MODE)
 
 find_path(Readline_ROOT_DIR

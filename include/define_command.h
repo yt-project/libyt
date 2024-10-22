@@ -22,8 +22,8 @@ private:
     void write_to_file(const char* format, ...);
 
 public:
-    define_command() : m_Undefine(true){};
-    define_command(const std::string& output_filename) : m_OutputFileName(output_filename), m_Undefine(true){};
+    define_command() : m_Undefine(true) {};
+    define_command(const std::string& output_filename) : m_OutputFileName(output_filename), m_Undefine(true) {};
     std::array<bool, 2> run(const std::string& command = std::string(""));
 };
 
