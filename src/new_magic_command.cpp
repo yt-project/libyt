@@ -386,17 +386,32 @@ int NewMagicCommand::GetHelpMsgText() {
 
     // TODO: make it colored???
     output_.status = "Success";
-    output_.output =
-        std::string("Usage:  %libyt COMMAND\n"
-                    "Commands:\n"
-                    "  help                             Print help messages.\n"
-                    "  exit                             Exit entry point.\n"
-                    "  load    <file name>              Load and run Python file <file name>.\n"
-                    "  export  <file name>              Export history to <file name>.\n"
-                    "  status                           Get all function status.\n"
-                    "  status  <function>               Get <function> status.\n"
-                    "  run     <function>  [arg1, ...]  Run <function>(args) automatically in next iteration.\n"
-                    "  idle    <function>               Make <function> idle in next iteration.\n");
+    if (entry_point_ == EntryPoint::kLibytInteractiveMode) {
+        output_.output =
+            "Usage: \033[33;1;4m%libyt COMMAND\033[0;37m\n"
+            "Commands:\n"
+            "  \033[32;1mhelp  \033[1;31m              \033[0;37m              Print help messages.\n"
+            "  \033[32;1mexit  \033[1;31m              \033[0;37m              Exit entry point.\n"
+            "  \033[32;1mload  \033[1;31m  <file name> \033[0;37m              Load and run Python file <file name>.\n"
+            "  \033[32;1mexport\033[1;31m  <file name> \033[0;37m              Export history to <file name>.\n"
+            "  \033[32;1mstatus\033[1;31m              \033[0;37m              Get all function status.\n"
+            "  \033[32;1mstatus\033[1;31m  <function>  \033[0;37m              Get <function> status.\n"
+            "  \033[32;1mrun   \033[1;31m  <function>  \033[0;37m [\033[1;31marg1\033[0;37m, ...]  Run "
+            "<function>(args) automatically in next iteration.\n"
+            "  \033[32;1midle  \033[1;31m  <function>  \033[0;37m              Make <function> idle in next "
+            "iteration.\n";
+    } else {
+        output_.output = "Usage:  %libyt COMMAND\n"
+                         "Commands:\n"
+                         "  help                             Print help messages.\n"
+                         "  exit                             Exit entry point.\n"
+                         "  load    <file name>              Load and run Python file <file name>.\n"
+                         "  export  <file name>              Export history to <file name>.\n"
+                         "  status                           Get all function status.\n"
+                         "  status  <function>               Get <function> status.\n"
+                         "  run     <function>  [arg1, ...]  Run <function>(args) automatically in next iteration.\n"
+                         "  idle    <function>               Make <function> idle in next iteration.\n";
+    }
 
     return YT_SUCCESS;
 }
