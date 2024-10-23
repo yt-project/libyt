@@ -6,7 +6,7 @@
 
 struct MagicCommandOutput {
     bool exit_entry_point;
-    std::string status;  // TODO: do I need it?
+    std::string status;
     std::string mimetype;
     std::string output;
     std::string error;
