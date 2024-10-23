@@ -3,6 +3,7 @@
 #include "magic_command.h"
 
 #include <fstream>
+#include <sstream>
 
 #include "yt_combo.h"
 
