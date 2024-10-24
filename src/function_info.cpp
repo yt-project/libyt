@@ -86,7 +86,7 @@ std::string FunctionInfo::GetFunctionNameWithInputArgs() {
 //
 // Arguments   :  None
 //
-// Return      :  all_status_
+// Return      :  status_
 //-------------------------------------------------------------------------------------------------------
 FunctionInfo::ExecuteStatus FunctionInfo::GetStatus() {
     SET_TIMER(__PRETTY_FUNCTION__);
@@ -265,8 +265,6 @@ std::string FunctionInfo::GetFunctionBody() {
 //                   rank must call it.
 //
 // Arguments   :  (None)
-//
-// Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 void FunctionInfo::ClearAllErrorMsg() {
     SET_TIMER(__PRETTY_FUNCTION__);
@@ -274,13 +272,118 @@ void FunctionInfo::ClearAllErrorMsg() {
     all_error_msg_.clear();
 }
 
-FunctionInfoList::FunctionInfoList(int capacity) {}
-FunctionInfoList::~FunctionInfoList() {}
-FunctionInfo& FunctionInfoList::operator[](int index) { return <#initializer #>; }
-void FunctionInfoList::Reset() {}
-size_t FunctionInfoList::GetSize() { return 0; }
-int FunctionInfoList::GetFunctionIndex(const std::string& function_name) { return 0; }
-void FunctionInfoList::AddNewFunction(const std::string& function_name, FunctionInfo::RunStatus run) {}
-void FunctionInfoList::RunAllFunctions() {}
+//-------------------------------------------------------------------------------------------------------
+// Class       :  FunctionInfoList
+// Method      :  ResetEveryFunctionStatus
+//
+// Notes       :  1. Reset every function's status to FunctionInfo::kNotExecuteYet.
+//                2. Clear the error buffer.
+//
+// Arguments   :  None
+//-------------------------------------------------------------------------------------------------------
+void FunctionInfoList::ResetEveryFunctionStatus() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    for (auto& func : function_list_) {
+        func.SetStatus(FunctionInfo::kNotExecuteYet);
+        func.ClearAllErrorMsg();
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  FunctionInfoList
+// Method      :  GetFunctionIndex
+//
+// Notes       :  1. Look up index of function name in the list. If the function doesn't exist, return -1.
+//
+// Arguments   :  std::string *func_name: inline function name
+//
+// Return      :  index : index of func_name in list, return -1 if it doesn't exist.
+//-------------------------------------------------------------------------------------------------------
+int FunctionInfoList::GetFunctionIndex(const std::string& function_name) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    int index = -1;
+    for (size_t i = 0; i < function_list_.size(); i++) {
+        if (function_list_[i].GetFunctionName() == function_name) {
+            index = (int)i;
+            break;
+        }
+    }
+
+    return index;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  FunctionInfoList
+// Method      :  AddNewFunction
+//
+// Notes       :  1. Check if function name is defined inside the vector, if not create one.
+//                2. Return function index.
+//
+// Arguments   :  std::string   *function_name: inline function name
+//                RunStatus      run          : run in next inline analysis or not.
+//
+// Return      : int index : Function index in list.
+//-------------------------------------------------------------------------------------------------------
+int FunctionInfoList::AddNewFunction(const std::string& function_name, FunctionInfo::RunStatus run) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    int index = GetFunctionIndex(function_name);
+    if (index < 0) {
+        index = GetSize();
+        function_list_.emplace_back(function_name.c_str(), run);
+    }
+
+    return index;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  FunctionInfoList
+// Method      :  RunEveryFunction
+//
+// Notes       :  1. This is a collective call. It executes new added functions that haven't run by
+//                   yt_run_Function/yt_run_FunctionArguments yet.
+//                2. How this method runs python function is identical to yt_run_Function*. It uses
+//                   PyRun_SimpleString.
+//                3. libyt uses either """ or ''' to wrap the code to execute in exec().
+//                4. function_name_(input_args_) is how Python calls the function:
+//                   try:
+//                       exec(<wrapper><function_name_with_args><wrapper>, sys.modules["<script_name>"].__dict__)
+//                   except Exception as e:
+//                       libyt.interactive_mode["func_err_msg"]["<function_name>"] = traceback.format_exc()
+//
+// Arguments   :  (None)
+//-------------------------------------------------------------------------------------------------------
+void FunctionInfoList::RunEveryFunction() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    for (auto& function : function_list_) {
+        FunctionInfo::RunStatus run = function.GetRun();
+        FunctionInfo::ExecuteStatus status = function.GetStatus();
+        if (run == FunctionInfo::kWillRun && status == FunctionInfo::kNotExecuteYet) {
+            std::string command = std::string("try:\n"
+                                              "    exec(") +
+                                  function.GetWrapper() + function.GetFunctionNameWithInputArgs() +
+                                  function.GetWrapper() + std::string(", sys.modules[\"") + g_param_libyt.script +
+                                  std::string("\"].__dict__)\n"
+                                              "except Exception as e:\n"
+                                              "    libyt.interactive_mode[\"func_err_msg\"][\"") +
+                                  function.GetFunctionName() + std::string("\"] = traceback.format_exc()\n");
+
+            log_info("Performing YT inline analysis %s ...\n", function.GetFunctionNameWithInputArgs().c_str());
+            function.SetStatus(FunctionInfo::kNeedUpdate);
+            if (PyRun_SimpleString(command.c_str()) != 0) {
+                // We set the status to failed even though this should never happen,
+                // because the status is set based on if an error msg is set or not.
+                function.SetStatus(FunctionInfo::kFailed);
+                log_error("Unexpected error occurred when running PyRun_SimpleString\n");
+            } else {
+                function.GetStatus();
+            }
+            log_info("Performing YT inline analysis %s ... done\n", function.GetFunctionNameWithInputArgs().c_str());
+        }
+    }
+}
 
 #endif  // #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)

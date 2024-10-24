@@ -44,15 +44,16 @@ private:
     std::vector<FunctionInfo> function_list_;
 
 public:
-    explicit FunctionInfoList(int capacity);
-    ~FunctionInfoList();
-    FunctionInfo& operator[](int index);
+    explicit FunctionInfoList(int capacity) { function_list_.reserve(capacity); }
+    ~FunctionInfoList() { function_list_.clear(); }
+    FunctionInfo& operator[](int index) { return function_list_[index]; }
 
-    void Reset();
-    size_t GetSize();
+    int GetSize() { return (int)function_list_.size(); }
+
+    void ResetEveryFunctionStatus();
     int GetFunctionIndex(const std::string& function_name);
-    void AddNewFunction(const std::string& function_name, FunctionInfo::RunStatus run);
-    void RunAllFunctions();
+    int AddNewFunction(const std::string& function_name, FunctionInfo::RunStatus run);
+    void RunEveryFunction();
 };
 
 #endif  // LIBYT_PROJECT_INCLUDE_FUNCTION_INFO_H_
