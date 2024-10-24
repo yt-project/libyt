@@ -168,15 +168,111 @@ std::vector<std::string>& FunctionInfo::GetAllErrorMsg() {
     }
 
     // Get error message from libyt.interactive_mode["func_err_msg"]
+    const char* err_msg;
 #ifdef USE_PYBIND11
-    // TODO: (START HERE)
+    pybind11::module_ libyt = pybind11::module_::import("libyt");
+    pybind11::dict py_func_err_msg = libyt.attr("interactive_mode")["func_err_msg"];
+    if (py_func_err_msg.contains(function_name_)) {
+        err_msg = py_func_err_msg[function_name_.c_str()].cast<std::string>().c_str();
+    } else {
+        err_msg = "";
+    }
 #else
+    PyObject* py_func_name = PyUnicode_FromString(function_name_.c_str());
+    PyObject* py_err_msg = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name);
+    if (py_err_msg != NULL) {
+        err_msg = PyUnicode_AsUTF8(py_err_msg);
+    } else {
+        err_msg = "";
+    }
+    Py_DECREF(py_func_name);
+#endif
+
+#ifndef SERIAL_MODE
+    // Gather all error messages from all ranks
+    int error_len = (int)strlen(err_msg);
+    int* all_error_len = new int[g_mysize];
+    MPI_Allgather(&error_len, 1, MPI_INT, all_error_len, 1, MPI_INT, MPI_COMM_WORLD);
+
+    long sum_output_len = 0;
+    int* displace = new int[g_mysize];
+    for (int r = 0; r < g_mysize; r++) {
+        displace[r] = 0;
+        sum_output_len += all_error_len[r];
+        for (int r1 = 0; r1 < r; r1++) {
+            displace[r] += all_error_len[r1];
+        }
+    }
+    char* all_error = new char[sum_output_len + 1];
+    MPI_Allgatherv(err_msg, all_error_len[g_myrank], MPI_CHAR, all_error, all_error_len, displace, MPI_CHAR,
+                   MPI_COMM_WORLD);
+
+    for (int r = 0; r < g_mysize; r++) {
+        all_error_msg_.emplace_back(std::string(all_error).substr(displace[r], all_error_len[r]));
+    }
+
+    delete[] all_error_len;
+    delete[] displace;
+    delete[] all_error;
+#else
+    all_error_msg_.emplace_back(std::string(err_msg));
 #endif
 
     return all_error_msg_;
 }
-std::string FunctionInfo::GetFunctionBody() { return std::string(); }
-void FunctionInfo::ClearAllErrorMsg() {}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  FunctionInfo
+// Method      :  GetFunctionBody
+//
+// Notes       :  1. Get function body by getting libyt.interactive_mode["func_body"][function_name_],
+//                   or else, return default "(Function body unknown)\n"
+//
+// Arguments   :  (None)
+//
+// Return      :  std::string func_body : function body
+//-------------------------------------------------------------------------------------------------------
+std::string FunctionInfo::GetFunctionBody() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    std::string func_body("(Function body unknown)\n");
+
+#ifdef USE_PYBIND11
+    pybind11::module_ libyt = pybind11::module_::import("libyt");
+    pybind11::dict py_func_body = libyt.attr("interactive_mode")["func_body"];
+    if (py_func_body.contains(function_name_)) {
+        func_body = py_func_body[function_name_.c_str()].cast<std::string>();
+    }
+#else
+    // get function body
+    PyObject* py_func_name = PyUnicode_FromString(function_name_.c_str());
+    PyObject* py_func_body = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_body"), py_func_name);
+    if (py_func_body != NULL) {
+        func_body = std::string(PyUnicode_AsUTF8(py_func_body));
+    }
+    Py_DECREF(py_func_name);
+#endif
+
+    return func_body;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  FunctionInfo
+// Method      :  ClearAllErrorMsg
+//
+// Notes       :  1. Must call by every rank.
+//                2. GetAllErrorMsg() will initiate a collective call if the cache is empty, so every
+//                   rank must call it.
+//
+// Arguments   :  (None)
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+void FunctionInfo::ClearAllErrorMsg() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    all_error_msg_.clear();
+}
 
 FunctionInfoList::FunctionInfoList(int capacity) {}
 FunctionInfoList::~FunctionInfoList() {}
