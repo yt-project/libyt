@@ -38,7 +38,7 @@ FunctionInfo::FunctionInfo(const char* function_name, RunStatus run)
 // Class       :  FunctionInfo
 // Method      :  Copy Constructor
 //
-// Notes       :  1. It is inefficient to do it this way, but we are adding func_status class to
+// Notes       :  1. It is inefficient to do it this way, but we are adding FunctionInfo class to
 //                   g_func_status_list vector, which makes a copy.
 //                   Although we can replace it to store class's pointer, I don't want to access through
 //                   arrow.
@@ -54,6 +54,21 @@ FunctionInfo::FunctionInfo(const FunctionInfo& other)
       all_status_(other.all_status_),
       all_error_msg_(other.all_error_msg_) {
     SET_TIMER(__PRETTY_FUNCTION__);
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  FunctionInfo
+// Method      :  SetStatus
+//
+// Notes       :  1. Set the status of the function at current MPI process.
+//                2. Because all_status_ represents the status of this function in every MPI process,
+//                   we also need to set all_status_, and then make it update in GetAllStatus().
+//
+// Arguments   :  ExecuteStatus status : status to set
+//-------------------------------------------------------------------------------------------------------
+void FunctionInfo::SetStatus(FunctionInfo::ExecuteStatus status) {
+    status_ = status;
+    all_status_ = kNeedUpdate;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -77,23 +92,19 @@ std::string FunctionInfo::GetFunctionNameWithInputArgs() {
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  FunctionInfo
-// Method      :  GetStatus
+// Method      :  SetStatusUsingPythonResult
 //
-// Notes       :  1. Return the status of this function at current MPI process
-//                2. If status_ = kNeedUpdate, it will check if function name exist in
-//                   libyt.interactive_mode["func_err_msg"] keys, is so, then this MPI process has failed.
-//                3. Returned cached status_ if it is not kNeedUpdate.
+// Notes       :  1. Set the status of this function at current MPI process.
+//                2. It will check if function name exist in libyt.interactive_mode["func_err_msg"] keys,
+//                   is so, then this MPI process has failed.
+//                3. Also update all_status_ to need update, so that it will sync with other ranks.
 //
 // Arguments   :  None
-//
-// Return      :  status_
 //-------------------------------------------------------------------------------------------------------
-FunctionInfo::ExecuteStatus FunctionInfo::GetStatus() {
+void FunctionInfo::SetStatusUsingPythonResult() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    if (status_ != kNeedUpdate) {
-        return status_;
-    }
+    all_status_ = kNeedUpdate;
 
     // Check if libyt.interactive_mode["func_err_msg"] contains function name as its key, failed if there is
 #ifdef USE_PYBIND11
@@ -107,8 +118,6 @@ FunctionInfo::ExecuteStatus FunctionInfo::GetStatus() {
                   : kSuccess;
     Py_DECREF(py_func_name);
 #endif
-
-    return status_;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -131,9 +140,7 @@ FunctionInfo::ExecuteStatus FunctionInfo::GetAllStatus() {
         return all_status_;
     }
 
-    if (status_ == kNeedUpdate) {
-        status_ = GetStatus();
-    }
+    SetStatusUsingPythonResult();
 
 #ifndef SERIAL_MODE
     // Sync status_ to other ranks
@@ -360,7 +367,7 @@ void FunctionInfoList::RunEveryFunction() {
 
     for (auto& function : function_list_) {
         FunctionInfo::RunStatus run = function.GetRun();
-        FunctionInfo::ExecuteStatus status = function.GetStatus();
+        FunctionInfo::ExecuteStatus status = function.GetAllStatus();
         if (run == FunctionInfo::kWillRun && status == FunctionInfo::kNotExecuteYet) {
             std::string command = std::string("try:\n"
                                               "    exec(") +
@@ -379,7 +386,7 @@ void FunctionInfoList::RunEveryFunction() {
                 function.SetStatus(FunctionInfo::kFailed);
                 log_error("Unexpected error occurred when running PyRun_SimpleString\n");
             } else {
-                function.GetStatus();
+                function.SetStatusUsingPythonResult();
             }
             log_info("Performing YT inline analysis %s ... done\n", function.GetFunctionNameWithInputArgs().c_str());
         }

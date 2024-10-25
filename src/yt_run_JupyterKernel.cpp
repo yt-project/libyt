@@ -12,6 +12,7 @@
 #include <xeus/xkernel_configuration.hpp>
 
 #include "LibytProcessControl.h"
+#include "function_info.h"
 #include "libyt_kernel.h"
 #ifndef SERIAL_MODE
 #include "libyt_worker.h"
@@ -47,9 +48,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
     }
 
     // run new added functions
-    if (g_func_status_list.run_func() != YT_SUCCESS) {
-        YT_ABORT("Something went wrong when running new added functions\n");
-    }
+    g_func_status_list.RunEveryFunction();
 
     // see if we need to start libyt kernel by checking if file flag_file_name exist.
     struct stat buffer;

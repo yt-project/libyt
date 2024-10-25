@@ -5,6 +5,7 @@
 #include <string>
 
 #include "LibytProcessControl.h"
+#include "function_info.h"
 #include "libyt.h"
 #include "yt_combo.h"
 #include "yt_rma_field.h"
@@ -834,7 +835,7 @@ int init_libyt_module() {
     LibytPythonShell::load_file_func_body(filename.c_str());
     std::vector<std::string> func_list = LibytPythonShell::get_funcname_defined(filename.c_str());
     for (int i = 0; i < (int)func_list.size(); i++) {
-        g_func_status_list.add_new_func(func_list[i].c_str(), -1);
+        g_func_status_list.AddNewFunction(func_list[i], FunctionInfo::RunStatus::kNotSetYet);
     }
 #endif
 

@@ -1,4 +1,5 @@
 #include "LibytProcessControl.h"
+#include "function_info.h"
 #include "libyt.h"
 #include "yt_combo.h"
 
@@ -19,7 +20,6 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-//
 int yt_free() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -115,7 +115,7 @@ int yt_free() {
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // Reset g_func_status_list status
-    g_func_status_list.reset();
+    g_func_status_list.ResetEveryFunctionStatus();
 #endif
     // Reset check points
     LibytProcessControl::Get().param_yt_set = false;
