@@ -29,10 +29,11 @@ public:
     void SetWrapper(const char* wrapper) { wrapper_ = wrapper; }
     RunStatus GetRun() { return run_; }
     void SetRun(RunStatus run) { run_ = run; }
-    void SetStatus(ExecuteStatus status) { status_ = status; }
+    ExecuteStatus GetStatus() { return status_; }
 
+    void SetStatus(ExecuteStatus status);
+    void SetStatusUsingPythonResult();
     std::string GetFunctionNameWithInputArgs();
-    ExecuteStatus GetStatus();
     ExecuteStatus GetAllStatus();
     std::vector<std::string>& GetAllErrorMsg();
     std::string GetFunctionBody();

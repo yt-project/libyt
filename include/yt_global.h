@@ -28,7 +28,7 @@
 // include relevant headers
 #include "yt_type.h"
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-#include "func_status_list.h"
+#include "function_info.h"
 #include "libyt_python_shell.h"
 #endif
 
@@ -39,7 +39,7 @@ SET_GLOBAL(int, g_myrank);                  // MPI rank
 SET_GLOBAL(int, g_mysize);                  // MPI size
 SET_GLOBAL(int, g_myroot);                  // MPI root rank
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-SET_GLOBAL(func_status_list, g_func_status_list, func_status_list(10));  // Inline function status list (default 10)
+SET_GLOBAL(FunctionInfoList, g_func_status_list, FunctionInfoList(10));  // Inline function status list (default 10)
 SET_GLOBAL(LibytPythonShell, g_libyt_python_shell);
 #endif
 
