@@ -6,8 +6,8 @@
 
 class FunctionInfo {
 public:
-    enum RunStatus { kNotSetYet = -1, kWillIdle = 0, kWillRun = 1 };
-    enum ExecuteStatus { kNeedUpdate = -2, kNotExecuteYet = -1, kFailed = 0, kSuccess = 1 };
+    enum RunStatus : int { kNotSetYet = -1, kWillIdle = 0, kWillRun = 1 };
+    enum ExecuteStatus : int { kNeedUpdate = -2, kNotExecuteYet = -1, kFailed = 0, kSuccess = 1 };
 
 private:
     std::string function_name_;
@@ -30,6 +30,7 @@ public:
     RunStatus GetRun() { return run_; }
     void SetRun(RunStatus run) { run_ = run; }
     ExecuteStatus GetStatus() { return status_; }
+    void SetAllStatus(ExecuteStatus status) { all_status_ = status; }
 
     void SetStatus(ExecuteStatus status);
     void SetStatusUsingPythonResult();
