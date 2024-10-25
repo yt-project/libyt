@@ -58,21 +58,6 @@ FunctionInfo::FunctionInfo(const FunctionInfo& other)
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  FunctionInfo
-// Method      :  SetStatus
-//
-// Notes       :  1. Set the status of the function at current MPI process.
-//                2. Because all_status_ represents the status of this function in every MPI process,
-//                   we also need to set all_status_, and then make it update in GetAllStatus().
-//
-// Arguments   :  ExecuteStatus status : status to set
-//-------------------------------------------------------------------------------------------------------
-void FunctionInfo::SetStatus(FunctionInfo::ExecuteStatus status) {
-    status_ = status;
-    all_status_ = kNeedUpdate;
-}
-
-//-------------------------------------------------------------------------------------------------------
-// Class       :  FunctionInfo
 // Method      :  GetFunctionNameWithInputArgs
 //
 // Notes       :  1. Return the string of how Python call this function, including arguments.
@@ -88,6 +73,23 @@ std::string FunctionInfo::GetFunctionNameWithInputArgs() {
     function_call += "(" + input_args_ + ")";
 
     return function_call;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class       :  FunctionInfo
+// Method      :  SetStatus
+//
+// Notes       :  1. Set the status of the function at current MPI process.
+//                2. Because all_status_ represents the status of this function in every MPI process,
+//                   we also need to set all_status_, and then make it update in GetAllStatus().
+//
+// Arguments   :  ExecuteStatus status : status to set
+//-------------------------------------------------------------------------------------------------------
+void FunctionInfo::SetStatus(FunctionInfo::ExecuteStatus status) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    status_ = status;
+    all_status_ = kNeedUpdate;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -128,6 +130,7 @@ void FunctionInfo::SetStatusUsingPythonResult() {
 //                2. If all_status_ = kNeedUpdate, then this is a collective call.
 //                   After checking status at local, it will sync the other ranks' status.
 //                3. Returned cached all_status_ if it is not kNeedUpdate.
+//                4. Always comes after SetStatus/SetStatusUsingPythonResult.
 //
 // Arguments   :  None
 //
@@ -139,8 +142,6 @@ FunctionInfo::ExecuteStatus FunctionInfo::GetAllStatus() {
     if (all_status_ != kNeedUpdate) {
         return all_status_;
     }
-
-    SetStatusUsingPythonResult();
 
 #ifndef SERIAL_MODE
     // Sync status_ to other ranks
@@ -285,6 +286,8 @@ void FunctionInfo::ClearAllErrorMsg() {
 //
 // Notes       :  1. Reset every function's status to FunctionInfo::kNotExecuteYet.
 //                2. Clear the error buffer.
+//                3. SetAllStatus() should come after SetStatus(), because SetStatus() will set all_status_,
+//                   which is bad.
 //
 // Arguments   :  None
 //-------------------------------------------------------------------------------------------------------
@@ -293,6 +296,7 @@ void FunctionInfoList::ResetEveryFunctionStatus() {
 
     for (auto& func : function_list_) {
         func.SetStatus(FunctionInfo::kNotExecuteYet);
+        func.SetAllStatus(FunctionInfo::kNotExecuteYet);
         func.ClearAllErrorMsg();
     }
 }
@@ -367,7 +371,7 @@ void FunctionInfoList::RunEveryFunction() {
 
     for (auto& function : function_list_) {
         FunctionInfo::RunStatus run = function.GetRun();
-        FunctionInfo::ExecuteStatus status = function.GetAllStatus();
+        FunctionInfo::ExecuteStatus status = function.GetStatus();
         if (run == FunctionInfo::kWillRun && status == FunctionInfo::kNotExecuteYet) {
             std::string command = std::string("try:\n"
                                               "    exec(") +
