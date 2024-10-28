@@ -180,8 +180,10 @@ std::vector<std::string>& FunctionInfo::GetAllErrorMsg() {
 #ifdef USE_PYBIND11
     pybind11::module_ libyt = pybind11::module_::import("libyt");
     pybind11::dict py_func_err_msg = libyt.attr("interactive_mode")["func_err_msg"];
+    std::string err_msg_str;
     if (py_func_err_msg.contains(function_name_)) {
-        err_msg = py_func_err_msg[function_name_.c_str()].cast<std::string>().c_str();
+        err_msg_str = std::string(py_func_err_msg[function_name_.c_str()].cast<std::string>());
+        err_msg = err_msg_str.c_str();
     } else {
         err_msg = "";
     }
@@ -392,6 +394,7 @@ void FunctionInfoList::RunEveryFunction() {
             } else {
                 function.SetStatusUsingPythonResult();
             }
+            FunctionInfo::ExecuteStatus all_status = function.GetAllStatus();
             log_info("Performing YT inline analysis %s ... done\n", function.GetFunctionNameWithInputArgs().c_str());
         }
     }
