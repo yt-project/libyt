@@ -160,7 +160,7 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
 int yt_run_Function(const char* function_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    yt_run_FunctionArguments(function_name, 0);
+    int result = yt_run_FunctionArguments(function_name, 0);
 
-    return YT_SUCCESS;
+    return result;
 }
