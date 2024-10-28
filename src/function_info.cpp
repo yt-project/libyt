@@ -130,7 +130,7 @@ void FunctionInfo::SetStatusUsingPythonResult() {
 //                2. If all_status_ = kNeedUpdate, then this is a collective call.
 //                   After checking status at local, it will sync the other ranks' status.
 //                3. Returned cached all_status_ if it is not kNeedUpdate.
-//                4. Always comes after SetStatus/SetStatusUsingPythonResult.
+//                4. SetStatus/SetStatusUsingPythonResult/GetAllStatus are in a group when running function.
 //
 // Arguments   :  None
 //
@@ -395,7 +395,8 @@ void FunctionInfoList::RunEveryFunction() {
                 function.SetStatusUsingPythonResult();
             }
             FunctionInfo::ExecuteStatus all_status = function.GetAllStatus();
-            log_info("Performing YT inline analysis %s ... done\n", function.GetFunctionNameWithInputArgs().c_str());
+            log_info("Performing YT inline analysis %s ... %s\n", function.GetFunctionNameWithInputArgs().c_str(),
+                     (all_status == FunctionInfo::kSuccess) ? "done" : "failed");
         }
     }
 }
