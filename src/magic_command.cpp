@@ -494,7 +494,7 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
                         std::string head;
                         if (entry_point_ == kLibytInteractiveMode || entry_point_ == kLibytJupyterKernel) {
                             head += std::string("\033[1;34m[MPI Process ") + std::to_string(r) +
-                                    std::string("]\n\033[0;30m");
+                                    std::string("]\n\033[0;37m");
                         } else {
                             head += std::string("[MPI Process ") + std::to_string(r) + std::string("]\n");
                         }
