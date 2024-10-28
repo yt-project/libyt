@@ -134,13 +134,12 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // update status in g_func_status_list
     g_func_status_list[func_index].SetStatusUsingPythonResult();
-    g_func_status_list[func_index].GetAllStatus();
+    FunctionInfo::ExecuteStatus all_status = g_func_status_list[func_index].GetAllStatus();
 #endif
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    log_info(
-        "Performing YT inline analysis %s ... %s.\n", str_function.c_str(),
-        (g_func_status_list[func_index].GetAllStatus() == FunctionInfo::ExecuteStatus::kSuccess) ? "done" : "failed");
+    log_info("Performing YT inline analysis %s ... %s.\n", str_function.c_str(),
+             (all_status == FunctionInfo::ExecuteStatus::kSuccess) ? "done" : "failed");
 #else
     log_info("Performing YT inline analysis %s ... done.\n", str_function.c_str());
 #endif
