@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "function_info.h"
 #include "yt_combo.h"
 
 int MagicCommand::root_ = g_myroot;
@@ -203,27 +204,27 @@ int MagicCommand::GetStatusHtml() {
 
     output_.output += "<table style=\"width: 100%\"><tr><th>Inline Function</th><th>Status</th><th>Run</th></tr>";
 
-    for (int i = 0; i < g_func_status_list.size(); i++) {
+    for (int i = 0; i < g_func_status_list.GetSize(); i++) {
         // Get function name
         output_.output += "<tr><td style=\"text-alight: left;\"><span style=\"font-family:'Courier New'\">";
-        output_.output += g_func_status_list[i].get_func_name();
+        output_.output += g_func_status_list[i].GetFunctionName();
         output_.output += "</span></td>";
 
         // Get function status
-        int status = g_func_status_list[i].get_status();
-        if (status == 0) {
+        FunctionInfo::ExecuteStatus status = g_func_status_list[i].GetAllStatus();
+        if (status == FunctionInfo::ExecuteStatus::kFailed) {
             output_.output += kFailedCell;
-        } else if (status == 1) {
+        } else if (status == FunctionInfo::ExecuteStatus::kSuccess) {
             output_.output += kSuccessCell;
-        } else if (status == -1) {
+        } else if (status == FunctionInfo::ExecuteStatus::kNotExecuteYet) {
             output_.output += kIdleCell;
         } else {
             output_.output += kUnknownCell;
         }
 
         // Get function run status
-        int run = g_func_status_list[i].get_run();
-        if (run == 1) {
+        FunctionInfo::RunStatus run = g_func_status_list[i].GetRun();
+        if (run == FunctionInfo::RunStatus::kWillRun) {
             output_.output += kWillRunCell;
         } else {
             output_.output += kWillIdleCell;
@@ -286,9 +287,9 @@ int MagicCommand::GetStatusText() {
              "Inline Function", "Status", "Run/Idle");
     output_.output += dest;
 
-    for (int i = 0; i < g_func_status_list.size(); i++) {
+    for (int i = 0; i < g_func_status_list.GetSize(); i++) {
         // Get function name
-        snprintf_return = snprintf(dest, kStringMaxSize, "  * %-43s", g_func_status_list[i].get_func_name());
+        snprintf_return = snprintf(dest, kStringMaxSize, "  * %-43s", g_func_status_list[i].GetFunctionName().c_str());
         if (entry_point_ == kLibytInteractiveMode) {
             output_.output += "\033[1;37m";
         }
@@ -301,20 +302,20 @@ int MagicCommand::GetStatusText() {
         }
 
         // Get function status and run
-        int run = g_func_status_list[i].get_run();
-        int status = g_func_status_list[i].get_status();
-        if (status == 0) {
+        FunctionInfo::RunStatus run = g_func_status_list[i].GetRun();
+        FunctionInfo::ExecuteStatus status = g_func_status_list[i].GetAllStatus();
+        if (status == FunctionInfo::ExecuteStatus::kFailed) {
             output_.output += kFailed;
-        } else if (status == 1) {
+        } else if (status == FunctionInfo::ExecuteStatus::kSuccess) {
             output_.output += kSuccess;
-        } else if (status == -1) {
+        } else if (status == FunctionInfo::ExecuteStatus::kNotExecuteYet) {
             output_.output += kIdle;
         } else {
             output_.output += kUnknown;
             output_.error += std::string("Unknown status code ") + std::to_string(status) + std::string("\n");
         }
 
-        if (run == 1) {
+        if (run == FunctionInfo::RunStatus::kWillRun) {
             output_.output += kV;
         } else {
             output_.output += kX;
@@ -493,7 +494,7 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
                         std::string head;
                         if (entry_point_ == kLibytInteractiveMode || entry_point_ == kLibytJupyterKernel) {
                             head += std::string("\033[1;34m[MPI Process ") + std::to_string(r) +
-                                    std::string("]\n\033[0;30m");
+                                    std::string("]\n\033[0;37m");
                         } else {
                             head += std::string("[MPI Process ") + std::to_string(r) + std::string("]\n");
                         }
@@ -542,7 +543,7 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
     // and set to idle
     std::vector<std::string> func_list = LibytPythonShell::get_funcname_defined(args[2].c_str());
     for (int i = 0; i < (int)func_list.size(); i++) {
-        g_func_status_list.add_new_func(func_list[i].c_str(), 0);
+        g_func_status_list.AddNewFunction(func_list[i], FunctionInfo::RunStatus::kWillIdle);
     }
 
     // Returned type from file must be text/plain, like other python results
@@ -617,7 +618,7 @@ int MagicCommand::SetFunctionRun(const std::vector<std::string>& args) {
     }
 
     // Get function index
-    int index = g_func_status_list.get_func_index(args[2].c_str());
+    int index = g_func_status_list.GetFunctionIndex(args[2]);
     if (index == -1) {
         output_.status = "Error";
         output_.error = std::string("Function '") + args[2] + std::string("' not found\n");
@@ -633,13 +634,13 @@ int MagicCommand::SetFunctionRun(const std::vector<std::string>& args) {
             if (!wrapper_detected) {
                 if (args[i].find("\"\"\"") != std::string::npos) {
                     wrapper_detected = true;
-                    g_func_status_list[index].set_wrapper(false);
+                    g_func_status_list[index].SetWrapper("'''");
                 } else if (args[i].find("'''") != std::string::npos) {
                     wrapper_detected = true;
-                    g_func_status_list[index].set_wrapper(true);
+                    g_func_status_list[index].SetWrapper("\"\"\"");
                 }
             } else {
-                const char* wrapper = g_func_status_list[index].get_wrapper() ? "\"\"\"" : "'''";
+                const char* wrapper = g_func_status_list[index].GetWrapper();
                 if (args[i].find(wrapper) != std::string::npos) {
                     unable_to_wrapped = true;
                 }
@@ -656,13 +657,13 @@ int MagicCommand::SetFunctionRun(const std::vector<std::string>& args) {
             return YT_FAIL;
         }
     }
-    g_func_status_list[index].set_run(true);
-    g_func_status_list[index].set_args(input_args);
+    g_func_status_list[index].SetRun(FunctionInfo::RunStatus::kWillRun);
+    g_func_status_list[index].SetInputArgs(input_args);
 
     output_.status = "Success";
     output_.output += std::string("Function '") + args[2] + std::string("' set to run ... done\n");
-    output_.output +=
-        std::string("Run ") + g_func_status_list[index].get_full_func_name() + std::string(" in next iteration\n");
+    output_.output += std::string("Run ") + g_func_status_list[index].GetFunctionNameWithInputArgs() +
+                      std::string(" in next iteration\n");
 
     return YT_SUCCESS;
 }
@@ -690,7 +691,7 @@ int MagicCommand::SetFunctionIdle(const std::vector<std::string>& args) {
     }
 
     // Get function index
-    int index = g_func_status_list.get_func_index(args[2].c_str());
+    int index = g_func_status_list.GetFunctionIndex(args[2]);
     if (index == -1) {
         output_.status = "Error";
         output_.error = std::string("Function '") + args[2] + std::string("' not found\n");
@@ -698,8 +699,8 @@ int MagicCommand::SetFunctionIdle(const std::vector<std::string>& args) {
     }
 
     std::string input_args;
-    g_func_status_list[index].set_run(false);
-    g_func_status_list[index].set_args(input_args);
+    g_func_status_list[index].SetRun(FunctionInfo::RunStatus::kWillIdle);
+    g_func_status_list[index].SetInputArgs(input_args);
 
     output_.status = "Success";
     output_.output += std::string("Function '") + args[2] + std::string("' set to idle ... done\n");
@@ -732,7 +733,7 @@ int MagicCommand::GetFunctionStatusMarkdown(const std::vector<std::string>& args
     }
 
     // Get function index
-    int index = g_func_status_list.get_func_index(args[2].c_str());
+    int index = g_func_status_list.GetFunctionIndex(args[2]);
     if (index == -1) {
         output_.status = "Error";
         output_.error = std::string("Function '") + args[2] + std::string("' not found\n");
@@ -743,24 +744,25 @@ int MagicCommand::GetFunctionStatusMarkdown(const std::vector<std::string>& args
     output_.mimetype = "text/markdown";
     output_.status = "Success";
 
-    int status = g_func_status_list[index].get_status();
+    FunctionInfo::ExecuteStatus status = g_func_status_list[index].GetAllStatus();
     if (g_myrank == root_) {
         output_.output += std::string("#### `") + args[2] + std::string("`\n");
 
         // Execute status
         output_.output += std::string("- **Execute status in previous call:** ");
-        if (status == 1) {
+        if (status == FunctionInfo::ExecuteStatus::kSuccess) {
             output_.output += std::string("_Success_\n");
-        } else if (status == 0) {
+        } else if (status == FunctionInfo::ExecuteStatus::kFailed) {
             output_.output += std::string("_Failed_\n");
-        } else if (status == -1) {
+        } else if (status == FunctionInfo::ExecuteStatus::kNotExecuteYet) {
             output_.output += std::string("_Idle_\n");
         }
 
         // Function call in next iteration
         output_.output += std::string("- **Function call in next iteration:** ");
-        if (g_func_status_list[index].get_run() == 1) {
-            output_.output += std::string("`") + g_func_status_list[index].get_full_func_name() + std::string("`\n");
+        if (g_func_status_list[index].GetRun() == FunctionInfo::RunStatus::kWillRun) {
+            output_.output +=
+                std::string("`") + g_func_status_list[index].GetFunctionNameWithInputArgs() + std::string("`\n");
         } else {
             output_.output += std::string("(None)\n");
         }
@@ -769,7 +771,7 @@ int MagicCommand::GetFunctionStatusMarkdown(const std::vector<std::string>& args
         output_.output += std::string("- **Current function definition:**\n");
         output_.output += std::string("  ```python\n");
 
-        std::string func_body = g_func_status_list[index].get_func_body();
+        std::string func_body = g_func_status_list[index].GetFunctionBody();
         std::size_t start_pos = 0, found;
         while (true) {
             found = func_body.find('\n', start_pos);
@@ -785,9 +787,9 @@ int MagicCommand::GetFunctionStatusMarkdown(const std::vector<std::string>& args
         output_.output += std::string("  ```\n");
     }
 
-    // Call getting error message if it has (status == 0), this is a collective call
-    if (status == 0) {
-        std::vector<std::string> output_error = g_func_status_list[index].get_error_msg();
+    // Call getting error message if execute status is failed, this is a collective call
+    if (status == FunctionInfo::ExecuteStatus::kFailed) {
+        std::vector<std::string> output_error = g_func_status_list[index].GetAllErrorMsg();
         if (g_myrank == root_) {
             output_.output += std::string("- **Error message from previous call:**\n");
             for (size_t r = 0; r < output_error.size(); r++) {
@@ -843,7 +845,7 @@ int MagicCommand::GetFunctionStatusText(const std::vector<std::string>& args) {
     }
 
     // Get function index
-    int index = g_func_status_list.get_func_index(args[2].c_str());
+    int index = g_func_status_list.GetFunctionIndex(args[2]);
     if (index == -1) {
         output_.status = "Error";
         output_.error = std::string("Function '") + args[2] + std::string("' not found\n");
@@ -853,15 +855,15 @@ int MagicCommand::GetFunctionStatusText(const std::vector<std::string>& args) {
     // Get function status and error msg and format it in plain text
     output_.status = "Success";
 
-    int status = g_func_status_list[index].get_status();
+    FunctionInfo::ExecuteStatus status = g_func_status_list[index].GetAllStatus();
     if (g_myrank == root_) {
         // Get status
-        output_.output += g_func_status_list[index].get_func_name() + std::string(" ... ");
-        if (status == 1) {
+        output_.output += g_func_status_list[index].GetFunctionName() + std::string(" ... ");
+        if (status == FunctionInfo::ExecuteStatus::kSuccess) {
             output_.output += std::string("success\n");
-        } else if (status == 0) {
+        } else if (status == FunctionInfo::ExecuteStatus::kFailed) {
             output_.output += std::string("failed\n");
-        } else if (status == -1) {
+        } else if (status == FunctionInfo::ExecuteStatus::kNotExecuteYet) {
             output_.output += std::string("idle\n");
         }
 
@@ -871,7 +873,7 @@ int MagicCommand::GetFunctionStatusText(const std::vector<std::string>& args) {
         } else {
             output_.output += std::string("[Function Def]\n");
         }
-        std::string func_body = g_func_status_list[index].get_func_body();
+        std::string func_body = g_func_status_list[index].GetFunctionBody();
         std::size_t start_pos = 0, found;
         while (true) {
             found = func_body.find('\n', start_pos);
@@ -887,8 +889,8 @@ int MagicCommand::GetFunctionStatusText(const std::vector<std::string>& args) {
     }
 
     // Get error msg if it failed when running in yt_run_Function/yt_run_FunctionArguments. (collective call)
-    if (status == 0) {
-        std::vector<std::string> output_error = g_func_status_list[index].get_error_msg();
+    if (status == FunctionInfo::ExecuteStatus::kFailed) {
+        std::vector<std::string> output_error = g_func_status_list[index].GetAllErrorMsg();
         if (g_myrank == root_) {
             if (entry_point_ == kLibytInteractiveMode) {
                 output_.output += std::string("\033[1;35m[Error Msg]\033[0;37m\n");

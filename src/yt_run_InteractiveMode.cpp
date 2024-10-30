@@ -10,6 +10,7 @@
 #include <string>
 
 #include "LibytProcessControl.h"
+#include "function_info.h"
 #include "magic_command.h"
 #endif
 
@@ -47,9 +48,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     fflush(stderr);
 
     // run new added function and output func_status summary
-    if (g_func_status_list.run_func() != YT_SUCCESS) {
-        YT_ABORT("Something went wrong when running new added functions\n");
-    }
+    g_func_status_list.RunEveryFunction();
     MagicCommand command(MagicCommand::EntryPoint::kLibytInteractiveMode);
     MagicCommandOutput command_result = command.Run("%libyt status");
     if (g_myroot == g_myrank) {
