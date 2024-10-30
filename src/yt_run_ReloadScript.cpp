@@ -60,9 +60,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
     fflush(stderr);
 
     // run new added function and output func_status summary
-    if (g_func_status_list.run_func() != YT_SUCCESS) {
-        YT_ABORT("Something went wrong when running new added functions\n");
-    }
+    g_func_status_list.RunEveryFunction();
     MagicCommand command(MagicCommand::EntryPoint::kLibytReloadScript);
     MagicCommandOutput command_result = command.Run("%libyt status");
     if (g_myroot == g_myrank) {
@@ -73,8 +71,9 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
     bool remove_flag_file = false;
     if (!detect_file(flag_file_name)) {
         bool enter_reload = false;
-        for (int i = 0; i < g_func_status_list.size(); i++) {
-            if ((g_func_status_list[i].get_run() == 1) && (g_func_status_list[i].get_status() == 0)) {
+        for (int i = 0; i < g_func_status_list.GetSize(); i++) {
+            if (g_func_status_list[i].GetRun() == FunctionInfo::RunStatus::kWillRun &&
+                g_func_status_list[i].GetAllStatus() == FunctionInfo::ExecuteStatus::kFailed) {
                 enter_reload = true;
                 break;
             }
