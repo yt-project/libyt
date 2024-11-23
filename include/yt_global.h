@@ -35,9 +35,6 @@
 // add the prefix "g_" for all global C variables
 SET_GLOBAL(yt_param_libyt, g_param_libyt);  // libyt runtime parameters
 SET_GLOBAL(yt_param_yt, g_param_yt);        // YT parameters
-SET_GLOBAL(int, g_myrank);                  // MPI rank
-SET_GLOBAL(int, g_mysize);                  // MPI size
-SET_GLOBAL(int, g_myroot);                  // MPI root rank
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
 SET_GLOBAL(FunctionInfoList, g_func_status_list, FunctionInfoList(10));  // Inline function status list (default 10)
 SET_GLOBAL(LibytPythonShell, g_libyt_python_shell);
@@ -54,14 +51,6 @@ SET_GLOBAL(PyObject, *g_py_libyt_info, NULL);     // Python dictionary to store 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
 SET_GLOBAL(PyObject, *g_py_interactive_mode, NULL);  // Python dictionary to store interactive_mode stuff
 #endif
-#endif
-
-#ifndef SERIAL_MODE
-// user-defined MPI data type
-SET_GLOBAL(MPI_Datatype, yt_long_mpi_type);
-SET_GLOBAL(MPI_Datatype, yt_hierarchy_mpi_type);
-SET_GLOBAL(MPI_Datatype, yt_rma_grid_info_mpi_type);
-SET_GLOBAL(MPI_Datatype, yt_rma_particle_info_mpi_type);
 #endif
 
 // remove macros used locally

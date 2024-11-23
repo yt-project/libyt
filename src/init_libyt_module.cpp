@@ -103,7 +103,7 @@ static PyObject* libyt_field_derived_func(PyObject* self, PyObject* args) {
         PyErr_Format(PyExc_ValueError, "Cannot get grid [%ld] dimensions or MPI rank.\n", gid);
         return NULL;
     }
-    if (proc_num != g_myrank) {
+    if (proc_num != LibytProcessControl::Get().mpi_rank_) {
         PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal grid. Grid [%ld] is on MPI rank [%d].\n", gid,
                      proc_num);
         return NULL;
@@ -253,7 +253,7 @@ static PyObject* libyt_particle_get_particle(PyObject* self, PyObject* args) {
         PyErr_Format(PyExc_ValueError, "Cannot get particle number in grid [%ld] or MPI rank.\n", gid);
         return NULL;
     }
-    if (proc_num != g_myrank) {
+    if (proc_num != LibytProcessControl::Get().mpi_rank_) {
         PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal particles. Grid [%ld] is on MPI rank [%d].\n", gid,
                      proc_num);
         return NULL;
@@ -780,7 +780,7 @@ int init_libyt_module() {
 #endif
 
     // check if script exist
-    if (g_myrank == 0) {
+    if (LibytProcessControl::Get().mpi_rank_ == 0) {
         struct stat buffer;
         std::string script_fullname = std::string(g_param_libyt.script) + std::string(".py");
         if (stat(script_fullname.c_str(), &buffer) == 0) {

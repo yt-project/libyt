@@ -66,8 +66,12 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
     const char* kernel_pid_filename = "libyt_kernel_pid.txt";
     const char* kernel_connection_filename = "libyt_kernel_connection.json";
 
+    int mpi_rank = LibytProcessControl::Get().mpi_rank_;
+    int mpi_root = LibytProcessControl::Get().mpi_root_;
+    int mpi_size = LibytProcessControl::Get().mpi_size_;
+
     // Launch libyt kernel on root process
-    if (g_myrank == g_myroot) {
+    if (mpi_rank == mpi_root) {
         // Get root process PID
         std::ofstream file;
         file.open(kernel_pid_filename, std::ios::out | std::ios::trunc);
@@ -189,7 +193,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
     }
 #ifndef SERIAL_MODE
     else {
-        LibytWorker libyt_worker(g_myrank, g_mysize, g_myroot);
+        LibytWorker libyt_worker(mpi_rank, mpi_size, mpi_root);
         libyt_worker.start();
     }
 #endif

@@ -6,8 +6,13 @@
 #include <Python.h>
 #endif
 
+#include "LibytProcessControl.h"
 #include "function_info.h"
 #include "yt_combo.h"
+
+int FunctionInfo::mpi_rank_;
+int FunctionInfo::mpi_root_;
+int FunctionInfo::mpi_size_;
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  FunctionInfo
@@ -32,6 +37,9 @@ FunctionInfo::FunctionInfo(const char* function_name, RunStatus run)
       all_status_(kNotExecuteYet),
       all_error_msg_() {
     SET_TIMER(__PRETTY_FUNCTION__);
+    mpi_rank_ = LibytProcessControl::Get().mpi_rank_;
+    mpi_root_ = LibytProcessControl::Get().mpi_root_;
+    mpi_size_ = LibytProcessControl::Get().mpi_size_;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -148,7 +156,7 @@ FunctionInfo::ExecuteStatus FunctionInfo::GetAllStatus() {
     int total_status = 0;
     int my_status = (status_ == kSuccess) ? 1 : 0;
     MPI_Allreduce(&my_status, &total_status, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    all_status_ = (total_status == g_mysize) ? kSuccess : kFailed;
+    all_status_ = (total_status == mpi_size_) ? kSuccess : kFailed;
 #else
     all_status_ = status_;
 #endif
@@ -201,12 +209,12 @@ std::vector<std::string>& FunctionInfo::GetAllErrorMsg() {
 #ifndef SERIAL_MODE
     // Gather all error messages from all ranks
     int error_len = (int)strlen(err_msg);
-    int* all_error_len = new int[g_mysize];
+    int* all_error_len = new int[mpi_size_];
     MPI_Allgather(&error_len, 1, MPI_INT, all_error_len, 1, MPI_INT, MPI_COMM_WORLD);
 
     long sum_output_len = 0;
-    int* displace = new int[g_mysize];
-    for (int r = 0; r < g_mysize; r++) {
+    int* displace = new int[mpi_size_];
+    for (int r = 0; r < mpi_size_; r++) {
         displace[r] = 0;
         sum_output_len += all_error_len[r];
         for (int r1 = 0; r1 < r; r1++) {
@@ -214,10 +222,10 @@ std::vector<std::string>& FunctionInfo::GetAllErrorMsg() {
         }
     }
     char* all_error = new char[sum_output_len + 1];
-    MPI_Allgatherv(err_msg, all_error_len[g_myrank], MPI_CHAR, all_error, all_error_len, displace, MPI_CHAR,
+    MPI_Allgatherv(err_msg, all_error_len[mpi_rank_], MPI_CHAR, all_error, all_error_len, displace, MPI_CHAR,
                    MPI_COMM_WORLD);
 
-    for (int r = 0; r < g_mysize; r++) {
+    for (int r = 0; r < mpi_size_; r++) {
         all_error_msg_.emplace_back(std::string(all_error).substr(displace[r], all_error_len[r]));
     }
 

@@ -43,6 +43,7 @@ int yt_get_GridsPtr(yt_grid** grids_local) {
     log_info("Getting pointer to local grids information ...\n");
 
     // If user call for the first time.
+    int mpi_rank = LibytProcessControl::Get().mpi_rank_;
     if (!LibytProcessControl::Get().get_gridsPtr) {
         // Initialize the grids_local array.
         // Set the value if overlapped with g_param_yt,
@@ -50,7 +51,7 @@ int yt_get_GridsPtr(yt_grid** grids_local) {
         *grids_local = new yt_grid[g_param_yt.num_grids_local];
         yt_particle* particle_list = LibytProcessControl::Get().particle_list;
         for (int id = 0; id < g_param_yt.num_grids_local; id = id + 1) {
-            (*grids_local)[id].proc_num = g_myrank;
+            (*grids_local)[id].proc_num = mpi_rank;
 
             if (g_param_yt.num_fields > 0) {
                 // Array for storing pointers for fields in a grid

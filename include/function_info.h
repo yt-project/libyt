@@ -17,6 +17,9 @@ private:
     ExecuteStatus status_;
     ExecuteStatus all_status_;
     std::vector<std::string> all_error_msg_;
+    static int mpi_size_;
+    static int mpi_root_;
+    static int mpi_rank_;
 
 public:
     FunctionInfo(const char* function_name, RunStatus run);

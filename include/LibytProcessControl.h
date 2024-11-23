@@ -4,6 +4,10 @@
 #include "TimerControl.h"
 #include "yt_type.h"
 
+#ifndef SERIAL_MODE
+#include <mpi.h>
+#endif
+
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytProcessControl
 // Description :  Singleton to deal with libyt internal process. (not thread-safe)
@@ -11,8 +15,15 @@
 class LibytProcessControl {
 public:
     // MPI info
-    int my_rank;
-    int my_size;
+    int mpi_rank_;
+    int mpi_size_;
+    int mpi_root_;
+#ifndef SERIAL_MODE
+    MPI_Datatype yt_long_mpi_type_;
+    MPI_Datatype yt_hierarchy_mpi_type_;
+    MPI_Datatype yt_rma_grid_info_mpi_type_;
+    MPI_Datatype yt_rma_particle_info_mpi_type_;
+#endif
 
 #ifdef SUPPORT_TIMER
     // Timer Control
