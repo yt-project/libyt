@@ -8,7 +8,6 @@
 #include "LibytProcessControl.h"
 #include "libyt.h"
 
-static void init_general_info();
 static void print_libyt_info();
 #ifndef SERIAL_MODE
 static void init_yt_long_mpi_type();
@@ -44,9 +43,6 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
     // still need to check "init_count" since yt_finalize() will set "g_param_libyt.libyt_initialized = false"
     if (LibytProcessControl::Get().libyt_initialized || init_count >= 2)
         YT_ABORT("yt_initialize() should not be called more than once!\n");
-
-    // Initialize general info: mpi size and rank ...
-    init_general_info();
 
     // store user-provided parameters to a libyt internal variable
     // --> better do it **before** calling any log function since they will query g_param_libyt.verbose
@@ -124,19 +120,6 @@ static void print_libyt_info() {
 #endif
 }
 
-static void init_general_info() {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
-#ifndef SERIAL_MODE
-    MPI_Comm_size(MPI_COMM_WORLD, &g_mysize);
-    MPI_Comm_rank(MPI_COMM_WORLD, &g_myrank);
-#else
-    g_mysize = 1;
-    g_myrank = 0;
-#endif
-    g_myroot = 0;
-}
-
 #ifndef SERIAL_MODE
 static void init_yt_long_mpi_type() {
     SET_TIMER(__PRETTY_FUNCTION__);
@@ -144,8 +127,8 @@ static void init_yt_long_mpi_type() {
     int length[1] = {1};
     const MPI_Aint displacements[1] = {0};
     MPI_Datatype types[1] = {MPI_LONG};
-    MPI_Type_create_struct(1, length, displacements, types, &yt_long_mpi_type);
-    MPI_Type_commit(&yt_long_mpi_type);
+    MPI_Type_create_struct(1, length, displacements, types, &LibytProcessControl::Get().yt_long_mpi_type_);
+    MPI_Type_commit(&LibytProcessControl::Get().yt_long_mpi_type_);
 }
 
 static void init_yt_hierarchy_mpi_type() {
@@ -160,8 +143,8 @@ static void init_yt_hierarchy_mpi_type() {
                                        6 * sizeof(double) + 2 * sizeof(long) + 3 * sizeof(int),
                                        6 * sizeof(double) + 2 * sizeof(long) + 4 * sizeof(int)};
     MPI_Datatype types[7] = {MPI_DOUBLE, MPI_DOUBLE, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT};
-    MPI_Type_create_struct(7, lengths, displacements, types, &yt_hierarchy_mpi_type);
-    MPI_Type_commit(&yt_hierarchy_mpi_type);
+    MPI_Type_create_struct(7, lengths, displacements, types, &LibytProcessControl::Get().yt_hierarchy_mpi_type_);
+    MPI_Type_commit(&LibytProcessControl::Get().yt_hierarchy_mpi_type_);
 }
 
 static void init_yt_rma_grid_info_mpi_type() {
@@ -172,8 +155,8 @@ static void init_yt_rma_grid_info_mpi_type() {
                                        1 * sizeof(long) + 1 * sizeof(MPI_Aint) + 1 * sizeof(int),
                                        1 * sizeof(long) + 1 * sizeof(MPI_Aint) + 2 * sizeof(int)};
     MPI_Datatype types[5] = {MPI_LONG, MPI_AINT, MPI_INT, MPI_INT, MPI_INT};
-    MPI_Type_create_struct(5, lengths, displacements, types, &yt_rma_grid_info_mpi_type);
-    MPI_Type_commit(&yt_rma_grid_info_mpi_type);
+    MPI_Type_create_struct(5, lengths, displacements, types, &LibytProcessControl::Get().yt_rma_grid_info_mpi_type_);
+    MPI_Type_commit(&LibytProcessControl::Get().yt_rma_grid_info_mpi_type_);
 }
 
 static void init_yt_rma_particle_info_mpi_type() {
@@ -183,7 +166,7 @@ static void init_yt_rma_particle_info_mpi_type() {
     const MPI_Aint displacements[4] = {0, 1 * sizeof(long), 1 * sizeof(long) + 1 * sizeof(MPI_Aint),
                                        2 * sizeof(long) + 1 * sizeof(MPI_Aint)};
     MPI_Datatype types[4] = {MPI_LONG, MPI_AINT, MPI_LONG, MPI_INT};
-    MPI_Type_create_struct(4, lengths, displacements, types, &yt_rma_particle_info_mpi_type);
-    MPI_Type_commit(&yt_rma_particle_info_mpi_type);
+    MPI_Type_create_struct(4, lengths, displacements, types, &LibytProcessControl::Get().yt_rma_particle_info_mpi_type_);
+    MPI_Type_commit(&LibytProcessControl::Get().yt_rma_particle_info_mpi_type_);
 }
 #endif

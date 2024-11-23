@@ -183,7 +183,7 @@ int yt_set_Parameters(yt_param_yt* param_yt) {
         // Prevent input long type and exceed int storage
         log_warning(
             "Number of local grids = %d at MPI rank %d, probably because of exceeding int storage or wrong input!\n",
-            g_param_yt.num_grids_local, g_myrank);
+            g_param_yt.num_grids_local, LibytProcessControl::Get().mpi_rank_);
 
         // if < 0, set it to 0, to avoid adding negative num_grids_local when checking num_grids.
         g_param_yt.num_grids_local = 0;

@@ -259,7 +259,8 @@ int yt_getGridInfo_FieldData(const long gid, const char* field_name, yt_data* fi
 
     if (PyDict_Contains(g_py_grid_data, py_grid_id) != 1 ||
         PyDict_Contains(PyDict_GetItem(g_py_grid_data, py_grid_id), py_field) != 1) {
-        log_error("Cannot find grid [%ld] data [%s] on MPI rank [%d].\n", gid, field_name, g_myrank);
+        log_error("Cannot find grid [%ld] data [%s] on MPI rank [%d].\n", gid, field_name,
+                  LibytProcessControl::Get().mpi_rank_);
         Py_DECREF(py_grid_id);
         Py_DECREF(py_field);
         return YT_FAIL;
@@ -325,7 +326,7 @@ int yt_getGridInfo_ParticleData(const long gid, const char* ptype, const char* a
         PyDict_Contains(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype) != 1 ||
         PyDict_Contains(PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr) != 1) {
         log_error("Cannot find particle type [%s] attribute [%s] data in grid [%ld] on MPI rank [%d].\n", ptype, attr,
-                  gid, g_myrank);
+                  gid, LibytProcessControl::Get().mpi_rank_);
         Py_DECREF(py_grid_id);
         Py_DECREF(py_ptype);
         Py_DECREF(py_attr);

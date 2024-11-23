@@ -54,6 +54,11 @@ LibytProcessControl LibytProcessControl::s_Instance;
 //               par_count_list      :
 //-------------------------------------------------------------------------------------------------------
 LibytProcessControl::LibytProcessControl() {
+    // MPI info
+    mpi_rank_ = 0;
+    mpi_size_ = 1;
+    mpi_root_ = 0;
+
     // Check points for libyt process
     libyt_initialized = false;
     param_yt_set = false;
@@ -89,11 +94,8 @@ LibytProcessControl::LibytProcessControl() {
 //-------------------------------------------------------------------------------------------------------
 void LibytProcessControl::Initialize() {
 #ifndef SERIAL_MODE
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &my_size);
-#else
-    my_rank = 0;
-    my_size = 1;
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
 #endif
 
 #ifdef SUPPORT_TIMER

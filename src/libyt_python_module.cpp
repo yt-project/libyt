@@ -88,7 +88,7 @@ pybind11::array derived_func(long gid, const char* field_name) {
         throw pybind11::value_error(error_msg.c_str());
     }
 
-    if (proc_num != g_myrank) {
+    if (proc_num != LibytProcessControl::Get().mpi_rank_) {
         std::string error_msg = "Trying to prepare nonlocal grid. Grid [ " + std::to_string(gid) +
                                 " ] is on MPI rank [ " + std::to_string(proc_num) + " ].\n";
         throw pybind11::value_error(error_msg.c_str());
@@ -200,7 +200,7 @@ pybind11::array get_particle(long gid, const char* ptype, const char* attr_name)
         throw pybind11::value_error(error_msg.c_str());
     }
 
-    if (proc_num != g_myrank) {
+    if (proc_num != LibytProcessControl::Get().mpi_rank_) {
         std::string error_msg = "Trying to prepare nonlocal particles. Grid [ " + std::to_string(gid) +
                                 " ] is on MPI rank [ " + std::to_string(proc_num) + " ].\n";
         throw pybind11::value_error(error_msg.c_str());

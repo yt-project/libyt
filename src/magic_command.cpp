@@ -5,10 +5,13 @@
 #include <fstream>
 #include <sstream>
 
+#include "LibytProcessControl.h"
 #include "function_info.h"
 #include "yt_combo.h"
 
-int MagicCommand::root_ = g_myroot;
+int MagicCommand::mpi_root_;
+int MagicCommand::mpi_rank_;
+int MagicCommand::mpi_size_;
 
 //-------------------------------------------------------------------------------------------------------
 // Method      :  SplitBySpace
@@ -33,6 +36,14 @@ static std::vector<std::string> SplitBySpace(const std::string& code) {
     return output;
 }
 
+MagicCommand::MagicCommand(EntryPoint entry_point) : output_(), entry_point_(entry_point), command_undefined_(true) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    mpi_rank_ = LibytProcessControl::Get().mpi_rank_;
+    mpi_size_ = LibytProcessControl::Get().mpi_size_;
+    mpi_root_ = LibytProcessControl::Get().mpi_root_;
+}
+
 //-------------------------------------------------------------------------------------------------------
 // Class       :  MagicCommand
 // Method      :  Run
@@ -52,19 +63,19 @@ MagicCommandOutput& MagicCommand::Run(const std::string& command) {
 
     // Get command from root_ if command is empty
 #ifndef SERIAL_MODE
-    if (g_myrank == root_) {
+    if (mpi_rank_ == mpi_root_) {
         int code_len = (int)command.length();
-        MPI_Bcast(&code_len, 1, MPI_INT, root_, MPI_COMM_WORLD);
-        MPI_Bcast((void*)command.c_str(), code_len, MPI_CHAR, root_, MPI_COMM_WORLD);
+        MPI_Bcast(&code_len, 1, MPI_INT, mpi_root_, MPI_COMM_WORLD);
+        MPI_Bcast((void*)command.c_str(), code_len, MPI_CHAR, mpi_root_, MPI_COMM_WORLD);
 
         command_ = command;
     } else {
         int code_len;
-        MPI_Bcast(&code_len, 1, MPI_INT, root_, MPI_COMM_WORLD);
+        MPI_Bcast(&code_len, 1, MPI_INT, mpi_root_, MPI_COMM_WORLD);
 
         char* code;
         code = (char*)malloc((code_len + 1) * sizeof(char));
-        MPI_Bcast(code, code_len, MPI_CHAR, root_, MPI_COMM_WORLD);
+        MPI_Bcast(code, code_len, MPI_CHAR, mpi_root_, MPI_COMM_WORLD);
         code[code_len] = '\0';
 
         command_ = std::string(code);
@@ -124,7 +135,7 @@ MagicCommandOutput& MagicCommand::Run(const std::string& command) {
         output_.error = std::string("Unknown libyt command : ") + command_ + std::string("\n") +
                         std::string("(Type %libyt help for help ...)");
     }
-    if (write_to_history && g_myrank == root_) {
+    if (write_to_history && mpi_rank_ == mpi_root_) {
         g_libyt_python_shell.update_prompt_history(std::string("# ") + command_ + std::string("\n"));
     }
 
@@ -448,14 +459,14 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
 
     // Root rank checks and broadcast the script, if worked, everyone calls execute_file
     bool python_run_successfully = false;
-    if (g_myrank == root_) {
+    if (mpi_rank_ == mpi_root_) {
         // make sure file exist and read the file
         std::ifstream stream;
         stream.open(args[2]);
         if (!stream) {
 #ifndef SERIAL_MODE
             int indicator = -1;
-            MPI_Bcast(&indicator, 1, MPI_INT, root_, MPI_COMM_WORLD);
+            MPI_Bcast(&indicator, 1, MPI_INT, mpi_root_, MPI_COMM_WORLD);
 #endif
             output_.status = "Error";
             output_.error = std::string("File ") + args[2] + std::string("doesn't exist.\n");
@@ -475,7 +486,7 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
             // Run file and format output from the results, and check if Python run successfully
 #ifndef SERIAL_MODE
             int indicator = 1;
-            MPI_Bcast(&indicator, 1, MPI_INT, root_, MPI_COMM_WORLD);
+            MPI_Bcast(&indicator, 1, MPI_INT, mpi_root_, MPI_COMM_WORLD);
 #endif
             std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_file(ss.str(), args[2]);
             if (output[1].output_string.empty()) {
@@ -484,13 +495,13 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
                 python_run_successfully = false;
             }
 #ifndef SERIAL_MODE
-            MPI_Bcast(&python_run_successfully, 1, MPI_C_BOOL, root_, MPI_COMM_WORLD);
+            MPI_Bcast(&python_run_successfully, 1, MPI_C_BOOL, mpi_root_, MPI_COMM_WORLD);
 #endif
 
             for (int i = 0; i < 2; i++) {
                 if (!output[i].output_string.empty()) {
                     size_t offset = 0;
-                    for (int r = 0; r < g_mysize; r++) {
+                    for (int r = 0; r < mpi_size_; r++) {
                         std::string head;
                         if (entry_point_ == kLibytInteractiveMode || entry_point_ == kLibytJupyterKernel) {
                             head += std::string("\033[1;34m[MPI Process ") + std::to_string(r) +
@@ -512,7 +523,7 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
         } else {
 #ifndef SERIAL_MODE
             int indicator = -1;
-            MPI_Bcast(&indicator, 1, MPI_INT, root_, MPI_COMM_WORLD);
+            MPI_Bcast(&indicator, 1, MPI_INT, mpi_root_, MPI_COMM_WORLD);
 #endif
             output_.status = "Error";
             output_.error = code_validity.error_msg + std::string("\n");
@@ -524,14 +535,14 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
     else {
         // return YT_FAIL if no file found or file cannot compile
         int indicator;
-        MPI_Bcast(&indicator, 1, MPI_INT, root_, MPI_COMM_WORLD);
+        MPI_Bcast(&indicator, 1, MPI_INT, mpi_root_, MPI_COMM_WORLD);
 
         if (indicator < 0) {
             output_.status = "Error";
             return YT_FAIL;
         } else {
             std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_file();
-            MPI_Bcast(&python_run_successfully, 1, MPI_C_BOOL, root_, MPI_COMM_WORLD);
+            MPI_Bcast(&python_run_successfully, 1, MPI_C_BOOL, mpi_root_, MPI_COMM_WORLD);
         }
     }
 #endif
@@ -582,7 +593,7 @@ int MagicCommand::ExportScript(const std::vector<std::string>& args) {
         return YT_FAIL;
     }
 
-    if (g_myrank == root_) {
+    if (mpi_rank_ == mpi_root_) {
         std::ofstream dump_file;
         dump_file.open(args[2], std::ofstream::trunc);
         dump_file << g_libyt_python_shell.get_prompt_history();
@@ -745,7 +756,7 @@ int MagicCommand::GetFunctionStatusMarkdown(const std::vector<std::string>& args
     output_.status = "Success";
 
     FunctionInfo::ExecuteStatus status = g_func_status_list[index].GetAllStatus();
-    if (g_myrank == root_) {
+    if (mpi_rank_ == mpi_root_) {
         output_.output += std::string("#### `") + args[2] + std::string("`\n");
 
         // Execute status
@@ -790,7 +801,7 @@ int MagicCommand::GetFunctionStatusMarkdown(const std::vector<std::string>& args
     // Call getting error message if execute status is failed, this is a collective call
     if (status == FunctionInfo::ExecuteStatus::kFailed) {
         std::vector<std::string> output_error = g_func_status_list[index].GetAllErrorMsg();
-        if (g_myrank == root_) {
+        if (mpi_rank_ == mpi_root_) {
             output_.output += std::string("- **Error message from previous call:**\n");
             for (size_t r = 0; r < output_error.size(); r++) {
                 if (output_error[r].empty()) continue;
@@ -856,7 +867,7 @@ int MagicCommand::GetFunctionStatusText(const std::vector<std::string>& args) {
     output_.status = "Success";
 
     FunctionInfo::ExecuteStatus status = g_func_status_list[index].GetAllStatus();
-    if (g_myrank == root_) {
+    if (mpi_rank_ == mpi_root_) {
         // Get status
         output_.output += g_func_status_list[index].GetFunctionName() + std::string(" ... ");
         if (status == FunctionInfo::ExecuteStatus::kSuccess) {
@@ -891,7 +902,7 @@ int MagicCommand::GetFunctionStatusText(const std::vector<std::string>& args) {
     // Get error msg if it failed when running in yt_run_Function/yt_run_FunctionArguments. (collective call)
     if (status == FunctionInfo::ExecuteStatus::kFailed) {
         std::vector<std::string> output_error = g_func_status_list[index].GetAllErrorMsg();
-        if (g_myrank == root_) {
+        if (mpi_rank_ == mpi_root_) {
             if (entry_point_ == kLibytInteractiveMode) {
                 output_.output += std::string("\033[1;35m[Error Msg]\033[0;37m\n");
             } else {

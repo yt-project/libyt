@@ -4,6 +4,8 @@
 #include <stdarg.h>
 #include <string.h>
 
+#include "LibytProcessControl.h"
+
 // width of log prefix ==> [LogPrefixWidth] messages
 static const int LogPrefixWidth = 10;
 
@@ -24,7 +26,7 @@ static const int LogPrefixWidth = 10;
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
 void log_info(const char* format, ...) {
-    if (g_myrank != 0) return;
+    if (LibytProcessControl::Get().mpi_rank_ != 0) return;
 
     // work only for verbose level >= YT_VERBOSE_INFO
     if (g_param_libyt.verbose < YT_VERBOSE_INFO) return;

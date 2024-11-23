@@ -47,11 +47,15 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     fflush(stdout);
     fflush(stderr);
 
+    int mpi_root = LibytProcessControl::Get().mpi_root_;
+    int mpi_rank = LibytProcessControl::Get().mpi_rank_;
+    int mpi_size = LibytProcessControl::Get().mpi_size_;
+
     // run new added function and output func_status summary
     g_func_status_list.RunEveryFunction();
     MagicCommand command(MagicCommand::EntryPoint::kLibytInteractiveMode);
     MagicCommandOutput command_result = command.Run("%libyt status");
-    if (g_myroot == g_myrank) {
+    if (mpi_root == mpi_rank) {
         std::cout << command_result.output << std::endl;
     }
 
@@ -69,7 +73,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     const char* ps2 = "... ";
     const char* prompt = ps1;
     bool done = false;
-    int root = g_myroot;
+    int root = mpi_root;
 
     // input line and error msg
     int input_len, code_len;
@@ -85,7 +89,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     // enter interactive loop
     while (!done) {
         // root: prompt and input
-        if (g_myrank == root) {
+        if (mpi_rank == root) {
             input_line = readline(prompt);
             if (input_line == NULL) continue;
 
@@ -158,7 +162,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                     for (int i = 0; i < 2; i++) {
                         if (output[i].output_string.length() > 0) {
                             int offset = 0;
-                            for (int r = 0; r < g_mysize; r++) {
+                            for (int r = 0; r < mpi_size; r++) {
                                 printf("\033[1;34m[MPI Process %d]\033[0;37m\n", r);
                                 if (output[i].output_length[r] == 0) {
                                     printf("(None)\n");

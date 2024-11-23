@@ -114,18 +114,18 @@ int yt_rma_particle::prepare_data(long& gid) {
     // Make sure particle type and its attribute name exist.
     if (m_ParticleIndex == -1) {
         YT_ABORT("yt_rma_particle: Cannot find particle type [ %s ] in particle_list on MPI rank [ %d ].\n",
-                 m_ParticleType, g_myrank);
+                 m_ParticleType, LibytProcessControl::Get().mpi_rank_);
     }
     if (m_AttributeIndex == -1) {
         YT_ABORT("yt_rma_particle: Cannot find attribute name [ %s ] in particle type [ %s ] on MPI rank [ %d ].\n",
-                 m_AttributeName, m_ParticleType, g_myrank);
+                 m_AttributeName, m_ParticleType, LibytProcessControl::Get().mpi_rank_);
     }
 
     // Get particle info
     yt_rma_particle_info par_info;
     par_info.id = gid;
     yt_getGridInfo_ProcNum(gid, &(par_info.rank));
-    if (par_info.rank != g_myrank) {
+    if (par_info.rank != LibytProcessControl::Get().mpi_rank_) {
         YT_ABORT("yt_rma_particle: Trying to prepare nonlocal particle data in grid [%ld] that is on MPI rank [%d].\n",
                  gid, par_info.rank);
     }
@@ -247,9 +247,11 @@ int yt_rma_particle::gather_all_prepare_data(int root) {
 
     // Gather PreparedInfoList, which is m_Prepare in each rank, perform big_MPI_Gatherv and big_MPI_Bcast
     m_AllPrepare = new yt_rma_particle_info[m_LenAllPrepare];
-    big_MPI_Gatherv<yt_rma_particle_info>(root, SendCount, (void*)PreparedInfoList, &yt_rma_particle_info_mpi_type,
+    big_MPI_Gatherv<yt_rma_particle_info>(root, SendCount, (void*)PreparedInfoList,
+                                          &LibytProcessControl::Get().yt_rma_particle_info_mpi_type_,
                                           (void*)m_AllPrepare);
-    big_MPI_Bcast<yt_rma_particle_info>(root, m_LenAllPrepare, (void*)m_AllPrepare, &yt_rma_particle_info_mpi_type);
+    big_MPI_Bcast<yt_rma_particle_info>(root, m_LenAllPrepare, (void*)m_AllPrepare,
+                                        &LibytProcessControl::Get().yt_rma_particle_info_mpi_type_);
 
     // Open window epoch.
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOPRECEDE, m_Window);
@@ -291,7 +293,7 @@ int yt_rma_particle::fetch_remote_data(long& gid, int& rank) {
     }
     if (get_remote_gid != true) {
         YT_ABORT("yt_rma_particle: Cannot get remote grid id [ %ld ] located in rank [ %d ] on MPI rank [ %d ].\n", gid,
-                 rank, g_myrank);
+                 rank, LibytProcessControl::Get().mpi_rank_);
     }
     void* fetchedData;
 

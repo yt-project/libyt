@@ -6,6 +6,7 @@
 
 #include "libyt.h"
 #include "libyt_python_shell.h"
+#include "LibytProcessControl.h"
 #include "magic_command.h"
 #include "yt_combo.h"
 
@@ -76,7 +77,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
         // call magic command
 #ifndef SERIAL_MODE
         int indicator = 2;
-        MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+        MPI_Bcast(&indicator, 1, MPI_INT, LibytProcessControl::Get().mpi_root_, MPI_COMM_WORLD);
 #endif
         MagicCommand command(MagicCommand::EntryPoint::kLibytJupyterKernel);
         MagicCommandOutput command_output = command.Run(code.substr(found, code.length() - found));
@@ -135,7 +136,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     // TODO: It is a bad practice to send execute signal msg to other ranks like this, should wrap in function.
 #ifndef SERIAL_MODE
     int indicator = 1;
-    MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+    MPI_Bcast(&indicator, 1, MPI_INT, LibytProcessControl::Get().mpi_root_, MPI_COMM_WORLD);
 #endif
     std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_cell(code_split, cell_name);
 
@@ -143,7 +144,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     for (int i = 0; i < 2; i++) {
         if (output[i].output_string.length() > 0) {
             int offset = 0;
-            for (int r = 0; r < g_mysize; r++) {
+            for (int r = 0; r < LibytProcessControl::Get().mpi_size_; r++) {
                 std::string head =
                     std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\n\033[0;30m");
                 if (output[i].output_length[r] == 0) {
@@ -350,7 +351,7 @@ void LibytKernel::shutdown_request_impl() {
 
 #ifndef SERIAL_MODE
     int indicator = -1;
-    MPI_Bcast(&indicator, 1, MPI_INT, g_myrank, MPI_COMM_WORLD);
+    MPI_Bcast(&indicator, 1, MPI_INT, LibytProcessControl::Get().mpi_rank_, MPI_COMM_WORLD);
 #endif
 
     if (m_py_jedi_interpreter != NULL) {

@@ -29,8 +29,17 @@ private:
 
     static PyObject* s_PyGlobals;
 
+    static int mpi_size_;
+    static int mpi_root_;
+    static int mpi_rank_;
+
 public:
-    LibytPythonShell() : m_PromptHistory(""), m_PromptHistoryCount(0) {}
+    LibytPythonShell() : m_PromptHistory(""), m_PromptHistoryCount(0) {};
+    static void SetMPIInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
+        mpi_size_ = mpi_size;
+        mpi_root_ = mpi_root;
+        mpi_rank_ = mpi_rank;
+    }
     int update_prompt_history(const std::string& cmd_prompt);
     int clear_prompt_history();
     std::string& get_prompt_history() { return m_PromptHistory; };

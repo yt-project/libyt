@@ -5,6 +5,7 @@
 
 #include <mpi.h>
 #include <yt_combo.h>
+#include "LibytProcessControl.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Template    :  big_MPI_Gatherv
@@ -24,15 +25,18 @@ template<typename T>
 int big_MPI_Gatherv(int RootRank, int* sendcounts, void* sendbuffer, MPI_Datatype* mpi_datatype, void* recvbuffer) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
+    int mpi_size = LibytProcessControl::Get().mpi_size_;
+    int mpi_rank = LibytProcessControl::Get().mpi_rank_;
+
     // Count recv_counts, offsets, and split the buffer, if too large.
-    int* recv_counts = new int[g_mysize];
-    int* offsets = new int[g_mysize];
+    int* recv_counts = new int[mpi_size];
+    int* offsets = new int[mpi_size];
     int mpi_start = 0;
     long index_start = 0;
     long accumulate = 0;
 
     // Workaround method for passing big sendcount.
-    for (int i = 0; i < g_mysize; i++) {
+    for (int i = 0; i < mpi_size; i++) {
         offsets[i] = 0;
         accumulate = 0;
         for (int j = mpi_start; j < i; j++) {
@@ -42,7 +46,7 @@ int big_MPI_Gatherv(int RootRank, int* sendcounts, void* sendbuffer, MPI_Datatyp
         // exceeding INT_MAX, start MPI_Gatherv
         if (accumulate > INT_MAX) {
             // Set recv_counts and offsets.
-            for (int k = 0; k < g_mysize; k++) {
+            for (int k = 0; k < mpi_size; k++) {
                 if (mpi_start <= k && k < i) {
                     recv_counts[k] = sendcounts[k];
                 } else {
@@ -51,8 +55,8 @@ int big_MPI_Gatherv(int RootRank, int* sendcounts, void* sendbuffer, MPI_Datatyp
                 }
             }
             // MPI_Gatherv
-            if (mpi_start <= g_myrank && g_myrank < i) {
-                MPI_Gatherv(sendbuffer, sendcounts[g_myrank], *mpi_datatype, &(((T*)recvbuffer)[index_start]),
+            if (mpi_start <= mpi_rank && mpi_rank < i) {
+                MPI_Gatherv(sendbuffer, sendcounts[mpi_rank], *mpi_datatype, &(((T*)recvbuffer)[index_start]),
                             recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
             } else {
                 MPI_Gatherv(sendbuffer, 0, *mpi_datatype, &(((T*)recvbuffer)[index_start]), recv_counts, offsets,
@@ -70,9 +74,9 @@ int big_MPI_Gatherv(int RootRank, int* sendcounts, void* sendbuffer, MPI_Datatyp
         // Reach last mpi rank, MPI_Gatherv
         // We can ignore the case when there is only one rank left and its offsets exceeds INT_MAX simultaneously.
         // Because one is type int, the other is type long.
-        else if (i == g_mysize - 1) {
+        else if (i == mpi_size - 1) {
             // Set recv_counts and offsets.
-            for (int k = 0; k < g_mysize; k++) {
+            for (int k = 0; k < mpi_size; k++) {
                 if (mpi_start <= k && k <= i) {
                     recv_counts[k] = sendcounts[k];
                 } else {
@@ -81,8 +85,8 @@ int big_MPI_Gatherv(int RootRank, int* sendcounts, void* sendbuffer, MPI_Datatyp
                 }
             }
             // MPI_Gatherv
-            if (mpi_start <= g_myrank && g_myrank <= i) {
-                MPI_Gatherv(sendbuffer, sendcounts[g_myrank], *mpi_datatype, &(((T*)recvbuffer)[index_start]),
+            if (mpi_start <= mpi_rank && mpi_rank <= i) {
+                MPI_Gatherv(sendbuffer, sendcounts[mpi_rank], *mpi_datatype, &(((T*)recvbuffer)[index_start]),
                             recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
             } else {
                 MPI_Gatherv(sendbuffer, 0, *mpi_datatype, &(((T*)recvbuffer)[index_start]), recv_counts, offsets,

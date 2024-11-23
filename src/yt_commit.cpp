@@ -135,16 +135,16 @@ int yt_commit() {
 
     // Big MPI_Gatherv, this is just a workaround method.
     int* num_grids_local_MPI = LibytProcessControl::Get().num_grids_local_MPI;
-    big_MPI_Gatherv<yt_hierarchy>(RootRank, num_grids_local_MPI, (void*)hierarchy_local, &yt_hierarchy_mpi_type,
-                                  (void*)hierarchy_full);
+    big_MPI_Gatherv<yt_hierarchy>(RootRank, num_grids_local_MPI, (void*)hierarchy_local,
+                                  &LibytProcessControl::Get().yt_hierarchy_mpi_type_, (void*)hierarchy_full);
     for (int s = 0; s < g_param_yt.num_par_types; s++) {
-        big_MPI_Gatherv<long>(RootRank, num_grids_local_MPI, (void*)particle_count_list_local[s], &yt_long_mpi_type,
-                              (void*)particle_count_list_full[s]);
+        big_MPI_Gatherv<long>(RootRank, num_grids_local_MPI, (void*)particle_count_list_local[s],
+                              &LibytProcessControl::Get().yt_long_mpi_type_, (void*)particle_count_list_full[s]);
     }
 #endif
 
     // Check that the hierarchy are correct, do the test on RootRank only
-    if (g_param_libyt.check_data && g_myrank == RootRank) {
+    if (g_param_libyt.check_data && LibytProcessControl::Get().mpi_rank_ == RootRank) {
 #ifndef SERIAL_MODE
         if (check_hierarchy(hierarchy_full) == YT_SUCCESS) {
 #else
@@ -173,9 +173,11 @@ int yt_commit() {
     MPI_Barrier(MPI_COMM_WORLD);
 
     // broadcast hierarchy_full, particle_count_list_full to each rank as well.
-    big_MPI_Bcast<yt_hierarchy>(RootRank, g_param_yt.num_grids, (void*)hierarchy_full, &yt_hierarchy_mpi_type);
+    big_MPI_Bcast<yt_hierarchy>(RootRank, g_param_yt.num_grids, (void*)hierarchy_full,
+                                &LibytProcessControl::Get().yt_hierarchy_mpi_type_);
     for (int s = 0; s < g_param_yt.num_par_types; s++) {
-        big_MPI_Bcast<long>(RootRank, g_param_yt.num_grids, (void*)particle_count_list_full[s], &yt_long_mpi_type);
+        big_MPI_Bcast<long>(RootRank, g_param_yt.num_grids, (void*)particle_count_list_full[s],
+                            &LibytProcessControl::Get().yt_long_mpi_type_);
     }
 #endif
 
@@ -191,7 +193,7 @@ int yt_commit() {
     // Combine full hierarchy and the grid data that one rank has, otherwise fill in NULL in grid data.
     long start_block = 0;
     long end_block;
-    for (int rank = 0; rank < g_myrank; rank++) {
+    for (int rank = 0; rank < LibytProcessControl::Get().mpi_rank_; rank++) {
         start_block += num_grids_local_MPI[rank];
     }
     end_block = start_block + g_param_yt.num_grids_local;
