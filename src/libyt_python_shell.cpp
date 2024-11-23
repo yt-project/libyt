@@ -7,9 +7,9 @@
 #include <iostream>
 #include <string>
 
+#include "LibytProcessControl.h"
 #include "function_info.h"
 #include "yt_combo.h"
-#include "LibytProcessControl.h"
 
 static std::vector<std::string> generate_err_msg(const std::vector<std::string>& statements);
 static bool last_line_has_backslash(const std::string& code);
@@ -43,14 +43,6 @@ AccumulatedOutputString::AccumulatedOutputString() {
     for (int i = 0; i < LibytProcessControl::Get().mpi_size_; i++) {
         output_length.emplace_back(0);
     }
-}
-
-LibytPythonShell::LibytPythonShell() : m_PromptHistory(""), m_PromptHistoryCount(0) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
-    mpi_size_ = LibytProcessControl::Get().mpi_size_;
-    mpi_root_ = LibytProcessControl::Get().mpi_root_;
-    mpi_rank_ = LibytProcessControl::Get().mpi_rank_;
 }
 
 //-------------------------------------------------------------------------------------------------------

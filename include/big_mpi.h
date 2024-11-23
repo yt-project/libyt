@@ -4,8 +4,9 @@
 #ifndef SERIAL_MODE
 
 #include <mpi.h>
-#include <yt_combo.h>
+
 #include "LibytProcessControl.h"
+#include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Template    :  big_MPI_Gatherv
