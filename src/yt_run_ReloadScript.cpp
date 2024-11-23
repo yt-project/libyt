@@ -140,7 +140,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 int indicator = -1;
                 MPI_Bcast(&indicator, 1, MPI_INT, mpi_root, MPI_COMM_WORLD);
 #endif
-                g_libyt_python_shell.clear_prompt_history();
+                LibytProcessControl::Get().python_shell_.clear_prompt_history();
                 log_info("Detect '%s' file ... exiting reload script\n", reload_exit_filename.c_str());
                 if (detect_file(reload_exit_filename.c_str())) {
                     std::remove(reload_exit_filename.c_str());
@@ -198,7 +198,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     MPI_Bcast(&indicator, 1, MPI_INT, mpi_root, MPI_COMM_WORLD);
 #endif
                     std::array<AccumulatedOutputString, 2> output =
-                        LibytPythonShell::execute_file(python_code_buffer.str(), script_name);
+                        LibytProcessControl::Get().python_shell_.execute_file(python_code_buffer.str(), script_name);
                     reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
                     for (int i = 0; i < 2; i++) {
                         if (output[i].output_string.length() > 0) {
@@ -290,7 +290,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
             switch (indicator) {
                 case -1: {
                     done = true;
-                    g_libyt_python_shell.clear_prompt_history();
+                    LibytProcessControl::Get().python_shell_.clear_prompt_history();
                     break;
                 }
                 case 0: {
@@ -298,7 +298,8 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     break;
                 }
                 case 1: {
-                    std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_file();
+                    std::array<AccumulatedOutputString, 2> output =
+                        LibytProcessControl::Get().python_shell_.execute_file();
                     if (output[1].output_string.length() <= 0) {
                         LibytPythonShell::load_file_func_body(script_name);
                     }

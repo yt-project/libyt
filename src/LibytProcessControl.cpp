@@ -87,15 +87,20 @@ LibytProcessControl::LibytProcessControl() {
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytProcessControl
 // Method      :  Public method
-// Description :  Initialize stuff that rely on other stuff
+// Description :  Initialize libyt process control; every operation should happen after this step.
 //
-// Notes       :  1. Initialize MPI rank, MPI size. (if not in SERIAL_MODE)
-//                2. Initialize and create libyt profile file. (if SUPPORT_TIMER is set)
+// Notes       :  1. It is called in yt_initialize().
+//                2. Initialize MPI rank, MPI size. (if not in SERIAL_MODE)
+//                3. Initialize and create libyt profile file. (if SUPPORT_TIMER is set)
 //-------------------------------------------------------------------------------------------------------
 void LibytProcessControl::Initialize() {
 #ifndef SERIAL_MODE
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
+#endif
+
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
+    LibytPythonShell::SetMPIInfo(mpi_size_, mpi_root_, mpi_rank_);
 #endif
 
 #ifdef SUPPORT_TIMER

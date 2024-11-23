@@ -158,7 +158,8 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
 #endif
 
                     // Execute code and print result
-                    std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_prompt(std::string(code));
+                    std::array<AccumulatedOutputString, 2> output =
+                        LibytProcessControl::Get().python_shell_.execute_prompt(std::string(code));
                     for (int i = 0; i < 2; i++) {
                         if (output[i].output_string.length() > 0) {
                             int offset = 0;
@@ -209,7 +210,8 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                 done = command_result.exit_entry_point;
             } else {
                 // Execute code, the code must be a vaild code and successfully compile now
-                std::array<AccumulatedOutputString, 2> temp_output = LibytPythonShell::execute_prompt();
+                std::array<AccumulatedOutputString, 2> temp_output =
+                    LibytProcessControl::Get().python_shell_.execute_prompt();
             }
 
             // clean up and wait
