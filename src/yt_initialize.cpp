@@ -166,7 +166,8 @@ static void init_yt_rma_particle_info_mpi_type() {
     const MPI_Aint displacements[4] = {0, 1 * sizeof(long), 1 * sizeof(long) + 1 * sizeof(MPI_Aint),
                                        2 * sizeof(long) + 1 * sizeof(MPI_Aint)};
     MPI_Datatype types[4] = {MPI_LONG, MPI_AINT, MPI_LONG, MPI_INT};
-    MPI_Type_create_struct(4, lengths, displacements, types, &LibytProcessControl::Get().yt_rma_particle_info_mpi_type_);
+    MPI_Type_create_struct(4, lengths, displacements, types,
+                           &LibytProcessControl::Get().yt_rma_particle_info_mpi_type_);
     MPI_Type_commit(&LibytProcessControl::Get().yt_rma_particle_info_mpi_type_);
 }
 #endif

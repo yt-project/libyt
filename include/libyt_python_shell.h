@@ -34,7 +34,7 @@ private:
     static int mpi_rank_;
 
 public:
-    LibytPythonShell() : m_PromptHistory(""), m_PromptHistoryCount(0) {};
+    LibytPythonShell() : m_PromptHistory(""), m_PromptHistoryCount(0){};
     static void SetMPIInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
         mpi_size_ = mpi_size;
         mpi_root_ = mpi_root;

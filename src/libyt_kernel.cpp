@@ -4,9 +4,9 @@
 #include <string>
 #include <xeus/xhelper.hpp>
 
+#include "LibytProcessControl.h"
 #include "libyt.h"
 #include "libyt_python_shell.h"
-#include "LibytProcessControl.h"
 #include "magic_command.h"
 #include "yt_combo.h"
 

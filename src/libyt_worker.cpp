@@ -3,6 +3,7 @@
 
 #include <mpi.h>
 
+#include "LibytProcessControl.h"
 #include "magic_command.h"
 #include "yt_combo.h"
 
