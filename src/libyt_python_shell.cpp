@@ -610,7 +610,7 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_cell(const std:
                 Py_XDECREF(py_dump);
             } else {
                 load_input_func_body(code_sync);
-                g_libyt_python_shell.update_prompt_history(std::string(code_sync));
+                update_prompt_history(std::string(code_sync));
 
                 Py_DECREF(py_src);
                 Py_XDECREF(py_dump);

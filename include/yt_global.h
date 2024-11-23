@@ -37,7 +37,6 @@ SET_GLOBAL(yt_param_libyt, g_param_libyt);  // libyt runtime parameters
 SET_GLOBAL(yt_param_yt, g_param_yt);        // YT parameters
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
 SET_GLOBAL(FunctionInfoList, g_func_status_list, FunctionInfoList(10));  // Inline function status list (default 10)
-SET_GLOBAL(LibytPythonShell, g_libyt_python_shell);
 #endif
 
 #ifndef NO_PYTHON

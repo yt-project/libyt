@@ -7,6 +7,9 @@
 #ifndef SERIAL_MODE
 #include <mpi.h>
 #endif
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
+#include "libyt_python_shell.h"
+#endif
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytProcessControl
@@ -28,6 +31,11 @@ public:
 #ifdef SUPPORT_TIMER
     // Timer Control
     TimerControl timer_control;
+#endif
+
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
+    // Python shell
+    LibytPythonShell python_shell_;
 #endif
 
     // Process control check point and data management for libyt

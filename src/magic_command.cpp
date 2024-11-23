@@ -136,7 +136,8 @@ MagicCommandOutput& MagicCommand::Run(const std::string& command) {
                         std::string("(Type %libyt help for help ...)");
     }
     if (write_to_history && mpi_rank_ == mpi_root_) {
-        g_libyt_python_shell.update_prompt_history(std::string("# ") + command_ + std::string("\n"));
+        LibytProcessControl::Get().python_shell_.update_prompt_history(std::string("# ") + command_ +
+                                                                       std::string("\n"));
     }
 
     return output_;
@@ -175,7 +176,7 @@ int MagicCommand::Exit() {
 
         return YT_FAIL;
     } else {
-        g_libyt_python_shell.clear_prompt_history();
+        LibytProcessControl::Get().python_shell_.clear_prompt_history();
 
         output_.exit_entry_point = true;
         output_.status = "Success";
@@ -488,7 +489,8 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
             int indicator = 1;
             MPI_Bcast(&indicator, 1, MPI_INT, mpi_root_, MPI_COMM_WORLD);
 #endif
-            std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_file(ss.str(), args[2]);
+            std::array<AccumulatedOutputString, 2> output =
+                LibytProcessControl::Get().python_shell_.execute_file(ss.str(), args[2]);
             if (output[1].output_string.empty()) {
                 python_run_successfully = true;
             } else {
@@ -541,7 +543,7 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
             output_.status = "Error";
             return YT_FAIL;
         } else {
-            std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_file();
+            std::array<AccumulatedOutputString, 2> output = LibytProcessControl::Get().python_shell_.execute_file();
             MPI_Bcast(&python_run_successfully, 1, MPI_C_BOOL, mpi_root_, MPI_COMM_WORLD);
         }
     }
@@ -596,7 +598,7 @@ int MagicCommand::ExportScript(const std::vector<std::string>& args) {
     if (mpi_rank_ == mpi_root_) {
         std::ofstream dump_file;
         dump_file.open(args[2], std::ofstream::trunc);
-        dump_file << g_libyt_python_shell.get_prompt_history();
+        dump_file << LibytProcessControl::Get().python_shell_.get_prompt_history();
         dump_file.close();
     }
 

@@ -138,7 +138,8 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     int indicator = 1;
     MPI_Bcast(&indicator, 1, MPI_INT, LibytProcessControl::Get().mpi_root_, MPI_COMM_WORLD);
 #endif
-    std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_cell(code_split, cell_name);
+    std::array<AccumulatedOutputString, 2> output =
+        LibytProcessControl::Get().python_shell_.execute_cell(code_split, cell_name);
 
     // Insert header to string
     for (int i = 0; i < 2; i++) {
@@ -358,7 +359,7 @@ void LibytKernel::shutdown_request_impl() {
         Py_DECREF(m_py_jedi_interpreter);
     }
 
-    g_libyt_python_shell.clear_prompt_history();
+    LibytProcessControl::Get().python_shell_.clear_prompt_history();
 
     log_info("Shutting down libyt kernel ...\n");
 }
