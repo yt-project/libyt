@@ -49,7 +49,7 @@ private:
     std::vector<FunctionInfo> function_list_;
 
 public:
-    explicit FunctionInfoList(int capacity) { function_list_.reserve(capacity); }
+    FunctionInfoList() { function_list_.reserve(10); }
     ~FunctionInfoList() { function_list_.clear(); }
     FunctionInfo& operator[](int index) { return function_list_[index]; }
 
