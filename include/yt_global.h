@@ -25,12 +25,6 @@
 #define SET_GLOBAL_NOINIT(type, name)           extern type name
 #endif
 
-// include relevant headers
-#include "yt_type.h"
-
-// add the prefix "g_" for all global C variables
-SET_GLOBAL(yt_param_yt, g_param_yt);  // YT parameters
-
 #ifndef NO_PYTHON
 // add the prefix "g_py_" for all global Python objects
 SET_GLOBAL(PyObject, *g_py_grid_data, NULL);      // Python dictionary to store grid data

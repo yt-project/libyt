@@ -41,12 +41,13 @@ int yt_free() {
 
     // Free resource allocated in yt_set_Parameters():
     //    field_list, particle_list, attr_list, num_grids_local_MPI
+    yt_param_yt& param_yt = LibytProcessControl::Get().param_yt_;
     yt_field* field_list = LibytProcessControl::Get().field_list;
     yt_particle* particle_list = LibytProcessControl::Get().particle_list;
     if (LibytProcessControl::Get().param_yt_set) {
-        if (g_param_yt.num_fields > 0) delete[] field_list;
-        if (g_param_yt.num_par_types > 0) {
-            for (int i = 0; i < g_param_yt.num_par_types; i++) {
+        if (param_yt.num_fields > 0) delete[] field_list;
+        if (param_yt.num_par_types > 0) {
+            for (int i = 0; i < param_yt.num_par_types; i++) {
                 delete[] particle_list[i].attr_list;
             }
             delete[] particle_list;
@@ -57,14 +58,14 @@ int yt_free() {
     // Free resource allocated in yt_get_GridsPtr() in case it hasn't got freed yet:
     //    grids_local, field_data, particle_data, par_count_list
     yt_grid* grids_local = LibytProcessControl::Get().grids_local;
-    if (LibytProcessControl::Get().get_gridsPtr && g_param_yt.num_grids_local > 0) {
-        for (int i = 0; i < g_param_yt.num_grids_local; i = i + 1) {
-            if (g_param_yt.num_fields > 0) {
+    if (LibytProcessControl::Get().get_gridsPtr && param_yt.num_grids_local > 0) {
+        for (int i = 0; i < param_yt.num_grids_local; i = i + 1) {
+            if (param_yt.num_fields > 0) {
                 delete[] grids_local[i].field_data;
             }
-            if (g_param_yt.num_par_types > 0) {
+            if (param_yt.num_par_types > 0) {
                 delete[] grids_local[i].par_count_list;
-                for (int p = 0; p < g_param_yt.num_par_types; p++) {
+                for (int p = 0; p < param_yt.num_par_types; p++) {
                     delete[] grids_local[i].particle_data[p];
                 }
                 delete[] grids_local[i].particle_data;
@@ -80,7 +81,7 @@ int yt_free() {
     delete[] LibytProcessControl::Get().grid_parent_id;
     delete[] LibytProcessControl::Get().grid_levels;
     delete[] LibytProcessControl::Get().proc_num;
-    if (g_param_yt.num_par_types > 0) {
+    if (param_yt.num_par_types > 0) {
         delete[] LibytProcessControl::Get().par_count_list;
     }
 #endif

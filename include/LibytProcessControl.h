@@ -58,6 +58,9 @@ public:
     // libyt parameters
     yt_param_libyt param_libyt_;
 
+    // AMR data structure and hierarchy
+    yt_param_yt param_yt_;
+
     yt_field* field_list;
     yt_particle* particle_list;
     yt_grid* grids_local;

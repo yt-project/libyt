@@ -9,7 +9,8 @@
 // Note        :  1. It searches libyt.hierarchy for grid's dimensions, and does not check whether the grid
 //                   is on this rank or not.
 //                2. grid_dimensions is defined in [x][y][z] <-> [0][1][2] coordinate.
-//                3. Since gid doesn't need to be 0-indexed, we need to minus g_param_yt.index_offset
+//                3. Since gid doesn't need to be 0-indexed, we need to minus
+//                LibytProcessControl::Get().param_yt_.index_offset
 //                   when look up.
 //                4.    Function                                              Search NumPy Array
 //                   --------------------------------------------------------------------------------
@@ -31,7 +32,8 @@
     {                                                                                                                  \
         PyArrayObject* py_array_obj = (PyArrayObject*)PyDict_GetItemString(g_py_hierarchy, KEY);                       \
         for (int t = 0; t < DIM; t++) {                                                                                \
-            (ARRAY)[t] = *(TYPE*)PyArray_GETPTR2(py_array_obj, GID - g_param_yt.index_offset, t);                      \
+            (ARRAY)[t] =                                                                                               \
+                *(TYPE*)PyArray_GETPTR2(py_array_obj, GID - LibytProcessControl::Get().param_yt_.index_offset, t);     \
         }                                                                                                              \
     }
 
@@ -92,7 +94,8 @@ int yt_getGridInfo_Dimensions(const long gid, int (*dimensions)[3]) {
     }
 
     for (int d = 0; d < 3; d++) {
-        (*dimensions)[d] = LibytProcessControl::Get().grid_dimensions[(gid - g_param_yt.index_offset) * 3 + d];
+        (*dimensions)[d] = LibytProcessControl::Get()
+                               .grid_dimensions[(gid - LibytProcessControl::Get().param_yt_.index_offset) * 3 + d];
     }
 
     return YT_SUCCESS;
@@ -107,7 +110,8 @@ int yt_getGridInfo_LeftEdge(const long gid, double (*left_edge)[3]) {
     }
 
     for (int d = 0; d < 3; d++) {
-        (*left_edge)[d] = LibytProcessControl::Get().grid_left_edge[(gid - g_param_yt.index_offset) * 3 + d];
+        (*left_edge)[d] = LibytProcessControl::Get()
+                              .grid_left_edge[(gid - LibytProcessControl::Get().param_yt_.index_offset) * 3 + d];
     }
 
     return YT_SUCCESS;
@@ -122,7 +126,8 @@ int yt_getGridInfo_RightEdge(const long gid, double (*right_edge)[3]) {
     }
 
     for (int d = 0; d < 3; d++) {
-        (*right_edge)[d] = LibytProcessControl::Get().grid_right_edge[(gid - g_param_yt.index_offset) * 3 + d];
+        (*right_edge)[d] = LibytProcessControl::Get()
+                               .grid_right_edge[(gid - LibytProcessControl::Get().param_yt_.index_offset) * 3 + d];
     }
 
     return YT_SUCCESS;
@@ -136,7 +141,7 @@ int yt_getGridInfo_ParentId(const long gid, long* parent_id) {
                  __FUNCTION__);
     }
 
-    *parent_id = LibytProcessControl::Get().grid_parent_id[gid - g_param_yt.index_offset];
+    *parent_id = LibytProcessControl::Get().grid_parent_id[gid - LibytProcessControl::Get().param_yt_.index_offset];
 
     return YT_SUCCESS;
 }
@@ -149,7 +154,7 @@ int yt_getGridInfo_Level(const long gid, int* level) {
                  __FUNCTION__);
     }
 
-    *level = LibytProcessControl::Get().grid_levels[gid - g_param_yt.index_offset];
+    *level = LibytProcessControl::Get().grid_levels[gid - LibytProcessControl::Get().param_yt_.index_offset];
 
     return YT_SUCCESS;
 }
@@ -162,7 +167,7 @@ int yt_getGridInfo_ProcNum(const long gid, int* proc_num) {
                  __FUNCTION__);
     }
 
-    *proc_num = LibytProcessControl::Get().proc_num[gid - g_param_yt.index_offset];
+    *proc_num = LibytProcessControl::Get().proc_num[gid - LibytProcessControl::Get().param_yt_.index_offset];
 
     return YT_SUCCESS;
 }
@@ -174,7 +179,8 @@ int yt_getGridInfo_ProcNum(const long gid, int* proc_num) {
 //
 // Note        :  1. It searches libyt.hierarchy["par_count_list"][index][ptype],
 //                   and does not check whether the grid is on this rank or not.
-//                2. Since gid doesn't need to be 0-indexed, we need to minus g_param_yt.index_offset
+//                2. Since gid doesn't need to be 0-indexed, we need to minus
+//                LibytProcessControl::Get().param_yt_.index_offset
 //                   when look up in hierarchy.
 //
 // Parameter   :  const long   gid           : Target grid id.
@@ -199,7 +205,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_co
     if (particle_list == nullptr) YT_ABORT("No particle.\n");
 
     int label = -1;
-    for (int s = 0; s < g_param_yt.num_par_types; s++) {
+    for (int s = 0; s < LibytProcessControl::Get().param_yt_.num_par_types; s++) {
         if (strcmp(particle_list[s].par_type, ptype) == 0) {
             label = s;
             break;
@@ -213,10 +219,12 @@ int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_co
     if (py_array_obj == NULL) YT_ABORT("Cannot find key \"par_count_list\" in libyt.hierarchy dict.\n");
 
     // read libyt.hierarchy["par_count_list"][index][ptype]
-    *par_count = *(long*)PyArray_GETPTR2(py_array_obj, gid - g_param_yt.index_offset, label);
+    *par_count = *(long*)PyArray_GETPTR2(py_array_obj, gid - LibytProcessControl::Get().param_yt_.index_offset, label);
 #else
     long* par_count_list = LibytProcessControl::Get().par_count_list;
-    *par_count = par_count_list[(gid - g_param_yt.index_offset) * g_param_yt.num_par_types + label];
+    *par_count = par_count_list[(gid - LibytProcessControl::Get().param_yt_.index_offset) *
+                                    LibytProcessControl::Get().param_yt_.num_par_types +
+                                label];
 #endif
 
     return YT_SUCCESS;
