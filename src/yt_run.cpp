@@ -10,7 +10,8 @@
 // Function    :  yt_run_FunctionArguments
 // Description :  Call function with arguments in in situ process
 //
-// Note        :  1. Python script name, which is also its namespace's name is stored in "g_param_libyt.script"
+// Note        :  1. Python script name, which is also its namespace's name is stored in
+//                   "LibytProcessControl::Get().param_libyt_.script"
 //                2. This python script must contain function of <function_name> you called.
 //                3. Must give argc (argument count), even if there are no arguments.
 //                4. libyt wraps function and its arguments using either """ or ''' triple quotes, and then
@@ -108,8 +109,8 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
 
     // join function and input arguments into string wrapped by exec()
     std::string str_CallYT(std::string("exec(") + str_wrapper + str_function + str_wrapper +
-                           std::string(", sys.modules[\"") + std::string(g_param_libyt.script) +
-                           std::string("\"].__dict__)"));
+                           std::string(", sys.modules[\"") +
+                           std::string(LibytProcessControl::Get().param_libyt_.script) + std::string("\"].__dict__)"));
 
     log_info("Performing YT inline analysis %s ...\n", str_function.c_str());
 

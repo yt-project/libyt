@@ -17,6 +17,10 @@
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytProcessControl
 // Description :  Singleton to deal with libyt internal process. (not thread-safe)
+//
+// Notes       :  1. Initialize libyt process control.
+//                2. TOOD: probably should manage different modules into different classes,
+//                   like timer and python shell.
 //-------------------------------------------------------------------------------------------------------
 class LibytProcessControl {
 public:
@@ -51,7 +55,9 @@ public:
     bool commit_grids;
     bool free_gridsPtr;
 
-    // Internal libyt data
+    // libyt parameters
+    yt_param_libyt param_libyt_;
+
     yt_field* field_list;
     yt_particle* particle_list;
     yt_grid* grids_local;

@@ -14,7 +14,7 @@ static const int LogPrefixWidth = 10;
 // Description :  Print out basic messages to standard output
 //
 // Note        :  1. Work only for verbose level >= YT_VERBOSE_INFO
-//                   --> Rely on the global variable "g_param_libyt"
+//                   --> Rely on the global variable "LibytProcessControl::Get().param_libyt_"
 //                2. Messages are printed out to standard output with a prefix "[YT_INFO] "
 //                3. Use the variable argument lists provided in "stdarg"
 //                   --> It is equivalent to call "fprintf( stdout, format, ... );   fflush( Type );"
@@ -29,7 +29,7 @@ void log_info(const char* format, ...) {
     if (LibytProcessControl::Get().mpi_rank_ != 0) return;
 
     // work only for verbose level >= YT_VERBOSE_INFO
-    if (g_param_libyt.verbose < YT_VERBOSE_INFO) return;
+    if (LibytProcessControl::Get().param_libyt_.verbose < YT_VERBOSE_INFO) return;
 
     // flush previous messages
     fflush(stdout);
@@ -60,7 +60,7 @@ void log_info(const char* format, ...) {
 //-------------------------------------------------------------------------------------------------------
 void log_warning(const char* format, ...) {
     // work only for verbose level >= YT_VERBOSE_WARNING
-    if (g_param_libyt.verbose < YT_VERBOSE_WARNING) return;
+    if (LibytProcessControl::Get().param_libyt_.verbose < YT_VERBOSE_WARNING) return;
 
     // flush previous messages
     fflush(stderr);
@@ -91,7 +91,7 @@ void log_warning(const char* format, ...) {
 //-------------------------------------------------------------------------------------------------------
 void log_debug(const char* format, ...) {
     // work only for verbose level >= YT_VERBOSE_DEBUG
-    if (g_param_libyt.verbose < YT_VERBOSE_DEBUG) return;
+    if (LibytProcessControl::Get().param_libyt_.verbose < YT_VERBOSE_DEBUG) return;
 
     // flush previous messages
     fflush(stderr);

@@ -124,7 +124,7 @@ int yt_free() {
     LibytProcessControl::Get().get_gridsPtr = false;
     LibytProcessControl::Get().commit_grids = false;
     LibytProcessControl::Get().free_gridsPtr = true;
-    g_param_libyt.counter++;
+    LibytProcessControl::Get().param_libyt_.counter++;
 
     return YT_SUCCESS;
 }  // FUNCTION: yt_free()

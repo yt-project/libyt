@@ -40,16 +40,17 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
     static int init_count = 0;
     init_count++;
 
-    // still need to check "init_count" since yt_finalize() will set "g_param_libyt.libyt_initialized = false"
+    // still need to check "init_count" since yt_finalize() will set check point libyt_initialized = false"
     if (LibytProcessControl::Get().libyt_initialized || init_count >= 2)
         YT_ABORT("yt_initialize() should not be called more than once!\n");
 
     // store user-provided parameters to a libyt internal variable
-    // --> better do it **before** calling any log function since they will query g_param_libyt.verbose
-    g_param_libyt.verbose = param_libyt->verbose;
-    g_param_libyt.script = param_libyt->script;
-    g_param_libyt.counter = param_libyt->counter;  // useful during restart, where the initial counter can be non-zero
-    g_param_libyt.check_data = param_libyt->check_data;
+    // --> better do it **before** calling any log function since they will query param_libyt.verbose
+    LibytProcessControl::Get().param_libyt_.verbose = param_libyt->verbose;
+    LibytProcessControl::Get().param_libyt_.script = param_libyt->script;
+    LibytProcessControl::Get().param_libyt_.counter =
+        param_libyt->counter;  // useful during restart, where the initial counter can be non-zero
+    LibytProcessControl::Get().param_libyt_.check_data = param_libyt->check_data;
 
     log_info("******libyt version******\n");
     log_info("         %d.%d.%d\n", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION, LIBYT_MICRO_VERSION);
@@ -57,10 +58,10 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
     log_info("*************************\n");
 
     log_info("Initializing libyt ...\n");
-    log_info("   verbose = %d\n", g_param_libyt.verbose);
-    log_info("    script = %s\n", g_param_libyt.script);
-    log_info("   counter = %ld\n", g_param_libyt.counter);
-    log_info("check_data = %s\n", (g_param_libyt.check_data ? "true" : "false"));
+    log_info("   verbose = %d\n", LibytProcessControl::Get().param_libyt_.verbose);
+    log_info("    script = %s\n", LibytProcessControl::Get().param_libyt_.script);
+    log_info("   counter = %ld\n", LibytProcessControl::Get().param_libyt_.counter);
+    log_info("check_data = %s\n", (LibytProcessControl::Get().param_libyt_.check_data ? "true" : "false"));
 
 #ifndef USE_PYBIND11
     // create libyt module, should be before init_python
