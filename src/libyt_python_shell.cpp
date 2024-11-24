@@ -170,9 +170,11 @@ int LibytPythonShell::load_input_func_body(const char* code) {
         Py_ssize_t py_size = PyList_GET_SIZE(py_new_dict_keys);
         for (Py_ssize_t i = 0; i < py_size; i++) {
             if (PyCallable_Check(PyDict_GetItem(py_new_dict, PyList_GET_ITEM(py_new_dict_keys, i)))) {
-                // add new function to g_func_status_list and set to idle. if function exists already, get its index
+                // add new function to LibytProcessControl::Get().function_info_list_ and set to idle. if function
+                // exists already, get its index
                 const char* func_name = PyUnicode_AsUTF8(PyList_GET_ITEM(py_new_dict_keys, i));
-                g_func_status_list.AddNewFunction(func_name, FunctionInfo::RunStatus::kWillIdle);
+                LibytProcessControl::Get().function_info_list_.AddNewFunction(func_name,
+                                                                              FunctionInfo::RunStatus::kWillIdle);
 
                 // update function body
                 PyObject* py_func_body_dict = PyDict_GetItemString(g_py_interactive_mode, "func_body");

@@ -47,7 +47,7 @@ FunctionInfo::FunctionInfo(const char* function_name, RunStatus run)
 // Method      :  Copy Constructor
 //
 // Notes       :  1. It is inefficient to do it this way, but we are adding FunctionInfo class to
-//                   g_func_status_list vector, which makes a copy.
+//                   function_info_list_ vector, which makes a copy.
 //                   Although we can replace it to store class's pointer, I don't want to access through
 //                   arrow.
 //

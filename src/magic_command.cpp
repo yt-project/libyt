@@ -216,14 +216,14 @@ int MagicCommand::GetStatusHtml() {
 
     output_.output += "<table style=\"width: 100%\"><tr><th>Inline Function</th><th>Status</th><th>Run</th></tr>";
 
-    for (int i = 0; i < g_func_status_list.GetSize(); i++) {
+    for (int i = 0; i < LibytProcessControl::Get().function_info_list_.GetSize(); i++) {
         // Get function name
         output_.output += "<tr><td style=\"text-alight: left;\"><span style=\"font-family:'Courier New'\">";
-        output_.output += g_func_status_list[i].GetFunctionName();
+        output_.output += LibytProcessControl::Get().function_info_list_[i].GetFunctionName();
         output_.output += "</span></td>";
 
         // Get function status
-        FunctionInfo::ExecuteStatus status = g_func_status_list[i].GetAllStatus();
+        FunctionInfo::ExecuteStatus status = LibytProcessControl::Get().function_info_list_[i].GetAllStatus();
         if (status == FunctionInfo::ExecuteStatus::kFailed) {
             output_.output += kFailedCell;
         } else if (status == FunctionInfo::ExecuteStatus::kSuccess) {
@@ -235,7 +235,7 @@ int MagicCommand::GetStatusHtml() {
         }
 
         // Get function run status
-        FunctionInfo::RunStatus run = g_func_status_list[i].GetRun();
+        FunctionInfo::RunStatus run = LibytProcessControl::Get().function_info_list_[i].GetRun();
         if (run == FunctionInfo::RunStatus::kWillRun) {
             output_.output += kWillRunCell;
         } else {
@@ -299,9 +299,10 @@ int MagicCommand::GetStatusText() {
              "Inline Function", "Status", "Run/Idle");
     output_.output += dest;
 
-    for (int i = 0; i < g_func_status_list.GetSize(); i++) {
+    for (int i = 0; i < LibytProcessControl::Get().function_info_list_.GetSize(); i++) {
         // Get function name
-        snprintf_return = snprintf(dest, kStringMaxSize, "  * %-43s", g_func_status_list[i].GetFunctionName().c_str());
+        snprintf_return = snprintf(dest, kStringMaxSize, "  * %-43s",
+                                   LibytProcessControl::Get().function_info_list_[i].GetFunctionName().c_str());
         if (entry_point_ == kLibytInteractiveMode) {
             output_.output += "\033[1;37m";
         }
@@ -314,8 +315,8 @@ int MagicCommand::GetStatusText() {
         }
 
         // Get function status and run
-        FunctionInfo::RunStatus run = g_func_status_list[i].GetRun();
-        FunctionInfo::ExecuteStatus status = g_func_status_list[i].GetAllStatus();
+        FunctionInfo::RunStatus run = LibytProcessControl::Get().function_info_list_[i].GetRun();
+        FunctionInfo::ExecuteStatus status = LibytProcessControl::Get().function_info_list_[i].GetAllStatus();
         if (status == FunctionInfo::ExecuteStatus::kFailed) {
             output_.output += kFailed;
         } else if (status == FunctionInfo::ExecuteStatus::kSuccess) {
@@ -435,7 +436,8 @@ int MagicCommand::GetHelpMsgText() {
 // Notes      :  1. This is a collective call.
 //               2. Run the Python file line-by-line, if variable names already exist in inline script's
 //                  namespace, it will be overwritten by this file.
-//               3. Parse functions in script and add to g_func_status_list. If function name already
+//               3. Parse functions in script and add to LibytProcessControl::Get().function_info_list_. If function
+//               name already
 //                  exists in the list, the source code in libyt.interactive_mode["func_body"] will
 //                  be updated and overwritten.
 //               4. Character in the file loaded cannot exceed INT_MAX.
@@ -556,7 +558,7 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
     // and set to idle
     std::vector<std::string> func_list = LibytPythonShell::get_funcname_defined(args[2].c_str());
     for (int i = 0; i < (int)func_list.size(); i++) {
-        g_func_status_list.AddNewFunction(func_list[i], FunctionInfo::RunStatus::kWillIdle);
+        LibytProcessControl::Get().function_info_list_.AddNewFunction(func_list[i], FunctionInfo::RunStatus::kWillIdle);
     }
 
     // Returned type from file must be text/plain, like other python results
@@ -631,7 +633,7 @@ int MagicCommand::SetFunctionRun(const std::vector<std::string>& args) {
     }
 
     // Get function index
-    int index = g_func_status_list.GetFunctionIndex(args[2]);
+    int index = LibytProcessControl::Get().function_info_list_.GetFunctionIndex(args[2]);
     if (index == -1) {
         output_.status = "Error";
         output_.error = std::string("Function '") + args[2] + std::string("' not found\n");
@@ -647,13 +649,13 @@ int MagicCommand::SetFunctionRun(const std::vector<std::string>& args) {
             if (!wrapper_detected) {
                 if (args[i].find("\"\"\"") != std::string::npos) {
                     wrapper_detected = true;
-                    g_func_status_list[index].SetWrapper("'''");
+                    LibytProcessControl::Get().function_info_list_[index].SetWrapper("'''");
                 } else if (args[i].find("'''") != std::string::npos) {
                     wrapper_detected = true;
-                    g_func_status_list[index].SetWrapper("\"\"\"");
+                    LibytProcessControl::Get().function_info_list_[index].SetWrapper("\"\"\"");
                 }
             } else {
-                const char* wrapper = g_func_status_list[index].GetWrapper();
+                const char* wrapper = LibytProcessControl::Get().function_info_list_[index].GetWrapper();
                 if (args[i].find(wrapper) != std::string::npos) {
                     unable_to_wrapped = true;
                 }
@@ -670,12 +672,13 @@ int MagicCommand::SetFunctionRun(const std::vector<std::string>& args) {
             return YT_FAIL;
         }
     }
-    g_func_status_list[index].SetRun(FunctionInfo::RunStatus::kWillRun);
-    g_func_status_list[index].SetInputArgs(input_args);
+    LibytProcessControl::Get().function_info_list_[index].SetRun(FunctionInfo::RunStatus::kWillRun);
+    LibytProcessControl::Get().function_info_list_[index].SetInputArgs(input_args);
 
     output_.status = "Success";
     output_.output += std::string("Function '") + args[2] + std::string("' set to run ... done\n");
-    output_.output += std::string("Run ") + g_func_status_list[index].GetFunctionNameWithInputArgs() +
+    output_.output += std::string("Run ") +
+                      LibytProcessControl::Get().function_info_list_[index].GetFunctionNameWithInputArgs() +
                       std::string(" in next iteration\n");
 
     return YT_SUCCESS;
@@ -704,7 +707,7 @@ int MagicCommand::SetFunctionIdle(const std::vector<std::string>& args) {
     }
 
     // Get function index
-    int index = g_func_status_list.GetFunctionIndex(args[2]);
+    int index = LibytProcessControl::Get().function_info_list_.GetFunctionIndex(args[2]);
     if (index == -1) {
         output_.status = "Error";
         output_.error = std::string("Function '") + args[2] + std::string("' not found\n");
@@ -712,8 +715,8 @@ int MagicCommand::SetFunctionIdle(const std::vector<std::string>& args) {
     }
 
     std::string input_args;
-    g_func_status_list[index].SetRun(FunctionInfo::RunStatus::kWillIdle);
-    g_func_status_list[index].SetInputArgs(input_args);
+    LibytProcessControl::Get().function_info_list_[index].SetRun(FunctionInfo::RunStatus::kWillIdle);
+    LibytProcessControl::Get().function_info_list_[index].SetInputArgs(input_args);
 
     output_.status = "Success";
     output_.output += std::string("Function '") + args[2] + std::string("' set to idle ... done\n");
@@ -746,7 +749,7 @@ int MagicCommand::GetFunctionStatusMarkdown(const std::vector<std::string>& args
     }
 
     // Get function index
-    int index = g_func_status_list.GetFunctionIndex(args[2]);
+    int index = LibytProcessControl::Get().function_info_list_.GetFunctionIndex(args[2]);
     if (index == -1) {
         output_.status = "Error";
         output_.error = std::string("Function '") + args[2] + std::string("' not found\n");
@@ -757,7 +760,7 @@ int MagicCommand::GetFunctionStatusMarkdown(const std::vector<std::string>& args
     output_.mimetype = "text/markdown";
     output_.status = "Success";
 
-    FunctionInfo::ExecuteStatus status = g_func_status_list[index].GetAllStatus();
+    FunctionInfo::ExecuteStatus status = LibytProcessControl::Get().function_info_list_[index].GetAllStatus();
     if (mpi_rank_ == mpi_root_) {
         output_.output += std::string("#### `") + args[2] + std::string("`\n");
 
@@ -773,9 +776,10 @@ int MagicCommand::GetFunctionStatusMarkdown(const std::vector<std::string>& args
 
         // Function call in next iteration
         output_.output += std::string("- **Function call in next iteration:** ");
-        if (g_func_status_list[index].GetRun() == FunctionInfo::RunStatus::kWillRun) {
-            output_.output +=
-                std::string("`") + g_func_status_list[index].GetFunctionNameWithInputArgs() + std::string("`\n");
+        if (LibytProcessControl::Get().function_info_list_[index].GetRun() == FunctionInfo::RunStatus::kWillRun) {
+            output_.output += std::string("`") +
+                              LibytProcessControl::Get().function_info_list_[index].GetFunctionNameWithInputArgs() +
+                              std::string("`\n");
         } else {
             output_.output += std::string("(None)\n");
         }
@@ -784,7 +788,7 @@ int MagicCommand::GetFunctionStatusMarkdown(const std::vector<std::string>& args
         output_.output += std::string("- **Current function definition:**\n");
         output_.output += std::string("  ```python\n");
 
-        std::string func_body = g_func_status_list[index].GetFunctionBody();
+        std::string func_body = LibytProcessControl::Get().function_info_list_[index].GetFunctionBody();
         std::size_t start_pos = 0, found;
         while (true) {
             found = func_body.find('\n', start_pos);
@@ -802,7 +806,7 @@ int MagicCommand::GetFunctionStatusMarkdown(const std::vector<std::string>& args
 
     // Call getting error message if execute status is failed, this is a collective call
     if (status == FunctionInfo::ExecuteStatus::kFailed) {
-        std::vector<std::string> output_error = g_func_status_list[index].GetAllErrorMsg();
+        std::vector<std::string> output_error = LibytProcessControl::Get().function_info_list_[index].GetAllErrorMsg();
         if (mpi_rank_ == mpi_root_) {
             output_.output += std::string("- **Error message from previous call:**\n");
             for (size_t r = 0; r < output_error.size(); r++) {
@@ -858,7 +862,7 @@ int MagicCommand::GetFunctionStatusText(const std::vector<std::string>& args) {
     }
 
     // Get function index
-    int index = g_func_status_list.GetFunctionIndex(args[2]);
+    int index = LibytProcessControl::Get().function_info_list_.GetFunctionIndex(args[2]);
     if (index == -1) {
         output_.status = "Error";
         output_.error = std::string("Function '") + args[2] + std::string("' not found\n");
@@ -868,10 +872,11 @@ int MagicCommand::GetFunctionStatusText(const std::vector<std::string>& args) {
     // Get function status and error msg and format it in plain text
     output_.status = "Success";
 
-    FunctionInfo::ExecuteStatus status = g_func_status_list[index].GetAllStatus();
+    FunctionInfo::ExecuteStatus status = LibytProcessControl::Get().function_info_list_[index].GetAllStatus();
     if (mpi_rank_ == mpi_root_) {
         // Get status
-        output_.output += g_func_status_list[index].GetFunctionName() + std::string(" ... ");
+        output_.output +=
+            LibytProcessControl::Get().function_info_list_[index].GetFunctionName() + std::string(" ... ");
         if (status == FunctionInfo::ExecuteStatus::kSuccess) {
             output_.output += std::string("success\n");
         } else if (status == FunctionInfo::ExecuteStatus::kFailed) {
@@ -886,7 +891,7 @@ int MagicCommand::GetFunctionStatusText(const std::vector<std::string>& args) {
         } else {
             output_.output += std::string("[Function Def]\n");
         }
-        std::string func_body = g_func_status_list[index].GetFunctionBody();
+        std::string func_body = LibytProcessControl::Get().function_info_list_[index].GetFunctionBody();
         std::size_t start_pos = 0, found;
         while (true) {
             found = func_body.find('\n', start_pos);
@@ -903,7 +908,7 @@ int MagicCommand::GetFunctionStatusText(const std::vector<std::string>& args) {
 
     // Get error msg if it failed when running in yt_run_Function/yt_run_FunctionArguments. (collective call)
     if (status == FunctionInfo::ExecuteStatus::kFailed) {
-        std::vector<std::string> output_error = g_func_status_list[index].GetAllErrorMsg();
+        std::vector<std::string> output_error = LibytProcessControl::Get().function_info_list_[index].GetAllErrorMsg();
         if (mpi_rank_ == mpi_root_) {
             if (entry_point_ == kLibytInteractiveMode) {
                 output_.output += std::string("\033[1;35m[Error Msg]\033[0;37m\n");

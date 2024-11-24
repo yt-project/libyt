@@ -64,7 +64,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
     int mpi_root = LibytProcessControl::Get().mpi_root_;
 
     // run new added function and output func_status summary
-    g_func_status_list.RunEveryFunction();
+    LibytProcessControl::Get().function_info_list_.RunEveryFunction();
     MagicCommand command(MagicCommand::EntryPoint::kLibytReloadScript);
     MagicCommandOutput command_result = command.Run("%libyt status");
     if (mpi_root == mpi_rank) {
@@ -75,9 +75,10 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
     bool remove_flag_file = false;
     if (!detect_file(flag_file_name)) {
         bool enter_reload = false;
-        for (int i = 0; i < g_func_status_list.GetSize(); i++) {
-            if (g_func_status_list[i].GetRun() == FunctionInfo::RunStatus::kWillRun &&
-                g_func_status_list[i].GetAllStatus() == FunctionInfo::ExecuteStatus::kFailed) {
+        for (int i = 0; i < LibytProcessControl::Get().function_info_list_.GetSize(); i++) {
+            if (LibytProcessControl::Get().function_info_list_[i].GetRun() == FunctionInfo::RunStatus::kWillRun &&
+                LibytProcessControl::Get().function_info_list_[i].GetAllStatus() ==
+                    FunctionInfo::ExecuteStatus::kFailed) {
                 enter_reload = true;
                 break;
             }

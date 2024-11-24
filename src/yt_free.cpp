@@ -114,8 +114,8 @@ int yt_free() {
     PyRun_SimpleString("gc.collect()");
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    // Reset g_func_status_list status
-    g_func_status_list.ResetEveryFunctionStatus();
+    // Reset LibytProcessControl::Get().function_info_list_ status
+    LibytProcessControl::Get().function_info_list_.ResetEveryFunctionStatus();
 #endif
     // Reset check points
     LibytProcessControl::Get().param_yt_set = false;

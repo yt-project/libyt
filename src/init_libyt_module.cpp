@@ -835,7 +835,8 @@ int init_libyt_module() {
     LibytPythonShell::load_file_func_body(filename.c_str());
     std::vector<std::string> func_list = LibytPythonShell::get_funcname_defined(filename.c_str());
     for (int i = 0; i < (int)func_list.size(); i++) {
-        g_func_status_list.AddNewFunction(func_list[i], FunctionInfo::RunStatus::kNotSetYet);
+        LibytProcessControl::Get().function_info_list_.AddNewFunction(func_list[i],
+                                                                      FunctionInfo::RunStatus::kNotSetYet);
     }
 #endif
 

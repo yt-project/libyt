@@ -53,7 +53,7 @@ LibytProcessControl LibytProcessControl::s_Instance;
 //               proc_num            :
 //               par_count_list      :
 //-------------------------------------------------------------------------------------------------------
-LibytProcessControl::LibytProcessControl() {
+LibytProcessControl::LibytProcessControl() : function_info_list_(10) {
     // MPI info
     mpi_rank_ = 0;
     mpi_size_ = 1;

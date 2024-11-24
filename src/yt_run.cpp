@@ -36,17 +36,19 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // always run m_Run = -1 function, and set 1.
     // always run unknown function and let Python generates function-not-defined error.
-    int func_index = g_func_status_list.GetFunctionIndex(function_name);
+    int func_index = LibytProcessControl::Get().function_info_list_.GetFunctionIndex(function_name);
     if (func_index != -1) {
-        if (g_func_status_list[func_index].GetRun() == FunctionInfo::RunStatus::kWillIdle) {
+        if (LibytProcessControl::Get().function_info_list_[func_index].GetRun() == FunctionInfo::RunStatus::kWillIdle) {
             log_info("YT inline function \"%s\" was set to idle ... idle\n", function_name);
             return YT_SUCCESS;
-        } else if (g_func_status_list[func_index].GetRun() == FunctionInfo::RunStatus::kNotSetYet)
-            g_func_status_list[func_index].SetRun(FunctionInfo::RunStatus::kWillRun);
+        } else if (LibytProcessControl::Get().function_info_list_[func_index].GetRun() ==
+                   FunctionInfo::RunStatus::kNotSetYet)
+            LibytProcessControl::Get().function_info_list_[func_index].SetRun(FunctionInfo::RunStatus::kWillRun);
     } else {
-        func_index = g_func_status_list.AddNewFunction(function_name, FunctionInfo::RunStatus::kWillRun);
+        func_index = LibytProcessControl::Get().function_info_list_.AddNewFunction(function_name,
+                                                                                   FunctionInfo::RunStatus::kWillRun);
     }
-    g_func_status_list[func_index].SetStatus(FunctionInfo::ExecuteStatus::kNeedUpdate);
+    LibytProcessControl::Get().function_info_list_[func_index].SetStatus(FunctionInfo::ExecuteStatus::kNeedUpdate);
 #endif
 
 #ifndef SERIAL_MODE
@@ -94,7 +96,7 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
         std::string str_set_error =
             std::string("libyt.interactive_mode[\"func_err_msg\"][\"") + std::string(function_name) +
             std::string("\"] = \"LIBYT Error: Please avoid using both \\\"\\\"\\\" and \'\'\' for triple quotes.\\n\"");
-        g_func_status_list[func_index].SetStatus(FunctionInfo::ExecuteStatus::kFailed);
+        LibytProcessControl::Get().function_info_list_[func_index].SetStatus(FunctionInfo::ExecuteStatus::kFailed);
         if (PyRun_SimpleString(str_set_error.c_str()) != 0) {
             log_error("Unexpected error occurred when setting unable to wrap error message in interactive mode.\n");
         }
@@ -126,15 +128,15 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
 #endif
     {
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-        g_func_status_list[func_index].SetStatus(FunctionInfo::ExecuteStatus::kFailed);
+        LibytProcessControl::Get().function_info_list_[func_index].SetStatus(FunctionInfo::ExecuteStatus::kFailed);
 #endif
         YT_ABORT("Unexpected error occurred while executing %s in script's namespace.\n", str_function.c_str());
     }
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    // update status in g_func_status_list
-    g_func_status_list[func_index].SetStatusUsingPythonResult();
-    FunctionInfo::ExecuteStatus all_status = g_func_status_list[func_index].GetAllStatus();
+    // update status in LibytProcessControl::Get().function_info_list_
+    LibytProcessControl::Get().function_info_list_[func_index].SetStatusUsingPythonResult();
+    FunctionInfo::ExecuteStatus all_status = LibytProcessControl::Get().function_info_list_[func_index].GetAllStatus();
 #endif
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
