@@ -1,7 +1,6 @@
 #ifndef __LIBYTPROCESSCONTROL_H__
 #define __LIBYTPROCESSCONTROL_H__
 
-#include "TimerControl.h"
 #include "yt_type.h"
 
 #ifndef SERIAL_MODE
@@ -10,6 +9,9 @@
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
 #include "function_info.h"
 #include "libyt_python_shell.h"
+#endif
+#ifdef SUPPORT_TIMER
+#include "TimerControl.h"
 #endif
 
 //-------------------------------------------------------------------------------------------------------
