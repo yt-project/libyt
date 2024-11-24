@@ -49,7 +49,7 @@ LibytProcessControl LibytProcessControl::s_Instance;
 //               proc_num            :
 //               par_count_list      :
 //-------------------------------------------------------------------------------------------------------
-LibytProcessControl::LibytProcessControl() : function_info_list_(10) {
+LibytProcessControl::LibytProcessControl() {
     // MPI info
     mpi_rank_ = 0;
     mpi_size_ = 1;
@@ -102,9 +102,9 @@ void LibytProcessControl::Initialize() {
 #ifdef SUPPORT_TIMER
     // Set time profile controller
     std::string filename = "libytTimeProfile_MPI";
-    filename += std::to_string(my_rank);
+    filename += std::to_string(mpi_rank_);
     filename += ".json";
-    timer_control.CreateFile(filename.c_str(), my_rank);
+    timer_control.CreateFile(filename.c_str(), mpi_rank_);
 #endif
 }
 
