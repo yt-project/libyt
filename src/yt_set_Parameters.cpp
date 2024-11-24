@@ -63,13 +63,13 @@ int yt_set_Parameters(yt_param_yt* param_yt) {
     g_param_yt = *param_yt;
 
     // set the default figure base name if it's not set by users.
-    // append g_param_libyt.counter to prevent over-written
+    // append LibytProcessControl::Get().param_libyt_.counter to prevent over-written
     char fig_basename[1000];
     if (param_yt->fig_basename == NULL) {
-        sprintf(fig_basename, "Fig%09ld", g_param_libyt.counter);
+        sprintf(fig_basename, "Fig%09ld", LibytProcessControl::Get().param_libyt_.counter);
         g_param_yt.fig_basename = fig_basename;
     } else {
-        sprintf(fig_basename, "%s%09ld", param_yt->fig_basename, g_param_libyt.counter);
+        sprintf(fig_basename, "%s%09ld", param_yt->fig_basename, LibytProcessControl::Get().param_libyt_.counter);
         g_param_yt.fig_basename = fig_basename;
     }
 
@@ -202,7 +202,7 @@ int yt_set_Parameters(yt_param_yt* param_yt) {
     MPI_Bcast(num_grids_local_MPI, NRank, MPI_INT, RootRank, MPI_COMM_WORLD);
 
     // Check that sum of num_grids_local_MPI is equal to num_grids (total number of grids), abort if not.
-    if (g_param_libyt.check_data) {
+    if (LibytProcessControl::Get().param_libyt_.check_data) {
         if (check_sum_num_grids_local_MPI(NRank, num_grids_local_MPI) != YT_SUCCESS) {
             YT_ABORT("Check sum of local grids in each MPI rank failed in %s!\n", __FUNCTION__);
         }

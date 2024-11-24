@@ -386,7 +386,8 @@ void FunctionInfoList::RunEveryFunction() {
             std::string command = std::string("try:\n"
                                               "    exec(") +
                                   function.GetWrapper() + function.GetFunctionNameWithInputArgs() +
-                                  function.GetWrapper() + std::string(", sys.modules[\"") + g_param_libyt.script +
+                                  function.GetWrapper() + std::string(", sys.modules[\"") +
+                                  LibytProcessControl::Get().param_libyt_.script +
                                   std::string("\"].__dict__)\n"
                                               "except Exception as e:\n"
                                               "    libyt.interactive_mode[\"func_err_msg\"][\"") +
