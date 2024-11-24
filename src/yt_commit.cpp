@@ -102,14 +102,11 @@ int yt_commit() {
     yt_hierarchy* hierarchy_local = new yt_hierarchy[param_yt.num_grids_local];
 
     // initialize particle_count_list[ptype_label][grid_id]
-    long **particle_count_list_full, **particle_count_list_local;
-    if (param_yt.num_par_types > 0) {
-        particle_count_list_full = new long*[param_yt.num_par_types];
-        particle_count_list_local = new long*[param_yt.num_par_types];
-        for (int s = 0; s < param_yt.num_par_types; s++) {
-            if (param_yt.num_grids > 0) particle_count_list_full[s] = new long[param_yt.num_grids];
-            if (param_yt.num_grids_local > 0) particle_count_list_local[s] = new long[param_yt.num_grids_local];
-        }
+    long** particle_count_list_full = new long*[param_yt.num_par_types];
+    long** particle_count_list_local = new long*[param_yt.num_par_types];
+    for (int s = 0; s < param_yt.num_par_types; s++) {
+        particle_count_list_full[s] = new long[param_yt.num_grids];
+        particle_count_list_local[s] = new long[param_yt.num_grids_local];
     }
 #endif
 
@@ -155,14 +152,12 @@ int yt_commit() {
 #ifndef SERIAL_MODE
             delete[] hierarchy_full;
             delete[] hierarchy_local;
-            if (param_yt.num_par_types > 0) {
-                for (int s = 0; s < param_yt.num_par_types; s++) {
-                    if (param_yt.num_grids > 0) delete[] particle_count_list_full[s];
-                    if (param_yt.num_grids_local > 0) delete[] particle_count_list_local[s];
-                }
-                delete[] particle_count_list_full;
-                delete[] particle_count_list_local;
+            for (int s = 0; s < param_yt.num_par_types; s++) {
+                delete[] particle_count_list_full[s];
+                delete[] particle_count_list_local[s];
             }
+            delete[] particle_count_list_full;
+            delete[] particle_count_list_local;
 #endif
             YT_ABORT("Validating the parent-children relationship ... failed!\n")
         }
@@ -230,14 +225,13 @@ int yt_commit() {
         if (append_grid(&grid_combine) != YT_SUCCESS) {
             delete[] hierarchy_full;
             delete[] hierarchy_local;
-            if (param_yt.num_par_types > 0) {
-                for (int s = 0; s < param_yt.num_par_types; s++) {
-                    if (param_yt.num_grids > 0) delete[] particle_count_list_full[s];
-                    if (param_yt.num_grids_local > 0) delete[] particle_count_list_local[s];
-                }
-                delete[] particle_count_list_full;
-                delete[] particle_count_list_local;
+            for (int s = 0; s < param_yt.num_par_types; s++) {
+                delete[] particle_count_list_full[s];
+                delete[] particle_count_list_local[s];
             }
+            delete[] particle_count_list_full;
+            delete[] particle_count_list_local;
+
             delete[] grid_combine.par_count_list;
             YT_ABORT("Failed to append grid [ %ld ]!\n", grid_combine.id);
         }
@@ -260,14 +254,12 @@ int yt_commit() {
     // Freed resource
     delete[] hierarchy_local;
     delete[] hierarchy_full;
-    if (param_yt.num_par_types > 0) {
-        for (int s = 0; s < param_yt.num_par_types; s++) {
-            if (param_yt.num_grids > 0) delete[] particle_count_list_full[s];
-            if (param_yt.num_grids_local > 0) delete[] particle_count_list_local[s];
-        }
-        delete[] particle_count_list_full;
-        delete[] particle_count_list_local;
+    for (int s = 0; s < param_yt.num_par_types; s++) {
+        delete[] particle_count_list_full[s];
+        delete[] particle_count_list_local[s];
     }
+    delete[] particle_count_list_full;
+    delete[] particle_count_list_local;
     delete[] grid_combine.par_count_list;
 #endif
 
