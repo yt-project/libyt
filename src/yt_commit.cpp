@@ -98,11 +98,8 @@ int yt_commit() {
 
 #ifndef SERIAL_MODE
     // initialize hierarchy array, prepare for collecting hierarchy in different ranks.
-    yt_hierarchy *hierarchy_full, *hierarchy_local;
-
-    // initialize hierarchy_full, hierarchy_local and to avoid new [0].
-    if (param_yt.num_grids > 0) hierarchy_full = new yt_hierarchy[param_yt.num_grids];
-    if (param_yt.num_grids_local > 0) hierarchy_local = new yt_hierarchy[param_yt.num_grids_local];
+    yt_hierarchy* hierarchy_full = new yt_hierarchy[param_yt.num_grids];
+    yt_hierarchy* hierarchy_local = new yt_hierarchy[param_yt.num_grids_local];
 
     // initialize particle_count_list[ptype_label][grid_id]
     long **particle_count_list_full, **particle_count_list_local;
@@ -156,8 +153,8 @@ int yt_commit() {
             log_debug("Validating the parent-children relationship ... done!\n");
         } else {
 #ifndef SERIAL_MODE
-            if (param_yt.num_grids > 0) delete[] hierarchy_full;
-            if (param_yt.num_grids_local > 0) delete[] hierarchy_local;
+            delete[] hierarchy_full;
+            delete[] hierarchy_local;
             if (param_yt.num_par_types > 0) {
                 for (int s = 0; s < param_yt.num_par_types; s++) {
                     if (param_yt.num_grids > 0) delete[] particle_count_list_full[s];
@@ -231,8 +228,8 @@ int yt_commit() {
 
         // Append grid to YT
         if (append_grid(&grid_combine) != YT_SUCCESS) {
-            if (param_yt.num_grids > 0) delete[] hierarchy_full;
-            if (param_yt.num_grids_local > 0) delete[] hierarchy_local;
+            delete[] hierarchy_full;
+            delete[] hierarchy_local;
             if (param_yt.num_par_types > 0) {
                 for (int s = 0; s < param_yt.num_par_types; s++) {
                     if (param_yt.num_grids > 0) delete[] particle_count_list_full[s];
@@ -261,8 +258,8 @@ int yt_commit() {
 
 #ifndef SERIAL_MODE
     // Freed resource
-    if (param_yt.num_grids_local > 0) delete[] hierarchy_local;
-    if (param_yt.num_grids > 0) delete[] hierarchy_full;
+    delete[] hierarchy_local;
+    delete[] hierarchy_full;
     if (param_yt.num_par_types > 0) {
         for (int s = 0; s < param_yt.num_par_types; s++) {
             if (param_yt.num_grids > 0) delete[] particle_count_list_full[s];
