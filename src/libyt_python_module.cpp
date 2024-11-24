@@ -55,7 +55,7 @@ pybind11::array derived_func(long gid, const char* field_name) {
     int field_id = -1;
     yt_dtype field_dtype = YT_DTYPE_UNKNOWN;
 
-    for (int v = 0; v < g_param_yt.num_fields; v++) {
+    for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_fields; v++) {
         if (strcmp(field_list[v].field_name, field_name) == 0) {
             field_id = v;
             field_dtype = field_list[v].field_dtype;
@@ -155,7 +155,7 @@ pybind11::array get_particle(long gid, const char* ptype, const char* attr_name)
     int particle_id = -1, attr_id = -1;
     yt_dtype attr_dtype = YT_DTYPE_UNKNOWN;
 
-    for (int v = 0; v < g_param_yt.num_par_types; v++) {
+    for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_par_types; v++) {
         if (strcmp(particle_list[v].par_type, ptype) == 0) {
             particle_id = v;
             get_par_attr = particle_list[v].get_par_attr;

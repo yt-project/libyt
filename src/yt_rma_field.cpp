@@ -43,7 +43,7 @@ yt_rma_field::yt_rma_field(const char* fname, int len_prepare, long len_get_grid
     }
 
     yt_field* field_list = LibytProcessControl::Get().field_list;
-    for (int v = 0; v < g_param_yt.num_fields; v++) {
+    for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_fields; v++) {
         if (strcmp(fname, field_list[v].field_name) == 0) {
             m_FieldName = field_list[v].field_name;
             m_FieldDefineType = field_list[v].field_type;

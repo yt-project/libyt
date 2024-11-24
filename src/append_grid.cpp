@@ -11,8 +11,8 @@ static int set_particle_data(yt_grid* grid);
 //
 // Note        :  1. Store the input "grid" to libyt.hierarchy, libyt.grid_data, libyt.particle_data.
 //                2. When setting libyt.hierarchy:
-//                   since grid id doesn't have to be 0-indexed (set g_param_yt.index_offset), but the
-//                   hierarchy array starts at 0, we need to minus index_offset when setting hierarchy.
+//                   since grid id doesn't have to be 0-indexed (set LibytProcessControl::Get().param_yt_.index_offset),
+//                   but the hierarchy array starts at 0, we need to minus index_offset when setting hierarchy.
 //                3. When setting libyt.grid_data and libyt.particle_data:
 //                   always maintain the same grid passed in by simulation, which means it doesn't have
 //                   to start from 0.
@@ -35,7 +35,8 @@ int append_grid(yt_grid* grid) {
             if ((py_array_obj = (PyArrayObject*)PyDict_GetItemString(g_py_hierarchy, KEY)) == NULL)                    \
                 YT_ABORT("Accessing the key \"%s\" from libyt.hierarchy ... failed!\n", KEY);                          \
                                                                                                                        \
-            *(TYPE*)PyArray_GETPTR2(py_array_obj, (grid->id) - g_param_yt.index_offset, t) = (TYPE)(ARRAY)[t];         \
+            *(TYPE*)PyArray_GETPTR2(py_array_obj, (grid->id) - LibytProcessControl::Get().param_yt_.index_offset, t) = \
+                (TYPE)(ARRAY)[t];                                                                                      \
         }                                                                                                              \
     }
 
@@ -45,12 +46,12 @@ int append_grid(yt_grid* grid) {
     FILL_ARRAY("grid_parent_id", &grid->parent_id, 1, npy_long)
     FILL_ARRAY("grid_levels", &grid->level, 1, npy_int)
     FILL_ARRAY("proc_num", &grid->proc_num, 1, npy_int)
-    if (g_param_yt.num_par_types > 0) {
-        FILL_ARRAY("par_count_list", grid->par_count_list, g_param_yt.num_par_types, npy_long)
+    if (LibytProcessControl::Get().param_yt_.num_par_types > 0) {
+        FILL_ARRAY("par_count_list", grid->par_count_list, LibytProcessControl::Get().param_yt_.num_par_types, npy_long)
     }
 #undef FILL_ARRAY
 #else
-    long index = grid->id - g_param_yt.index_offset;
+    long index = grid->id - LibytProcessControl::Get().param_yt_.index_offset;
     for (int d = 0; d < 3; d++) {
         LibytProcessControl::Get().grid_left_edge[index * 3 + d] = grid->left_edge[d];
         LibytProcessControl::Get().grid_right_edge[index * 3 + d] = grid->right_edge[d];
@@ -59,9 +60,10 @@ int append_grid(yt_grid* grid) {
     LibytProcessControl::Get().grid_parent_id[index] = grid->parent_id;
     LibytProcessControl::Get().grid_levels[index] = grid->level;
     LibytProcessControl::Get().proc_num[index] = grid->proc_num;
-    if (g_param_yt.num_par_types > 0) {
-        for (int p = 0; p < g_param_yt.num_par_types; p++) {
-            LibytProcessControl::Get().par_count_list[index * g_param_yt.num_par_types + p] = grid->par_count_list[p];
+    if (LibytProcessControl::Get().param_yt_.num_par_types > 0) {
+        for (int p = 0; p < LibytProcessControl::Get().param_yt_.num_par_types; p++) {
+            LibytProcessControl::Get().par_count_list[index * LibytProcessControl::Get().param_yt_.num_par_types + p] =
+                grid->par_count_list[p];
         }
     }
 #endif  // #ifndef USE_PYBIND11
@@ -96,7 +98,7 @@ static int set_field_data(yt_grid* grid) {
     PyObject *py_grid_id, *py_field_labels, *py_field_data;
     py_grid_id = PyLong_FromLong(grid->id);
     py_field_labels = PyDict_New();
-    for (int v = 0; v < g_param_yt.num_fields; v++) {
+    for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_fields; v++) {
         // append data to dict only if data is not NULL.
         if ((grid->field_data)[v].data_ptr == nullptr) continue;
 
@@ -197,7 +199,7 @@ static int set_particle_data(yt_grid* grid) {
     PyObject *py_grid_id, *py_ptype_labels, *py_attributes, *py_data;
     py_grid_id = PyLong_FromLong(grid->id);
     py_ptype_labels = PyDict_New();
-    for (int p = 0; p < g_param_yt.num_par_types; p++) {
+    for (int p = 0; p < LibytProcessControl::Get().param_yt_.num_par_types; p++) {
         py_attributes = PyDict_New();
         for (int a = 0; a < particle_list[p].num_attr; a++) {
             // skip if particle attribute pointer is NULL

@@ -45,7 +45,7 @@ yt_rma_particle::yt_rma_particle(const char* ptype, const char* attribute, int l
     }
 
     yt_particle* particle_list = LibytProcessControl::Get().particle_list;
-    for (int v = 0; v < g_param_yt.num_par_types; v++) {
+    for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_par_types; v++) {
         if (strcmp(ptype, particle_list[v].par_type) == 0) {
             m_ParticleType = particle_list[v].par_type;
             m_ParticleIndex = v;
