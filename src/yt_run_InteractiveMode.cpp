@@ -52,7 +52,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     int mpi_size = LibytProcessControl::Get().mpi_size_;
 
     // run new added function and output func_status summary
-    g_func_status_list.RunEveryFunction();
+    LibytProcessControl::Get().function_info_list_.RunEveryFunction();
     MagicCommand command(MagicCommand::EntryPoint::kLibytInteractiveMode);
     MagicCommandOutput command_result = command.Run("%libyt status");
     if (mpi_root == mpi_rank) {

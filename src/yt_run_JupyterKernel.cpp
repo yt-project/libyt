@@ -48,7 +48,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
     }
 
     // run new added functions
-    g_func_status_list.RunEveryFunction();
+    LibytProcessControl::Get().function_info_list_.RunEveryFunction();
 
     // see if we need to start libyt kernel by checking if file flag_file_name exist.
     struct stat buffer;

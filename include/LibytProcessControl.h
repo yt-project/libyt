@@ -8,6 +8,7 @@
 #include <mpi.h>
 #endif
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
+#include "function_info.h"
 #include "libyt_python_shell.h"
 #endif
 
@@ -36,6 +37,7 @@ public:
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // Python shell
     LibytPythonShell python_shell_;
+    FunctionInfoList function_info_list_;
 #endif
 
     // Process control check point and data management for libyt
