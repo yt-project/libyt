@@ -4,10 +4,6 @@
 
 #include "LibytProcessControl.h"
 
-#ifdef USE_PYBIND11
-#include "pybind11/embed.h"
-#endif
-
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytProcessControl
 // Data member :  Static private LibytProcessControl instance.
