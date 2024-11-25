@@ -13,7 +13,7 @@
 #include "libyt_python_shell.h"
 #endif
 #ifdef SUPPORT_TIMER
-#include "TimerControl.h"
+#include "timer_control.h"
 #endif
 
 //-------------------------------------------------------------------------------------------------------
