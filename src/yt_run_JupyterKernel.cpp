@@ -11,9 +11,9 @@
 #include <xeus/xkernel.hpp>
 #include <xeus/xkernel_configuration.hpp>
 
-#include "LibytProcessControl.h"
 #include "function_info.h"
 #include "libyt_kernel.h"
+#include "libyt_process_control.h"
 #ifndef SERIAL_MODE
 #include "libyt_worker.h"
 #endif

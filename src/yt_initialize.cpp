@@ -5,8 +5,8 @@
 
 #undef DEFINE_GLOBAL
 
-#include "LibytProcessControl.h"
 #include "libyt.h"
+#include "libyt_process_control.h"
 
 static void print_libyt_info();
 #ifndef SERIAL_MODE

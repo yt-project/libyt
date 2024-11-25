@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "LibytProcessControl.h"
 #include "libyt.h"
+#include "libyt_process_control.h"
 #include "pybind11/embed.h"
 #include "pybind11/numpy.h"
 #include "pybind11/pytypes.h"

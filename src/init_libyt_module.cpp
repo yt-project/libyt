@@ -4,9 +4,9 @@
 #include <fstream>
 #include <string>
 
-#include "LibytProcessControl.h"
 #include "function_info.h"
 #include "libyt.h"
+#include "libyt_process_control.h"
 #include "yt_combo.h"
 #include "yt_rma_field.h"
 #include "yt_rma_particle.h"

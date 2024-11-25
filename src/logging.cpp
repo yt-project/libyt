@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include "LibytProcessControl.h"
+#include "libyt_process_control.h"
 
 // width of log prefix ==> [LogPrefixWidth] messages
 static const int LogPrefixWidth = 10;

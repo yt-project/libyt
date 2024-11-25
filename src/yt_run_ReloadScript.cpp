@@ -12,7 +12,7 @@
 #include <string>
 #include <thread>
 
-#include "LibytProcessControl.h"
+#include "libyt_process_control.h"
 #include "magic_command.h"
 
 static bool detect_file(const char* flag_file);

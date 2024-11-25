@@ -4,9 +4,9 @@
 
 #include <string.h>
 
-#include "LibytProcessControl.h"
 #include "big_mpi.h"
 #include "libyt.h"
+#include "libyt_process_control.h"
 
 static int get_particle_data(const long gid, const char* ptype, const char* attr, yt_data* par_data);
 
