@@ -7,8 +7,8 @@
 #include <iostream>
 #include <string>
 
-#include "LibytProcessControl.h"
 #include "function_info.h"
+#include "libyt_process_control.h"
 #include "yt_combo.h"
 
 static std::vector<std::string> generate_err_msg(const std::vector<std::string>& statements);

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <thread>
 
-#include "LibytProcessControl.h"
+#include "libyt_process_control.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  Timer

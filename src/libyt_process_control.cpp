@@ -2,7 +2,7 @@
 #include <mpi.h>
 #endif
 
-#include "LibytProcessControl.h"
+#include "libyt_process_control.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytProcessControl

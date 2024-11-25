@@ -9,8 +9,8 @@
 #include <iostream>
 #include <string>
 
-#include "LibytProcessControl.h"
 #include "function_info.h"
+#include "libyt_process_control.h"
 #include "magic_command.h"
 #endif
 

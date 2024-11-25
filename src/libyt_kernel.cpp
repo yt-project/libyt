@@ -4,8 +4,8 @@
 #include <string>
 #include <xeus/xhelper.hpp>
 
-#include "LibytProcessControl.h"
 #include "libyt.h"
+#include "libyt_process_control.h"
 #include "libyt_python_shell.h"
 #include "magic_command.h"
 #include "yt_combo.h"
