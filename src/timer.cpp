@@ -1,6 +1,6 @@
 #ifdef SUPPORT_TIMER
 
-#include "Timer.h"
+#include "timer.h"
 
 #include <iostream>
 #include <thread>
