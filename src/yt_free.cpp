@@ -88,13 +88,13 @@ int yt_free() {
 
 #ifndef USE_PYBIND11
     // Reset data in libyt module
-    PyDict_Clear(g_py_grid_data);
-    PyDict_Clear(g_py_particle_data);
-    PyDict_Clear(g_py_hierarchy);
-    PyDict_Clear(g_py_param_yt);
-    PyDict_Clear(g_py_param_user);
+    PyDict_Clear(LibytProcessControl::Get().py_grid_data_);
+    PyDict_Clear(LibytProcessControl::Get().py_particle_data_);
+    PyDict_Clear(LibytProcessControl::Get().py_hierarchy_);
+    PyDict_Clear(LibytProcessControl::Get().py_param_yt_);
+    PyDict_Clear(LibytProcessControl::Get().py_param_user_);
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    PyDict_Clear(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"));
+    PyDict_Clear(PyDict_GetItemString(LibytProcessControl::Get().py_interactive_mode_, "func_err_msg"));
 #endif
 #else
     pybind11::module_ libyt = pybind11::module_::import("libyt");

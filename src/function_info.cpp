@@ -123,7 +123,8 @@ void FunctionInfo::SetStatusUsingPythonResult() {
     status_ = py_func_err_msg.contains(function_name_) ? kFailed : kSuccess;
 #else
     PyObject* py_func_name = PyUnicode_FromString(function_name_.c_str());
-    status_ = (PyDict_Contains(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name) == 1)
+    status_ = (PyDict_Contains(PyDict_GetItemString(LibytProcessControl::Get().py_interactive_mode_, "func_err_msg"),
+                               py_func_name) == 1)
                   ? kFailed
                   : kSuccess;
     Py_DECREF(py_func_name);
@@ -197,7 +198,8 @@ std::vector<std::string>& FunctionInfo::GetAllErrorMsg() {
     }
 #else
     PyObject* py_func_name = PyUnicode_FromString(function_name_.c_str());
-    PyObject* py_err_msg = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"), py_func_name);
+    PyObject* py_err_msg = PyDict_GetItem(
+        PyDict_GetItemString(LibytProcessControl::Get().py_interactive_mode_, "func_err_msg"), py_func_name);
     if (py_err_msg != NULL) {
         err_msg = PyUnicode_AsUTF8(py_err_msg);
     } else {
@@ -264,7 +266,8 @@ std::string FunctionInfo::GetFunctionBody() {
 #else
     // get function body
     PyObject* py_func_name = PyUnicode_FromString(function_name_.c_str());
-    PyObject* py_func_body = PyDict_GetItem(PyDict_GetItemString(g_py_interactive_mode, "func_body"), py_func_name);
+    PyObject* py_func_body = PyDict_GetItem(
+        PyDict_GetItemString(LibytProcessControl::Get().py_interactive_mode_, "func_body"), py_func_name);
     if (py_func_body != NULL) {
         func_body = std::string(PyUnicode_AsUTF8(py_func_body));
     }

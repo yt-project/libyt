@@ -347,7 +347,7 @@ int add_dict_field_list() {
         Py_DECREF(field_info_dict);
     }
 
-    if (PyDict_SetItemString(g_py_param_yt, "field_list", field_list_dict) != 0) {
+    if (PyDict_SetItemString(LibytProcessControl::Get().py_param_yt_, "field_list", field_list_dict) != 0) {
         Py_DECREF(field_list_dict);
         YT_ABORT("Inserting dictionary [field_list] to libyt.param_yt ... failed!\n");
     }
@@ -622,7 +622,7 @@ int add_dict_particle_list() {
     }
 
     // Insert particle_list_dict to libyt.param_yt["particle_list"]
-    if (PyDict_SetItemString(g_py_param_yt, "particle_list", particle_list_dict) != 0) {
+    if (PyDict_SetItemString(LibytProcessControl::Get().py_param_yt_, "particle_list", particle_list_dict) != 0) {
         Py_DECREF(particle_list_dict);
         YT_ABORT("Inserting dictionary [particle_list] item to libyt ... failed!\n");
     }

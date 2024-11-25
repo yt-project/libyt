@@ -438,16 +438,18 @@ static int get_particle_data(const long gid, const char* ptype, const char* attr
     PyObject* py_ptype = PyUnicode_FromString(ptype);
     PyObject* py_attr = PyUnicode_FromString(attr);
 
-    if (PyDict_Contains(g_py_particle_data, py_grid_id) != 1 ||
-        PyDict_Contains(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype) != 1 ||
-        PyDict_Contains(PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr) != 1) {
+    if (PyDict_Contains(LibytProcessControl::Get().py_particle_data_, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype) != 1 ||
+        PyDict_Contains(
+            PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype),
+            py_attr) != 1) {
         Py_DECREF(py_grid_id);
         Py_DECREF(py_ptype);
         Py_DECREF(py_attr);
         return YT_FAIL;
     }
     PyArrayObject* py_data = (PyArrayObject*)PyDict_GetItem(
-        PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr);
+        PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype), py_attr);
 
     Py_DECREF(py_grid_id);
     Py_DECREF(py_ptype);

@@ -177,7 +177,8 @@ int LibytPythonShell::load_input_func_body(const char* code) {
                                                                               FunctionInfo::RunStatus::kWillIdle);
 
                 // update function body
-                PyObject* py_func_body_dict = PyDict_GetItemString(g_py_interactive_mode, "func_body");
+                PyObject* py_func_body_dict =
+                    PyDict_GetItemString(LibytProcessControl::Get().py_interactive_mode_, "func_body");
                 PyObject* py_func_body = PyUnicode_FromString((const char*)code);
                 PyDict_SetItemString(py_func_body_dict, func_name, py_func_body);
                 Py_DECREF(py_func_body);
@@ -225,7 +226,7 @@ std::vector<std::string> LibytPythonShell::get_funcname_defined(const char* file
             filename);
     if (PyRun_SimpleString(command) != 0) log_error("Unable to grab functions in python script %s.\n", filename);
 
-    PyObject* py_func_list = PyDict_GetItemString(g_py_interactive_mode, "temp");
+    PyObject* py_func_list = PyDict_GetItemString(LibytProcessControl::Get().py_interactive_mode_, "temp");
     Py_ssize_t py_list_len = PyList_Size(py_func_list);
     std::vector<std::string> func_list;
     func_list.reserve((long)py_list_len);
@@ -351,7 +352,7 @@ int LibytPythonShell::init_not_done_err_msg() {
 int LibytPythonShell::init_script_namespace() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    s_PyGlobals = PyDict_GetItemString(g_py_interactive_mode, "script_globals");
+    s_PyGlobals = PyDict_GetItemString(LibytProcessControl::Get().py_interactive_mode_, "script_globals");
 
     return YT_SUCCESS;
 }

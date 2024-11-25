@@ -69,6 +69,16 @@ LibytProcessControl::LibytProcessControl() {
     grids_local = nullptr;
     num_grids_local_MPI = nullptr;
 
+    py_grid_data_ = nullptr;
+    py_particle_data_ = nullptr;
+    py_hierarchy_ = nullptr;
+    py_param_yt_ = nullptr;
+    py_param_user_ = nullptr;
+    py_libyt_info_ = nullptr;
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
+    py_interactive_mode_ = nullptr;
+#endif
+
 #ifdef USE_PYBIND11
     grid_left_edge = nullptr;
     grid_right_edge = nullptr;

@@ -30,7 +30,8 @@
 #ifndef USE_PYBIND11
 #define GET_ARRAY(KEY, ARRAY, DIM, TYPE, GID)                                                                          \
     {                                                                                                                  \
-        PyArrayObject* py_array_obj = (PyArrayObject*)PyDict_GetItemString(g_py_hierarchy, KEY);                       \
+        PyArrayObject* py_array_obj =                                                                                  \
+            (PyArrayObject*)PyDict_GetItemString(LibytProcessControl::Get().py_hierarchy_, KEY);                       \
         for (int t = 0; t < DIM; t++) {                                                                                \
             (ARRAY)[t] =                                                                                               \
                 *(TYPE*)PyArray_GETPTR2(py_array_obj, GID - LibytProcessControl::Get().param_yt_.index_offset, t);     \
@@ -215,7 +216,8 @@ int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_co
 
 #ifndef USE_PYBIND11
     // get particle count NumPy array in libyt.hierarchy["par_count_list"]
-    PyArrayObject* py_array_obj = (PyArrayObject*)PyDict_GetItemString(g_py_hierarchy, "par_count_list");
+    PyArrayObject* py_array_obj =
+        (PyArrayObject*)PyDict_GetItemString(LibytProcessControl::Get().py_hierarchy_, "par_count_list");
     if (py_array_obj == NULL) YT_ABORT("Cannot find key \"par_count_list\" in libyt.hierarchy dict.\n");
 
     // read libyt.hierarchy["par_count_list"][index][ptype]
@@ -265,15 +267,16 @@ int yt_getGridInfo_FieldData(const long gid, const char* field_name, yt_data* fi
     PyObject* py_grid_id = PyLong_FromLong(gid);
     PyObject* py_field = PyUnicode_FromString(field_name);
 
-    if (PyDict_Contains(g_py_grid_data, py_grid_id) != 1 ||
-        PyDict_Contains(PyDict_GetItem(g_py_grid_data, py_grid_id), py_field) != 1) {
+    if (PyDict_Contains(LibytProcessControl::Get().py_grid_data_, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(LibytProcessControl::Get().py_grid_data_, py_grid_id), py_field) != 1) {
         log_error("Cannot find grid [%ld] data [%s] on MPI rank [%d].\n", gid, field_name,
                   LibytProcessControl::Get().mpi_rank_);
         Py_DECREF(py_grid_id);
         Py_DECREF(py_field);
         return YT_FAIL;
     }
-    PyArrayObject* py_array_obj = (PyArrayObject*)PyDict_GetItem(PyDict_GetItem(g_py_grid_data, py_grid_id), py_field);
+    PyArrayObject* py_array_obj =
+        (PyArrayObject*)PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_grid_data_, py_grid_id), py_field);
 
     Py_DECREF(py_grid_id);
     Py_DECREF(py_field);
@@ -330,9 +333,11 @@ int yt_getGridInfo_ParticleData(const long gid, const char* ptype, const char* a
     PyObject* py_ptype = PyUnicode_FromString(ptype);
     PyObject* py_attr = PyUnicode_FromString(attr);
 
-    if (PyDict_Contains(g_py_particle_data, py_grid_id) != 1 ||
-        PyDict_Contains(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype) != 1 ||
-        PyDict_Contains(PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr) != 1) {
+    if (PyDict_Contains(LibytProcessControl::Get().py_particle_data_, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype) != 1 ||
+        PyDict_Contains(
+            PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype),
+            py_attr) != 1) {
         log_error("Cannot find particle type [%s] attribute [%s] data in grid [%ld] on MPI rank [%d].\n", ptype, attr,
                   gid, LibytProcessControl::Get().mpi_rank_);
         Py_DECREF(py_grid_id);
@@ -341,7 +346,7 @@ int yt_getGridInfo_ParticleData(const long gid, const char* ptype, const char* a
         return YT_FAIL;
     }
     PyArrayObject* py_data = (PyArrayObject*)PyDict_GetItem(
-        PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr);
+        PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype), py_attr);
 
     Py_DECREF(py_grid_id);
     Py_DECREF(py_ptype);

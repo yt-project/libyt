@@ -24,8 +24,8 @@ int allocate_hierarchy() {
 #ifndef USE_PYBIND11
     // remove all key-value pairs if one wants to overwrite the existing dictionary
     // ==> it should happen only if one calls yt_set_Parameters() more than once
-    if (PyDict_Size(g_py_hierarchy) > 0) {
-        PyDict_Clear(g_py_hierarchy);
+    if (PyDict_Size(LibytProcessControl::Get().py_hierarchy_) > 0) {
+        PyDict_Clear(LibytProcessControl::Get().py_hierarchy_);
         log_warning("Removing existing key-value pairs in libyt.hierarchy ... done\n");
     }
 
@@ -41,7 +41,7 @@ int allocate_hierarchy() {
         np_dim[1] = (npy_intp)DIM1;                                                                                    \
         py_obj = PyArray_SimpleNew(2, np_dim, TYPE);                                                                   \
                                                                                                                        \
-        if (PyDict_SetItemString(g_py_hierarchy, KEY, py_obj) != 0) {                                                  \
+        if (PyDict_SetItemString(LibytProcessControl::Get().py_hierarchy_, KEY, py_obj) != 0) {                        \
             Py_XDECREF(py_obj);                                                                                        \
             YT_ABORT("Inserting the key \"%s\" to libyt.hierarchy ... failed!\n", KEY);                                \
         }                                                                                                              \
