@@ -32,7 +32,8 @@ int append_grid(yt_grid* grid) {
 #define FILL_ARRAY(KEY, ARRAY, DIM, TYPE)                                                                              \
     {                                                                                                                  \
         for (int t = 0; t < DIM; t++) {                                                                                \
-            if ((py_array_obj = (PyArrayObject*)PyDict_GetItemString(g_py_hierarchy, KEY)) == NULL)                    \
+            if ((py_array_obj =                                                                                        \
+                     (PyArrayObject*)PyDict_GetItemString(LibytProcessControl::Get().py_hierarchy_, KEY)) == NULL)     \
                 YT_ABORT("Accessing the key \"%s\" from libyt.hierarchy ... failed!\n", KEY);                          \
                                                                                                                        \
             *(TYPE*)PyArray_GETPTR2(py_array_obj, (grid->id) - LibytProcessControl::Get().param_yt_.index_offset, t) = \
@@ -103,8 +104,8 @@ static int set_field_data(yt_grid* grid) {
         if ((grid->field_data)[v].data_ptr == nullptr) continue;
 
         // check if dictionary exists, if no add new dict under key gid
-        if (PyDict_Contains(g_py_grid_data, py_grid_id) != 1) {
-            PyDict_SetItem(g_py_grid_data, py_grid_id, py_field_labels);
+        if (PyDict_Contains(LibytProcessControl::Get().py_grid_data_, py_grid_id) != 1) {
+            PyDict_SetItem(LibytProcessControl::Get().py_grid_data_, py_grid_id, py_field_labels);
         }
 
         // insert data under py_field_labels dict
@@ -187,7 +188,7 @@ static int set_field_data(yt_grid* grid) {
 //                   = NumPy array created through wrapping data pointer.
 //                2. Append to dictionary only when there is data pointer passed in.
 //                3. The logistic is we create dictionary no matter what, and only append under
-//                   g_py_particle_data if there is data to wrap, so that ref count increases.
+//                   py_particle_data if there is data to wrap, so that ref count increases.
 //
 // Parameter   :  yt_grid *grid
 //
@@ -221,9 +222,10 @@ static int set_particle_data(yt_grid* grid) {
             PyArray_CLEARFLAGS((PyArrayObject*)py_data, NPY_ARRAY_WRITEABLE);
 
             // Get the dictionary and append py_data
-            if (PyDict_Contains(g_py_particle_data, py_grid_id) != 1) {
+            if (PyDict_Contains(LibytProcessControl::Get().py_particle_data_, py_grid_id) != 1) {
                 // 1st time append, nothing exist under libyt.particle_data[gid]
-                PyDict_SetItem(g_py_particle_data, py_grid_id, py_ptype_labels);  // libyt.particle_data[gid] = dict()
+                PyDict_SetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id,
+                               py_ptype_labels);  // libyt.particle_data[gid] = dict()
                 PyDict_SetItemString(py_ptype_labels, particle_list[p].par_type, py_attributes);
             } else {
                 // libyt.particle_data[gid] exist, check if libyt.particle_data[gid][ptype] exist

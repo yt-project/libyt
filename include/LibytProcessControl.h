@@ -1,6 +1,8 @@
 #ifndef __LIBYTPROCESSCONTROL_H__
 #define __LIBYTPROCESSCONTROL_H__
 
+#include <Python.h>
+
 #include "yt_type.h"
 
 #ifndef SERIAL_MODE
@@ -65,6 +67,16 @@ public:
     yt_particle* particle_list;
     yt_grid* grids_local;
     int* num_grids_local_MPI;
+
+    PyObject* py_grid_data_;
+    PyObject* py_particle_data_;
+    PyObject* py_hierarchy_;
+    PyObject* py_param_yt_;
+    PyObject* py_param_user_;
+    PyObject* py_libyt_info_;
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
+    PyObject* py_interactive_mode_;
+#endif
 
 #ifdef USE_PYBIND11
     // Hierarchy
