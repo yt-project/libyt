@@ -12,7 +12,7 @@
 #include <string>
 #include <thread>
 
-#include "LibytProcessControl.h"
+#include "libyt_process_control.h"
 #include "magic_command.h"
 
 static bool detect_file(const char* flag_file);
@@ -59,11 +59,15 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
     fflush(stdout);
     fflush(stderr);
 
+    int mpi_rank = LibytProcessControl::Get().mpi_rank_;
+    int mpi_size = LibytProcessControl::Get().mpi_size_;
+    int mpi_root = LibytProcessControl::Get().mpi_root_;
+
     // run new added function and output func_status summary
-    g_func_status_list.RunEveryFunction();
+    LibytProcessControl::Get().function_info_list_.RunEveryFunction();
     MagicCommand command(MagicCommand::EntryPoint::kLibytReloadScript);
     MagicCommandOutput command_result = command.Run("%libyt status");
-    if (g_myroot == g_myrank) {
+    if (mpi_root == mpi_rank) {
         std::cout << command_result.output << std::endl;
     }
 
@@ -71,9 +75,10 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
     bool remove_flag_file = false;
     if (!detect_file(flag_file_name)) {
         bool enter_reload = false;
-        for (int i = 0; i < g_func_status_list.GetSize(); i++) {
-            if (g_func_status_list[i].GetRun() == FunctionInfo::RunStatus::kWillRun &&
-                g_func_status_list[i].GetAllStatus() == FunctionInfo::ExecuteStatus::kFailed) {
+        for (int i = 0; i < LibytProcessControl::Get().function_info_list_.GetSize(); i++) {
+            if (LibytProcessControl::Get().function_info_list_[i].GetRun() == FunctionInfo::RunStatus::kWillRun &&
+                LibytProcessControl::Get().function_info_list_[i].GetAllStatus() ==
+                    FunctionInfo::ExecuteStatus::kFailed) {
                 enter_reload = true;
                 break;
             }
@@ -86,7 +91,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                      flag_file_name);
             return YT_SUCCESS;
         } else {
-            if (g_myrank == g_myroot) {
+            if (mpi_rank == mpi_root) {
                 std::ofstream generate_flag_file(flag_file_name);
                 generate_flag_file.close();
             }
@@ -115,7 +120,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
     // enter reloading loop
     while (!done) {
         // responsible for getting reload instruction and broadcast to non-root rank
-        if (g_myrank == g_myroot) {
+        if (mpi_rank == mpi_root) {
             // block and detect <reload_file_name> or <reload_file_name>_EXIT every 2 sec
             log_info("Create '%s' file to reload script '%s', or create '%s' file to exit.\n", reload_file_name,
                      script_name, reload_exit_filename.c_str());
@@ -134,9 +139,9 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
             if (done) {
 #ifndef SERIAL_MODE
                 int indicator = -1;
-                MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+                MPI_Bcast(&indicator, 1, MPI_INT, mpi_root, MPI_COMM_WORLD);
 #endif
-                g_libyt_python_shell.clear_prompt_history();
+                LibytProcessControl::Get().python_shell_.clear_prompt_history();
                 log_info("Detect '%s' file ... exiting reload script\n", reload_exit_filename.c_str());
                 if (detect_file(reload_exit_filename.c_str())) {
                     std::remove(reload_exit_filename.c_str());
@@ -191,15 +196,15 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 if (code_validity.is_valid.compare("complete") == 0) {
 #ifndef SERIAL_MODE
                     int indicator = 1;
-                    MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+                    MPI_Bcast(&indicator, 1, MPI_INT, mpi_root, MPI_COMM_WORLD);
 #endif
                     std::array<AccumulatedOutputString, 2> output =
-                        LibytPythonShell::execute_file(python_code_buffer.str(), script_name);
+                        LibytProcessControl::Get().python_shell_.execute_file(python_code_buffer.str(), script_name);
                     reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
                     for (int i = 0; i < 2; i++) {
                         if (output[i].output_string.length() > 0) {
                             int offset = 0;
-                            for (int r = 0; r < g_mysize; r++) {
+                            for (int r = 0; r < mpi_size; r++) {
                                 reload_result_file << "====== MPI Process " << r << (i == 0 ? "" : " - ErrorMsg")
                                                    << " ======\n";
                                 if (output[i].output_length[r] == 0) {
@@ -237,7 +242,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 while (std::getline(libyt_command_buffer, line, '\n')) {
 #ifndef SERIAL_MODE
                     int indicator = 0;
-                    MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+                    MPI_Bcast(&indicator, 1, MPI_INT, mpi_root, MPI_COMM_WORLD);
 #endif
                     command_result = command.Run(line);
                     reload_result_file << "====== Libyt Command: " << line << " ======\n";
@@ -281,12 +286,12 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
         else {
             // TODO: (this is a bad practice.) Get code for further instructions
             int indicator = -2;
-            MPI_Bcast(&indicator, 1, MPI_INT, g_myroot, MPI_COMM_WORLD);
+            MPI_Bcast(&indicator, 1, MPI_INT, mpi_root, MPI_COMM_WORLD);
 
             switch (indicator) {
                 case -1: {
                     done = true;
-                    g_libyt_python_shell.clear_prompt_history();
+                    LibytProcessControl::Get().python_shell_.clear_prompt_history();
                     break;
                 }
                 case 0: {
@@ -294,7 +299,8 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     break;
                 }
                 case 1: {
-                    std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_file();
+                    std::array<AccumulatedOutputString, 2> output =
+                        LibytProcessControl::Get().python_shell_.execute_file();
                     if (output[1].output_string.length() <= 0) {
                         LibytPythonShell::load_file_func_body(script_name);
                     }
@@ -306,7 +312,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
     }
 
     // remove flag file if it is generated by libyt because of error occurred in inline functions
-    if (g_myrank == g_myroot && remove_flag_file && detect_file(flag_file_name)) {
+    if (mpi_rank == mpi_root && remove_flag_file && detect_file(flag_file_name)) {
         std::remove(flag_file_name);
     }
 

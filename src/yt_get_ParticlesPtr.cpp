@@ -1,5 +1,5 @@
-#include "LibytProcessControl.h"
 #include "libyt.h"
+#include "libyt_process_control.h"
 #include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -28,9 +28,9 @@ int yt_get_ParticlesPtr(yt_particle** particle_list) {
     }
 
     // check if num_par_types > 0, if not, particle_list won't be initialized
-    if (g_param_yt.num_par_types <= 0) {
+    if (LibytProcessControl::Get().param_yt_.num_par_types <= 0) {
         YT_ABORT("num_par_types == %d <= 0, you don't need to input particle_list, and it is also not initialized!\n",
-                 g_param_yt.num_par_types);
+                 LibytProcessControl::Get().param_yt_.num_par_types);
     }
 
     log_info("Getting pointer to particle list information ...\n");

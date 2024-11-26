@@ -1,6 +1,6 @@
-#include "LibytProcessControl.h"
 #include "function_info.h"
 #include "libyt.h"
+#include "libyt_process_control.h"
 #include "yt_combo.h"
 
 #ifdef USE_PYBIND11
@@ -41,12 +41,13 @@ int yt_free() {
 
     // Free resource allocated in yt_set_Parameters():
     //    field_list, particle_list, attr_list, num_grids_local_MPI
+    yt_param_yt& param_yt = LibytProcessControl::Get().param_yt_;
     yt_field* field_list = LibytProcessControl::Get().field_list;
     yt_particle* particle_list = LibytProcessControl::Get().particle_list;
     if (LibytProcessControl::Get().param_yt_set) {
-        if (g_param_yt.num_fields > 0) delete[] field_list;
-        if (g_param_yt.num_par_types > 0) {
-            for (int i = 0; i < g_param_yt.num_par_types; i++) {
+        if (param_yt.num_fields > 0) delete[] field_list;
+        if (param_yt.num_par_types > 0) {
+            for (int i = 0; i < param_yt.num_par_types; i++) {
                 delete[] particle_list[i].attr_list;
             }
             delete[] particle_list;
@@ -57,14 +58,14 @@ int yt_free() {
     // Free resource allocated in yt_get_GridsPtr() in case it hasn't got freed yet:
     //    grids_local, field_data, particle_data, par_count_list
     yt_grid* grids_local = LibytProcessControl::Get().grids_local;
-    if (LibytProcessControl::Get().get_gridsPtr && g_param_yt.num_grids_local > 0) {
-        for (int i = 0; i < g_param_yt.num_grids_local; i = i + 1) {
-            if (g_param_yt.num_fields > 0) {
+    if (LibytProcessControl::Get().get_gridsPtr && param_yt.num_grids_local > 0) {
+        for (int i = 0; i < param_yt.num_grids_local; i = i + 1) {
+            if (param_yt.num_fields > 0) {
                 delete[] grids_local[i].field_data;
             }
-            if (g_param_yt.num_par_types > 0) {
+            if (param_yt.num_par_types > 0) {
                 delete[] grids_local[i].par_count_list;
-                for (int p = 0; p < g_param_yt.num_par_types; p++) {
+                for (int p = 0; p < param_yt.num_par_types; p++) {
                     delete[] grids_local[i].particle_data[p];
                 }
                 delete[] grids_local[i].particle_data;
@@ -80,20 +81,20 @@ int yt_free() {
     delete[] LibytProcessControl::Get().grid_parent_id;
     delete[] LibytProcessControl::Get().grid_levels;
     delete[] LibytProcessControl::Get().proc_num;
-    if (g_param_yt.num_par_types > 0) {
+    if (param_yt.num_par_types > 0) {
         delete[] LibytProcessControl::Get().par_count_list;
     }
 #endif
 
 #ifndef USE_PYBIND11
     // Reset data in libyt module
-    PyDict_Clear(g_py_grid_data);
-    PyDict_Clear(g_py_particle_data);
-    PyDict_Clear(g_py_hierarchy);
-    PyDict_Clear(g_py_param_yt);
-    PyDict_Clear(g_py_param_user);
+    PyDict_Clear(LibytProcessControl::Get().py_grid_data_);
+    PyDict_Clear(LibytProcessControl::Get().py_particle_data_);
+    PyDict_Clear(LibytProcessControl::Get().py_hierarchy_);
+    PyDict_Clear(LibytProcessControl::Get().py_param_yt_);
+    PyDict_Clear(LibytProcessControl::Get().py_param_user_);
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    PyDict_Clear(PyDict_GetItemString(g_py_interactive_mode, "func_err_msg"));
+    PyDict_Clear(PyDict_GetItemString(LibytProcessControl::Get().py_interactive_mode_, "func_err_msg"));
 #endif
 #else
     pybind11::module_ libyt = pybind11::module_::import("libyt");
@@ -114,8 +115,8 @@ int yt_free() {
     PyRun_SimpleString("gc.collect()");
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    // Reset g_func_status_list status
-    g_func_status_list.ResetEveryFunctionStatus();
+    // Reset LibytProcessControl::Get().function_info_list_ status
+    LibytProcessControl::Get().function_info_list_.ResetEveryFunctionStatus();
 #endif
     // Reset check points
     LibytProcessControl::Get().param_yt_set = false;
@@ -124,7 +125,7 @@ int yt_free() {
     LibytProcessControl::Get().get_gridsPtr = false;
     LibytProcessControl::Get().commit_grids = false;
     LibytProcessControl::Get().free_gridsPtr = true;
-    g_param_libyt.counter++;
+    LibytProcessControl::Get().param_libyt_.counter++;
 
     return YT_SUCCESS;
 }  // FUNCTION: yt_free()

@@ -1,6 +1,6 @@
 #ifdef SUPPORT_TIMER
 
-#include "TimerControl.h"
+#include "timer_control.h"
 
 #include <string.h>
 

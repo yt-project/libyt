@@ -29,8 +29,17 @@ private:
 
     static PyObject* s_PyGlobals;
 
+    static int mpi_size_;
+    static int mpi_root_;
+    static int mpi_rank_;
+
 public:
-    LibytPythonShell() : m_PromptHistory(""), m_PromptHistoryCount(0) {}
+    LibytPythonShell() : m_PromptHistory(""), m_PromptHistoryCount(0){};
+    static void SetMPIInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
+        mpi_size_ = mpi_size;
+        mpi_root_ = mpi_root;
+        mpi_rank_ = mpi_rank;
+    }
     int update_prompt_history(const std::string& cmd_prompt);
     int clear_prompt_history();
     std::string& get_prompt_history() { return m_PromptHistory; };
@@ -45,12 +54,12 @@ public:
     static bool is_not_done_err_msg(const std::string& code);
     static CodeValidity check_code_validity(const std::string& code, bool prompt_env = false,
                                             const char* cell_name = "<libyt-stdin>");
-    static std::array<AccumulatedOutputString, 2> execute_cell(const std::array<std::string, 2>& code_split = {"", ""},
-                                                               const std::string& cell_name = std::string(""));
-    static std::array<AccumulatedOutputString, 2> execute_prompt(
-        const std::string& code = std::string(""), const std::string& cell_name = std::string("<libyt-stdin>"));
-    static std::array<AccumulatedOutputString, 2> execute_file(const std::string& code = std::string(""),
-                                                               const std::string& file_name = std::string(""));
+    std::array<AccumulatedOutputString, 2> execute_cell(const std::array<std::string, 2>& code_split = {"", ""},
+                                                        const std::string& cell_name = std::string(""));
+    std::array<AccumulatedOutputString, 2> execute_prompt(const std::string& code = std::string(""),
+                                                          const std::string& cell_name = std::string("<libyt-stdin>"));
+    std::array<AccumulatedOutputString, 2> execute_file(const std::string& code = std::string(""),
+                                                        const std::string& file_name = std::string(""));
 };
 
 #endif  // __LIBYT_PYTHON_SHELL_H__

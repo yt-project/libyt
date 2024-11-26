@@ -3,6 +3,7 @@
 
 #include <mpi.h>
 
+#include "libyt_process_control.h"
 #include "magic_command.h"
 #include "yt_combo.h"
 
@@ -43,11 +44,12 @@ void LibytWorker::start() {
         switch (indicator) {
             case -1: {
                 done = true;
-                g_libyt_python_shell.clear_prompt_history();
+                LibytProcessControl::Get().python_shell_.clear_prompt_history();
                 break;
             }
             case 1: {
-                std::array<AccumulatedOutputString, 2> temp_string = LibytPythonShell::execute_cell();
+                std::array<AccumulatedOutputString, 2> temp_string =
+                    LibytProcessControl::Get().python_shell_.execute_cell();
                 break;
             }
             case 2: {

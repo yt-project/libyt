@@ -9,8 +9,8 @@
 #include <iostream>
 #include <string>
 
-#include "LibytProcessControl.h"
 #include "function_info.h"
+#include "libyt_process_control.h"
 #include "magic_command.h"
 #endif
 
@@ -47,11 +47,15 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     fflush(stdout);
     fflush(stderr);
 
+    int mpi_root = LibytProcessControl::Get().mpi_root_;
+    int mpi_rank = LibytProcessControl::Get().mpi_rank_;
+    int mpi_size = LibytProcessControl::Get().mpi_size_;
+
     // run new added function and output func_status summary
-    g_func_status_list.RunEveryFunction();
+    LibytProcessControl::Get().function_info_list_.RunEveryFunction();
     MagicCommand command(MagicCommand::EntryPoint::kLibytInteractiveMode);
     MagicCommandOutput command_result = command.Run("%libyt status");
-    if (g_myroot == g_myrank) {
+    if (mpi_root == mpi_rank) {
         std::cout << command_result.output << std::endl;
     }
 
@@ -69,7 +73,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     const char* ps2 = "... ";
     const char* prompt = ps1;
     bool done = false;
-    int root = g_myroot;
+    int root = mpi_root;
 
     // input line and error msg
     int input_len, code_len;
@@ -85,7 +89,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     // enter interactive loop
     while (!done) {
         // root: prompt and input
-        if (g_myrank == root) {
+        if (mpi_rank == root) {
             input_line = readline(prompt);
             if (input_line == NULL) continue;
 
@@ -154,11 +158,12 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
 #endif
 
                     // Execute code and print result
-                    std::array<AccumulatedOutputString, 2> output = LibytPythonShell::execute_prompt(std::string(code));
+                    std::array<AccumulatedOutputString, 2> output =
+                        LibytProcessControl::Get().python_shell_.execute_prompt(std::string(code));
                     for (int i = 0; i < 2; i++) {
                         if (output[i].output_string.length() > 0) {
                             int offset = 0;
-                            for (int r = 0; r < g_mysize; r++) {
+                            for (int r = 0; r < mpi_size; r++) {
                                 printf("\033[1;34m[MPI Process %d]\033[0;37m\n", r);
                                 if (output[i].output_length[r] == 0) {
                                     printf("(None)\n");
@@ -205,7 +210,8 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                 done = command_result.exit_entry_point;
             } else {
                 // Execute code, the code must be a vaild code and successfully compile now
-                std::array<AccumulatedOutputString, 2> temp_output = LibytPythonShell::execute_prompt();
+                std::array<AccumulatedOutputString, 2> temp_output =
+                    LibytProcessControl::Get().python_shell_.execute_prompt();
             }
 
             // clean up and wait

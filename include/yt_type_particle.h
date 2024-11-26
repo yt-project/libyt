@@ -40,7 +40,8 @@ typedef struct yt_par_type {
 // Data Member :  const char   *attr_name           : Particle label name, which in yt, it is its attribute.
 //                yt_dtype      attr_dtype          : Attribute's data type. Should be yt_dtype.
 //                const char   *attr_unit           : Set attr_unit if needed, if not set, it will search
-//                                                    for XXXFieldInfo. Where XXX is set by g_param_yt.frontend.
+//                                                    for XXXFieldInfo. Where XXX is set by
+//                                                    LibytProcessControl::Get().param_yt_.frontend.
 //                int           num_attr_name_alias : Set attribute name to alias, number of the aliases.
 //                const char  **attr_name_alias     : Aliases.
 //                const char   *attr_display_name   : Set display name on the plottings, if not set, yt will

@@ -1,4 +1,4 @@
-#include "LibytProcessControl.h"
+#include "libyt_process_control.h"
 #include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -21,12 +21,12 @@ int check_sum_num_grids_local_MPI(int NRank, int*& num_grids_local_MPI) {
     for (int rid = 0; rid < NRank; rid = rid + 1) {
         num_grids = num_grids + (long)num_grids_local_MPI[rid];
     }
-    if (num_grids != g_param_yt.num_grids) {
+    if (num_grids != LibytProcessControl::Get().param_yt_.num_grids) {
         for (int rid = 0; rid < NRank; rid++) {
             log_error("MPI rank [ %d ], num_grids_local = %d.\n", rid, num_grids_local_MPI[rid]);
         }
         YT_ABORT("Sum of local grids in each MPI rank [%ld] are not equal to input num_grids [%ld]!\n", num_grids,
-                 g_param_yt.num_grids);
+                 LibytProcessControl::Get().param_yt_.num_grids);
     }
 
     return YT_SUCCESS;
@@ -34,7 +34,7 @@ int check_sum_num_grids_local_MPI(int NRank, int*& num_grids_local_MPI) {
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  check_field_list
-// Description :  Check g_param_yt.field_list.
+// Description :  Check LibytProcessControl::Get().param_yt_.field_list.
 //
 // Note        :  1. Use inside yt_commit().
 //                2. Check field_list
@@ -51,7 +51,7 @@ int check_field_list() {
     yt_field* field_list = LibytProcessControl::Get().field_list;
 
     // (1) Validate each yt_field element in field_list.
-    for (int v = 0; v < g_param_yt.num_fields; v++) {
+    for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_fields; v++) {
         yt_field& field = field_list[v];
         if (!(check_yt_field(field))) {
             YT_ABORT("Validating input field list element [%d] ... failed\n", v);
@@ -59,8 +59,8 @@ int check_field_list() {
     }
 
     // (2) Name of each field are unique.
-    for (int v1 = 0; v1 < g_param_yt.num_fields; v1++) {
-        for (int v2 = v1 + 1; v2 < g_param_yt.num_fields; v2++) {
+    for (int v1 = 0; v1 < LibytProcessControl::Get().param_yt_.num_fields; v1++) {
+        for (int v2 = v1 + 1; v2 < LibytProcessControl::Get().param_yt_.num_fields; v2++) {
             if (strcmp(field_list[v1].field_name, field_list[v2].field_name) == 0) {
                 YT_ABORT("field_name in field_list[%d] and field_list[%d] are not unique!\n", v1, v2);
             }
@@ -72,13 +72,14 @@ int check_field_list() {
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  check_particle_list
-// Description :  Check g_param_yt.particle_list.
+// Description :  Check LibytProcessControl::Get().param_yt_.particle_list.
 //
 // Note        :  1. Use inside yt_commit().
 //                2. Check particle_list
 //                  (1) Validate each yt_particle element in particle_list.
-//                  (2) Species name (or ptype in YT-term) cannot be the same as g_param_yt.frontend.
-//                  (3) Species names (or ptype in YT-term) are all unique.
+//                  (2) Species name (or ptype in YT-term) cannot be the same as
+//                  LibytProcessControl::Get().param_yt_.frontend. (3) Species names (or ptype in YT-term) are all
+//                  unique.
 //
 // Parameter   :  None
 //
@@ -90,22 +91,23 @@ int check_particle_list() {
     yt_particle* particle_list = LibytProcessControl::Get().particle_list;
 
     // (1) Validate each yt_particle element in particle_list.
-    // (2) Check particle type name (or ptype in YT-term) cannot be the same as g_param_yt.frontend.
-    for (int p = 0; p < g_param_yt.num_par_types; p++) {
+    // (2) Check particle type name (or ptype in YT-term) cannot be the same as
+    // LibytProcessControl::Get().param_yt_.frontend.
+    for (int p = 0; p < LibytProcessControl::Get().param_yt_.num_par_types; p++) {
         yt_particle& particle = particle_list[p];
         if (!(check_yt_particle(particle))) {
             YT_ABORT("Validating input particle list element [%d] ... failed\n", p);
         }
-        if (strcmp(particle.par_type, g_param_yt.frontend) == 0) {
+        if (strcmp(particle.par_type, LibytProcessControl::Get().param_yt_.frontend) == 0) {
             YT_ABORT("particle_list[%d], par_type == %s, frontend == %s, expect particle type name different from the "
                      "frontend!\n",
-                     p, particle.par_type, g_param_yt.frontend);
+                     p, particle.par_type, LibytProcessControl::Get().param_yt_.frontend);
         }
     }
 
     // (3) Particle type name (or ptype in YT-term) are all unique.
-    for (int p1 = 0; p1 < g_param_yt.num_par_types; p1++) {
-        for (int p2 = p1 + 1; p2 < g_param_yt.num_par_types; p2++) {
+    for (int p1 = 0; p1 < LibytProcessControl::Get().param_yt_.num_par_types; p1++) {
+        for (int p2 = p1 + 1; p2 < LibytProcessControl::Get().param_yt_.num_par_types; p2++) {
             if (strcmp(particle_list[p1].par_type, particle_list[p2].par_type) == 0) {
                 YT_ABORT(
                     "par_type in particle_list[%d] and particle_list[%d] are the same, par_type should be unique!\n",
@@ -119,7 +121,7 @@ int check_particle_list() {
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  check_grid
-// Description :  Check g_param_yt.grids_local.
+// Description :  Check LibytProcessControl::Get().param_yt_.grids_local.
 //
 // Note        :  1. Use inside yt_commit().
 //                2. Check grids_local
@@ -146,16 +148,16 @@ int check_grid() {
 
     // Checking grids
     // check each grids individually
-    for (int i = 0; i < g_param_yt.num_grids_local; i = i + 1) {
+    for (int i = 0; i < LibytProcessControl::Get().param_yt_.num_grids_local; i = i + 1) {
         yt_grid& grid = grids_local[i];
 
         // (1) Validate each yt_grid element in grids_local.
         if (check_yt_grid(grid) != YT_SUCCESS) YT_ABORT("Validating input grid ID [%ld] ... failed\n", grid.id);
 
         // (2) parent ID is not bigger or equal to num_grids.
-        if (grid.parent_id >= g_param_yt.num_grids)
+        if (grid.parent_id >= LibytProcessControl::Get().param_yt_.num_grids)
             YT_ABORT("Grid [%ld] parent ID [%ld] >= total number of grids [%ld]!\n", grid.id, grid.parent_id,
-                     g_param_yt.num_grids);
+                     LibytProcessControl::Get().param_yt_.num_grids);
 
         // (3) Root level starts at 0. So if level > 0, then parent ID >= 0.
         if (grid.level > 0 && grid.parent_id < 0)
@@ -164,14 +166,14 @@ int check_grid() {
         // edge
         for (int d = 0; d < 3; d = d + 1) {
             // (4) Domain left edge <= grid left edge.
-            if (grid.left_edge[d] < g_param_yt.domain_left_edge[d])
+            if (grid.left_edge[d] < LibytProcessControl::Get().param_yt_.domain_left_edge[d])
                 YT_ABORT("Grid [%ld] left edge [%13.7e] < domain left edge [%13.7e] along the dimension [%d]!\n",
-                         grid.id, grid.left_edge[d], g_param_yt.domain_left_edge[d], d);
+                         grid.id, grid.left_edge[d], LibytProcessControl::Get().param_yt_.domain_left_edge[d], d);
 
             // (5) grid right edge <= domain right edge.
-            if (grid.right_edge[d] > g_param_yt.domain_right_edge[d])
+            if (grid.right_edge[d] > LibytProcessControl::Get().param_yt_.domain_right_edge[d])
                 YT_ABORT("Grid [%ld] right edge [%13.7e] > domain right edge [%13.7e] along the dimension [%d]!\n",
-                         grid.id, grid.right_edge[d], g_param_yt.domain_right_edge[d], d);
+                         grid.id, grid.right_edge[d], LibytProcessControl::Get().param_yt_.domain_right_edge[d], d);
 
             // (6) grid left edge <= grid right edge.
             if (grid.right_edge[d] < grid.left_edge[d])
@@ -180,7 +182,7 @@ int check_grid() {
         }
 
         // check field_data in each individual grid
-        for (int v = 0; v < g_param_yt.num_fields; v = v + 1) {
+        for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_fields; v = v + 1) {
             // If field_type == "cell-centered"
             if (strcmp(field_list[v].field_type, "cell-centered") == 0) {
                 // (7) Raise warning if field_type = "cell-centered", and data_ptr is not set == NULL.
@@ -253,14 +255,14 @@ int check_hierarchy(yt_grid*& hierarchy) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Create a search table for matching gid to hierarchy array index
-    long* order = new long[g_param_yt.num_grids];
-    for (long i = 0; i < g_param_yt.num_grids; i = i + 1) {
+    long* order = new long[LibytProcessControl::Get().param_yt_.num_grids];
+    for (long i = 0; i < LibytProcessControl::Get().param_yt_.num_grids; i = i + 1) {
         order[i] = -1;
     }
 
     // Check every grid id are unique, and also filled in the search table
-    int index_offset = g_param_yt.index_offset;
-    for (long i = 0; i < g_param_yt.num_grids; i = i + 1) {
+    int index_offset = LibytProcessControl::Get().param_yt_.index_offset;
+    for (long i = 0; i < LibytProcessControl::Get().param_yt_.num_grids; i = i + 1) {
         if (order[hierarchy[i].id - index_offset] == -1) {
             order[hierarchy[i].id - index_offset] = i;
         } else {
@@ -272,15 +274,15 @@ int check_hierarchy(yt_grid*& hierarchy) {
     }
 
     // Check if all level > 0 have good parent id, and that children's edges don't exceed parent's
-    for (long i = 0; i < g_param_yt.num_grids; i = i + 1) {
+    for (long i = 0; i < LibytProcessControl::Get().param_yt_.num_grids; i = i + 1) {
         if (hierarchy[i].level > 0) {
             // Check parent id
             if ((hierarchy[i].parent_id - index_offset < 0) ||
-                hierarchy[i].parent_id - index_offset >= g_param_yt.num_grids) {
+                hierarchy[i].parent_id - index_offset >= LibytProcessControl::Get().param_yt_.num_grids) {
                 YT_ABORT(
                     "Grid ID [%ld], Level %d, Parent ID [%ld], ID is out of range, expect to be between %d ~ %ld.\n",
                     hierarchy[i].id, hierarchy[i].level, hierarchy[i].parent_id, index_offset,
-                    g_param_yt.num_grids + index_offset - 1);
+                    LibytProcessControl::Get().param_yt_.num_grids + index_offset - 1);
             } else {
                 // Check children's edges fall between parent's
                 double* parent_left_edge = hierarchy[order[hierarchy[i].parent_id - index_offset]].left_edge;

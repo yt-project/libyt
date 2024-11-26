@@ -11,9 +11,9 @@
 #include <xeus/xkernel.hpp>
 #include <xeus/xkernel_configuration.hpp>
 
-#include "LibytProcessControl.h"
 #include "function_info.h"
 #include "libyt_kernel.h"
+#include "libyt_process_control.h"
 #ifndef SERIAL_MODE
 #include "libyt_worker.h"
 #endif
@@ -48,7 +48,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
     }
 
     // run new added functions
-    g_func_status_list.RunEveryFunction();
+    LibytProcessControl::Get().function_info_list_.RunEveryFunction();
 
     // see if we need to start libyt kernel by checking if file flag_file_name exist.
     struct stat buffer;
@@ -66,8 +66,12 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
     const char* kernel_pid_filename = "libyt_kernel_pid.txt";
     const char* kernel_connection_filename = "libyt_kernel_connection.json";
 
+    int mpi_rank = LibytProcessControl::Get().mpi_rank_;
+    int mpi_root = LibytProcessControl::Get().mpi_root_;
+    int mpi_size = LibytProcessControl::Get().mpi_size_;
+
     // Launch libyt kernel on root process
-    if (g_myrank == g_myroot) {
+    if (mpi_rank == mpi_root) {
         // Get root process PID
         std::ofstream file;
         file.open(kernel_pid_filename, std::ios::out | std::ios::trunc);
@@ -189,7 +193,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
     }
 #ifndef SERIAL_MODE
     else {
-        LibytWorker libyt_worker(g_myrank, g_mysize, g_myroot);
+        LibytWorker libyt_worker(mpi_rank, mpi_size, mpi_root);
         libyt_worker.start();
     }
 #endif

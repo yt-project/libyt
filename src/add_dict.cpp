@@ -1,6 +1,6 @@
 #include <typeinfo>
 
-#include "LibytProcessControl.h"
+#include "libyt_process_control.h"
 #include "yt_combo.h"
 
 #ifdef USE_PYBIND11
@@ -204,7 +204,7 @@ int add_dict_field_list() {
 
     yt_field* field_list = LibytProcessControl::Get().field_list;
 
-    for (int i = 0; i < g_param_yt.num_fields; i++) {
+    for (int i = 0; i < LibytProcessControl::Get().param_yt_.num_fields; i++) {
         PyObject* field_info_dict = PyDict_New();
         PyObject* info_list = PyList_New(0);
 
@@ -347,7 +347,7 @@ int add_dict_field_list() {
         Py_DECREF(field_info_dict);
     }
 
-    if (PyDict_SetItemString(g_py_param_yt, "field_list", field_list_dict) != 0) {
+    if (PyDict_SetItemString(LibytProcessControl::Get().py_param_yt_, "field_list", field_list_dict) != 0) {
         Py_DECREF(field_list_dict);
         YT_ABORT("Inserting dictionary [field_list] to libyt.param_yt ... failed!\n");
     }
@@ -361,7 +361,7 @@ int add_dict_field_list() {
 
     yt_field* field_list = LibytProcessControl::Get().field_list;
 
-    for (int i = 0; i < g_param_yt.num_fields; i++) {
+    for (int i = 0; i < LibytProcessControl::Get().param_yt_.num_fields; i++) {
         py_field_list[field_list[i].field_name] = pybind11::dict();
 
         pybind11::tuple py_name_alias = pybind11::tuple(field_list[i].num_field_name_alias);
@@ -387,7 +387,7 @@ int add_dict_field_list() {
 //
 // Note        :  1. Add a series of key-value pair to libyt.param_yt['particle_list'] dictionary.
 //                2. Used in yt_commit() on loading particle_list structure to python.
-//                   This function will only be called when g_param_yt.num_particles > 0.
+//                   This function will only be called when LibytProcessControl::Get().param_yt_.num_particles > 0.
 //                3. PyUnicode_FromString is Python-API >= 3.5, and it returns a new reference.
 //                4. We assume that we have all the particle name "par_type" unique. And in each
 //                   species, they have unique "attr_name".
@@ -417,7 +417,7 @@ int add_dict_particle_list() {
 
     yt_particle* particle_list = LibytProcessControl::Get().particle_list;
 
-    for (int s = 0; s < g_param_yt.num_par_types; s++) {
+    for (int s = 0; s < LibytProcessControl::Get().param_yt_.num_par_types; s++) {
         PyObject* species_dict = PyDict_New();
 
         // Insert a series of attr_list to attr_dict with key <attr_name>
@@ -622,7 +622,7 @@ int add_dict_particle_list() {
     }
 
     // Insert particle_list_dict to libyt.param_yt["particle_list"]
-    if (PyDict_SetItemString(g_py_param_yt, "particle_list", particle_list_dict) != 0) {
+    if (PyDict_SetItemString(LibytProcessControl::Get().py_param_yt_, "particle_list", particle_list_dict) != 0) {
         Py_DECREF(particle_list_dict);
         YT_ABORT("Inserting dictionary [particle_list] item to libyt ... failed!\n");
     }
@@ -635,7 +635,7 @@ int add_dict_particle_list() {
 
     yt_particle* particle_list = LibytProcessControl::Get().particle_list;
 
-    for (int i = 0; i < g_param_yt.num_par_types; i++) {
+    for (int i = 0; i < LibytProcessControl::Get().param_yt_.num_par_types; i++) {
         py_particle_list[particle_list[i].par_type] = pybind11::dict();
 
         pybind11::dict py_attr_dict = pybind11::dict();
