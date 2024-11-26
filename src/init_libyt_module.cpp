@@ -4,9 +4,9 @@
 #include <fstream>
 #include <string>
 
-#include "LibytProcessControl.h"
 #include "function_info.h"
 #include "libyt.h"
+#include "libyt_process_control.h"
 #include "yt_combo.h"
 #include "yt_rma_field.h"
 #include "yt_rma_particle.h"
@@ -74,7 +74,7 @@ static PyObject* libyt_field_derived_func(PyObject* self, PyObject* args) {
 
     derived_func = NULL;
     yt_field* field_list = LibytProcessControl::Get().field_list;
-    for (int v = 0; v < g_param_yt.num_fields; v++) {
+    for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_fields; v++) {
         if (strcmp(field_list[v].field_name, field_name) == 0) {
             have_FieldName = true;
             field_id = v;
@@ -103,7 +103,7 @@ static PyObject* libyt_field_derived_func(PyObject* self, PyObject* args) {
         PyErr_Format(PyExc_ValueError, "Cannot get grid [%ld] dimensions or MPI rank.\n", gid);
         return NULL;
     }
-    if (proc_num != g_myrank) {
+    if (proc_num != LibytProcessControl::Get().mpi_rank_) {
         PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal grid. Grid [%ld] is on MPI rank [%d].\n", gid,
                      proc_num);
         return NULL;
@@ -210,7 +210,7 @@ static PyObject* libyt_particle_get_particle(PyObject* self, PyObject* args) {
     yt_dtype attr_dtype = YT_DTYPE_UNKNOWN;
     int species_index = -1;
     yt_particle* particle_list = LibytProcessControl::Get().particle_list;
-    for (int s = 0; s < g_param_yt.num_par_types; s++) {
+    for (int s = 0; s < LibytProcessControl::Get().param_yt_.num_par_types; s++) {
         if (strcmp(particle_list[s].par_type, ptype) == 0) {
             species_index = s;
 
@@ -253,7 +253,7 @@ static PyObject* libyt_particle_get_particle(PyObject* self, PyObject* args) {
         PyErr_Format(PyExc_ValueError, "Cannot get particle number in grid [%ld] or MPI rank.\n", gid);
         return NULL;
     }
-    if (proc_num != g_myrank) {
+    if (proc_num != LibytProcessControl::Get().mpi_rank_) {
         PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal particles. Grid [%ld] is on MPI rank [%d].\n", gid,
                      proc_num);
         return NULL;
@@ -669,50 +669,50 @@ static PyObject* PyInit_libyt(void) {
     }
 
     // Add objects dictionary
-    g_py_grid_data = PyDict_New();
-    g_py_particle_data = PyDict_New();
-    g_py_hierarchy = PyDict_New();
-    g_py_param_yt = PyDict_New();
-    g_py_param_user = PyDict_New();
-    g_py_libyt_info = PyDict_New();
+    LibytProcessControl::Get().py_grid_data_ = PyDict_New();
+    LibytProcessControl::Get().py_particle_data_ = PyDict_New();
+    LibytProcessControl::Get().py_hierarchy_ = PyDict_New();
+    LibytProcessControl::Get().py_param_yt_ = PyDict_New();
+    LibytProcessControl::Get().py_param_user_ = PyDict_New();
+    LibytProcessControl::Get().py_libyt_info_ = PyDict_New();
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    g_py_interactive_mode = PyDict_New();
+    LibytProcessControl::Get().py_interactive_mode_ = PyDict_New();
 #endif
 
     // set libyt info
     PyObject* py_version = Py_BuildValue("(iii)", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION, LIBYT_MICRO_VERSION);
-    PyDict_SetItemString(g_py_libyt_info, "version", py_version);
+    PyDict_SetItemString(LibytProcessControl::Get().py_libyt_info_, "version", py_version);
     Py_DECREF(py_version);
 #ifdef SERIAL_MODE
-    PyDict_SetItemString(g_py_libyt_info, "SERIAL_MODE", Py_True);
+    PyDict_SetItemString(LibytProcessControl::Get().py_libyt_info_, "SERIAL_MODE", Py_True);
 #else
-    PyDict_SetItemString(g_py_libyt_info, "SERIAL_MODE", Py_False);
+    PyDict_SetItemString(LibytProcessControl::Get().py_libyt_info_, "SERIAL_MODE", Py_False);
 #endif
 #ifdef INTERACTIVE_MODE
-    PyDict_SetItemString(g_py_libyt_info, "INTERACTIVE_MODE", Py_True);
+    PyDict_SetItemString(LibytProcessControl::Get().py_libyt_info_, "INTERACTIVE_MODE", Py_True);
 #else
-    PyDict_SetItemString(g_py_libyt_info, "INTERACTIVE_MODE", Py_False);
+    PyDict_SetItemString(LibytProcessControl::Get().py_libyt_info_, "INTERACTIVE_MODE", Py_False);
 #endif
 #ifdef JUPYTER_KERNEL
-    PyDict_SetItemString(g_py_libyt_info, "JUPYTER_KERNEL", Py_True);
+    PyDict_SetItemString(LibytProcessControl::Get().py_libyt_info_, "JUPYTER_KERNEL", Py_True);
 #else
-    PyDict_SetItemString(g_py_libyt_info, "JUPYTER_KERNEL", Py_False);
+    PyDict_SetItemString(LibytProcessControl::Get().py_libyt_info_, "JUPYTER_KERNEL", Py_False);
 #endif
 #ifdef SUPPORT_TIMER
-    PyDict_SetItemString(g_py_libyt_info, "SUPPORT_TIMER", Py_True);
+    PyDict_SetItemString(LibytProcessControl::Get().py_libyt_info_, "SUPPORT_TIMER", Py_True);
 #else
-    PyDict_SetItemString(g_py_libyt_info, "SUPPORT_TIMER", Py_False);
+    PyDict_SetItemString(LibytProcessControl::Get().py_libyt_info_, "SUPPORT_TIMER", Py_False);
 #endif
 
     // add dict object to libyt python module
-    PyModule_AddObject(libyt_module, "grid_data", g_py_grid_data);
-    PyModule_AddObject(libyt_module, "particle_data", g_py_particle_data);
-    PyModule_AddObject(libyt_module, "hierarchy", g_py_hierarchy);
-    PyModule_AddObject(libyt_module, "param_yt", g_py_param_yt);
-    PyModule_AddObject(libyt_module, "param_user", g_py_param_user);
-    PyModule_AddObject(libyt_module, "libyt_info", g_py_libyt_info);
+    PyModule_AddObject(libyt_module, "grid_data", LibytProcessControl::Get().py_grid_data_);
+    PyModule_AddObject(libyt_module, "particle_data", LibytProcessControl::Get().py_particle_data_);
+    PyModule_AddObject(libyt_module, "hierarchy", LibytProcessControl::Get().py_hierarchy_);
+    PyModule_AddObject(libyt_module, "param_yt", LibytProcessControl::Get().py_param_yt_);
+    PyModule_AddObject(libyt_module, "param_user", LibytProcessControl::Get().py_param_user_);
+    PyModule_AddObject(libyt_module, "libyt_info", LibytProcessControl::Get().py_libyt_info_);
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    PyModule_AddObject(libyt_module, "interactive_mode", g_py_interactive_mode);
+    PyModule_AddObject(libyt_module, "interactive_mode", LibytProcessControl::Get().py_interactive_mode_);
 #endif
 
     log_debug("Attaching empty dictionaries to libyt module ... done\n");
@@ -749,8 +749,8 @@ int create_libyt_module() {
 //                3. In INTERACTIVE_MODE:
 //                   (1) libyt.interactive_mode["script_globals"] = sys.modules["<script>"].__dict__
 //                   (2) libyt.interactive_mode["func_err_msg"] = dict()
-//                4. Bind g_py_grid_data/g_py_particle_data/g_py_hierarchy/g_py_param_yt/g_py_param_user/
-//                   g_py_libyt_info to dictionary under libyt Python module.
+//                4. Bind py_grid_data/py_particle_data/py_hierarchy/py_param_yt/py_param_user/
+//                   py_libyt_info to dictionary under libyt Python module.
 //                   (TODO: This is only needed in Pybind11)
 //
 // Parameter   :  None
@@ -768,21 +768,21 @@ int init_libyt_module() {
 
 #ifdef USE_PYBIND11
     pybind11::module_ libyt = pybind11::module_::import("libyt");
-    g_py_grid_data = libyt.attr("grid_data").ptr();
-    g_py_particle_data = libyt.attr("particle_data").ptr();
-    g_py_hierarchy = libyt.attr("hierarchy").ptr();
-    g_py_param_yt = libyt.attr("param_yt").ptr();
-    g_py_param_user = libyt.attr("param_user").ptr();
-    g_py_libyt_info = libyt.attr("libyt_info").ptr();
+    LibytProcessControl::Get().py_grid_data_ = libyt.attr("grid_data").ptr();
+    LibytProcessControl::Get().py_particle_data_ = libyt.attr("particle_data").ptr();
+    LibytProcessControl::Get().py_hierarchy_ = libyt.attr("hierarchy").ptr();
+    LibytProcessControl::Get().py_param_yt_ = libyt.attr("param_yt").ptr();
+    LibytProcessControl::Get().py_param_user_ = libyt.attr("param_user").ptr();
+    LibytProcessControl::Get().py_libyt_info_ = libyt.attr("libyt_info").ptr();
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    g_py_interactive_mode = libyt.attr("interactive_mode").ptr();
+    LibytProcessControl::Get().py_interactive_mode_ = libyt.attr("interactive_mode").ptr();
 #endif
 #endif
 
     // check if script exist
-    if (g_myrank == 0) {
+    if (LibytProcessControl::Get().mpi_rank_ == 0) {
         struct stat buffer;
-        std::string script_fullname = std::string(g_param_libyt.script) + std::string(".py");
+        std::string script_fullname = std::string(LibytProcessControl::Get().param_libyt_.script) + std::string(".py");
         if (stat(script_fullname.c_str(), &buffer) == 0) {
             log_debug("Finding user script %s ... done\n", script_fullname.c_str());
         } else {
@@ -798,30 +798,31 @@ int init_libyt_module() {
 #endif
 
     // import YT inline analysis script
-    int command_width = 8 + strlen(g_param_libyt.script);  // 8 = "import " + '\0'
+    int command_width = 8 + strlen(LibytProcessControl::Get().param_libyt_.script);  // 8 = "import " + '\0'
     char* command = (char*)malloc(command_width * sizeof(char));
-    sprintf(command, "import %s", g_param_libyt.script);
+    sprintf(command, "import %s", LibytProcessControl::Get().param_libyt_.script);
 
     if (PyRun_SimpleString(command) == 0)
-        log_info("Importing YT inline analysis script \"%s\" ... done\n", g_param_libyt.script);
+        log_info("Importing YT inline analysis script \"%s\" ... done\n",
+                 LibytProcessControl::Get().param_libyt_.script);
     else {
         free(command);
         YT_ABORT(
             "Importing YT inline analysis script \"%s\" ... failed (please do not include the \".py\" extension)!\n",
-            g_param_libyt.script);
+            LibytProcessControl::Get().param_libyt_.script);
     }
 
     free(command);
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // add imported script's namespace under in libyt.interactive_mode["script_globals"]
-    command_width = 200 + strlen(g_param_libyt.script);
+    command_width = 200 + strlen(LibytProcessControl::Get().param_libyt_.script);
     command = (char*)malloc(command_width * sizeof(char));
     sprintf(command,
             "libyt.interactive_mode[\"script_globals\"] = sys.modules[\"%s\"].__dict__\n"
             "libyt.interactive_mode[\"func_err_msg\"] = dict()\n"
             "libyt.interactive_mode[\"func_body\"] = dict()\n",
-            g_param_libyt.script);
+            LibytProcessControl::Get().param_libyt_.script);
 
     if (PyRun_SimpleString(command) == 0) {
         log_debug("Preparing interactive mode environment ... done\n");
@@ -831,11 +832,12 @@ int init_libyt_module() {
     }
     free(command);
 
-    std::string filename = std::string(g_param_libyt.script) + ".py";
+    std::string filename = std::string(LibytProcessControl::Get().param_libyt_.script) + ".py";
     LibytPythonShell::load_file_func_body(filename.c_str());
     std::vector<std::string> func_list = LibytPythonShell::get_funcname_defined(filename.c_str());
     for (int i = 0; i < (int)func_list.size(); i++) {
-        g_func_status_list.AddNewFunction(func_list[i], FunctionInfo::RunStatus::kNotSetYet);
+        LibytProcessControl::Get().function_info_list_.AddNewFunction(func_list[i],
+                                                                      FunctionInfo::RunStatus::kNotSetYet);
     }
 #endif
 

@@ -38,8 +38,7 @@
 #endif
 
 // libyt headers
-#include "Timer.h"
-#include "yt_global.h"
+#include "timer.h"
 #include "yt_macro.h"
 #include "yt_prototype.h"
 #include "yt_type.h"

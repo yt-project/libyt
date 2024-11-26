@@ -23,7 +23,9 @@ private:
     MagicCommandOutput output_;
     EntryPoint entry_point_;
     bool command_undefined_;
-    static int root_;
+    static int mpi_root_;
+    static int mpi_rank_;
+    static int mpi_size_;
 
     int Exit();
     int GetStatusHtml();
@@ -38,7 +40,7 @@ private:
     int GetFunctionStatusText(const std::vector<std::string>& args);
 
 public:
-    explicit MagicCommand(EntryPoint entry_point) : output_(), entry_point_(entry_point), command_undefined_(true){};
+    explicit MagicCommand(EntryPoint entry_point);
     MagicCommandOutput& Run(const std::string& command = std::string(""));
 };
 

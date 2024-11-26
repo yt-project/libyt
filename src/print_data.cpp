@@ -1,3 +1,4 @@
+#include "libyt_process_control.h"
 #include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -11,7 +12,7 @@
 int print_yt_param_yt(const yt_param_yt& param_yt) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    if (g_param_libyt.verbose < YT_VERBOSE_DEBUG) return YT_SUCCESS;
+    if (LibytProcessControl::Get().param_libyt_.verbose < YT_VERBOSE_DEBUG) return YT_SUCCESS;
 
     const int width_scalar = 25;
     const int width_vector = width_scalar - 3;
@@ -82,7 +83,7 @@ int print_yt_param_yt(const yt_param_yt& param_yt) {
 int print_yt_field(const yt_field& field) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    if (g_param_libyt.verbose < YT_VERBOSE_DEBUG) return YT_SUCCESS;
+    if (LibytProcessControl::Get().param_libyt_.verbose < YT_VERBOSE_DEBUG) return YT_SUCCESS;
 
     const int width_scalar = 25;
 

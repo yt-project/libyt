@@ -4,9 +4,9 @@
 
 #include <string.h>
 
-#include "LibytProcessControl.h"
 #include "big_mpi.h"
 #include "libyt.h"
+#include "libyt_process_control.h"
 #include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ yt_rma_field::yt_rma_field(const char* fname, int len_prepare, long len_get_grid
     }
 
     yt_field* field_list = LibytProcessControl::Get().field_list;
-    for (int v = 0; v < g_param_yt.num_fields; v++) {
+    for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_fields; v++) {
         if (strcmp(fname, field_list[v].field_name) == 0) {
             m_FieldName = field_list[v].field_name;
             m_FieldDefineType = field_list[v].field_type;
@@ -106,14 +106,14 @@ int yt_rma_field::prepare_data(long& gid) {
     // Make sure that the field exist.
     if (m_FieldIndex == -1) {
         YT_ABORT("yt_rma_field: Cannot find field name [ %s ] in field_list on MPI rank [ %d ].\n", m_FieldName,
-                 g_myrank);
+                 LibytProcessControl::Get().mpi_rank_);
     }
 
     // Get grid info
     yt_rma_grid_info grid_info;
     grid_info.id = gid;
     yt_getGridInfo_ProcNum(gid, &(grid_info.rank));
-    if (grid_info.rank != g_myrank) {
+    if (grid_info.rank != LibytProcessControl::Get().mpi_rank_) {
         YT_ABORT("yt_rma_field: Trying to prepare nonlocal grid [%ld] locate on MPI rank [%d].\n", gid, grid_info.rank);
     }
 
@@ -250,9 +250,10 @@ int yt_rma_field::gather_all_prepare_data(int root) {
 
     // Gather PreparedInfoList, which is m_Prepare in each rank, perform big_MPI_Gatherv and big_MPI_Bcast
     m_AllPrepare = new yt_rma_grid_info[m_LenAllPrepare];
-    big_MPI_Gatherv<yt_rma_grid_info>(root, SendCount, (void*)PreparedInfoList, &yt_rma_grid_info_mpi_type,
-                                      (void*)m_AllPrepare);
-    big_MPI_Bcast<yt_rma_grid_info>(root, m_LenAllPrepare, (void*)m_AllPrepare, &yt_rma_grid_info_mpi_type);
+    big_MPI_Gatherv<yt_rma_grid_info>(root, SendCount, (void*)PreparedInfoList,
+                                      &LibytProcessControl::Get().yt_rma_grid_info_mpi_type_, (void*)m_AllPrepare);
+    big_MPI_Bcast<yt_rma_grid_info>(root, m_LenAllPrepare, (void*)m_AllPrepare,
+                                    &LibytProcessControl::Get().yt_rma_grid_info_mpi_type_);
 
     // Open window epoch.
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOPRECEDE, m_Window);
@@ -304,7 +305,7 @@ int yt_rma_field::fetch_remote_data(long& gid, int& rank) {
     }
     if (!get_remote_grid) {
         YT_ABORT("yt_rma_field: Cannot get remote grid id [ %ld ] located in rank [ %d ] on MPI rank [ %d ].\n", gid,
-                 rank, g_myrank);
+                 rank, LibytProcessControl::Get().mpi_rank_);
     }
     void* fetchedData = malloc(gridLength * dtype_size);
 

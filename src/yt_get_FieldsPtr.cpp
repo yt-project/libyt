@@ -1,5 +1,5 @@
-#include "LibytProcessControl.h"
 #include "libyt.h"
+#include "libyt_process_control.h"
 #include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -29,9 +29,9 @@ int yt_get_FieldsPtr(yt_field** field_list) {
     }
 
     // check if num_fields > 0, if not, field_list won't be initialized
-    if (g_param_yt.num_fields <= 0) {
+    if (LibytProcessControl::Get().param_yt_.num_fields <= 0) {
         YT_ABORT("num_fields == %d <= 0, you don't need to input field_list, and it is also not initialized!\n",
-                 g_param_yt.num_fields);
+                 LibytProcessControl::Get().param_yt_.num_fields);
     }
 
     log_info("Getting pointer to field list information ...\n");

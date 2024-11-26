@@ -2,11 +2,7 @@
 #include <mpi.h>
 #endif
 
-#include "LibytProcessControl.h"
-
-#ifdef USE_PYBIND11
-#include "pybind11/embed.h"
-#endif
+#include "libyt_process_control.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytProcessControl
@@ -54,6 +50,11 @@ LibytProcessControl LibytProcessControl::s_Instance;
 //               par_count_list      :
 //-------------------------------------------------------------------------------------------------------
 LibytProcessControl::LibytProcessControl() {
+    // MPI info
+    mpi_rank_ = 0;
+    mpi_size_ = 1;
+    mpi_root_ = 0;
+
     // Check points for libyt process
     libyt_initialized = false;
     param_yt_set = false;
@@ -67,6 +68,16 @@ LibytProcessControl::LibytProcessControl() {
     particle_list = nullptr;
     grids_local = nullptr;
     num_grids_local_MPI = nullptr;
+
+    py_grid_data_ = nullptr;
+    py_particle_data_ = nullptr;
+    py_hierarchy_ = nullptr;
+    py_param_yt_ = nullptr;
+    py_param_user_ = nullptr;
+    py_libyt_info_ = nullptr;
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
+    py_interactive_mode_ = nullptr;
+#endif
 
 #ifdef USE_PYBIND11
     grid_left_edge = nullptr;
@@ -82,26 +93,28 @@ LibytProcessControl::LibytProcessControl() {
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytProcessControl
 // Method      :  Public method
-// Description :  Initialize stuff that rely on other stuff
+// Description :  Initialize libyt process control; every operation should happen after this step.
 //
-// Notes       :  1. Initialize MPI rank, MPI size. (if not in SERIAL_MODE)
-//                2. Initialize and create libyt profile file. (if SUPPORT_TIMER is set)
+// Notes       :  1. It is called in yt_initialize().
+//                2. Initialize MPI rank, MPI size. (if not in SERIAL_MODE)
+//                3. Initialize and create libyt profile file. (if SUPPORT_TIMER is set)
 //-------------------------------------------------------------------------------------------------------
 void LibytProcessControl::Initialize() {
 #ifndef SERIAL_MODE
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &my_size);
-#else
-    my_rank = 0;
-    my_size = 1;
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
+#endif
+
+#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
+    LibytPythonShell::SetMPIInfo(mpi_size_, mpi_root_, mpi_rank_);
 #endif
 
 #ifdef SUPPORT_TIMER
     // Set time profile controller
     std::string filename = "libytTimeProfile_MPI";
-    filename += std::to_string(my_rank);
+    filename += std::to_string(mpi_rank_);
     filename += ".json";
-    timer_control.CreateFile(filename.c_str(), my_rank);
+    timer_control.CreateFile(filename.c_str(), mpi_rank_);
 #endif
 }
 

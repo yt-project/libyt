@@ -4,9 +4,9 @@
 
 #include <string.h>
 
-#include "LibytProcessControl.h"
 #include "big_mpi.h"
 #include "libyt.h"
+#include "libyt_process_control.h"
 
 static int get_particle_data(const long gid, const char* ptype, const char* attr, yt_data* par_data);
 
@@ -45,7 +45,7 @@ yt_rma_particle::yt_rma_particle(const char* ptype, const char* attribute, int l
     }
 
     yt_particle* particle_list = LibytProcessControl::Get().particle_list;
-    for (int v = 0; v < g_param_yt.num_par_types; v++) {
+    for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_par_types; v++) {
         if (strcmp(ptype, particle_list[v].par_type) == 0) {
             m_ParticleType = particle_list[v].par_type;
             m_ParticleIndex = v;
@@ -114,18 +114,18 @@ int yt_rma_particle::prepare_data(long& gid) {
     // Make sure particle type and its attribute name exist.
     if (m_ParticleIndex == -1) {
         YT_ABORT("yt_rma_particle: Cannot find particle type [ %s ] in particle_list on MPI rank [ %d ].\n",
-                 m_ParticleType, g_myrank);
+                 m_ParticleType, LibytProcessControl::Get().mpi_rank_);
     }
     if (m_AttributeIndex == -1) {
         YT_ABORT("yt_rma_particle: Cannot find attribute name [ %s ] in particle type [ %s ] on MPI rank [ %d ].\n",
-                 m_AttributeName, m_ParticleType, g_myrank);
+                 m_AttributeName, m_ParticleType, LibytProcessControl::Get().mpi_rank_);
     }
 
     // Get particle info
     yt_rma_particle_info par_info;
     par_info.id = gid;
     yt_getGridInfo_ProcNum(gid, &(par_info.rank));
-    if (par_info.rank != g_myrank) {
+    if (par_info.rank != LibytProcessControl::Get().mpi_rank_) {
         YT_ABORT("yt_rma_particle: Trying to prepare nonlocal particle data in grid [%ld] that is on MPI rank [%d].\n",
                  gid, par_info.rank);
     }
@@ -247,9 +247,11 @@ int yt_rma_particle::gather_all_prepare_data(int root) {
 
     // Gather PreparedInfoList, which is m_Prepare in each rank, perform big_MPI_Gatherv and big_MPI_Bcast
     m_AllPrepare = new yt_rma_particle_info[m_LenAllPrepare];
-    big_MPI_Gatherv<yt_rma_particle_info>(root, SendCount, (void*)PreparedInfoList, &yt_rma_particle_info_mpi_type,
+    big_MPI_Gatherv<yt_rma_particle_info>(root, SendCount, (void*)PreparedInfoList,
+                                          &LibytProcessControl::Get().yt_rma_particle_info_mpi_type_,
                                           (void*)m_AllPrepare);
-    big_MPI_Bcast<yt_rma_particle_info>(root, m_LenAllPrepare, (void*)m_AllPrepare, &yt_rma_particle_info_mpi_type);
+    big_MPI_Bcast<yt_rma_particle_info>(root, m_LenAllPrepare, (void*)m_AllPrepare,
+                                        &LibytProcessControl::Get().yt_rma_particle_info_mpi_type_);
 
     // Open window epoch.
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOPRECEDE, m_Window);
@@ -291,7 +293,7 @@ int yt_rma_particle::fetch_remote_data(long& gid, int& rank) {
     }
     if (get_remote_gid != true) {
         YT_ABORT("yt_rma_particle: Cannot get remote grid id [ %ld ] located in rank [ %d ] on MPI rank [ %d ].\n", gid,
-                 rank, g_myrank);
+                 rank, LibytProcessControl::Get().mpi_rank_);
     }
     void* fetchedData;
 
@@ -436,16 +438,18 @@ static int get_particle_data(const long gid, const char* ptype, const char* attr
     PyObject* py_ptype = PyUnicode_FromString(ptype);
     PyObject* py_attr = PyUnicode_FromString(attr);
 
-    if (PyDict_Contains(g_py_particle_data, py_grid_id) != 1 ||
-        PyDict_Contains(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype) != 1 ||
-        PyDict_Contains(PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr) != 1) {
+    if (PyDict_Contains(LibytProcessControl::Get().py_particle_data_, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype) != 1 ||
+        PyDict_Contains(
+            PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype),
+            py_attr) != 1) {
         Py_DECREF(py_grid_id);
         Py_DECREF(py_ptype);
         Py_DECREF(py_attr);
         return YT_FAIL;
     }
     PyArrayObject* py_data = (PyArrayObject*)PyDict_GetItem(
-        PyDict_GetItem(PyDict_GetItem(g_py_particle_data, py_grid_id), py_ptype), py_attr);
+        PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype), py_attr);
 
     Py_DECREF(py_grid_id);
     Py_DECREF(py_ptype);

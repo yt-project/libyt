@@ -17,6 +17,9 @@ private:
     ExecuteStatus status_;
     ExecuteStatus all_status_;
     std::vector<std::string> all_error_msg_;
+    static int mpi_size_;
+    static int mpi_root_;
+    static int mpi_rank_;
 
 public:
     FunctionInfo(const char* function_name, RunStatus run);
@@ -46,7 +49,7 @@ private:
     std::vector<FunctionInfo> function_list_;
 
 public:
-    explicit FunctionInfoList(int capacity) { function_list_.reserve(capacity); }
+    FunctionInfoList() { function_list_.reserve(10); }
     ~FunctionInfoList() { function_list_.clear(); }
     FunctionInfo& operator[](int index) { return function_list_[index]; }
 
