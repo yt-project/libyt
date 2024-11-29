@@ -5,8 +5,8 @@
 
 #include <mpi.h>
 
-#include "libyt_process_control.h"
-#include "yt_combo.h"
+#include "timer.h"
+#include "yt_macro.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Template    :  big_MPI_Gatherv
@@ -26,8 +26,9 @@ template<typename T>
 int big_MPI_Gatherv(int RootRank, int* sendcounts, void* sendbuffer, MPI_Datatype* mpi_datatype, void* recvbuffer) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    int mpi_size = LibytProcessControl::Get().mpi_size_;
-    int mpi_rank = LibytProcessControl::Get().mpi_rank_;
+    int mpi_size, mpi_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 
     // Count recv_counts, offsets, and split the buffer, if too large.
     int* recv_counts = new int[mpi_size];
