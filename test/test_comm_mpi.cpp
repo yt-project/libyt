@@ -47,8 +47,11 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_long) {
     }
     send_count_in_each_rank[mpi_size_ - 1] = total_send_counts - (total_send_counts / mpi_size_) * (mpi_size_ - 1);
     long* send_buffer = new long[send_count_in_each_rank[mpi_rank_]];
-    long* recv_buffer = new long[total_send_counts];
     PrepareArray<long>(send_buffer, send_count_in_each_rank[mpi_rank_], displacement, 1.0);
+    long* recv_buffer = nullptr;
+    if (mpi_rank_ == mpi_root) {
+        recv_buffer = new long[total_send_counts];
+    }
 
     // Act
     const int result =
