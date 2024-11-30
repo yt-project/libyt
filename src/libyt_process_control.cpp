@@ -103,6 +103,11 @@ void LibytProcessControl::Initialize() {
 #ifndef SERIAL_MODE
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
+
+    CommMPI::InitializeYtLongMpiDataType();
+    CommMPI::InitializeYtHierarchyMpiDataType();
+    CommMPI::InitializeYtRmaGridInfoMpiDataType();
+    CommMPI::InitializeYtRmaParticleInfoMpiDataType();
 #endif
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)

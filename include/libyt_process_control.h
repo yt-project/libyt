@@ -6,7 +6,7 @@
 #include "yt_type.h"
 
 #ifndef SERIAL_MODE
-#include <mpi.h>
+#include "comm_mpi.h"
 #endif
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
 #include "function_info.h"
@@ -31,10 +31,7 @@ public:
     int mpi_size_;
     int mpi_root_;
 #ifndef SERIAL_MODE
-    MPI_Datatype yt_long_mpi_type_;
-    MPI_Datatype yt_hierarchy_mpi_type_;
-    MPI_Datatype yt_rma_grid_info_mpi_type_;
-    MPI_Datatype yt_rma_particle_info_mpi_type_;
+    CommMPI comm_mpi_;
 #endif
 
 #ifdef SUPPORT_TIMER
