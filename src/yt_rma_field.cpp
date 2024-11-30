@@ -250,10 +250,9 @@ int yt_rma_field::gather_all_prepare_data(int root) {
 
     // Gather PreparedInfoList, which is m_Prepare in each rank, perform big_MPI_Gatherv and big_MPI_Bcast
     m_AllPrepare = new yt_rma_grid_info[m_LenAllPrepare];
-    big_MPI_Gatherv<yt_rma_grid_info>(root, SendCount, (void*)PreparedInfoList,
-                                      &LibytProcessControl::Get().yt_rma_grid_info_mpi_type_, (void*)m_AllPrepare);
-    big_MPI_Bcast<yt_rma_grid_info>(root, m_LenAllPrepare, (void*)m_AllPrepare,
-                                    &LibytProcessControl::Get().yt_rma_grid_info_mpi_type_);
+    big_MPI_Gatherv<yt_rma_grid_info>(root, SendCount, (void*)PreparedInfoList, &CommMPI::yt_rma_grid_info_mpi_type_,
+                                      (void*)m_AllPrepare);
+    big_MPI_Bcast<yt_rma_grid_info>(root, m_LenAllPrepare, (void*)m_AllPrepare, &CommMPI::yt_rma_grid_info_mpi_type_);
 
     // Open window epoch.
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOPRECEDE, m_Window);
