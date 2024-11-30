@@ -1,7 +1,9 @@
 if (LIBYT_RUN_TEST)
 include(FetchContent)
 
-set(LIBYT_GOOGLETEST_FETCH_VERSION       1.14.0 )
+# Getting dependencies
+## GoogleTest
+set(LIBYT_GOOGLETEST_FETCH_VERSION       1.15.2 )
 
 FetchContent_Declare(
         googletest
