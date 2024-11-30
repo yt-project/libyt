@@ -10,11 +10,15 @@ protected:
     int mpi_size_ = 1;
     int mpi_rank_ = 0;
 
-    template<typename T>
-    static void PrepareArray(T* array, const long array_len, T value_start, T value_step) {
-        for (int i = 0; i < array_len; i++) {
-            array[i] = value_start + i * value_step;
+    static void SplitArray(const long total_len, const int mpi_size, const int mpi_rank, int* count_in_each_rank,
+                           int* displacement) {
+        for (int r = 0; r < mpi_size - 1; r++) {
+            count_in_each_rank[r] = total_len / mpi_size;
+            if (mpi_rank > r) {
+                *displacement += count_in_each_rank[r];
+            }
         }
+        count_in_each_rank[mpi_size - 1] = total_len - (total_len / mpi_size) * (mpi_size - 1);
     }
 
 private:
@@ -39,15 +43,13 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_long) {
     int* send_count_in_each_rank = new int[mpi_size_];
     long total_send_counts = 1000;  // TODO: make this a test parameter
     int displacement = 0;
-    for (int r = 0; r < mpi_size_ - 1; r++) {
-        send_count_in_each_rank[r] = total_send_counts / mpi_size_;
-        if (mpi_rank_ > r) {
-            displacement += send_count_in_each_rank[r];
-        }
-    }
-    send_count_in_each_rank[mpi_size_ - 1] = total_send_counts - (total_send_counts / mpi_size_) * (mpi_size_ - 1);
+    SplitArray(total_send_counts, mpi_size_, mpi_rank_, send_count_in_each_rank, &displacement);
+
     long* send_buffer = new long[send_count_in_each_rank[mpi_rank_]];
-    PrepareArray<long>(send_buffer, send_count_in_each_rank[mpi_rank_], displacement, 1.0);
+    for (int i = 0; i < send_count_in_each_rank[mpi_rank_]; i++) {
+        send_buffer[i] = displacement + i;
+    }
+
     long* recv_buffer = nullptr;
     if (mpi_rank_ == mpi_root) {
         recv_buffer = new long[total_send_counts];
@@ -80,7 +82,9 @@ TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_long) {
     const long total_send_counts = 1000;  // TODO: make this a test parameter
     long* send_buffer = new long[total_send_counts];
     if (mpi_rank_ == mpi_root) {
-        PrepareArray<long>(send_buffer, total_send_counts, 0, 1.0);
+        for (int i = 0; i < total_send_counts; i++) {
+            send_buffer[i] = i;
+        }
     }
 
     // Act
