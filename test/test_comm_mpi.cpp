@@ -11,7 +11,7 @@ protected:
     int mpi_rank_ = 0;
 
     template<typename T>
-    static void PrepareArray(T* array, const int array_len, T value_start, T value_step) {
+    static void PrepareArray(T* array, const long array_len, T value_start, T value_step) {
         for (int i = 0; i < array_len; i++) {
             array[i] = value_start + i * value_step;
         }
@@ -60,8 +60,8 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_long) {
     // Assert
     EXPECT_EQ(result, YT_SUCCESS);
     if (mpi_rank_ == mpi_root) {
-        for (int i = 0; i < total_send_counts; i++) {
-            EXPECT_EQ(recv_buffer[i], static_cast<long>(i));
+        for (long i = 0; i < total_send_counts; i++) {
+            EXPECT_EQ(recv_buffer[i], i);
         }
     }
 
@@ -69,6 +69,31 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_long) {
     delete[] send_count_in_each_rank;
     delete[] send_buffer;
     delete[] recv_buffer;
+}
+
+TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_long) {
+    // Arrange
+    std::cout << "mpi_size_ = " << mpi_size_ << ", " << "mpi_rank = " << mpi_rank_ << std::endl;
+    int mpi_root = 0;
+    MPI_Datatype mpi_datatype = CommMPI::yt_long_mpi_type_;
+
+    const long total_send_counts = 1000;  // TODO: make this a test parameter
+    long* send_buffer = new long[total_send_counts];
+    if (mpi_rank_ == mpi_root) {
+        PrepareArray<long>(send_buffer, total_send_counts, 0, 1.0);
+    }
+
+    // Act
+    const int result = big_MPI_Bcast<long>(mpi_root, total_send_counts, (void*)send_buffer, &mpi_datatype);
+
+    // Assert
+    EXPECT_EQ(result, YT_SUCCESS);
+    for (long i = 0; i < total_send_counts; i++) {
+        EXPECT_EQ(send_buffer[i], i);
+    }
+
+    // Clean up
+    delete[] send_buffer;
 }
 
 int main(int argc, char* argv[]) {
