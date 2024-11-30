@@ -11,15 +11,32 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-# Test scripts
+## Libyt dependencies
+if (NOT SERIAL_MODE)
+    find_package(MPI REQUIRED)
+endif ()
+
+# Test scripts and discover tests
+include(GoogleTest)
+
+## Test template
 add_executable(TestTemplate test_template.cpp)
 target_link_libraries(TestTemplate PUBLIC gtest_main)
-# TODO: Also need to make sure every components are tested based on the option set by users.
-#       (so that maybe they can also test it on their machine, but the test I write should separate all the
-#        components so that we user turn off some of the options, only some part of the tests is turned off.)
-
-# Discover tests
-include(GoogleTest)
 gtest_discover_tests(TestTemplate)
+
+## Test Comm MPI
+if (NOT SERIAL_MODE)
+add_executable(TestCommMPI test_comm_mpi.cpp)
+target_include_directories(TestCommMPI PUBLIC
+    ${MPI_INCLUDE_PATH}
+    ${CMAKE_SOURCE_DIR}/include
+)
+target_link_libraries(TestCommMPI PUBLIC
+    gtest_main
+    MPI::MPI_CXX
+    yt
+)
+gtest_discover_tests(TestCommMPI)
+endif ()
 
 endif () # if (LIBYT_RUN_TEST)
