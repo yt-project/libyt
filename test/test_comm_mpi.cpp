@@ -56,8 +56,10 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_long) {
 
     // Assert
     EXPECT_EQ(result, YT_SUCCESS);
-    for (int i = 0; i < total_send_counts; i++) {
-        EXPECT_EQ(recv_buffer[i], static_cast<long>(i));
+    if (mpi_rank_ == mpi_root) {
+        for (int i = 0; i < total_send_counts; i++) {
+            EXPECT_EQ(recv_buffer[i], static_cast<long>(i));
+        }
     }
 
     // Clean up
