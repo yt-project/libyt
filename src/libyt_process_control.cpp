@@ -39,7 +39,7 @@ LibytProcessControl LibytProcessControl::s_Instance;
 //               particle_list       : particle list, including particle name, data type ...
 //               grids_local         : a data structure for storing local grids hierarchy and data memory
 //                                     mapping temporary.
-//               num_grids_local_MPI : for gathering different MPI processes hierarchy.
+//               all_num_grids_local : for gathering different MPI processes hierarchy.
 //
 //               grid_left_edge      : AMR hierarchy for Pybind11.
 //               grid_right_edge     :
@@ -67,7 +67,7 @@ LibytProcessControl::LibytProcessControl() {
     field_list = nullptr;
     particle_list = nullptr;
     grids_local = nullptr;
-    num_grids_local_MPI = nullptr;
+    all_num_grids_local_ = nullptr;
 
     py_grid_data_ = nullptr;
     py_particle_data_ = nullptr;

@@ -131,7 +131,7 @@ int yt_commit() {
     }
 
     // Big MPI_Gatherv, this is just a workaround method.
-    int* num_grids_local_MPI = LibytProcessControl::Get().num_grids_local_MPI;
+    int* num_grids_local_MPI = LibytProcessControl::Get().all_num_grids_local_;
     big_MPI_Gatherv<yt_hierarchy>(RootRank, num_grids_local_MPI, (void*)hierarchy_local,
                                   &CommMPI::yt_hierarchy_mpi_type_, (void*)hierarchy_full);
     for (int s = 0; s < param_yt.num_par_types; s++) {
