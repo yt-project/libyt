@@ -104,6 +104,7 @@ void LibytProcessControl::Initialize() {
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
 
+    CommMPI::InitializeInfo(0);
     CommMPI::InitializeYtLongMpiDataType();
     CommMPI::InitializeYtHierarchyMpiDataType();
     CommMPI::InitializeYtRmaGridInfoMpiDataType();
