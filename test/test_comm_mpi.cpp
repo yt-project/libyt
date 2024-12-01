@@ -7,8 +7,6 @@
 
 class CommMPIFixture : public testing::Test {
 protected:
-    CommMPI comm_mpi_;
-
     static void SplitArray(const long total_len, const int mpi_size, const int mpi_rank, int* count_in_each_rank,
                            int* displacement) {
         for (int r = 0; r < mpi_size - 1; r++) {
@@ -202,6 +200,23 @@ TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_hierarchy) {
 
     // Clean up
     delete[] send_buffer;
+}
+
+TEST(Function, SetAllNumGridsLocal_can_work) {
+    // Arrange
+    int num_grids_local = CommMPI::mpi_rank_;
+    int* all_num_grids_local = new int[CommMPI::mpi_size_];
+
+    // Act
+    CommMPI::SetAllNumGridsLocal(all_num_grids_local, num_grids_local);
+
+    // Assert
+    for (int r = 0; r < CommMPI::mpi_size_; r++) {
+        EXPECT_EQ(all_num_grids_local[r], r);
+    }
+
+    // Clean up
+    delete[] all_num_grids_local;
 }
 
 int main(int argc, char* argv[]) {
