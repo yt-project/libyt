@@ -69,4 +69,11 @@ void CommMPI::InitializeYtRmaParticleInfoMpiDataType() {
     MPI_Type_commit(&yt_rma_particle_info_mpi_type_);
 }
 
+void CommMPI::SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    MPI_Gather(&num_grids_local, 1, MPI_INT, all_num_grids_local, 1, MPI_INT, mpi_root_, MPI_COMM_WORLD);
+    MPI_Bcast(all_num_grids_local, mpi_size_, MPI_INT, mpi_root_, MPI_COMM_WORLD);
+}
+
 #endif

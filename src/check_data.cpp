@@ -9,20 +9,21 @@
 //                2. Check sum of number of local grids in each MPI rank is equal to num_grids input by
 //                   user, which is equal to the number of total grids.
 //
-// Parameter   :  int * &num_grids_local_MPI : Address to the int*, each element stores number of local
+// Parameter   :  int mpi_size             : Number of MPI ranks.
+//                int *num_grids_local_MPI : Address to the int*, each element stores number of local
 //                                             grids in each MPI rank.
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int check_sum_num_grids_local_MPI(int NRank, int*& num_grids_local_MPI) {
+int check_sum_num_grids_local_MPI(int mpi_size, int* num_grids_local_MPI) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     long num_grids = 0;
-    for (int rid = 0; rid < NRank; rid = rid + 1) {
+    for (int rid = 0; rid < mpi_size; rid = rid + 1) {
         num_grids = num_grids + (long)num_grids_local_MPI[rid];
     }
     if (num_grids != LibytProcessControl::Get().param_yt_.num_grids) {
-        for (int rid = 0; rid < NRank; rid++) {
+        for (int rid = 0; rid < mpi_size; rid++) {
             log_error("MPI rank [ %d ], num_grids_local = %d.\n", rid, num_grids_local_MPI[rid]);
         }
         YT_ABORT("Sum of local grids in each MPI rank [%ld] are not equal to input num_grids [%ld]!\n", num_grids,

@@ -19,6 +19,7 @@ public:
     static void InitializeYtHierarchyMpiDataType();
     static void InitializeYtRmaGridInfoMpiDataType();
     static void InitializeYtRmaParticleInfoMpiDataType();
+    static void SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local);
 };
 
 #endif  // COMM_MPI_H
