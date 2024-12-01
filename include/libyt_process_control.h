@@ -63,7 +63,7 @@ public:
     yt_field* field_list;
     yt_particle* particle_list;
     yt_grid* grids_local;
-    int* num_grids_local_MPI;
+    int* all_num_grids_local_;
 
     PyObject* py_grid_data_;
     PyObject* py_particle_data_;

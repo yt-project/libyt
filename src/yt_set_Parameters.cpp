@@ -196,13 +196,13 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
 
 #ifndef SERIAL_MODE
     // Gather number of local grids in each MPI rank
-    LibytProcessControl::Get().num_grids_local_MPI = new int[LibytProcessControl::Get().mpi_size_];
-    CommMPI::SetAllNumGridsLocal(LibytProcessControl::Get().num_grids_local_MPI, param_yt.num_grids_local);
+    LibytProcessControl::Get().all_num_grids_local_ = new int[LibytProcessControl::Get().mpi_size_];
+    CommMPI::SetAllNumGridsLocal(LibytProcessControl::Get().all_num_grids_local_, param_yt.num_grids_local);
 
     // Check that sum of num_grids_local_MPI is equal to num_grids (total number of grids), abort if not.
     if (LibytProcessControl::Get().param_libyt_.check_data) {
         if (check_sum_num_grids_local_MPI(LibytProcessControl::Get().mpi_size_,
-                                          LibytProcessControl::Get().num_grids_local_MPI) != YT_SUCCESS) {
+                                          LibytProcessControl::Get().all_num_grids_local_) != YT_SUCCESS) {
             YT_ABORT("Check sum of local grids in each MPI rank failed in %s!\n", __FUNCTION__);
         }
     }

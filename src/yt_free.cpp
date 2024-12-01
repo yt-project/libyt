@@ -52,7 +52,7 @@ int yt_free() {
             }
             delete[] particle_list;
         }
-        delete[] LibytProcessControl::Get().num_grids_local_MPI;
+        delete[] LibytProcessControl::Get().all_num_grids_local_;
     }
 
     // Free resource allocated in yt_get_GridsPtr() in case it hasn't got freed yet:
