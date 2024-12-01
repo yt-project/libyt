@@ -20,7 +20,7 @@ struct yt_hierarchy {
     double right_edge[3]{-1.0, -1.0, -1.0};
     long id = -1;
     long parent_id = -2;
-    int dimensions[3]{0, 0, 0};
+    int dimensions[3]{-1, -1, -1};
     int level = -1;
     int proc_num = -1;
 };

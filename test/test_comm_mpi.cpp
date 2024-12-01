@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <limits.h>
 
+#include "amr_grid.h"
 #include "big_mpi.h"
 #include "comm_mpi.h"
 
@@ -64,6 +65,61 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_long) {
     if (mpi_rank_ == mpi_root) {
         for (long i = 0; i < total_send_counts; i++) {
             EXPECT_EQ(recv_buffer[i], i);
+        }
+    }
+
+    // Clean up
+    delete[] send_count_in_each_rank;
+    delete[] send_buffer;
+    delete[] recv_buffer;
+}
+
+TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_hierarchy) {
+    // Arrange
+    std::cout << "mpi_size_ = " << mpi_size_ << ", " << "mpi_rank = " << mpi_rank_ << std::endl;
+    int mpi_root = 0;
+    MPI_Datatype mpi_datatype = CommMPI::yt_hierarchy_mpi_type_;
+
+    int* send_count_in_each_rank = new int[mpi_size_];
+    long total_send_counts = 1000;  // TODO: make this a test parameter
+    int displacement = 0;
+    SplitArray(total_send_counts, mpi_size_, mpi_rank_, send_count_in_each_rank, &displacement);
+
+    yt_hierarchy* send_buffer = new yt_hierarchy[send_count_in_each_rank[mpi_rank_]];
+    for (int i = 0; i < send_count_in_each_rank[mpi_rank_]; i++) {
+        send_buffer[i].id = displacement + i;
+        send_buffer[i].parent_id = displacement + i;
+        send_buffer[i].level = displacement + i;
+        send_buffer[i].proc_num = displacement + i;
+        for (int d = 0; d < 3; d++) {
+            send_buffer[i].left_edge[d] = d;
+            send_buffer[i].right_edge[d] = d;
+            send_buffer[i].dimensions[d] = d;
+        }
+    }
+
+    yt_hierarchy* recv_buffer = nullptr;
+    if (mpi_rank_ == mpi_root) {
+        recv_buffer = new yt_hierarchy[total_send_counts];
+    }
+
+    // Act
+    const int result = big_MPI_Gatherv<yt_hierarchy>(mpi_root, send_count_in_each_rank, (void*)send_buffer,
+                                                     &mpi_datatype, (void*)recv_buffer);
+
+    // Assert
+    EXPECT_EQ(result, YT_SUCCESS);
+    if (mpi_rank_ == mpi_root) {
+        for (long i = 0; i < total_send_counts; i++) {
+            EXPECT_EQ(recv_buffer[i].id, i);
+            EXPECT_EQ(recv_buffer[i].parent_id, i);
+            EXPECT_EQ(recv_buffer[i].level, i);
+            EXPECT_EQ(recv_buffer[i].proc_num, i);
+            for (int d = 0; d < 3; d++) {
+                EXPECT_EQ(recv_buffer[i].left_edge[d], d);
+                EXPECT_EQ(recv_buffer[i].right_edge[d], d);
+                EXPECT_EQ(recv_buffer[i].dimensions[d], d);
+            }
         }
     }
 
