@@ -156,6 +156,49 @@ TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_long) {
     delete[] send_buffer;
 }
 
+TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_hierarchy) {
+    // Arrange
+    std::cout << "mpi_size_ = " << mpi_size_ << ", " << "mpi_rank = " << mpi_rank_ << std::endl;
+    int mpi_root = 0;
+    MPI_Datatype mpi_datatype = CommMPI::yt_hierarchy_mpi_type_;
+
+    const long total_send_counts = 1000;  // TODO: make this a test parameter
+    yt_hierarchy* send_buffer = new yt_hierarchy[total_send_counts];
+    if (mpi_rank_ == mpi_root) {
+        for (int i = 0; i < total_send_counts; i++) {
+            send_buffer[i].id = i;
+            send_buffer[i].parent_id = i;
+            send_buffer[i].level = i;
+            send_buffer[i].proc_num = i;
+            for (int d = 0; d < 3; d++) {
+                send_buffer[i].left_edge[d] = d;
+                send_buffer[i].right_edge[d] = d;
+                send_buffer[i].dimensions[d] = d;
+            }
+        }
+    }
+
+    // Act
+    const int result = big_MPI_Bcast<yt_hierarchy>(mpi_root, total_send_counts, (void*)send_buffer, &mpi_datatype);
+
+    // Assert
+    EXPECT_EQ(result, YT_SUCCESS);
+    for (int i = 0; i < total_send_counts; i++) {
+        EXPECT_EQ(send_buffer[i].id, i);
+        EXPECT_EQ(send_buffer[i].parent_id, i);
+        EXPECT_EQ(send_buffer[i].level, i);
+        EXPECT_EQ(send_buffer[i].proc_num, i);
+        for (int d = 0; d < 3; d++) {
+            EXPECT_EQ(send_buffer[i].left_edge[d], d);
+            EXPECT_EQ(send_buffer[i].right_edge[d], d);
+            EXPECT_EQ(send_buffer[i].dimensions[d], d);
+        }
+    }
+
+    // Clean up
+    delete[] send_buffer;
+}
+
 int main(int argc, char* argv[]) {
     int result = 0;
 
