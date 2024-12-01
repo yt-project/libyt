@@ -11,29 +11,7 @@
 #endif
 
 #ifndef SERIAL_MODE
-//-------------------------------------------------------------------------------------------------------
-// Structure   :  yt_hierarchy
-// Description :  Data structure for pass hierarchy of the grid in MPI process, it is meant to be temporary.
-//       Notes :  1. We don't deal with particle count in each ptype here.
-//
-// Data Member :  dimensions     : Number of cells along each direction
-//                left_edge      : Grid left  edge in code units
-//                right_edge     : Grid right edge in code units
-//                level          : AMR level (0 for the root level)
-//                proc_num       : An array of MPI rank that the grid belongs
-//                id             : Grid ID
-//                parent_id      : Parent grid ID
-//                proc_num       : Process number, grid belong to which MPI rank
-//-------------------------------------------------------------------------------------------------------
-struct yt_hierarchy {
-    double left_edge[3];
-    double right_edge[3];
-    long id;
-    long parent_id;
-    int dimensions[3];
-    int level;
-    int proc_num;
-};
+#include "amr_grid.h"
 
 int big_MPI_Get_dtype(void* recv_buff, long data_len, yt_dtype* data_dtype, MPI_Datatype* mpi_dtype, int get_rank,
                       MPI_Aint base_address, MPI_Win* window);
