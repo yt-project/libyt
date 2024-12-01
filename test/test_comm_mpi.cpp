@@ -8,8 +8,6 @@
 class CommMPIFixture : public testing::Test {
 protected:
     CommMPI comm_mpi_;
-    int mpi_size_ = 1;
-    int mpi_rank_ = 0;
 
     static void SplitArray(const long total_len, const int mpi_size, const int mpi_rank, int* count_in_each_rank,
                            int* displacement) {
@@ -24,8 +22,7 @@ protected:
 
 private:
     void SetUp() override {
-        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
-        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
+        CommMPI::InitializeInfo(0);
         CommMPI::InitializeYtLongMpiDataType();
         CommMPI::InitializeYtHierarchyMpiDataType();
         CommMPI::InitializeYtRmaGridInfoMpiDataType();
@@ -37,22 +34,24 @@ class TestBigMPI : public CommMPIFixture {};
 
 TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_long) {
     // Arrange
-    std::cout << "mpi_size_ = " << mpi_size_ << ", " << "mpi_rank = " << mpi_rank_ << std::endl;
-    int mpi_root = 0;
+    int mpi_size = CommMPI::mpi_size_;
+    int mpi_rank = CommMPI::mpi_rank_;
+    int mpi_root = CommMPI::mpi_root_;
+    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     MPI_Datatype mpi_datatype = CommMPI::yt_long_mpi_type_;
 
-    int* send_count_in_each_rank = new int[mpi_size_];
+    int* send_count_in_each_rank = new int[mpi_size];
     long total_send_counts = 1000;  // TODO: make this a test parameter
     int displacement = 0;
-    SplitArray(total_send_counts, mpi_size_, mpi_rank_, send_count_in_each_rank, &displacement);
+    SplitArray(total_send_counts, mpi_size, mpi_rank, send_count_in_each_rank, &displacement);
 
-    long* send_buffer = new long[send_count_in_each_rank[mpi_rank_]];
-    for (int i = 0; i < send_count_in_each_rank[mpi_rank_]; i++) {
+    long* send_buffer = new long[send_count_in_each_rank[mpi_rank]];
+    for (int i = 0; i < send_count_in_each_rank[mpi_rank]; i++) {
         send_buffer[i] = displacement + i;
     }
 
     long* recv_buffer = nullptr;
-    if (mpi_rank_ == mpi_root) {
+    if (mpi_rank == mpi_root) {
         recv_buffer = new long[total_send_counts];
     }
 
@@ -62,7 +61,7 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_long) {
 
     // Assert
     EXPECT_EQ(result, YT_SUCCESS);
-    if (mpi_rank_ == mpi_root) {
+    if (mpi_rank == mpi_root) {
         for (long i = 0; i < total_send_counts; i++) {
             EXPECT_EQ(recv_buffer[i], i);
         }
@@ -76,17 +75,19 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_long) {
 
 TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_hierarchy) {
     // Arrange
-    std::cout << "mpi_size_ = " << mpi_size_ << ", " << "mpi_rank = " << mpi_rank_ << std::endl;
-    int mpi_root = 0;
+    int mpi_size = CommMPI::mpi_size_;
+    int mpi_rank = CommMPI::mpi_rank_;
+    int mpi_root = CommMPI::mpi_root_;
+    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     MPI_Datatype mpi_datatype = CommMPI::yt_hierarchy_mpi_type_;
 
-    int* send_count_in_each_rank = new int[mpi_size_];
+    int* send_count_in_each_rank = new int[mpi_size];
     long total_send_counts = 1000;  // TODO: make this a test parameter
     int displacement = 0;
-    SplitArray(total_send_counts, mpi_size_, mpi_rank_, send_count_in_each_rank, &displacement);
+    SplitArray(total_send_counts, mpi_size, mpi_rank, send_count_in_each_rank, &displacement);
 
-    yt_hierarchy* send_buffer = new yt_hierarchy[send_count_in_each_rank[mpi_rank_]];
-    for (int i = 0; i < send_count_in_each_rank[mpi_rank_]; i++) {
+    yt_hierarchy* send_buffer = new yt_hierarchy[send_count_in_each_rank[mpi_rank]];
+    for (int i = 0; i < send_count_in_each_rank[mpi_rank]; i++) {
         send_buffer[i].id = displacement + i;
         send_buffer[i].parent_id = displacement + i;
         send_buffer[i].level = displacement + i;
@@ -99,7 +100,7 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_hierarchy) {
     }
 
     yt_hierarchy* recv_buffer = nullptr;
-    if (mpi_rank_ == mpi_root) {
+    if (mpi_rank == mpi_root) {
         recv_buffer = new yt_hierarchy[total_send_counts];
     }
 
@@ -109,7 +110,7 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_hierarchy) {
 
     // Assert
     EXPECT_EQ(result, YT_SUCCESS);
-    if (mpi_rank_ == mpi_root) {
+    if (mpi_rank == mpi_root) {
         for (long i = 0; i < total_send_counts; i++) {
             EXPECT_EQ(recv_buffer[i].id, i);
             EXPECT_EQ(recv_buffer[i].parent_id, i);
@@ -131,13 +132,15 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_hierarchy) {
 
 TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_long) {
     // Arrange
-    std::cout << "mpi_size_ = " << mpi_size_ << ", " << "mpi_rank = " << mpi_rank_ << std::endl;
-    int mpi_root = 0;
+    int mpi_size = CommMPI::mpi_size_;
+    int mpi_rank = CommMPI::mpi_rank_;
+    int mpi_root = CommMPI::mpi_root_;
+    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     MPI_Datatype mpi_datatype = CommMPI::yt_long_mpi_type_;
 
     const long total_send_counts = 1000;  // TODO: make this a test parameter
     long* send_buffer = new long[total_send_counts];
-    if (mpi_rank_ == mpi_root) {
+    if (mpi_rank == mpi_root) {
         for (int i = 0; i < total_send_counts; i++) {
             send_buffer[i] = i;
         }
@@ -158,13 +161,15 @@ TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_long) {
 
 TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_hierarchy) {
     // Arrange
-    std::cout << "mpi_size_ = " << mpi_size_ << ", " << "mpi_rank = " << mpi_rank_ << std::endl;
-    int mpi_root = 0;
+    int mpi_size = CommMPI::mpi_size_;
+    int mpi_rank = CommMPI::mpi_rank_;
+    int mpi_root = CommMPI::mpi_root_;
+    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     MPI_Datatype mpi_datatype = CommMPI::yt_hierarchy_mpi_type_;
 
     const long total_send_counts = 1000;  // TODO: make this a test parameter
     yt_hierarchy* send_buffer = new yt_hierarchy[total_send_counts];
-    if (mpi_rank_ == mpi_root) {
+    if (mpi_rank == mpi_root) {
         for (int i = 0; i < total_send_counts; i++) {
             send_buffer[i].id = i;
             send_buffer[i].parent_id = i;

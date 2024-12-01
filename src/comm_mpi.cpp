@@ -3,10 +3,22 @@
 
 #include "timer.h"
 
+int CommMPI::mpi_rank_ = 0;
+int CommMPI::mpi_size_ = 1;
+int CommMPI::mpi_root_ = 0;
+
 MPI_Datatype CommMPI::yt_long_mpi_type_;
 MPI_Datatype CommMPI::yt_hierarchy_mpi_type_;
 MPI_Datatype CommMPI::yt_rma_grid_info_mpi_type_;
 MPI_Datatype CommMPI::yt_rma_particle_info_mpi_type_;
+
+void CommMPI::InitializeInfo(int mpi_root) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
+    mpi_root_ = mpi_root;
+}
 
 void CommMPI::InitializeYtLongMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
