@@ -4,6 +4,7 @@
 #include "amr_grid.h"
 #include "big_mpi.h"
 #include "comm_mpi.h"
+#include "comm_mpi_rma.h"
 
 class CommMPIFixture : public testing::Test {
 protected:
@@ -217,6 +218,11 @@ TEST(Function, SetAllNumGridsLocal_can_work) {
 
     // Clean up
     delete[] all_num_grids_local;
+}
+
+TEST(RMA, CommMPIRma_can_work) {
+    CommMPIRma<AMRFieldDataArray3DInfo, AMRFieldDataArray3D> comm_mpi_rma("test", 1, 1);
+    comm_mpi_rma.GetRemoteData(std::vector<AMRFieldDataArray3D>(), std::vector<FetchedFromInfo>());
 }
 
 int main(int argc, char* argv[]) {
