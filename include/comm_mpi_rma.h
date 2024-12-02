@@ -4,6 +4,7 @@
 #include <mpi.h>
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "yt_type.h"
@@ -35,6 +36,8 @@ struct FetchedFromInfo {
     int mpi_rank;
 };
 
+enum class CommMPIRmaStatus : int { kMPIFailed = 0, kMPISuccess = 1 };
+
 template<typename DataInfoClass, typename DataClass>
 class CommMPIRma {
 private:
@@ -42,17 +45,19 @@ private:
     std::vector<MPIRmaData<DataInfoClass>> mpi_prepared_data_;
     std::vector<DataClass> mpi_fetched_data_;
     std::string data_group_name_;
+    std::string error_str_;
 
-    void InitializeMPIWindow();
-    void PrepareData();
-    void GatherAllPreparedData();
-    void FetchRemoteData();
-    void CleanUp();
+    CommMPIRmaStatus InitializeMPIWindow();
+    CommMPIRmaStatus PrepareData();
+    CommMPIRmaStatus GatherAllPreparedData();
+    CommMPIRmaStatus FetchRemoteData();
+    CommMPIRmaStatus CleanUp();
 
 public:
-    CommMPIRma(const std::string& data_group_name, int len_prepare, long len_to_get);
-    std::vector<DataClass>& GetRemoteData(const std::vector<DataClass>& prepared_data,
-                                          const std::vector<FetchedFromInfo>& fetch_id_list);
+    CommMPIRma(const std::string& data_group_name);
+    std::pair<CommMPIRmaStatus, const std::vector<DataClass>&> GetRemoteData(
+        const std::vector<DataClass>& prepared_data, const std::vector<FetchedFromInfo>& fetch_id_list);
+    const std::string& GetErrorStr() const { return error_str_; }
 };
 
 #endif  // LIBYT_PROJECT_INCLUDE_COMM_MPI_RMA_H_

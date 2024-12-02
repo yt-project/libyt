@@ -221,8 +221,11 @@ TEST(Function, SetAllNumGridsLocal_can_work) {
 }
 
 TEST(RMA, CommMPIRma_can_work) {
-    CommMPIRma<AMRFieldDataArray3DInfo, AMRFieldDataArray3D> comm_mpi_rma("test", 1, 1);
-    comm_mpi_rma.GetRemoteData(std::vector<AMRFieldDataArray3D>(), std::vector<FetchedFromInfo>());
+    CommMPIRma<AMRFieldDataArray3DInfo, AMRFieldDataArray3D> comm_mpi_rma("test");
+    std::pair<CommMPIRmaStatus, const std::vector<AMRFieldDataArray3D>&> result =
+        comm_mpi_rma.GetRemoteData(std::vector<AMRFieldDataArray3D>(), std::vector<FetchedFromInfo>());
+
+    EXPECT_EQ(result.first, CommMPIRmaStatus::kMPISuccess);
 }
 
 int main(int argc, char* argv[]) {
