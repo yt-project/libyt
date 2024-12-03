@@ -49,7 +49,7 @@ void CommMPI::InitializeYtHierarchyMpiDataType() {
     MPI_Type_commit(&yt_hierarchy_mpi_type_);
 }
 
-void CommMPI::InitializeMPiRmaAddressMpiDataType() {
+void CommMPI::InitializeMpiRmaAddressMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int lengths[2] = {1, 1};
@@ -59,7 +59,7 @@ void CommMPI::InitializeMPiRmaAddressMpiDataType() {
     MPI_Type_commit(&mpi_rma_address_mpi_type_);
 }
 
-void CommMPI::InitializeAMRDataArray3DInfoMpiDataType() {
+void CommMPI::InitializeAmrDataArray3DInfoMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int lengths[4] = {1, 1, 3, 1};

@@ -23,8 +23,8 @@ public:
 
     static void InitializeYtLongMpiDataType();
     static void InitializeYtHierarchyMpiDataType();
-    static void InitializeMPiRmaAddressMpiDataType();
-    static void InitializeAMRDataArray3DInfoMpiDataType();
+    static void InitializeMpiRmaAddressMpiDataType();
+    static void InitializeAmrDataArray3DInfoMpiDataType();
     static void InitializeYtRmaGridInfoMpiDataType();
     static void InitializeYtRmaParticleInfoMpiDataType();
 

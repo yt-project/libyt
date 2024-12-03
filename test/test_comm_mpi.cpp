@@ -24,8 +24,8 @@ private:
         CommMPI::InitializeInfo(0);
         CommMPI::InitializeYtLongMpiDataType();
         CommMPI::InitializeYtHierarchyMpiDataType();
-        CommMPI::InitializeMPiRmaAddressMpiDataType();
-        CommMPI::InitializeAMRDataArray3DInfoMpiDataType();
+        CommMPI::InitializeMpiRmaAddressMpiDataType();
+        CommMPI::InitializeAmrDataArray3DInfoMpiDataType();
         CommMPI::InitializeYtRmaGridInfoMpiDataType();
         CommMPI::InitializeYtRmaParticleInfoMpiDataType();
     }
