@@ -220,12 +220,23 @@ TEST(Function, SetAllNumGridsLocal_can_work) {
     delete[] all_num_grids_local;
 }
 
-TEST(RMA, CommMPIRma_can_work) {
+TEST(RMA, CommMPIRma_with_AMRFieldDataArray3D_can_work) {
+    // Arrange
+    std::vector<AMRFieldDataArray3D> prepared_data_list;
+    std::vector<FetchedFromInfo> fetch_id_list;
+
+    int data = CommMPI::mpi_rank_;
+    prepared_data_list.emplace_back(AMRFieldDataArray3D{CommMPI::mpi_rank_, YT_INT, {1, 1, 1}, false, &data});
+    // This fails hard. (edge case)
+    // prepared_data_list.emplace_back(AMRFieldDataArray3D{CommMPI::mpi_rank_, YT_INT, {1, 1, 1}, false, nullptr});
+
+    // Act
     CommMPIRma<AMRFieldDataArray3DInfo, AMRFieldDataArray3D> comm_mpi_rma("test");
     std::pair<CommMPIRmaStatus, const std::vector<AMRFieldDataArray3D>&> result =
-        comm_mpi_rma.GetRemoteData(std::vector<AMRFieldDataArray3D>(), std::vector<FetchedFromInfo>());
+        comm_mpi_rma.GetRemoteData(prepared_data_list, fetch_id_list);
 
-    EXPECT_EQ(result.first, CommMPIRmaStatus::kMPISuccess);
+    // Assert
+    EXPECT_EQ(result.first, CommMPIRmaStatus::kMPISuccess) << "Error: " << comm_mpi_rma.GetErrorStr();
 }
 
 int main(int argc, char* argv[]) {
