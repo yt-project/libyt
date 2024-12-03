@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+#include "big_mpi.h"
 #include "comm_mpi.h"
 #include "timer.h"
 #include "yt_prototype.h"
@@ -32,6 +33,11 @@ std::pair<CommMPIRmaStatus, const std::vector<DataClass>&> CommMPIRma<DataInfoCl
     }
 
     if (PrepareData(prepared_data_list) != CommMPIRmaStatus::kMPISuccess) {
+        return std::make_pair<CommMPIRmaStatus, const std::vector<DataClass>&>(CommMPIRmaStatus::kMPIFailed,
+                                                                               mpi_fetched_data_);
+    }
+
+    if (GatherAllPreparedData() != CommMPIRmaStatus::kMPISuccess) {
         return std::make_pair<CommMPIRmaStatus, const std::vector<DataClass>&>(CommMPIRmaStatus::kMPIFailed,
                                                                                mpi_fetched_data_);
     }
@@ -73,7 +79,7 @@ CommMPIRmaStatus CommMPIRma<DataInfoClass, DataClass>::PrepareData(const std::ve
             return CommMPIRmaStatus::kMPIFailed;
         }
 
-        // Attach buffer to window
+        // Attach buffer to window (TODO: consider particle data too)
         int dtype_size;
         get_dtype_size(pdata.data_info.data_type, &dtype_size);
         MPI_Aint data_size =
@@ -98,16 +104,16 @@ CommMPIRmaStatus CommMPIRma<DataInfoClass, DataClass>::PrepareData(const std::ve
             return CommMPIRmaStatus::kMPIFailed;
         }
 
-        // Add to prepared list
+        // Add to prepared list (TODO: consider particle data too)
         mpi_prepared_data_.emplace_back(MPIRmaData<DataInfoClass>{
             mpi_address,
             CommMPI::mpi_rank_,
             {pdata.data_info.id,
              pdata.data_info.data_type,
              {pdata.data_info.data_dim[0], pdata.data_info.data_dim[1], pdata.data_info.data_dim[2]},
-             pdata.data_info.swap_axes_}});
+             pdata.data_info.swap_axes}});
 
-        printf("Attach buffer (gid, data_group) = (%s, %ld) to one-sided MPI (RMA) window on MPI rank %d\n",
+        printf("Attach buffer (data_group, id) = (%s, %ld) to one-sided MPI (RMA) window on MPI rank %d\n",
                data_group_name_.c_str(), pdata.data_info.id, CommMPI::mpi_rank_);
     }
 
@@ -115,7 +121,41 @@ CommMPIRmaStatus CommMPIRma<DataInfoClass, DataClass>::PrepareData(const std::ve
 }
 
 template<typename DataInfoClass, typename DataClass>
-CommMPIRmaStatus CommMPIRma<DataInfoClass, DataClass>::GatherAllPreparedData() {}
+CommMPIRmaStatus CommMPIRma<DataInfoClass, DataClass>::GatherAllPreparedData() {
+    // Get send count in each rank
+    int send_count = mpi_prepared_data_.size();
+    int* all_send_counts = new int[CommMPI::mpi_size_];
+    MPI_Allgather(&send_count, 1, MPI_INT, all_send_counts, 1, MPI_INT, MPI_COMM_WORLD);
+
+    // Calculate total send count and search range
+    long total_send_counts = 0;
+    search_range_.clear();
+    search_range_.assign(CommMPI::mpi_size_ + 1, 0);
+    for (int r1 = 0; r1 < CommMPI::mpi_size_ + 1; r1++) {
+        for (int r2 = 0; r2 < r1; r2++) {
+            search_range_[r1] += all_send_counts[r2];
+        }
+    }
+    total_send_counts = search_range_[CommMPI::mpi_size_];
+
+    // Get all prepared data
+    all_prepared_data_ = new MPIRmaData<DataInfoClass>[total_send_counts];
+    big_MPI_Gatherv<MPIRmaData<DataInfoClass>>(CommMPI::mpi_root_, all_send_counts, mpi_prepared_data_.data(),
+                                               &CommMPI::mpi_rma_amr_data_array_3d_info_mpi_type_, all_prepared_data_);
+    big_MPI_Bcast<MPIRmaData<DataInfoClass>>(CommMPI::mpi_root_, total_send_counts, all_prepared_data_,
+                                             &CommMPI::mpi_rma_amr_data_array_3d_info_mpi_type_);
+
+    for (int i = 0; i < total_send_counts; i++) {
+        std::cout << CommMPI::mpi_rank_ << "#" << i << " : " << all_prepared_data_[i].data_info.id
+                  << std::endl;  // TODO: it's wrong
+    }
+
+    // Clean up
+    delete[] all_send_counts;
+    mpi_prepared_data_.clear();
+
+    return CommMPIRmaStatus::kMPISuccess;
+}
 
 template<typename DataInfoClass, typename DataClass>
 CommMPIRmaStatus CommMPIRma<DataInfoClass, DataClass>::FetchRemoteData() {}
@@ -126,6 +166,6 @@ CommMPIRmaStatus CommMPIRma<DataInfoClass, DataClass>::CleanUp() {
     return CommMPIRmaStatus::kMPISuccess;
 }
 
-template class CommMPIRma<AMRFieldDataArray3DInfo, AMRFieldDataArray3D>;
+template class CommMPIRma<AMRDataArray3DInfo, AMRDataArray3D>;
 
 #endif
