@@ -6,7 +6,7 @@
 #include "comm_mpi.h"
 #include "comm_mpi_rma.h"
 
-class CommMPIFixture : public testing::Test {
+class CommMpiFixture : public testing::Test {
 protected:
     static void SplitArray(const long total_len, const int mpi_size, const int mpi_rank, int* count_in_each_rank,
                            int* displacement) {
@@ -31,10 +31,10 @@ private:
     }
 };
 
-class TestBigMPI : public CommMPIFixture {};
-class TestRMA : public CommMPIFixture {};
+class TestBigMpi : public CommMpiFixture {};
+class TestRma : public CommMpiFixture {};
 
-TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_long) {
+TEST_F(TestBigMpi, Big_MPI_Gatherv_with_yt_long) {
     // Arrange
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
@@ -75,7 +75,7 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_long) {
     delete[] recv_buffer;
 }
 
-TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_hierarchy) {
+TEST_F(TestBigMpi, Big_MPI_Gatherv_with_yt_hierarchy) {
     // Arrange
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
@@ -132,7 +132,7 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_hierarchy) {
     delete[] recv_buffer;
 }
 
-TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_long) {
+TEST_F(TestBigMpi, Big_MPI_Bcast_with_yt_long) {
     // Arrange
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
@@ -161,7 +161,7 @@ TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_long) {
     delete[] send_buffer;
 }
 
-TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_hierarchy) {
+TEST_F(TestBigMpi, Big_MPI_Bcast_with_yt_hierarchy) {
     // Arrange
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
@@ -224,7 +224,7 @@ TEST(Function, SetAllNumGridsLocal_can_work) {
     delete[] all_num_grids_local;
 }
 
-TEST_F(TestRMA, CommMpiRma_with_AmrDataArray3D_can_work) {
+TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_work) {
     std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     std::vector<AmrDataArray3D> prepared_data_list;
