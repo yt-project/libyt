@@ -7,9 +7,11 @@ int CommMPI::mpi_rank_ = 0;
 int CommMPI::mpi_size_ = 1;
 int CommMPI::mpi_root_ = 0;
 
-MPI_Datatype CommMPI::mpi_rma_amr_data_array_3d_info_mpi_type_;
+std::map<std::string, MPI_Datatype*> CommMPI::mpi_custom_type_map_;
 MPI_Datatype CommMPI::yt_long_mpi_type_;
 MPI_Datatype CommMPI::yt_hierarchy_mpi_type_;
+MPI_Datatype CommMPI::mpi_rma_address_mpi_type_;
+MPI_Datatype CommMPI::amr_data_array_3d_info_mpi_type_;
 MPI_Datatype CommMPI::yt_rma_grid_info_mpi_type_;
 MPI_Datatype CommMPI::yt_rma_particle_info_mpi_type_;
 
@@ -47,21 +49,27 @@ void CommMPI::InitializeYtHierarchyMpiDataType() {
     MPI_Type_commit(&yt_hierarchy_mpi_type_);
 }
 
-void CommMPI::InitializeMPiRmaAmrDataArray3dInfoMpiDataType() {
+void CommMPI::InitializeMPiRmaAddressMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    int lengths[6] = {1, 1, 1, 1, 3, 1};
-    const MPI_Aint displacements[6] = {
-        0,
-        1 * sizeof(MPI_Aint),
-        1 * sizeof(long) + 1 * sizeof(int),
-        2 * sizeof(long) + 1 * sizeof(int),
-        2 * sizeof(long) + 2 * sizeof(int),
-        2 * sizeof(long) + 5 * sizeof(int),
-    };
-    MPI_Datatype types[6] = {MPI_AINT, MPI_INT, MPI_LONG, MPI_INT, MPI_INT, MPI_CXX_BOOL};
-    MPI_Type_create_struct(6, lengths, displacements, types, &mpi_rma_amr_data_array_3d_info_mpi_type_);
-    MPI_Type_commit(&mpi_rma_amr_data_array_3d_info_mpi_type_);
+    int lengths[2] = {1, 1};
+    const MPI_Aint displacements[2] = {0, 1 * sizeof(int)};
+    MPI_Datatype types[2] = {MPI_INT, MPI_AINT};
+    MPI_Type_create_struct(2, lengths, displacements, types, &mpi_rma_address_mpi_type_);
+    MPI_Type_commit(&mpi_rma_address_mpi_type_);
+}
+
+void CommMPI::InitializeAMRDataArray3DInfoMpiDataType() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    int lengths[4] = {1, 1, 3, 1};
+    const MPI_Aint displacements[4] = {0, 1 * sizeof(long), 1 * sizeof(long) + 1 * sizeof(int),
+                                       1 * sizeof(long) + 4 * sizeof(int)};
+    MPI_Datatype types[4] = {MPI_LONG, MPI_INT, MPI_INT, MPI_CXX_BOOL};
+    MPI_Type_create_struct(4, lengths, displacements, types, &amr_data_array_3d_info_mpi_type_);
+    MPI_Type_commit(&amr_data_array_3d_info_mpi_type_);
+
+    mpi_custom_type_map_["amr_grid"] = &amr_data_array_3d_info_mpi_type_;
 }
 
 void CommMPI::InitializeYtRmaGridInfoMpiDataType() {

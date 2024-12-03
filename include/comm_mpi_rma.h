@@ -9,11 +9,9 @@
 
 #include "yt_type.h"
 
-template<typename T>
-struct MPIRmaData {
-    MPI_Aint mpi_address;
+struct MPIRmaAddress {
     int mpi_rank;
-    T data_info;
+    MPI_Aint mpi_address;
 };
 
 // Probably should define this in data structure header
@@ -26,13 +24,16 @@ struct AMRDataArray3DInfo {
 };
 
 struct AMRDataArray3D {
-    AMRDataArray3DInfo data_info;
+    long id;
+    yt_dtype data_type;
+    int data_dim[3];
+    bool swap_axes;
     void* data_ptr;
 };
 
 struct FetchedFromInfo {
-    long id;
     int mpi_rank;
+    long id;
 };
 
 enum class CommMPIRmaStatus : int { kMPIFailed = 0, kMPISuccess = 1 };
@@ -41,12 +42,16 @@ template<typename DataInfoClass, typename DataClass>
 class CommMPIRma {
 private:
     MPI_Win mpi_window_{};
-    std::vector<MPIRmaData<DataInfoClass>> mpi_prepared_data_;
-    MPIRmaData<DataInfoClass>* all_prepared_data_;
+    std::vector<DataInfoClass> mpi_prepared_data_info_list_;
+    DataInfoClass* all_prepared_data_info_list_;
+    std::vector<MPIRmaAddress> mpi_prepared_data_address_list_;
+    MPIRmaAddress* all_prepared_data_address_list_;
+
     std::vector<long> search_range_;
     std::vector<DataClass> mpi_fetched_data_;
 
     std::string data_group_name_;
+    std::string data_format_;
     std::string error_str_;
 
     CommMPIRmaStatus InitializeMPIWindow();
@@ -56,7 +61,7 @@ private:
     CommMPIRmaStatus CleanUp();
 
 public:
-    CommMPIRma(const std::string& data_group_name);
+    CommMPIRma(const std::string& data_group_name, const std::string& data_format);
     std::pair<CommMPIRmaStatus, const std::vector<DataClass>&> GetRemoteData(
         const std::vector<DataClass>& prepared_data_list, const std::vector<FetchedFromInfo>& fetch_id_list);
     const std::string& GetErrorStr() const { return error_str_; }
