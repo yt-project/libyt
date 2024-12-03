@@ -9,8 +9,8 @@
 #include "yt_prototype.h"
 
 template<typename DataInfoClass, typename DataClass>
-CommMPIRma<DataInfoClass, DataClass>::CommMPIRma(const std::string& data_group_name)
-    : data_group_name_(data_group_name) {
+CommMPIRma<DataInfoClass, DataClass>::CommMPIRma(const std::string& data_group_name, const std::string& data_format)
+    : data_group_name_(data_group_name), data_format_(data_format) {
     SET_TIMER(__PRETTY_FUNCTION__);
 }
 
@@ -21,8 +21,8 @@ std::pair<CommMPIRmaStatus, const std::vector<DataClass>&> CommMPIRma<DataInfoCl
 
     // Reset states to be able to reuse, or even do data chunking in the future
     error_str_ = std::string();
-    mpi_prepared_data_.clear();
-    mpi_prepared_data_.reserve(prepared_data_list.size());
+    mpi_prepared_data_info_list_.clear();
+    mpi_prepared_data_info_list_.reserve(prepared_data_list.size());
     mpi_fetched_data_.clear();
     mpi_fetched_data_.reserve(fetch_id_list.size());
 
@@ -75,20 +75,18 @@ CommMPIRmaStatus CommMPIRma<DataInfoClass, DataClass>::PrepareData(const std::ve
         // Check if data pointer is nullptr
         if (pdata.data_ptr == nullptr) {
             error_str_ = std::string("Data pointer is nullptr in (data_group, gid) = (") + data_group_name_ +
-                         std::string(", ") + std::to_string(pdata.data_info.id) + std::string(")!");
+                         std::string(", ") + std::to_string(pdata.id) + std::string(")!");
             return CommMPIRmaStatus::kMPIFailed;
         }
 
         // Attach buffer to window (TODO: consider particle data too)
         int dtype_size;
-        get_dtype_size(pdata.data_info.data_type, &dtype_size);
-        MPI_Aint data_size =
-            pdata.data_info.data_dim[0] * pdata.data_info.data_dim[1] * pdata.data_info.data_dim[2] * dtype_size;
+        get_dtype_size(pdata.data_type, &dtype_size);
+        MPI_Aint data_size = pdata.data_dim[0] * pdata.data_dim[1] * pdata.data_dim[2] * dtype_size;
         int mpi_return_code = MPI_Win_attach(mpi_window_, pdata.data_ptr, data_size);
         if (mpi_return_code != MPI_SUCCESS) {
             error_str_ = std::string("Attach buffer (data_group, gid) = (") + data_group_name_ + std::string(", ") +
-                         std::to_string(pdata.data_info.id) +
-                         std::string(") to one-sided MPI (RMA) window failed on MPI rank ") +
+                         std::to_string(pdata.id) + std::string(") to one-sided MPI (RMA) window failed on MPI rank ") +
                          std::to_string(CommMPI::mpi_rank_) +
                          std::string("!\n"
                                      "Try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".");
@@ -99,22 +97,19 @@ CommMPIRmaStatus CommMPIRma<DataInfoClass, DataClass>::PrepareData(const std::ve
         MPI_Aint mpi_address;
         if (MPI_Get_address(pdata.data_ptr, &mpi_address) != MPI_SUCCESS) {
             error_str_ = std::string("Get the address of the attached buffer (data_group, id) = (") + data_group_name_ +
-                         std::string(", ") + std::to_string(pdata.data_info.id) + std::string(") failed on MPI rank ") +
+                         std::string(", ") + std::to_string(pdata.id) + std::string(") failed on MPI rank ") +
                          std::to_string(CommMPI::mpi_rank_) + std::string("!");
             return CommMPIRmaStatus::kMPIFailed;
         }
 
         // Add to prepared list (TODO: consider particle data too)
-        mpi_prepared_data_.emplace_back(MPIRmaData<DataInfoClass>{
-            mpi_address,
-            CommMPI::mpi_rank_,
-            {pdata.data_info.id,
-             pdata.data_info.data_type,
-             {pdata.data_info.data_dim[0], pdata.data_info.data_dim[1], pdata.data_info.data_dim[2]},
-             pdata.data_info.swap_axes}});
+        mpi_prepared_data_info_list_.emplace_back(DataInfoClass{
+            pdata.id, pdata.data_type, {pdata.data_dim[0], pdata.data_dim[1], pdata.data_dim[2]}, pdata.swap_axes});
+        mpi_prepared_data_address_list_.emplace_back(MPIRmaAddress{CommMPI::mpi_rank_, mpi_address});
 
+        // TODO: After single out loggging, change to debug (debug purpose only)
         printf("Attach buffer (data_group, id) = (%s, %ld) to one-sided MPI (RMA) window on MPI rank %d\n",
-               data_group_name_.c_str(), pdata.data_info.id, CommMPI::mpi_rank_);
+               data_group_name_.c_str(), pdata.id, CommMPI::mpi_rank_);
     }
 
     return CommMPIRmaStatus::kMPISuccess;
@@ -123,7 +118,7 @@ CommMPIRmaStatus CommMPIRma<DataInfoClass, DataClass>::PrepareData(const std::ve
 template<typename DataInfoClass, typename DataClass>
 CommMPIRmaStatus CommMPIRma<DataInfoClass, DataClass>::GatherAllPreparedData() {
     // Get send count in each rank
-    int send_count = mpi_prepared_data_.size();
+    int send_count = mpi_prepared_data_info_list_.size();
     int* all_send_counts = new int[CommMPI::mpi_size_];
     MPI_Allgather(&send_count, 1, MPI_INT, all_send_counts, 1, MPI_INT, MPI_COMM_WORLD);
 
@@ -139,20 +134,21 @@ CommMPIRmaStatus CommMPIRma<DataInfoClass, DataClass>::GatherAllPreparedData() {
     total_send_counts = search_range_[CommMPI::mpi_size_];
 
     // Get all prepared data
-    all_prepared_data_ = new MPIRmaData<DataInfoClass>[total_send_counts];
-    big_MPI_Gatherv<MPIRmaData<DataInfoClass>>(CommMPI::mpi_root_, all_send_counts, mpi_prepared_data_.data(),
-                                               &CommMPI::mpi_rma_amr_data_array_3d_info_mpi_type_, all_prepared_data_);
-    big_MPI_Bcast<MPIRmaData<DataInfoClass>>(CommMPI::mpi_root_, total_send_counts, all_prepared_data_,
-                                             &CommMPI::mpi_rma_amr_data_array_3d_info_mpi_type_);
-
-    for (int i = 0; i < total_send_counts; i++) {
-        std::cout << CommMPI::mpi_rank_ << "#" << i << " : " << all_prepared_data_[i].data_info.id
-                  << std::endl;  // TODO: it's wrong
-    }
+    all_prepared_data_info_list_ = new DataInfoClass[total_send_counts];
+    all_prepared_data_address_list_ = new MPIRmaAddress[total_send_counts];
+    big_MPI_Gatherv<DataInfoClass>(CommMPI::mpi_root_, all_send_counts, mpi_prepared_data_info_list_.data(),
+                                   CommMPI::mpi_custom_type_map_[data_format_], all_prepared_data_info_list_);
+    big_MPI_Gatherv<MPIRmaAddress>(CommMPI::mpi_root_, all_send_counts, mpi_prepared_data_address_list_.data(),
+                                   &CommMPI::mpi_rma_address_mpi_type_, all_prepared_data_address_list_);
+    big_MPI_Bcast<DataInfoClass>(CommMPI::mpi_root_, total_send_counts, all_prepared_data_info_list_,
+                                 CommMPI::mpi_custom_type_map_[data_format_]);
+    big_MPI_Bcast<MPIRmaAddress>(CommMPI::mpi_root_, total_send_counts, all_prepared_data_address_list_,
+                                 &CommMPI::mpi_rma_address_mpi_type_);
 
     // Clean up
     delete[] all_send_counts;
-    mpi_prepared_data_.clear();
+    mpi_prepared_data_info_list_.clear();
+    mpi_prepared_data_address_list_.clear();
 
     return CommMPIRmaStatus::kMPISuccess;
 }

@@ -107,7 +107,8 @@ void LibytProcessControl::Initialize() {
     CommMPI::InitializeInfo(0);
     CommMPI::InitializeYtLongMpiDataType();
     CommMPI::InitializeYtHierarchyMpiDataType();
-    CommMPI::InitializeMPiRmaAmrDataArray3dInfoMpiDataType();
+    CommMPI::InitializeMPiRmaAddressMpiDataType();
+    CommMPI::InitializeAMRDataArray3DInfoMpiDataType();
     CommMPI::InitializeYtRmaGridInfoMpiDataType();
     CommMPI::InitializeYtRmaParticleInfoMpiDataType();
 #endif

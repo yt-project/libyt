@@ -24,7 +24,8 @@ private:
         CommMPI::InitializeInfo(0);
         CommMPI::InitializeYtLongMpiDataType();
         CommMPI::InitializeYtHierarchyMpiDataType();
-        CommMPI::InitializeMPiRmaAmrDataArray3dInfoMpiDataType();
+        CommMPI::InitializeMPiRmaAddressMpiDataType();
+        CommMPI::InitializeAMRDataArray3DInfoMpiDataType();
         CommMPI::InitializeYtRmaGridInfoMpiDataType();
         CommMPI::InitializeYtRmaParticleInfoMpiDataType();
     }
@@ -235,7 +236,7 @@ TEST_F(TestRMA, CommMPIRma_with_AMRFieldDataArray3D_can_work) {
     // prepared_data_list.emplace_back(AMRFieldDataArray3D{CommMPI::mpi_rank_, YT_INT, {1, 1, 1}, false, nullptr});
 
     // Act
-    CommMPIRma<AMRDataArray3DInfo, AMRDataArray3D> comm_mpi_rma("test");
+    CommMPIRma<AMRDataArray3DInfo, AMRDataArray3D> comm_mpi_rma("test", "amr_grid");
     std::pair<CommMPIRmaStatus, const std::vector<AMRDataArray3D>&> result =
         comm_mpi_rma.GetRemoteData(prepared_data_list, fetch_id_list);
 
