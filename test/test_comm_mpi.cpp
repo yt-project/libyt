@@ -30,6 +30,7 @@ private:
 };
 
 class TestBigMPI : public CommMPIFixture {};
+class TestRMA : public CommMPIFixture {};
 
 TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_long) {
     // Arrange
@@ -204,6 +205,7 @@ TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_hierarchy) {
 }
 
 TEST(Function, SetAllNumGridsLocal_can_work) {
+    std::cout << "mpi_size = " << CommMPI::mpi_size_ << ", " << "mpi_rank = " << CommMPI::mpi_rank_ << std::endl;
     // Arrange
     int num_grids_local = CommMPI::mpi_rank_;
     int* all_num_grids_local = new int[CommMPI::mpi_size_];
@@ -220,7 +222,8 @@ TEST(Function, SetAllNumGridsLocal_can_work) {
     delete[] all_num_grids_local;
 }
 
-TEST(RMA, CommMPIRma_with_AMRFieldDataArray3D_can_work) {
+TEST_F(TestRMA, CommMPIRma_with_AMRFieldDataArray3D_can_work) {
+    std::cout << "mpi_size = " << CommMPI::mpi_size_ << ", " << "mpi_rank = " << CommMPI::mpi_rank_ << std::endl;
     // Arrange
     std::vector<AMRFieldDataArray3D> prepared_data_list;
     std::vector<FetchedFromInfo> fetch_id_list;
