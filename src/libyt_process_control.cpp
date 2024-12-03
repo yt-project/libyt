@@ -104,13 +104,13 @@ void LibytProcessControl::Initialize() {
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
 
-    CommMPI::InitializeInfo(0);
-    CommMPI::InitializeYtLongMpiDataType();
-    CommMPI::InitializeYtHierarchyMpiDataType();
-    CommMPI::InitializeMpiRmaAddressMpiDataType();
-    CommMPI::InitializeAmrDataArray3DInfoMpiDataType();
-    CommMPI::InitializeYtRmaGridInfoMpiDataType();
-    CommMPI::InitializeYtRmaParticleInfoMpiDataType();
+    CommMpi::InitializeInfo(0);
+    CommMpi::InitializeYtLongMpiDataType();
+    CommMpi::InitializeYtHierarchyMpiDataType();
+    CommMpi::InitializeMpiRmaAddressMpiDataType();
+    CommMpi::InitializeAmrDataArray3DInfoMpiDataType();
+    CommMpi::InitializeYtRmaGridInfoMpiDataType();
+    CommMpi::InitializeYtRmaParticleInfoMpiDataType();
 #endif
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)

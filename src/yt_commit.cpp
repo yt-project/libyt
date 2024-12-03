@@ -133,10 +133,10 @@ int yt_commit() {
     // Big MPI_Gatherv, this is just a workaround method.
     int* num_grids_local_MPI = LibytProcessControl::Get().all_num_grids_local_;
     big_MPI_Gatherv<yt_hierarchy>(RootRank, num_grids_local_MPI, (void*)hierarchy_local,
-                                  &CommMPI::yt_hierarchy_mpi_type_, (void*)hierarchy_full);
+                                  &CommMpi::yt_hierarchy_mpi_type_, (void*)hierarchy_full);
     for (int s = 0; s < param_yt.num_par_types; s++) {
         big_MPI_Gatherv<long>(RootRank, num_grids_local_MPI, (void*)particle_count_list_local[s],
-                              &CommMPI::yt_long_mpi_type_, (void*)particle_count_list_full[s]);
+                              &CommMpi::yt_long_mpi_type_, (void*)particle_count_list_full[s]);
     }
 #endif
 
@@ -168,10 +168,10 @@ int yt_commit() {
     MPI_Barrier(MPI_COMM_WORLD);
 
     // broadcast hierarchy_full, particle_count_list_full to each rank as well.
-    big_MPI_Bcast<yt_hierarchy>(RootRank, param_yt.num_grids, (void*)hierarchy_full, &CommMPI::yt_hierarchy_mpi_type_);
+    big_MPI_Bcast<yt_hierarchy>(RootRank, param_yt.num_grids, (void*)hierarchy_full, &CommMpi::yt_hierarchy_mpi_type_);
     for (int s = 0; s < param_yt.num_par_types; s++) {
         big_MPI_Bcast<long>(RootRank, param_yt.num_grids, (void*)particle_count_list_full[s],
-                            &CommMPI::yt_long_mpi_type_);
+                            &CommMpi::yt_long_mpi_type_);
     }
 #endif
 

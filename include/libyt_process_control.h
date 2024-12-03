@@ -31,7 +31,7 @@ public:
     int mpi_size_;
     int mpi_root_;
 #ifndef SERIAL_MODE
-    CommMPI comm_mpi_;
+    CommMpi comm_mpi_;
 #endif
 
 #ifdef SUPPORT_TIMER
