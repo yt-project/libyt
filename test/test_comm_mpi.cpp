@@ -21,13 +21,13 @@ protected:
 
 private:
     void SetUp() override {
-        CommMPI::InitializeInfo(0);
-        CommMPI::InitializeYtLongMpiDataType();
-        CommMPI::InitializeYtHierarchyMpiDataType();
-        CommMPI::InitializeMpiRmaAddressMpiDataType();
-        CommMPI::InitializeAmrDataArray3DInfoMpiDataType();
-        CommMPI::InitializeYtRmaGridInfoMpiDataType();
-        CommMPI::InitializeYtRmaParticleInfoMpiDataType();
+        CommMpi::InitializeInfo(0);
+        CommMpi::InitializeYtLongMpiDataType();
+        CommMpi::InitializeYtHierarchyMpiDataType();
+        CommMpi::InitializeMpiRmaAddressMpiDataType();
+        CommMpi::InitializeAmrDataArray3DInfoMpiDataType();
+        CommMpi::InitializeYtRmaGridInfoMpiDataType();
+        CommMpi::InitializeYtRmaParticleInfoMpiDataType();
     }
 };
 
@@ -36,11 +36,11 @@ class TestRMA : public CommMPIFixture {};
 
 TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_long) {
     // Arrange
-    int mpi_size = CommMPI::mpi_size_;
-    int mpi_rank = CommMPI::mpi_rank_;
-    int mpi_root = CommMPI::mpi_root_;
+    int mpi_size = CommMpi::mpi_size_;
+    int mpi_rank = CommMpi::mpi_rank_;
+    int mpi_root = CommMpi::mpi_root_;
     std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMPI::yt_long_mpi_type_;
+    MPI_Datatype mpi_datatype = CommMpi::yt_long_mpi_type_;
 
     int* send_count_in_each_rank = new int[mpi_size];
     long total_send_counts = 1000;  // TODO: make this a test parameter
@@ -77,11 +77,11 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_long) {
 
 TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_hierarchy) {
     // Arrange
-    int mpi_size = CommMPI::mpi_size_;
-    int mpi_rank = CommMPI::mpi_rank_;
-    int mpi_root = CommMPI::mpi_root_;
+    int mpi_size = CommMpi::mpi_size_;
+    int mpi_rank = CommMpi::mpi_rank_;
+    int mpi_root = CommMpi::mpi_root_;
     std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMPI::yt_hierarchy_mpi_type_;
+    MPI_Datatype mpi_datatype = CommMpi::yt_hierarchy_mpi_type_;
 
     int* send_count_in_each_rank = new int[mpi_size];
     long total_send_counts = 1000;  // TODO: make this a test parameter
@@ -134,11 +134,11 @@ TEST_F(TestBigMPI, Big_MPI_Gatherv_with_yt_hierarchy) {
 
 TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_long) {
     // Arrange
-    int mpi_size = CommMPI::mpi_size_;
-    int mpi_rank = CommMPI::mpi_rank_;
-    int mpi_root = CommMPI::mpi_root_;
+    int mpi_size = CommMpi::mpi_size_;
+    int mpi_rank = CommMpi::mpi_rank_;
+    int mpi_root = CommMpi::mpi_root_;
     std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMPI::yt_long_mpi_type_;
+    MPI_Datatype mpi_datatype = CommMpi::yt_long_mpi_type_;
 
     const long total_send_counts = 1000;  // TODO: make this a test parameter
     long* send_buffer = new long[total_send_counts];
@@ -163,11 +163,11 @@ TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_long) {
 
 TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_hierarchy) {
     // Arrange
-    int mpi_size = CommMPI::mpi_size_;
-    int mpi_rank = CommMPI::mpi_rank_;
-    int mpi_root = CommMPI::mpi_root_;
+    int mpi_size = CommMpi::mpi_size_;
+    int mpi_rank = CommMpi::mpi_rank_;
+    int mpi_root = CommMpi::mpi_root_;
     std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMPI::yt_hierarchy_mpi_type_;
+    MPI_Datatype mpi_datatype = CommMpi::yt_hierarchy_mpi_type_;
 
     const long total_send_counts = 1000;  // TODO: make this a test parameter
     yt_hierarchy* send_buffer = new yt_hierarchy[total_send_counts];
@@ -207,16 +207,16 @@ TEST_F(TestBigMPI, Big_MPI_Bcast_with_yt_hierarchy) {
 }
 
 TEST(Function, SetAllNumGridsLocal_can_work) {
-    std::cout << "mpi_size = " << CommMPI::mpi_size_ << ", " << "mpi_rank = " << CommMPI::mpi_rank_ << std::endl;
+    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
-    int num_grids_local = CommMPI::mpi_rank_;
-    int* all_num_grids_local = new int[CommMPI::mpi_size_];
+    int num_grids_local = CommMpi::mpi_rank_;
+    int* all_num_grids_local = new int[CommMpi::mpi_size_];
 
     // Act
-    CommMPI::SetAllNumGridsLocal(all_num_grids_local, num_grids_local);
+    CommMpi::SetAllNumGridsLocal(all_num_grids_local, num_grids_local);
 
     // Assert
-    for (int r = 0; r < CommMPI::mpi_size_; r++) {
+    for (int r = 0; r < CommMpi::mpi_size_; r++) {
         EXPECT_EQ(all_num_grids_local[r], r);
     }
 
@@ -224,24 +224,24 @@ TEST(Function, SetAllNumGridsLocal_can_work) {
     delete[] all_num_grids_local;
 }
 
-TEST_F(TestRMA, CommMPIRma_with_AMRFieldDataArray3D_can_work) {
-    std::cout << "mpi_size = " << CommMPI::mpi_size_ << ", " << "mpi_rank = " << CommMPI::mpi_rank_ << std::endl;
+TEST_F(TestRMA, CommMpiRma_with_AmrDataArray3D_can_work) {
+    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
-    std::vector<AMRDataArray3D> prepared_data_list;
+    std::vector<AmrDataArray3D> prepared_data_list;
     std::vector<FetchedFromInfo> fetch_id_list;
 
-    int data = CommMPI::mpi_rank_;
-    prepared_data_list.emplace_back(AMRDataArray3D{CommMPI::mpi_rank_, YT_INT, {1, 1, 1}, false, &data});
+    int data = CommMpi::mpi_rank_;
+    prepared_data_list.emplace_back(AmrDataArray3D{CommMpi::mpi_rank_, YT_INT, {1, 1, 1}, false, &data});
     // This fails hard. (edge case)
     // prepared_data_list.emplace_back(AMRFieldDataArray3D{CommMPI::mpi_rank_, YT_INT, {1, 1, 1}, false, nullptr});
 
     // Act
-    CommMPIRma<AMRDataArray3DInfo, AMRDataArray3D> comm_mpi_rma("test", "amr_grid");
-    std::pair<CommMPIRmaStatus, const std::vector<AMRDataArray3D>&> result =
+    CommMpiRma<AmrDataArray3DInfo, AmrDataArray3D> comm_mpi_rma("test", "amr_grid");
+    std::pair<CommMpiRmaStatus, const std::vector<AmrDataArray3D>&> result =
         comm_mpi_rma.GetRemoteData(prepared_data_list, fetch_id_list);
 
     // Assert
-    EXPECT_EQ(result.first, CommMPIRmaStatus::kMPISuccess) << "Error: " << comm_mpi_rma.GetErrorStr();
+    EXPECT_EQ(result.first, CommMpiRmaStatus::kMpiSuccess) << "Error: " << comm_mpi_rma.GetErrorStr();
 }
 
 int main(int argc, char* argv[]) {

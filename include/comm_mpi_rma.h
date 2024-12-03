@@ -9,21 +9,21 @@
 
 #include "yt_type.h"
 
-struct MPIRmaAddress {
+struct MpiRmaAddress {
     int mpi_rank;
     MPI_Aint mpi_address;
 };
 
 // Probably should define this in data structure header
 // TODO: explore if I can std::move
-struct AMRDataArray3DInfo {
+struct AmrDataArray3DInfo {
     long id;
     yt_dtype data_type;
     int data_dim[3];
     bool swap_axes;
 };
 
-struct AMRDataArray3D {
+struct AmrDataArray3D {
     long id;
     yt_dtype data_type;
     int data_dim[3];
@@ -36,16 +36,16 @@ struct FetchedFromInfo {
     long id;
 };
 
-enum class CommMPIRmaStatus : int { kMPIFailed = 0, kMPISuccess = 1 };
+enum class CommMpiRmaStatus : int { kMpiFailed = 0, kMpiSuccess = 1 };
 
 template<typename DataInfoClass, typename DataClass>
-class CommMPIRma {
+class CommMpiRma {
 private:
     MPI_Win mpi_window_{};
     std::vector<DataInfoClass> mpi_prepared_data_info_list_;
     DataInfoClass* all_prepared_data_info_list_;
-    std::vector<MPIRmaAddress> mpi_prepared_data_address_list_;
-    MPIRmaAddress* all_prepared_data_address_list_;
+    std::vector<MpiRmaAddress> mpi_prepared_data_address_list_;
+    MpiRmaAddress* all_prepared_data_address_list_;
 
     std::vector<long> search_range_;
     std::vector<DataClass> mpi_fetched_data_;
@@ -54,15 +54,15 @@ private:
     std::string data_format_;
     std::string error_str_;
 
-    CommMPIRmaStatus InitializeMPIWindow();
-    CommMPIRmaStatus PrepareData(const std::vector<DataClass>& prepared_data_list);
-    CommMPIRmaStatus GatherAllPreparedData();
-    CommMPIRmaStatus FetchRemoteData();
-    CommMPIRmaStatus CleanUp();
+    CommMpiRmaStatus InitializeMpiWindow();
+    CommMpiRmaStatus PrepareData(const std::vector<DataClass>& prepared_data_list);
+    CommMpiRmaStatus GatherAllPreparedData();
+    CommMpiRmaStatus FetchRemoteData(const std::vector<FetchedFromInfo>& fetch_id_list);
+    CommMpiRmaStatus CleanUp();
 
 public:
-    CommMPIRma(const std::string& data_group_name, const std::string& data_format);
-    std::pair<CommMPIRmaStatus, const std::vector<DataClass>&> GetRemoteData(
+    CommMpiRma(const std::string& data_group_name, const std::string& data_format);
+    std::pair<CommMpiRmaStatus, const std::vector<DataClass>&> GetRemoteData(
         const std::vector<DataClass>& prepared_data_list, const std::vector<FetchedFromInfo>& fetch_id_list);
     const std::string& GetErrorStr() const { return error_str_; }
 };

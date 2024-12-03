@@ -3,19 +3,19 @@
 
 #include "timer.h"
 
-int CommMPI::mpi_rank_ = 0;
-int CommMPI::mpi_size_ = 1;
-int CommMPI::mpi_root_ = 0;
+int CommMpi::mpi_rank_ = 0;
+int CommMpi::mpi_size_ = 1;
+int CommMpi::mpi_root_ = 0;
 
-std::map<std::string, MPI_Datatype*> CommMPI::mpi_custom_type_map_;
-MPI_Datatype CommMPI::yt_long_mpi_type_;
-MPI_Datatype CommMPI::yt_hierarchy_mpi_type_;
-MPI_Datatype CommMPI::mpi_rma_address_mpi_type_;
-MPI_Datatype CommMPI::amr_data_array_3d_info_mpi_type_;
-MPI_Datatype CommMPI::yt_rma_grid_info_mpi_type_;
-MPI_Datatype CommMPI::yt_rma_particle_info_mpi_type_;
+std::map<std::string, MPI_Datatype*> CommMpi::mpi_custom_type_map_;
+MPI_Datatype CommMpi::yt_long_mpi_type_;
+MPI_Datatype CommMpi::yt_hierarchy_mpi_type_;
+MPI_Datatype CommMpi::mpi_rma_address_mpi_type_;
+MPI_Datatype CommMpi::amr_data_array_3d_info_mpi_type_;
+MPI_Datatype CommMpi::yt_rma_grid_info_mpi_type_;
+MPI_Datatype CommMpi::yt_rma_particle_info_mpi_type_;
 
-void CommMPI::InitializeInfo(int mpi_root) {
+void CommMpi::InitializeInfo(int mpi_root) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
@@ -23,7 +23,7 @@ void CommMPI::InitializeInfo(int mpi_root) {
     mpi_root_ = mpi_root;
 }
 
-void CommMPI::InitializeYtLongMpiDataType() {
+void CommMpi::InitializeYtLongMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int length[1] = {1};
@@ -33,7 +33,7 @@ void CommMPI::InitializeYtLongMpiDataType() {
     MPI_Type_commit(&yt_long_mpi_type_);
 }
 
-void CommMPI::InitializeYtHierarchyMpiDataType() {
+void CommMpi::InitializeYtHierarchyMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int lengths[7] = {3, 3, 1, 1, 3, 1, 1};
@@ -49,7 +49,7 @@ void CommMPI::InitializeYtHierarchyMpiDataType() {
     MPI_Type_commit(&yt_hierarchy_mpi_type_);
 }
 
-void CommMPI::InitializeMpiRmaAddressMpiDataType() {
+void CommMpi::InitializeMpiRmaAddressMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int lengths[2] = {1, 1};
@@ -59,7 +59,7 @@ void CommMPI::InitializeMpiRmaAddressMpiDataType() {
     MPI_Type_commit(&mpi_rma_address_mpi_type_);
 }
 
-void CommMPI::InitializeAmrDataArray3DInfoMpiDataType() {
+void CommMpi::InitializeAmrDataArray3DInfoMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int lengths[4] = {1, 1, 3, 1};
@@ -72,7 +72,7 @@ void CommMPI::InitializeAmrDataArray3DInfoMpiDataType() {
     mpi_custom_type_map_["amr_grid"] = &amr_data_array_3d_info_mpi_type_;
 }
 
-void CommMPI::InitializeYtRmaGridInfoMpiDataType() {
+void CommMpi::InitializeYtRmaGridInfoMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int lengths[5] = {1, 1, 1, 1, 3};
@@ -84,7 +84,7 @@ void CommMPI::InitializeYtRmaGridInfoMpiDataType() {
     MPI_Type_commit(&yt_rma_grid_info_mpi_type_);
 }
 
-void CommMPI::InitializeYtRmaParticleInfoMpiDataType() {
+void CommMpi::InitializeYtRmaParticleInfoMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int lengths[4] = {1, 1, 1, 1};
@@ -95,7 +95,7 @@ void CommMPI::InitializeYtRmaParticleInfoMpiDataType() {
     MPI_Type_commit(&yt_rma_particle_info_mpi_type_);
 }
 
-void CommMPI::SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local) {
+void CommMpi::SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     MPI_Allgather(&num_grids_local, 1, MPI_INT, all_num_grids_local, 1, MPI_INT, MPI_COMM_WORLD);

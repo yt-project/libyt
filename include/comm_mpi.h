@@ -6,7 +6,7 @@
 #include <map>
 #include <string>
 
-class CommMPI {
+class CommMpi {
 public:
     static int mpi_rank_;
     static int mpi_size_;
