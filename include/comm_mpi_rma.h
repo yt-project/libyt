@@ -13,20 +13,20 @@ template<typename T>
 struct MPIRmaData {
     MPI_Aint mpi_address;
     int mpi_rank;
-    T data;
+    T data_info;
 };
 
 // Probably should define this in data structure header
 // TODO: explore if I can std::move
-struct AMRFieldDataArray3DInfo {
+struct AMRDataArray3DInfo {
     long id;
     yt_dtype data_type;
     int data_dim[3];
-    bool swap_axes_;
+    bool swap_axes;
 };
 
-struct AMRFieldDataArray3D {
-    AMRFieldDataArray3DInfo data_info;
+struct AMRDataArray3D {
+    AMRDataArray3DInfo data_info;
     void* data_ptr;
 };
 

@@ -225,17 +225,17 @@ TEST(Function, SetAllNumGridsLocal_can_work) {
 TEST_F(TestRMA, CommMPIRma_with_AMRFieldDataArray3D_can_work) {
     std::cout << "mpi_size = " << CommMPI::mpi_size_ << ", " << "mpi_rank = " << CommMPI::mpi_rank_ << std::endl;
     // Arrange
-    std::vector<AMRFieldDataArray3D> prepared_data_list;
+    std::vector<AMRDataArray3D> prepared_data_list;
     std::vector<FetchedFromInfo> fetch_id_list;
 
     int data = CommMPI::mpi_rank_;
-    prepared_data_list.emplace_back(AMRFieldDataArray3D{CommMPI::mpi_rank_, YT_INT, {1, 1, 1}, false, &data});
+    prepared_data_list.emplace_back(AMRDataArray3D{CommMPI::mpi_rank_, YT_INT, {1, 1, 1}, false, &data});
     // This fails hard. (edge case)
     // prepared_data_list.emplace_back(AMRFieldDataArray3D{CommMPI::mpi_rank_, YT_INT, {1, 1, 1}, false, nullptr});
 
     // Act
-    CommMPIRma<AMRFieldDataArray3DInfo, AMRFieldDataArray3D> comm_mpi_rma("test");
-    std::pair<CommMPIRmaStatus, const std::vector<AMRFieldDataArray3D>&> result =
+    CommMPIRma<AMRDataArray3DInfo, AMRDataArray3D> comm_mpi_rma("test");
+    std::pair<CommMPIRmaStatus, const std::vector<AMRDataArray3D>&> result =
         comm_mpi_rma.GetRemoteData(prepared_data_list, fetch_id_list);
 
     // Assert
