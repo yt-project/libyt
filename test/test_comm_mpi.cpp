@@ -340,6 +340,37 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray3DInfo) {
     delete[] send_buffer;
 }
 
+TEST_F(TestBigMpi, big_MPI_Bcast_with_MpiRmaAddress) {
+    // Arrange
+    int mpi_size = CommMpi::mpi_size_;
+    int mpi_rank = CommMpi::mpi_rank_;
+    int mpi_root = CommMpi::mpi_root_;
+    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
+    MPI_Datatype mpi_datatype = CommMpi::mpi_rma_address_mpi_type_;
+
+    const long total_send_counts = 1000;  // TODO: make this a test parameter
+    MpiRmaAddress* send_buffer = new MpiRmaAddress[total_send_counts];
+    if (mpi_rank == mpi_root) {
+        for (int i = 0; i < total_send_counts; i++) {
+            send_buffer[i].mpi_rank = i;
+            // send_buffer[i].mpi_address = 0; // TODO: unable to set to a value
+        }
+    }
+
+    // Act
+    const int result = big_MPI_Bcast<MpiRmaAddress>(mpi_root, total_send_counts, (void*)send_buffer, &mpi_datatype);
+
+    // Assert
+    EXPECT_EQ(result, YT_SUCCESS);
+    for (int i = 0; i < total_send_counts; i++) {
+        EXPECT_EQ(send_buffer[i].mpi_rank, i);
+        // EXPECT_EQ(send_buffer[i].mpi_address, 0); // TODO: unable to assert this
+    }
+
+    // Clean up
+    delete[] send_buffer;
+}
+
 TEST(Function, SetAllNumGridsLocal_can_work) {
     std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
