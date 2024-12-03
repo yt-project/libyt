@@ -132,6 +132,57 @@ TEST_F(TestBigMpi, Big_MPI_Gatherv_with_yt_hierarchy) {
     delete[] recv_buffer;
 }
 
+TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray3DInfo) {
+    // Arrange
+    int mpi_size = CommMpi::mpi_size_;
+    int mpi_rank = CommMpi::mpi_rank_;
+    int mpi_root = CommMpi::mpi_root_;
+    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
+    MPI_Datatype mpi_datatype = CommMpi::amr_data_array_3d_info_mpi_type_;
+
+    int* send_count_in_each_rank = new int[mpi_size];
+    long total_send_counts = 1000;  // TODO: make this a test parameter
+    int displacement = 0;
+    SplitArray(total_send_counts, mpi_size, mpi_rank, send_count_in_each_rank, &displacement);
+
+    AmrDataArray3DInfo* send_buffer = new AmrDataArray3DInfo[send_count_in_each_rank[mpi_rank]];
+    for (int i = 0; i < send_count_in_each_rank[mpi_rank]; i++) {
+        send_buffer[i].id = displacement + i;
+        send_buffer[i].data_type = YT_INT;
+        send_buffer[i].swap_axes = true;
+        for (int d = 0; d < 3; d++) {
+            send_buffer[i].data_dim[d] = d;
+        }
+    }
+
+    AmrDataArray3DInfo* recv_buffer = nullptr;
+    if (mpi_rank == mpi_root) {
+        recv_buffer = new AmrDataArray3DInfo[total_send_counts];
+    }
+
+    // Act
+    const int result = big_MPI_Gatherv<AmrDataArray3DInfo>(mpi_root, send_count_in_each_rank, (void*)send_buffer,
+                                                           &mpi_datatype, (void*)recv_buffer);
+
+    // Assert
+    EXPECT_EQ(result, YT_SUCCESS);
+    if (mpi_rank == mpi_root) {
+        for (long i = 0; i < total_send_counts; i++) {
+            EXPECT_EQ(recv_buffer[i].id, i);
+            EXPECT_EQ(recv_buffer[i].data_type, YT_INT);
+            EXPECT_EQ(recv_buffer[i].swap_axes, true);
+            for (int d = 0; d < 3; d++) {
+                EXPECT_EQ(recv_buffer[i].data_dim[d], d);
+            }
+        }
+    }
+
+    // Clean up
+    delete[] send_count_in_each_rank;
+    delete[] send_buffer;
+    delete[] recv_buffer;
+}
+
 TEST_F(TestBigMpi, Big_MPI_Bcast_with_yt_long) {
     // Arrange
     int mpi_size = CommMpi::mpi_size_;
