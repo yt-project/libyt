@@ -42,7 +42,10 @@ class CommMPIRma {
 private:
     MPI_Win mpi_window_{};
     std::vector<MPIRmaData<DataInfoClass>> mpi_prepared_data_;
+    MPIRmaData<DataInfoClass>* all_prepared_data_;
+    std::vector<long> search_range_;
     std::vector<DataClass> mpi_fetched_data_;
+
     std::string data_group_name_;
     std::string error_str_;
 
