@@ -198,6 +198,7 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::FetchRemoteData(
                 MPI_Datatype mpi_dtype;
                 get_mpi_dtype(fetched_data.data_type, &mpi_dtype);
                 void* fetched_data_buffer = malloc(data_len * data_size);
+                fetched_data.data_ptr = fetched_data_buffer;
                 if (big_MPI_Get_dtype(fetched_data_buffer, data_len, &fetched_data.data_type, &mpi_dtype,
                                       all_prepared_data_address_list_[s].mpi_rank,
                                       all_prepared_data_address_list_[s].mpi_address, &mpi_window_) != YT_SUCCESS) {
