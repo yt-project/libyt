@@ -46,7 +46,7 @@ const std::vector<AmrDataArray3D>& DataHubAmr::GetFieldData(const std::string& f
             }
             AmrDataArray3D amr_data{};
             amr_data.id = gid;
-            amr_data.swap_axes = field_list[field_id].contiguous_in_x;
+            amr_data.contiguous_in_x = field_list[field_id].contiguous_in_x;
             amr_data.data_dtype = field_data.data_dtype;
             for (int d = 0; d < 3; d++) {
                 amr_data.data_dim[d] = field_data.data_dimensions[d];

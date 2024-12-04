@@ -115,8 +115,11 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::PrepareData(const std::ve
         }
 
         // Add to prepared list (TODO: consider particle data too)
-        mpi_prepared_data_info_list_.emplace_back(DataInfoClass{
-            pdata.id, pdata.data_dtype, {pdata.data_dim[0], pdata.data_dim[1], pdata.data_dim[2]}, pdata.swap_axes});
+        mpi_prepared_data_info_list_.emplace_back(
+            DataInfoClass{pdata.id,
+                          pdata.data_dtype,
+                          {pdata.data_dim[0], pdata.data_dim[1], pdata.data_dim[2]},
+                          pdata.contiguous_in_x});
         mpi_prepared_data_address_list_.emplace_back(MpiRmaAddress{mpi_address, CommMpi::mpi_rank_});
 
         // TODO: After single out loggging, change to debug (debug purpose only)
@@ -190,7 +193,7 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::FetchRemoteData(
                 for (int d = 0; d < 3; d++) {
                     fetched_data.data_dim[d] = all_prepared_data_info_list_[s].data_dim[d];
                 }
-                fetched_data.swap_axes = all_prepared_data_info_list_[s].swap_axes;
+                fetched_data.contiguous_in_x = all_prepared_data_info_list_[s].contiguous_in_x;
 
                 // Copy data from remote buffer to local
                 int data_size;
