@@ -201,11 +201,11 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::FetchRemoteData(
                 get_mpi_dtype(fetched_data.data_type, &mpi_dtype);
                 void* fetched_data_buffer = malloc(data_len * data_size);
                 if (big_MPI_Get_dtype(fetched_data_buffer, data_len, &fetched_data.data_type, &mpi_dtype,
-                                      mpi_prepared_data_address_list_[s].mpi_rank,
-                                      mpi_prepared_data_address_list_[s].mpi_address, &mpi_window_) != YT_SUCCESS) {
+                                      all_prepared_data_address_list_[s].mpi_rank,
+                                      all_prepared_data_address_list_[s].mpi_address, &mpi_window_) != YT_SUCCESS) {
                     error_str_ = std::string("Fetch remote data buffer (data_group, id, mpi_rank) = (") +
                                  data_group_name_ + std::string(", ") + std::to_string(fdata.id) + std::string(", ") +
-                                 std::to_string(mpi_prepared_data_address_list_[s].mpi_rank) +
+                                 std::to_string(all_prepared_data_address_list_[s].mpi_rank) +
                                  std::string(") failed on MPI rank ") + std::to_string(CommMpi::mpi_rank_) +
                                  std::string("!");
                     free(fetched_data_buffer);
