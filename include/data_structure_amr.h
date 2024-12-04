@@ -1,5 +1,5 @@
-#ifndef AMR_GRID_H
-#define AMR_GRID_H
+#ifndef LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_
+#define LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_
 
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_hierarchy
@@ -25,4 +25,20 @@ struct yt_hierarchy {
     int proc_num = -1;
 };
 
-#endif  // AMR_GRID_H
+// TODO: explore if I can std::move
+struct AmrDataArray3DInfo {
+    long id;
+    yt_dtype data_dtype;
+    int data_dim[3];
+    bool swap_axes;  // TODO: rename to continuous_in_x
+};
+
+struct AmrDataArray3D {
+    long id;
+    yt_dtype data_dtype;
+    int data_dim[3];
+    bool swap_axes;  // TODO: rename to continuous_in_x
+    void* data_ptr;
+};
+
+#endif  // LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_

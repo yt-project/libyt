@@ -5,6 +5,7 @@
 
 #include "big_mpi.h"
 #include "comm_mpi.h"
+#include "data_structure_amr.h"
 #include "timer.h"
 #include "yt_prototype.h"
 

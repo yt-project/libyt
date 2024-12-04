@@ -15,23 +15,6 @@ struct MpiRmaAddress {
     int mpi_rank;
 };
 
-// Probably should define this in data structure header
-// TODO: explore if I can std::move
-struct AmrDataArray3DInfo {
-    long id;
-    yt_dtype data_dtype;
-    int data_dim[3];
-    bool swap_axes;
-};
-
-struct AmrDataArray3D {
-    long id;
-    yt_dtype data_dtype;
-    int data_dim[3];
-    bool swap_axes;
-    void* data_ptr;
-};
-
 struct FetchedFromInfo {
     int mpi_rank;
     long id;

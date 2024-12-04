@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 #include <limits.h>
 
-#include "amr_grid.h"
 #include "big_mpi.h"
 #include "comm_mpi.h"
 #include "comm_mpi_rma.h"
+#include "data_structure_amr.h"
 
 class CommMpiFixture : public testing::Test {
 protected:
