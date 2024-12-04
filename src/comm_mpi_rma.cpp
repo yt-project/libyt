@@ -15,7 +15,7 @@ CommMpiRma<DataInfoClass, DataClass>::CommMpiRma(const std::string& data_group_n
 }
 
 template<typename DataInfoClass, typename DataClass>
-std::pair<CommMpiRmaStatus, const std::vector<DataClass>&> CommMpiRma<DataInfoClass, DataClass>::GetRemoteData(
+CommMpiRmaReturn<DataClass> CommMpiRma<DataInfoClass, DataClass>::GetRemoteData(
     const std::vector<DataClass>& prepared_data_list, const std::vector<FetchedFromInfo>& fetch_id_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -48,11 +48,9 @@ std::pair<CommMpiRmaStatus, const std::vector<DataClass>&> CommMpiRma<DataInfoCl
     CleanUp();
 
     if (!success) {
-        return std::make_pair<CommMpiRmaStatus, const std::vector<DataClass>&>(CommMpiRmaStatus::kMpiFailed,
-                                                                               mpi_fetched_data_);
+        return {CommMpiRmaStatus::kMpiFailed, mpi_fetched_data_};
     } else {
-        return std::make_pair<CommMpiRmaStatus, const std::vector<DataClass>&>(CommMpiRmaStatus::kMpiSuccess,
-                                                                               mpi_fetched_data_);
+        return {CommMpiRmaStatus::kMpiSuccess, mpi_fetched_data_};
     }
 }
 

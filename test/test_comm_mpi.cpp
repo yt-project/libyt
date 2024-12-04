@@ -414,21 +414,20 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_work) {
 
     // Act
     CommMpiRma<AmrDataArray3DInfo, AmrDataArray3D> comm_mpi_rma("test", "amr_grid");
-    std::pair<CommMpiRmaStatus, const std::vector<AmrDataArray3D>&> result =
-        comm_mpi_rma.GetRemoteData(prepared_data_list, fetch_id_list);
+    CommMpiRmaReturn<AmrDataArray3D> result = comm_mpi_rma.GetRemoteData(prepared_data_list, fetch_id_list);
 
     // Assert
-    EXPECT_EQ(result.first, CommMpiRmaStatus::kMpiSuccess) << "Error: " << comm_mpi_rma.GetErrorStr();
-    for (const AmrDataArray3D& fetched_data : result.second) {
-        for (int i = 0; i < 10; i++) {
-            std::cout << "id = " << fetched_data.id << std::endl;
-            int dim[3] = {fetched_data.data_dim[0], fetched_data.data_dim[1], fetched_data.data_dim[2]};
-            EXPECT_EQ(((int*)fetched_data.data_ptr)[dim[0] * dim[1] * dim[2] - 1], fetched_data.id);
-        }
+    EXPECT_EQ(result.status, CommMpiRmaStatus::kMpiSuccess) << "Error: " << comm_mpi_rma.GetErrorStr();
+    for (const AmrDataArray3D& fetched_data : result.data_list) {
+        int dim[3] = {fetched_data.data_dim[0], fetched_data.data_dim[1], fetched_data.data_dim[2]};
+        EXPECT_EQ(((int*)fetched_data.data_ptr)[dim[0] * dim[1] * dim[2] - 1], fetched_data.id);
     }
 
     // Clean up
     delete[] data_buffer;
+    for (const AmrDataArray3D& fetched_data : result.data_list) {
+        delete[] fetched_data.data_ptr;
+    }
 }
 
 int main(int argc, char* argv[]) {
