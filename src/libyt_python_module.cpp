@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "comm_mpi_rma.h"
 #include "libyt.h"
 #include "libyt_process_control.h"
 #include "pybind11/embed.h"
@@ -244,9 +245,18 @@ pybind11::array get_particle(long gid, const char* ptype, const char* attr_name)
 // Note        :  1. Support only grid dimension = 3 for now.
 //                2. We return in dictionary objects.
 //                3. We assume that the fname_list passed in has the same fname order in each rank.
-//                4. This function will get all the desired fields and grids.
+//                4. This function will get all the fields and grids in combination.
+//                   So the total returned data get is len(fname_list) * len(nonlocal_id).
 //                5. Directly return None if it is in SERIAL_MODE.
 //                   TODO: Not sure if this would affect the performance. And do I even need this?
+//                6. In Python, it is called like:
+//                   libyt.get_field_remote( fname_list,
+//                                           len(fname_list),
+//                                           to_prepare,
+//                                           len(to_prepare),
+//                                           nonlocal_id,
+//                                           nonlocal_rank,
+//                                           len(nonlocal_id))
 //
 // Parameter   :  list obj : fname_list    : list of field name to get.
 //                     int : len_fname_list: length of fname_list.
@@ -265,68 +275,67 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
 #ifndef SERIAL_MODE
     pybind11::dict py_output = pybind11::dict();
     pybind11::dict py_field;
-    for (auto py_fname : py_fname_list) {
-        // initialize RMA
-        yt_rma_field RMAOperation = yt_rma_field(py_fname.cast<std::string>().c_str(), len_to_prepare, len_nonlocal);
 
-        // prepare data
-        for (auto py_gid : py_to_prepare) {
-            long gid = py_gid.cast<long>();
-            if (RMAOperation.prepare_data(gid) != YT_SUCCESS) {
-                std::string error_msg = "Something went wrong in yt_rma_field when preparing data.";
-                PyErr_SetString(PyExc_RuntimeError, error_msg.c_str());
-                throw pybind11::error_already_set();
-            }
+    // Initialize one CommMpiRma at a time for a field.
+    // TODO: Will support distributing multiple types of field after dealing with labeling for each type of field.
+    for (auto& py_fname : py_fname_list) {
+        // Prepare data for each field on each MPI rank.
+        std::string fname = py_fname.cast<std::string>();
+        std::vector<long> prepare_id_list;
+        for (auto& py_gid : py_to_prepare) {
+            prepare_id_list.emplace_back(py_gid.cast<long>());
+        }
+        DataStructureAmr amr;
+        const std::vector<AmrDataArray3D>& prepared_data = amr.GetFieldData(fname, prepare_id_list);
+
+        // Create fetch data list
+        std::vector<FetchedFromInfo> fetch_data_list;
+        fetch_data_list.reserve(len_nonlocal);
+        for (int i = 0; i < len_nonlocal; i++) {
+            fetch_data_list.emplace_back(
+                FetchedFromInfo{py_nonlocal_rank[i].cast<int>(), py_nonlocal_id[i].cast<long>()});
         }
 
-        // Gather all prepared data and using rank 0 as root
-        RMAOperation.gather_all_prepare_data(0);
-
-        // Fetch remote data
-        for (int i = 0; i < len_nonlocal; i++) {
-            long get_gid = py_nonlocal_id[i].cast<long>();
-            int get_rank = py_nonlocal_rank[i].cast<int>();
-            if (RMAOperation.fetch_remote_data(get_gid, get_rank) != YT_SUCCESS) {
-                std::string error_msg = "Something went wrong in yt_rma_field when fetching remote data.";
-                PyErr_SetString(PyExc_RuntimeError, error_msg.c_str());
-                throw pybind11::error_already_set();
-            }
+        // Call MPI RMA operation
+        CommMpiRma<AmrDataArray3DInfo, AmrDataArray3D> comm_mpi_rma(fname, "amr_grid");
+        CommMpiRmaReturn<AmrDataArray3D> rma_return = comm_mpi_rma.GetRemoteData(prepared_data, fetch_data_list);
+        if (rma_return.status != CommMpiRmaStatus::kMpiSuccess) {
+            PyErr_SetString(PyExc_RuntimeError, comm_mpi_rma.GetErrorStr().c_str());
+            // TODO: free the prepared derived field at local (move this in comm_mpi_rma)
+            throw pybind11::error_already_set();
         }
 
-        // Clean up prepared data
-        RMAOperation.clean_up();
-
-        // Get fetched data, wrap them, and bind to Python dictionary
-        PyObject* py_data;
-        for (int i = 0; i < len_nonlocal; i++) {
-            // (1) Get fetched data
-            long gid;
-            const char* fname = nullptr;
-            yt_dtype data_dtype;
-            int data_dim[3];
-            void* data_ptr = nullptr;
-            if (RMAOperation.get_fetched_data(&gid, &fname, &data_dtype, &data_dim, &data_ptr) != YT_SUCCESS) {
-                break;
+        // Wrap to Python dictionary
+        for (const AmrDataArray3D& fetched_data : rma_return.data_list) {
+            npy_intp npy_dim[3];
+            if (fetched_data.swap_axes) {
+                npy_dim[0] = fetched_data.data_dim[2];
+                npy_dim[1] = fetched_data.data_dim[1];
+                npy_dim[2] = fetched_data.data_dim[0];
+            } else {
+                npy_dim[0] = fetched_data.data_dim[0];
+                npy_dim[1] = fetched_data.data_dim[1];
+                npy_dim[2] = fetched_data.data_dim[2];
             }
-
-            // (2) Wrap data_ptr to numpy array and make it owned by Python
-            npy_intp npy_dim[3] = {data_dim[0], data_dim[1], data_dim[2]};
             int npy_dtype;
-            get_npy_dtype(data_dtype, &npy_dtype);
-            py_data = PyArray_SimpleNewFromData(3, npy_dim, npy_dtype, data_ptr);
+            get_npy_dtype(fetched_data.data_dtype, &npy_dtype);
+            PyObject* py_data = PyArray_SimpleNewFromData(3, npy_dim, npy_dtype, fetched_data.data_ptr);
             PyArray_ENABLEFLAGS((PyArrayObject*)py_data, NPY_ARRAY_OWNDATA);
 
-            // (3) Build Python dictionary data[grid id][field_name][:,:,:]
-            if (!py_output.contains(pybind11::int_(gid))) {
+            if (!py_output.contains(pybind11::int_(fetched_data.id))) {
                 py_field = pybind11::dict();
-                py_output[pybind11::int_(gid)] = py_field;
+                py_output[pybind11::int_(fetched_data.id)] = py_field;
             } else {
-                py_field = py_output[pybind11::int_(gid)];
+                py_field = py_output[pybind11::int_(fetched_data.id)];
             }
-            py_field[fname] = py_data;
+            py_field[fname.c_str()] = py_data;
             Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.
         }
+
+        // TODO: Clean up
+        // TODO: free the prepared derived field at local (move this in comm_mpi_rma)
     }
+
     return py_output;
 #else   // #ifndef SERIAL_MODE
     return pybind11::none();
