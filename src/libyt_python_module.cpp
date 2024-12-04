@@ -285,8 +285,8 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
         for (auto& py_gid : py_to_prepare) {
             prepare_id_list.emplace_back(py_gid.cast<long>());
         }
-        DataStructureAmr amr;
-        const std::vector<AmrDataArray3D>& prepared_data = amr.GetFieldData(fname, prepare_id_list);
+        DataHubAmr amr_data;
+        const std::vector<AmrDataArray3D>& prepared_data = amr_data.GetFieldData(fname, prepare_id_list);
 
         // Create fetch data list
         std::vector<FetchedFromInfo> fetch_data_list;
@@ -301,7 +301,7 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
         CommMpiRmaReturn<AmrDataArray3D> rma_return = comm_mpi_rma.GetRemoteData(prepared_data, fetch_data_list);
         if (rma_return.status != CommMpiRmaStatus::kMpiSuccess) {
             PyErr_SetString(PyExc_RuntimeError, comm_mpi_rma.GetErrorStr().c_str());
-            // TODO: free the prepared derived field at local (move this in comm_mpi_rma)
+            amr_data.Free();
             throw pybind11::error_already_set();
         }
 
@@ -333,7 +333,7 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
         }
 
         // TODO: Clean up
-        // TODO: free the prepared derived field at local (move this in comm_mpi_rma)
+        amr_data.Free();
     }
 
     return py_output;

@@ -46,13 +46,16 @@ struct AmrDataArray3D {
     void* data_ptr;
 };
 
-class DataStructureAmr {
+class DataHubAmr {
 private:
     std::vector<AmrDataArray3D> amr_data_array_3d_list_;
+    std::vector<bool> amr_data_is_new_allocation_list_;
 
 public:
     const std::vector<AmrDataArray3D>& GetFieldData(const std::string& field_name,
                                                     const std::vector<long>& grid_id_list);
+    void Free();
+    ~DataHubAmr() { Free(); }
 };
 
 #endif  // LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_

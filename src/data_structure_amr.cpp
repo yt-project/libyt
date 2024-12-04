@@ -2,8 +2,11 @@
 
 #include "libyt_process_control.h"
 
-const std::vector<AmrDataArray3D>& DataStructureAmr::GetFieldData(const std::string& field_name,
-                                                                  const std::vector<long>& grid_id_list) {
+const std::vector<AmrDataArray3D>& DataHubAmr::GetFieldData(const std::string& field_name,
+                                                            const std::vector<long>& grid_id_list) {
+    // Free cache before doing new query
+    Free();
+
     // Since everything is under LibytProcessControl, we need to include it.
     // TODO: Move data structure in LibytProcessControl to this class later
     yt_field* field_list = LibytProcessControl::Get().field_list;
@@ -23,4 +26,14 @@ const std::vector<AmrDataArray3D>& DataStructureAmr::GetFieldData(const std::str
     }
 
     return amr_data_array_3d_list_;
+}
+
+void DataHubAmr::Free() {
+    for (size_t i = 0; i < amr_data_is_new_allocation_list_.size(); i++) {
+        if (amr_data_is_new_allocation_list_[i]) {
+            free(amr_data_array_3d_list_[i].data_ptr);
+        }
+    }
+    amr_data_is_new_allocation_list_.clear();
+    amr_data_array_3d_list_.clear();
 }
