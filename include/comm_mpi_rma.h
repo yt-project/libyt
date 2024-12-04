@@ -38,6 +38,12 @@ struct FetchedFromInfo {
 
 enum class CommMpiRmaStatus : int { kMpiFailed = 0, kMpiSuccess = 1 };
 
+template<typename DataClass>
+struct CommMpiRmaReturn {
+    CommMpiRmaStatus status;
+    const std::vector<DataClass>& data_list;
+};
+
 template<typename DataInfoClass, typename DataClass>
 class CommMpiRma {
 private:
@@ -62,8 +68,8 @@ private:
 
 public:
     CommMpiRma(const std::string& data_group_name, const std::string& data_format);
-    std::pair<CommMpiRmaStatus, const std::vector<DataClass>&> GetRemoteData(
-        const std::vector<DataClass>& prepared_data_list, const std::vector<FetchedFromInfo>& fetch_id_list);
+    CommMpiRmaReturn<DataClass> GetRemoteData(const std::vector<DataClass>& prepared_data_list,
+                                              const std::vector<FetchedFromInfo>& fetch_id_list);
     const std::string& GetErrorStr() const { return error_str_; }
 };
 
