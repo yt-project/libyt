@@ -1,5 +1,6 @@
 #ifndef LIBYT_PROJECT_INCLUDE_COMM_MPI_RMA_H_
 #define LIBYT_PROJECT_INCLUDE_COMM_MPI_RMA_H_
+#ifndef SERIAL_MODE
 
 #include <mpi.h>
 
@@ -73,4 +74,5 @@ public:
     const std::string& GetErrorStr() const { return error_str_; }
 };
 
+#endif  // #ifndef SERIAL_MODE
 #endif  // LIBYT_PROJECT_INCLUDE_COMM_MPI_RMA_H_
