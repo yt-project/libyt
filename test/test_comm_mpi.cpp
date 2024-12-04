@@ -395,8 +395,20 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_work) {
     std::vector<AmrDataArray3D> prepared_data_list;
     std::vector<FetchedFromInfo> fetch_id_list;
 
-    int data = CommMpi::mpi_rank_;
-    prepared_data_list.emplace_back(AmrDataArray3D{CommMpi::mpi_rank_, YT_INT, {1, 1, 1}, false, &data});
+    // Create data buffer with array values and id equal to mpi rank
+    int* data_buffer = new int[10];
+    for (int i = 0; i < 10; i++) {
+        data_buffer[i] = CommMpi::mpi_rank_;
+    }
+    prepared_data_list.emplace_back(AmrDataArray3D{CommMpi::mpi_rank_, YT_INT, {10, 1, 1}, false, data_buffer});
+
+    // Create fetch id list which gets the other mpi rank's data
+    for (int r = 0; r < CommMpi::mpi_size_; r++) {
+        if (r != CommMpi::mpi_rank_) {
+            fetch_id_list.emplace_back(FetchedFromInfo{r, r});
+        }
+    }
+
     // This fails hard. (edge case)
     // prepared_data_list.emplace_back(AMRFieldDataArray3D{CommMPI::mpi_rank_, YT_INT, {1, 1, 1}, false, nullptr});
 
@@ -407,6 +419,16 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_work) {
 
     // Assert
     EXPECT_EQ(result.first, CommMpiRmaStatus::kMpiSuccess) << "Error: " << comm_mpi_rma.GetErrorStr();
+    for (const AmrDataArray3D& fetched_data : result.second) {
+        for (int i = 0; i < 10; i++) {
+            std::cout << "id = " << fetched_data.id << std::endl;
+            int dim[3] = {fetched_data.data_dim[0], fetched_data.data_dim[1], fetched_data.data_dim[2]};
+            EXPECT_EQ(((int*)fetched_data.data_ptr)[dim[0] * dim[1] * dim[2] - 1], fetched_data.id);
+        }
+    }
+
+    // Clean up
+    delete[] data_buffer;
 }
 
 int main(int argc, char* argv[]) {
