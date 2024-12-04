@@ -35,14 +35,14 @@ struct AmrDataArray3DInfo {
     long id;
     yt_dtype data_dtype;
     int data_dim[3];
-    bool swap_axes;  // TODO: rename to continuous_in_x
+    bool contiguous_in_x;  // TODO: rename to continuous_in_x
 };
 
 struct AmrDataArray3D {
     long id;
     yt_dtype data_dtype;
     int data_dim[3];
-    bool swap_axes;  // TODO: rename to continuous_in_x
+    bool contiguous_in_x;  // TODO: rename to continuous_in_x
     void* data_ptr;
 };
 

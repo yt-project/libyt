@@ -308,7 +308,7 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
         // Wrap to Python dictionary
         for (const AmrDataArray3D& fetched_data : rma_return.data_list) {
             npy_intp npy_dim[3];
-            if (fetched_data.swap_axes) {
+            if (fetched_data.contiguous_in_x) {
                 npy_dim[0] = fetched_data.data_dim[2];
                 npy_dim[1] = fetched_data.data_dim[1];
                 npy_dim[2] = fetched_data.data_dim[0];

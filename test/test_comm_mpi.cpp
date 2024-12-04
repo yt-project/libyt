@@ -149,7 +149,7 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray3DInfo) {
     for (int i = 0; i < send_count_in_each_rank[mpi_rank]; i++) {
         send_buffer[i].id = displacement + i;
         send_buffer[i].data_dtype = YT_INT;
-        send_buffer[i].swap_axes = true;
+        send_buffer[i].contiguous_in_x = true;
         for (int d = 0; d < 3; d++) {
             send_buffer[i].data_dim[d] = d;
         }
@@ -170,7 +170,7 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray3DInfo) {
         for (long i = 0; i < total_send_counts; i++) {
             EXPECT_EQ(recv_buffer[i].id, i);
             EXPECT_EQ(recv_buffer[i].data_dtype, YT_INT);
-            EXPECT_EQ(recv_buffer[i].swap_axes, true);
+            EXPECT_EQ(recv_buffer[i].contiguous_in_x, true);
             for (int d = 0; d < 3; d++) {
                 EXPECT_EQ(recv_buffer[i].data_dim[d], d);
             }
@@ -314,7 +314,7 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray3DInfo) {
         for (int i = 0; i < total_send_counts; i++) {
             send_buffer[i].id = i;
             send_buffer[i].data_dtype = YT_INT;
-            send_buffer[i].swap_axes = true;
+            send_buffer[i].contiguous_in_x = true;
             for (int d = 0; d < 3; d++) {
                 send_buffer[i].data_dim[d] = d;
             }
@@ -330,7 +330,7 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray3DInfo) {
     for (int i = 0; i < total_send_counts; i++) {
         EXPECT_EQ(send_buffer[i].id, i);
         EXPECT_EQ(send_buffer[i].data_dtype, YT_INT);
-        EXPECT_EQ(send_buffer[i].swap_axes, true);
+        EXPECT_EQ(send_buffer[i].contiguous_in_x, true);
         for (int d = 0; d < 3; d++) {
             EXPECT_EQ(send_buffer[i].data_dim[d], d);
         }
