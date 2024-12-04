@@ -49,9 +49,10 @@ struct AmrDataArray3D {
 class DataHubAmr {
 private:
     std::vector<AmrDataArray3D> amr_data_array_3d_list_;
-    std::vector<bool> amr_data_is_new_allocation_list_;
+    bool is_new_allocation_;
 
 public:
+    DataHubAmr() : is_new_allocation_(false) {}
     const std::vector<AmrDataArray3D>& GetFieldData(const std::string& field_name,
                                                     const std::vector<long>& grid_id_list);
     void Free();
