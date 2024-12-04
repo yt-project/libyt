@@ -1,6 +1,11 @@
 #ifndef LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_
 #define LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_
 
+#include <string>
+#include <vector>
+
+#include "yt_type.h"
+
 //-------------------------------------------------------------------------------------------------------
 // Structure   :  yt_hierarchy
 // Description :  Data structure for pass hierarchy of the grid in MPI process, it is meant to be temporary.
@@ -39,6 +44,15 @@ struct AmrDataArray3D {
     int data_dim[3];
     bool swap_axes;  // TODO: rename to continuous_in_x
     void* data_ptr;
+};
+
+class DataStructureAmr {
+private:
+    std::vector<AmrDataArray3D> amr_data_array_3d_list_;
+
+public:
+    const std::vector<AmrDataArray3D>& GetFieldData(const std::string& field_name,
+                                                    const std::vector<long>& grid_id_list);
 };
 
 #endif  // LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_
