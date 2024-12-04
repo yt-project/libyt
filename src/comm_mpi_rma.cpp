@@ -92,7 +92,7 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::PrepareData(const std::ve
 
         // Attach buffer to window (TODO: consider particle data too)
         int dtype_size;
-        get_dtype_size(pdata.data_type, &dtype_size);
+        get_dtype_size(pdata.data_dtype, &dtype_size);
         MPI_Aint data_size = pdata.data_dim[0] * pdata.data_dim[1] * pdata.data_dim[2] * dtype_size;
         int mpi_return_code = MPI_Win_attach(mpi_window_, pdata.data_ptr, data_size);
         if (mpi_return_code != MPI_SUCCESS) {
@@ -115,7 +115,7 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::PrepareData(const std::ve
 
         // Add to prepared list (TODO: consider particle data too)
         mpi_prepared_data_info_list_.emplace_back(DataInfoClass{
-            pdata.id, pdata.data_type, {pdata.data_dim[0], pdata.data_dim[1], pdata.data_dim[2]}, pdata.swap_axes});
+            pdata.id, pdata.data_dtype, {pdata.data_dim[0], pdata.data_dim[1], pdata.data_dim[2]}, pdata.swap_axes});
         mpi_prepared_data_address_list_.emplace_back(MpiRmaAddress{mpi_address, CommMpi::mpi_rank_});
 
         // TODO: After single out loggging, change to debug (debug purpose only)
@@ -185,7 +185,7 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::FetchRemoteData(
 
                 // Get data info
                 fetched_data.id = all_prepared_data_info_list_[s].id;
-                fetched_data.data_type = static_cast<yt_dtype>(all_prepared_data_info_list_[s].data_type);
+                fetched_data.data_dtype = static_cast<yt_dtype>(all_prepared_data_info_list_[s].data_dtype);
                 for (int d = 0; d < 3; d++) {
                     fetched_data.data_dim[d] = all_prepared_data_info_list_[s].data_dim[d];
                 }
@@ -194,12 +194,12 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::FetchRemoteData(
                 // Copy data from remote buffer to local
                 int data_size;
                 long data_len = fetched_data.data_dim[0] * fetched_data.data_dim[1] * fetched_data.data_dim[2];
-                get_dtype_size(fetched_data.data_type, &data_size);
+                get_dtype_size(fetched_data.data_dtype, &data_size);
                 MPI_Datatype mpi_dtype;
-                get_mpi_dtype(fetched_data.data_type, &mpi_dtype);
+                get_mpi_dtype(fetched_data.data_dtype, &mpi_dtype);
                 void* fetched_data_buffer = malloc(data_len * data_size);
                 fetched_data.data_ptr = fetched_data_buffer;
-                if (big_MPI_Get_dtype(fetched_data_buffer, data_len, &fetched_data.data_type, &mpi_dtype,
+                if (big_MPI_Get_dtype(fetched_data_buffer, data_len, &fetched_data.data_dtype, &mpi_dtype,
                                       all_prepared_data_address_list_[s].mpi_rank,
                                       all_prepared_data_address_list_[s].mpi_address, &mpi_window_) != YT_SUCCESS) {
                     error_str_ = std::string("Fetch remote data buffer (data_group, id, mpi_rank) = (") +
