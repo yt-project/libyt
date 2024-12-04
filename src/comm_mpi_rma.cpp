@@ -118,7 +118,7 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::PrepareData(const std::ve
         // Add to prepared list (TODO: consider particle data too)
         mpi_prepared_data_info_list_.emplace_back(DataInfoClass{
             pdata.id, pdata.data_type, {pdata.data_dim[0], pdata.data_dim[1], pdata.data_dim[2]}, pdata.swap_axes});
-        mpi_prepared_data_address_list_.emplace_back(MpiRmaAddress{CommMpi::mpi_rank_, mpi_address});
+        mpi_prepared_data_address_list_.emplace_back(MpiRmaAddress{mpi_address, CommMpi::mpi_rank_});
 
         // TODO: After single out loggging, change to debug (debug purpose only)
         printf("Attach buffer (data_group, id) = (%s, %ld) to one-sided MPI (RMA) window on MPI rank %d\n",
