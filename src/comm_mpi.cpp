@@ -53,8 +53,8 @@ void CommMpi::InitializeMpiRmaAddressMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int lengths[2] = {1, 1};
-    const MPI_Aint displacements[2] = {0, 1 * sizeof(int)};
-    MPI_Datatype types[2] = {MPI_INT, MPI_AINT};
+    const MPI_Aint displacements[2] = {0, 1 * sizeof(MPI_Aint)};
+    MPI_Datatype types[2] = {MPI_AINT, MPI_INT};
     MPI_Type_create_struct(2, lengths, displacements, types, &mpi_rma_address_mpi_type_);
     MPI_Type_commit(&mpi_rma_address_mpi_type_);
 }

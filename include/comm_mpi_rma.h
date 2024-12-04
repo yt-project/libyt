@@ -10,8 +10,8 @@
 #include "yt_type.h"
 
 struct MpiRmaAddress {
-    int mpi_rank;
     MPI_Aint mpi_address;
+    int mpi_rank;
 };
 
 // Probably should define this in data structure header

@@ -199,7 +199,7 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_MpiRmaAddress) {
     MpiRmaAddress* send_buffer = new MpiRmaAddress[send_count_in_each_rank[mpi_rank]];
     for (int i = 0; i < send_count_in_each_rank[mpi_rank]; i++) {
         send_buffer[i].mpi_rank = displacement + i;
-        // send_buffer[i].mpi_address = 0; // TODO: unable to set to a value
+        send_buffer[i].mpi_address = displacement + i + total_send_counts;
     }
 
     MpiRmaAddress* recv_buffer = nullptr;
@@ -216,7 +216,7 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_MpiRmaAddress) {
     if (mpi_rank == mpi_root) {
         for (long i = 0; i < total_send_counts; i++) {
             EXPECT_EQ(recv_buffer[i].mpi_rank, i);
-            // EXPECT_EQ(recv_buffer[i].mpi_address, 0); // TODO: unable to assert this
+            EXPECT_EQ(recv_buffer[i].mpi_address, i + total_send_counts);
         }
     }
 
@@ -353,7 +353,7 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_MpiRmaAddress) {
     if (mpi_rank == mpi_root) {
         for (int i = 0; i < total_send_counts; i++) {
             send_buffer[i].mpi_rank = i;
-            // send_buffer[i].mpi_address = 0; // TODO: unable to set to a value
+            send_buffer[i].mpi_address = i + total_send_counts;
         }
     }
 
@@ -364,7 +364,7 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_MpiRmaAddress) {
     EXPECT_EQ(result, YT_SUCCESS);
     for (int i = 0; i < total_send_counts; i++) {
         EXPECT_EQ(send_buffer[i].mpi_rank, i);
-        // EXPECT_EQ(send_buffer[i].mpi_address, 0); // TODO: unable to assert this
+        EXPECT_EQ(send_buffer[i].mpi_address, i + total_send_counts);
     }
 
     // Clean up
