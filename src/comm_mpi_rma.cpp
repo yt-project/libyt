@@ -155,7 +155,69 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::GatherAllPreparedData() {
 
 template<typename DataInfoClass, typename DataClass>
 CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::FetchRemoteData(
-    const std::vector<FetchedFromInfo>& fetch_id_list) {}
+    const std::vector<FetchedFromInfo>& fetch_id_list) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    // Open the window epoch
+    MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOPRECEDE, mpi_window_);
+
+    // Fetch data
+    mpi_fetched_data_.reserve(fetch_id_list.size());
+    for (const FetchedFromInfo& fdata : fetch_id_list) {
+        bool data_found = false;
+
+        for (long s = search_range_[fdata.mpi_rank]; s < search_range_[fdata.mpi_rank + 1]; s++) {
+            if (all_prepared_data_info_list_[s].id == fdata.id) {
+                DataClass fetched_data;
+
+                // Get data info
+                fetched_data.id = all_prepared_data_info_list_[s].id;
+                fetched_data.data_type = static_cast<yt_dtype>(all_prepared_data_info_list_[s].data_type);
+                for (int d = 0; d < 3; d++) {
+                    fetched_data.data_dim[d] = all_prepared_data_info_list_[s].data_dim[d];
+                }
+                fetched_data.swap_axes = all_prepared_data_info_list_[s].swap_axes;
+
+                // Copy data from remote buffer to local
+                int data_size;
+                long data_len = fetched_data.data_dim[0] * fetched_data.data_dim[1] * fetched_data.data_dim[2];
+                get_dtype_size(fetched_data.data_type, &data_size);
+                MPI_Datatype mpi_dtype;
+                get_mpi_dtype(fetched_data.data_type, &mpi_dtype);
+                void* fetched_data_buffer = malloc(data_len * data_size);
+                if (big_MPI_Get_dtype(fetched_data_buffer, data_len, &fetched_data.data_type, &mpi_dtype,
+                                      mpi_prepared_data_address_list_[s].mpi_rank,
+                                      mpi_prepared_data_address_list_[s].mpi_address, &mpi_window_) != YT_SUCCESS) {
+                    error_str_ = std::string("Fetch remote data buffer (data_group, id, mpi_rank) = (") +
+                                 data_group_name_ + std::string(", ") + std::to_string(fdata.id) + std::string(", ") +
+                                 std::to_string(mpi_prepared_data_address_list_[s].mpi_rank) +
+                                 std::string(") failed on MPI rank ") + std::to_string(CommMpi::mpi_rank_) +
+                                 std::string("!");
+                    free(fetched_data_buffer);
+                    return CommMpiRmaStatus::kMpiFailed;
+                }
+
+                // Push to fetched data list
+                mpi_fetched_data_.emplace_back(fetched_data);
+                data_found = true;
+                break;
+            }
+        }
+
+        if (!data_found) {
+            error_str_ = std::string("Cannot find remote data buffer (data_group, id, mpi_rank) = (") +
+                         data_group_name_ + std::string(", ") + std::to_string(fdata.id) + std::string(", ") +
+                         std::to_string(fdata.mpi_rank) + std::string(") on MPI rank ") +
+                         std::to_string(CommMpi::mpi_rank_) + std::string("!");
+            return CommMpiRmaStatus::kMpiFailed;
+        }
+    }
+
+    // Close the window epoch, every data should be fetched by now
+    MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOSUCCEED, mpi_window_);
+
+    return CommMpiRmaStatus::kMpiSuccess;
+}
 
 template<typename DataInfoClass, typename DataClass>
 CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::CleanUp() {
