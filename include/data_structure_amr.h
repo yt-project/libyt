@@ -30,19 +30,18 @@ struct yt_hierarchy {
     int proc_num = -1;
 };
 
-// TODO: explore if I can std::move
 struct AmrDataArray3DInfo {
     long id;
     yt_dtype data_dtype;
     int data_dim[3];
-    bool contiguous_in_x;  // TODO: rename to continuous_in_x
+    bool contiguous_in_x;
 };
 
 struct AmrDataArray3D {
     long id;
     yt_dtype data_dtype;
     int data_dim[3];
-    bool contiguous_in_x;  // TODO: rename to continuous_in_x
+    bool contiguous_in_x;
     void* data_ptr;
 };
 
@@ -50,13 +49,14 @@ class DataHubAmr {
 private:
     std::vector<AmrDataArray3D> amr_data_array_3d_list_;
     bool is_new_allocation_;
+    std::string error_str_;
 
 public:
     DataHubAmr() : is_new_allocation_(false) {}
     const std::vector<AmrDataArray3D>& GetFieldData(const std::string& field_name,
                                                     const std::vector<long>& grid_id_list);
-    void Free();
-    ~DataHubAmr() { Free(); }
+    void ClearCache();
+    ~DataHubAmr() { ClearCache(); }
 };
 
 #endif  // LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_

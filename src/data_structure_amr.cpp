@@ -7,7 +7,7 @@
 const std::vector<AmrDataArray3D>& DataHubAmr::GetFieldData(const std::string& field_name,
                                                             const std::vector<long>& grid_id_list) {
     // Free cache before doing new query
-    Free();
+    ClearCache();
 
     // Since everything is under LibytProcessControl, we need to include it.
     // TODO: Move data structure in LibytProcessControl to this class later
@@ -120,11 +120,12 @@ const std::vector<AmrDataArray3D>& DataHubAmr::GetFieldData(const std::string& f
     return amr_data_array_3d_list_;
 }
 
-void DataHubAmr::Free() {
+void DataHubAmr::ClearCache() {
     if (is_new_allocation_) {
         for (size_t i = 0; i < amr_data_array_3d_list_.size(); i++) {
             free(amr_data_array_3d_list_[i].data_ptr);
         }
     }
     amr_data_array_3d_list_.clear();
+    error_str_ = std::string("");
 }
