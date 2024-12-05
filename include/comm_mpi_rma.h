@@ -28,12 +28,11 @@ struct CommMpiRmaReturn {
     const std::vector<DataClass>& data_list;
 };
 
-template<typename DataInfoClass, typename DataClass>
+template<typename DataClass>
 class CommMpiRma {
 private:
     MPI_Win mpi_window_{};
-    std::vector<DataInfoClass> mpi_prepared_data_info_list_;
-    DataInfoClass* all_prepared_data_info_list_;
+    DataClass* all_prepared_data_list_;
     std::vector<MpiRmaAddress> mpi_prepared_data_address_list_;
     MpiRmaAddress* all_prepared_data_address_list_;
 
@@ -46,9 +45,9 @@ private:
 
     CommMpiRmaStatus InitializeMpiWindow();
     CommMpiRmaStatus PrepareData(const std::vector<DataClass>& prepared_data_list);
-    CommMpiRmaStatus GatherAllPreparedData();
+    CommMpiRmaStatus GatherAllPreparedData(const std::vector<DataClass>& prepared_data_list);
     CommMpiRmaStatus FetchRemoteData(const std::vector<FetchedFromInfo>& fetch_id_list);
-    CommMpiRmaStatus CleanUp();
+    CommMpiRmaStatus CleanUp(const std::vector<DataClass>& prepared_data_list);
 
 public:
     CommMpiRma(const std::string& data_group_name, const std::string& data_format);

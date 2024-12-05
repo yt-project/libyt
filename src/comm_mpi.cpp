@@ -11,7 +11,7 @@ std::map<std::string, MPI_Datatype*> CommMpi::mpi_custom_type_map_;
 MPI_Datatype CommMpi::yt_long_mpi_type_;
 MPI_Datatype CommMpi::yt_hierarchy_mpi_type_;
 MPI_Datatype CommMpi::mpi_rma_address_mpi_type_;
-MPI_Datatype CommMpi::amr_data_array_3d_info_mpi_type_;
+MPI_Datatype CommMpi::amr_data_array_3d_mpi_type_;
 MPI_Datatype CommMpi::yt_rma_grid_info_mpi_type_;
 MPI_Datatype CommMpi::yt_rma_particle_info_mpi_type_;
 
@@ -59,17 +59,26 @@ void CommMpi::InitializeMpiRmaAddressMpiDataType() {
     MPI_Type_commit(&mpi_rma_address_mpi_type_);
 }
 
-void CommMpi::InitializeAmrDataArray3DInfoMpiDataType() {
+void CommMpi::InitializeAmrDataArray3DMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    int lengths[4] = {1, 1, 3, 1};
-    const MPI_Aint displacements[4] = {0, 1 * sizeof(long), 1 * sizeof(long) + 1 * sizeof(int),
-                                       1 * sizeof(long) + 4 * sizeof(int)};
-    MPI_Datatype types[4] = {MPI_LONG, MPI_INT, MPI_INT, MPI_CXX_BOOL};
-    MPI_Type_create_struct(4, lengths, displacements, types, &amr_data_array_3d_info_mpi_type_);
-    MPI_Type_commit(&amr_data_array_3d_info_mpi_type_);
+    // Though we won't use the void* pointer in other rank, we still pass it for consistency.
+    // Since it is passed as struct, we need to set the memory layout that covers the void* pointer size
+    static_assert(sizeof(void*) == sizeof(long), "sizeof(void*) and sizeof(long) have difference size");
 
-    mpi_custom_type_map_["amr_grid"] = &amr_data_array_3d_info_mpi_type_;
+    int lengths[5] = {1, 1, 3, 1, 1};
+    const MPI_Aint displacements[5] = {
+        0,
+        1 * sizeof(long),
+        1 * sizeof(long) + 1 * sizeof(int),
+        1 * sizeof(long) + 4 * sizeof(int),
+        2 * sizeof(long) + 4 * sizeof(int),
+    };
+    MPI_Datatype types[5] = {MPI_LONG, MPI_INT, MPI_INT, MPI_LONG, MPI_CXX_BOOL};
+    MPI_Type_create_struct(5, lengths, displacements, types, &amr_data_array_3d_mpi_type_);
+    MPI_Type_commit(&amr_data_array_3d_mpi_type_);
+
+    mpi_custom_type_map_["amr_grid"] = &amr_data_array_3d_mpi_type_;
 }
 
 void CommMpi::InitializeYtRmaGridInfoMpiDataType() {

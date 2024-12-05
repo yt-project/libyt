@@ -9,21 +9,21 @@
 #include "timer.h"
 #include "yt_prototype.h"
 
-template<typename DataInfoClass, typename DataClass>
-CommMpiRma<DataInfoClass, DataClass>::CommMpiRma(const std::string& data_group_name, const std::string& data_format)
+template<typename DataClass>
+CommMpiRma<DataClass>::CommMpiRma(const std::string& data_group_name, const std::string& data_format)
     : data_group_name_(data_group_name), data_format_(data_format) {
     SET_TIMER(__PRETTY_FUNCTION__);
 }
 
-template<typename DataInfoClass, typename DataClass>
-CommMpiRmaReturn<DataClass> CommMpiRma<DataInfoClass, DataClass>::GetRemoteData(
-    const std::vector<DataClass>& prepared_data_list, const std::vector<FetchedFromInfo>& fetch_id_list) {
+template<typename DataClass>
+CommMpiRmaReturn<DataClass> CommMpiRma<DataClass>::GetRemoteData(const std::vector<DataClass>& prepared_data_list,
+                                                                 const std::vector<FetchedFromInfo>& fetch_id_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Reset states to be able to reuse, or even do data chunking in the future
     error_str_ = std::string();
     mpi_fetched_data_.clear();
-    all_prepared_data_info_list_ = nullptr;
+    all_prepared_data_list_ = nullptr;
     all_prepared_data_address_list_ = nullptr;
 
     // One-sided MPI
@@ -35,7 +35,7 @@ CommMpiRmaReturn<DataClass> CommMpiRma<DataInfoClass, DataClass>::GetRemoteData(
         if (PrepareData(prepared_data_list) != CommMpiRmaStatus::kMpiSuccess) {
             break;
         }
-        if (GatherAllPreparedData() != CommMpiRmaStatus::kMpiSuccess) {
+        if (GatherAllPreparedData(prepared_data_list) != CommMpiRmaStatus::kMpiSuccess) {
             break;
         }
         if (FetchRemoteData(fetch_id_list) != CommMpiRmaStatus::kMpiSuccess) {
@@ -46,7 +46,7 @@ CommMpiRmaReturn<DataClass> CommMpiRma<DataInfoClass, DataClass>::GetRemoteData(
         break;
     }
 
-    CleanUp();
+    CleanUp(prepared_data_list);
 
     if (!success) {
         return {CommMpiRmaStatus::kMpiFailed, mpi_fetched_data_};
@@ -55,8 +55,8 @@ CommMpiRmaReturn<DataClass> CommMpiRma<DataInfoClass, DataClass>::GetRemoteData(
     }
 }
 
-template<typename DataInfoClass, typename DataClass>
-CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::InitializeMpiWindow() {
+template<typename DataClass>
+CommMpiRmaStatus CommMpiRma<DataClass>::InitializeMpiWindow() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     MPI_Info mpi_window_info;
@@ -74,12 +74,10 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::InitializeMpiWindow() {
     return CommMpiRmaStatus::kMpiSuccess;
 }
 
-template<typename DataInfoClass, typename DataClass>
-CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::PrepareData(const std::vector<DataClass>& prepared_data_list) {
+template<typename DataClass>
+CommMpiRmaStatus CommMpiRma<DataClass>::PrepareData(const std::vector<DataClass>& prepared_data_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    mpi_prepared_data_info_list_.clear();
-    mpi_prepared_data_info_list_.reserve(prepared_data_list.size());
     mpi_prepared_data_address_list_.clear();
     mpi_prepared_data_address_list_.reserve(prepared_data_list.size());
 
@@ -114,12 +112,6 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::PrepareData(const std::ve
             return CommMpiRmaStatus::kMpiFailed;
         }
 
-        // Add to prepared list (TODO: consider particle data too)
-        mpi_prepared_data_info_list_.emplace_back(
-            DataInfoClass{pdata.id,
-                          pdata.data_dtype,
-                          {pdata.data_dim[0], pdata.data_dim[1], pdata.data_dim[2]},
-                          pdata.contiguous_in_x});
         mpi_prepared_data_address_list_.emplace_back(MpiRmaAddress{mpi_address, CommMpi::mpi_rank_});
 
         // TODO: After single out loggging, change to debug (debug purpose only)
@@ -130,12 +122,12 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::PrepareData(const std::ve
     return CommMpiRmaStatus::kMpiSuccess;
 }
 
-template<typename DataInfoClass, typename DataClass>
-CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::GatherAllPreparedData() {
+template<typename DataClass>
+CommMpiRmaStatus CommMpiRma<DataClass>::GatherAllPreparedData(const std::vector<DataClass>& prepared_data_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Get send count in each rank
-    int send_count = mpi_prepared_data_info_list_.size();
+    int send_count = prepared_data_list.size();
     int* all_send_counts = new int[CommMpi::mpi_size_];
     MPI_Allgather(&send_count, 1, MPI_INT, all_send_counts, 1, MPI_INT, MPI_COMM_WORLD);
 
@@ -151,28 +143,26 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::GatherAllPreparedData() {
     total_send_counts = search_range_[CommMpi::mpi_size_];
 
     // Get all prepared data
-    all_prepared_data_info_list_ = new DataInfoClass[total_send_counts];
+    all_prepared_data_list_ = new DataClass[total_send_counts];
     all_prepared_data_address_list_ = new MpiRmaAddress[total_send_counts];
-    big_MPI_Gatherv<DataInfoClass>(CommMpi::mpi_root_, all_send_counts, mpi_prepared_data_info_list_.data(),
-                                   CommMpi::mpi_custom_type_map_[data_format_], all_prepared_data_info_list_);
+    big_MPI_Gatherv<DataClass>(CommMpi::mpi_root_, all_send_counts, prepared_data_list.data(),
+                               CommMpi::mpi_custom_type_map_[data_format_], all_prepared_data_list_);
     big_MPI_Gatherv<MpiRmaAddress>(CommMpi::mpi_root_, all_send_counts, mpi_prepared_data_address_list_.data(),
                                    &CommMpi::mpi_rma_address_mpi_type_, all_prepared_data_address_list_);
-    big_MPI_Bcast<DataInfoClass>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_info_list_,
-                                 CommMpi::mpi_custom_type_map_[data_format_]);
+    big_MPI_Bcast<DataClass>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_list_,
+                             CommMpi::mpi_custom_type_map_[data_format_]);
     big_MPI_Bcast<MpiRmaAddress>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_address_list_,
                                  &CommMpi::mpi_rma_address_mpi_type_);
 
     // Clean up
     delete[] all_send_counts;
-    mpi_prepared_data_info_list_.clear();
     mpi_prepared_data_address_list_.clear();
 
     return CommMpiRmaStatus::kMpiSuccess;
 }
 
-template<typename DataInfoClass, typename DataClass>
-CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::FetchRemoteData(
-    const std::vector<FetchedFromInfo>& fetch_id_list) {
+template<typename DataClass>
+CommMpiRmaStatus CommMpiRma<DataClass>::FetchRemoteData(const std::vector<FetchedFromInfo>& fetch_id_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Open the window epoch
@@ -184,18 +174,10 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::FetchRemoteData(
         bool data_found = false;
 
         for (long s = search_range_[fdata.mpi_rank]; s < search_range_[fdata.mpi_rank + 1]; s++) {
-            if (all_prepared_data_info_list_[s].id == fdata.id) {
-                DataClass fetched_data;
+            if (all_prepared_data_list_[s].id == fdata.id) {
+                DataClass fetched_data = all_prepared_data_list_[s];
 
-                // Get data info
-                fetched_data.id = all_prepared_data_info_list_[s].id;
-                fetched_data.data_dtype = static_cast<yt_dtype>(all_prepared_data_info_list_[s].data_dtype);
-                for (int d = 0; d < 3; d++) {
-                    fetched_data.data_dim[d] = all_prepared_data_info_list_[s].data_dim[d];
-                }
-                fetched_data.contiguous_in_x = all_prepared_data_info_list_[s].contiguous_in_x;
-
-                // Copy data from remote buffer to local
+                // Copy data from remote buffer to local, and set the pointer in fetched_data
                 int data_size;
                 long data_len = fetched_data.data_dim[0] * fetched_data.data_dim[1] * fetched_data.data_dim[2];
                 get_dtype_size(fetched_data.data_dtype, &data_size);
@@ -237,21 +219,22 @@ CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::FetchRemoteData(
     return CommMpiRmaStatus::kMpiSuccess;
 }
 
-template<typename DataInfoClass, typename DataClass>
-CommMpiRmaStatus CommMpiRma<DataInfoClass, DataClass>::CleanUp() {
+template<typename DataClass>
+CommMpiRmaStatus CommMpiRma<DataClass>::CleanUp(const std::vector<DataClass>& prepared_data_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
+    for (const DataClass& pdata : prepared_data_list) {
+        MPI_Win_detach(mpi_window_, pdata.data_ptr);
+    }
     MPI_Win_free(&mpi_window_);
-
-    mpi_prepared_data_info_list_.clear();
     mpi_prepared_data_address_list_.clear();
     search_range_.clear();
-    delete[] all_prepared_data_info_list_;
+    delete[] all_prepared_data_list_;
     delete[] all_prepared_data_address_list_;
 
     return CommMpiRmaStatus::kMpiSuccess;
 }
 
-template class CommMpiRma<AmrDataArray3DInfo, AmrDataArray3D>;
+template class CommMpiRma<AmrDataArray3D>;
 
 #endif

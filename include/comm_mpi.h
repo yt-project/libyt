@@ -17,14 +17,14 @@ public:
     static MPI_Datatype yt_long_mpi_type_;
     static MPI_Datatype yt_hierarchy_mpi_type_;
     static MPI_Datatype mpi_rma_address_mpi_type_;
-    static MPI_Datatype amr_data_array_3d_info_mpi_type_;
+    static MPI_Datatype amr_data_array_3d_mpi_type_;
     static MPI_Datatype yt_rma_grid_info_mpi_type_;
     static MPI_Datatype yt_rma_particle_info_mpi_type_;
 
     static void InitializeYtLongMpiDataType();
     static void InitializeYtHierarchyMpiDataType();
     static void InitializeMpiRmaAddressMpiDataType();
-    static void InitializeAmrDataArray3DInfoMpiDataType();
+    static void InitializeAmrDataArray3DMpiDataType();
     static void InitializeYtRmaGridInfoMpiDataType();
     static void InitializeYtRmaParticleInfoMpiDataType();
 
