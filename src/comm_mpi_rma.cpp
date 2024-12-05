@@ -16,8 +16,8 @@ CommMpiRma<DataClass>::CommMpiRma(const std::string& data_group_name, const std:
 }
 
 template<typename DataClass>
-CommMpiRmaReturn<DataClass> CommMpiRma<DataClass>::GetRemoteData(const std::vector<DataClass>& prepared_data_list,
-                                                                 const std::vector<FetchedFromInfo>& fetch_id_list) {
+CommMpiRmaReturn<DataClass> CommMpiRma<DataClass>::GetRemoteData(
+    const std::vector<DataClass>& prepared_data_list, const std::vector<CommMpiRmaQueryInfo>& fetch_id_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Reset states to be able to reuse, or even do data chunking in the future
@@ -162,7 +162,7 @@ CommMpiRmaStatus CommMpiRma<DataClass>::GatherAllPreparedData(const std::vector<
 }
 
 template<typename DataClass>
-CommMpiRmaStatus CommMpiRma<DataClass>::FetchRemoteData(const std::vector<FetchedFromInfo>& fetch_id_list) {
+CommMpiRmaStatus CommMpiRma<DataClass>::FetchRemoteData(const std::vector<CommMpiRmaQueryInfo>& fetch_id_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Open the window epoch
@@ -170,7 +170,7 @@ CommMpiRmaStatus CommMpiRma<DataClass>::FetchRemoteData(const std::vector<Fetche
 
     // Fetch data
     mpi_fetched_data_.reserve(fetch_id_list.size());
-    for (const FetchedFromInfo& fdata : fetch_id_list) {
+    for (const CommMpiRmaQueryInfo& fdata : fetch_id_list) {
         bool data_found = false;
 
         for (long s = search_range_[fdata.mpi_rank]; s < search_range_[fdata.mpi_rank + 1]; s++) {

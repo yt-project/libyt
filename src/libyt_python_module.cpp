@@ -293,11 +293,11 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
         }
 
         // Create fetch data list
-        std::vector<FetchedFromInfo> fetch_data_list;
+        std::vector<CommMpiRmaQueryInfo> fetch_data_list;
         fetch_data_list.reserve(len_nonlocal);
         for (int i = 0; i < len_nonlocal; i++) {
             fetch_data_list.emplace_back(
-                FetchedFromInfo{py_nonlocal_rank[i].cast<int>(), py_nonlocal_id[i].cast<long>()});
+                CommMpiRmaQueryInfo{py_nonlocal_rank[i].cast<int>(), py_nonlocal_id[i].cast<long>()});
         }
 
         // Call MPI RMA operation

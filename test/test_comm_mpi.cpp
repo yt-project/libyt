@@ -396,7 +396,7 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_work) {
     std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     std::vector<AmrDataArray3D> prepared_data_list;
-    std::vector<FetchedFromInfo> fetch_id_list;
+    std::vector<CommMpiRmaQueryInfo> fetch_id_list;
 
     // Create data buffer with array values and id equal to mpi rank
     int* data_buffer = new int[10];
@@ -408,7 +408,7 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_work) {
     // Create fetch id list which gets the other mpi rank's data
     for (int r = 0; r < CommMpi::mpi_size_; r++) {
         if (r != CommMpi::mpi_rank_) {
-            fetch_id_list.emplace_back(FetchedFromInfo{r, r});
+            fetch_id_list.emplace_back(CommMpiRmaQueryInfo{r, r});
         }
     }
 
