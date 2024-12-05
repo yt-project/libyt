@@ -15,7 +15,7 @@ struct MpiRmaAddress {
     int mpi_rank;
 };
 
-struct FetchedFromInfo {
+struct CommMpiRmaQueryInfo {
     int mpi_rank;
     long id;
 };
@@ -46,13 +46,13 @@ private:
     CommMpiRmaStatus InitializeMpiWindow();
     CommMpiRmaStatus PrepareData(const std::vector<DataClass>& prepared_data_list);
     CommMpiRmaStatus GatherAllPreparedData(const std::vector<DataClass>& prepared_data_list);
-    CommMpiRmaStatus FetchRemoteData(const std::vector<FetchedFromInfo>& fetch_id_list);
+    CommMpiRmaStatus FetchRemoteData(const std::vector<CommMpiRmaQueryInfo>& fetch_id_list);
     CommMpiRmaStatus CleanUp(const std::vector<DataClass>& prepared_data_list);
 
 public:
     CommMpiRma(const std::string& data_group_name, const std::string& data_format);
     CommMpiRmaReturn<DataClass> GetRemoteData(const std::vector<DataClass>& prepared_data_list,
-                                              const std::vector<FetchedFromInfo>& fetch_id_list);
+                                              const std::vector<CommMpiRmaQueryInfo>& fetch_id_list);
     const std::string& GetErrorStr() const { return error_str_; }
 };
 
