@@ -25,7 +25,7 @@ private:
         CommMpi::InitializeYtLongMpiDataType();
         CommMpi::InitializeYtHierarchyMpiDataType();
         CommMpi::InitializeMpiRmaAddressMpiDataType();
-        CommMpi::InitializeAmrDataArray3DInfoMpiDataType();
+        CommMpi::InitializeAmrDataArray3DMpiDataType();
         CommMpi::InitializeYtRmaGridInfoMpiDataType();
         CommMpi::InitializeYtRmaParticleInfoMpiDataType();
     }
@@ -132,20 +132,20 @@ TEST_F(TestBigMpi, Big_MPI_Gatherv_with_yt_hierarchy) {
     delete[] recv_buffer;
 }
 
-TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray3DInfo) {
+TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray3D) {
     // Arrange
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
     std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMpi::amr_data_array_3d_info_mpi_type_;
+    MPI_Datatype mpi_datatype = CommMpi::amr_data_array_3d_mpi_type_;
 
     int* send_count_in_each_rank = new int[mpi_size];
     long total_send_counts = 1000;  // TODO: make this a test parameter
     int displacement = 0;
     SplitArray(total_send_counts, mpi_size, mpi_rank, send_count_in_each_rank, &displacement);
 
-    AmrDataArray3DInfo* send_buffer = new AmrDataArray3DInfo[send_count_in_each_rank[mpi_rank]];
+    AmrDataArray3D* send_buffer = new AmrDataArray3D[send_count_in_each_rank[mpi_rank]];
     for (int i = 0; i < send_count_in_each_rank[mpi_rank]; i++) {
         send_buffer[i].id = displacement + i;
         send_buffer[i].data_dtype = YT_INT;
@@ -153,16 +153,17 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray3DInfo) {
         for (int d = 0; d < 3; d++) {
             send_buffer[i].data_dim[d] = d;
         }
+        send_buffer[i].data_ptr = nullptr;
     }
 
-    AmrDataArray3DInfo* recv_buffer = nullptr;
+    AmrDataArray3D* recv_buffer = nullptr;
     if (mpi_rank == mpi_root) {
-        recv_buffer = new AmrDataArray3DInfo[total_send_counts];
+        recv_buffer = new AmrDataArray3D[total_send_counts];
     }
 
     // Act
-    const int result = big_MPI_Gatherv<AmrDataArray3DInfo>(mpi_root, send_count_in_each_rank, (void*)send_buffer,
-                                                           &mpi_datatype, (void*)recv_buffer);
+    const int result = big_MPI_Gatherv<AmrDataArray3D>(mpi_root, send_count_in_each_rank, (void*)send_buffer,
+                                                       &mpi_datatype, (void*)recv_buffer);
 
     // Assert
     EXPECT_EQ(result, YT_SUCCESS);
@@ -174,6 +175,7 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray3DInfo) {
             for (int d = 0; d < 3; d++) {
                 EXPECT_EQ(recv_buffer[i].data_dim[d], d);
             }
+            EXPECT_EQ(recv_buffer[i].data_ptr, nullptr);
         }
     }
 
@@ -300,16 +302,16 @@ TEST_F(TestBigMpi, Big_MPI_Bcast_with_yt_hierarchy) {
     delete[] send_buffer;
 }
 
-TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray3DInfo) {
+TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray3D) {
     // Arrange
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
     std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMpi::amr_data_array_3d_info_mpi_type_;
+    MPI_Datatype mpi_datatype = CommMpi::amr_data_array_3d_mpi_type_;
 
     const long total_send_counts = 1000;  // TODO: make this a test parameter
-    AmrDataArray3DInfo* send_buffer = new AmrDataArray3DInfo[total_send_counts];
+    AmrDataArray3D* send_buffer = new AmrDataArray3D[total_send_counts];
     if (mpi_rank == mpi_root) {
         for (int i = 0; i < total_send_counts; i++) {
             send_buffer[i].id = i;
@@ -318,12 +320,12 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray3DInfo) {
             for (int d = 0; d < 3; d++) {
                 send_buffer[i].data_dim[d] = d;
             }
+            send_buffer[i].data_ptr = nullptr;
         }
     }
 
     // Act
-    const int result =
-        big_MPI_Bcast<AmrDataArray3DInfo>(mpi_root, total_send_counts, (void*)send_buffer, &mpi_datatype);
+    const int result = big_MPI_Bcast<AmrDataArray3D>(mpi_root, total_send_counts, (void*)send_buffer, &mpi_datatype);
 
     // Assert
     EXPECT_EQ(result, YT_SUCCESS);
@@ -334,6 +336,7 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray3DInfo) {
         for (int d = 0; d < 3; d++) {
             EXPECT_EQ(send_buffer[i].data_dim[d], d);
         }
+        EXPECT_EQ(send_buffer[i].data_ptr, nullptr);
     }
 
     // Clean up
@@ -400,7 +403,7 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_work) {
     for (int i = 0; i < 10; i++) {
         data_buffer[i] = CommMpi::mpi_rank_;
     }
-    prepared_data_list.emplace_back(AmrDataArray3D{CommMpi::mpi_rank_, YT_INT, {10, 1, 1}, false, data_buffer});
+    prepared_data_list.emplace_back(AmrDataArray3D{CommMpi::mpi_rank_, YT_INT, {10, 1, 1}, data_buffer, false});
 
     // Create fetch id list which gets the other mpi rank's data
     for (int r = 0; r < CommMpi::mpi_size_; r++) {
@@ -413,7 +416,7 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_work) {
     // prepared_data_list.emplace_back(AMRFieldDataArray3D{CommMPI::mpi_rank_, YT_INT, {1, 1, 1}, false, nullptr});
 
     // Act
-    CommMpiRma<AmrDataArray3DInfo, AmrDataArray3D> comm_mpi_rma("test", "amr_grid");
+    CommMpiRma<AmrDataArray3D> comm_mpi_rma("test", "amr_grid");
     CommMpiRmaReturn<AmrDataArray3D> result = comm_mpi_rma.GetRemoteData(prepared_data_list, fetch_id_list);
 
     // Assert

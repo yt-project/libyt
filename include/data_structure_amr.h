@@ -30,19 +30,12 @@ struct yt_hierarchy {
     int proc_num = -1;
 };
 
-struct AmrDataArray3DInfo {
-    long id;
-    yt_dtype data_dtype;
-    int data_dim[3];
-    bool contiguous_in_x;
-};
-
 struct AmrDataArray3D {
     long id;
     yt_dtype data_dtype;
     int data_dim[3];
-    bool contiguous_in_x;
     void* data_ptr;
+    bool contiguous_in_x;
 };
 
 enum class DataHubStatus : int { kDataHubFailed = 0, kDataHubSuccess = 1 };

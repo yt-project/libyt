@@ -23,7 +23,8 @@
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 template<typename T>
-int big_MPI_Gatherv(int RootRank, int* sendcounts, void* sendbuffer, MPI_Datatype* mpi_datatype, void* recvbuffer) {
+int big_MPI_Gatherv(int RootRank, int* sendcounts, const void* sendbuffer, MPI_Datatype* mpi_datatype,
+                    void* recvbuffer) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int mpi_size, mpi_rank;

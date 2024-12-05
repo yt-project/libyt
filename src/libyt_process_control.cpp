@@ -108,7 +108,7 @@ void LibytProcessControl::Initialize() {
     CommMpi::InitializeYtLongMpiDataType();
     CommMpi::InitializeYtHierarchyMpiDataType();
     CommMpi::InitializeMpiRmaAddressMpiDataType();
-    CommMpi::InitializeAmrDataArray3DInfoMpiDataType();
+    CommMpi::InitializeAmrDataArray3DMpiDataType();
     CommMpi::InitializeYtRmaGridInfoMpiDataType();
     CommMpi::InitializeYtRmaParticleInfoMpiDataType();
 #endif
