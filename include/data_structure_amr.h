@@ -45,6 +45,14 @@ struct AmrDataArray3D {
     void* data_ptr;
 };
 
+enum class DataHubStatus : int { kDataHubFailed = 0, kDataHubSuccess = 1 };
+
+template<typename DataClass>
+struct DataHubReturn {
+    DataHubStatus status;
+    const std::vector<DataClass>& data_list;
+};
+
 class DataHubAmr {
 private:
     std::vector<AmrDataArray3D> amr_data_array_3d_list_;
@@ -53,9 +61,9 @@ private:
 
 public:
     DataHubAmr() : is_new_allocation_(false) {}
-    const std::vector<AmrDataArray3D>& GetFieldData(const std::string& field_name,
-                                                    const std::vector<long>& grid_id_list);
+    DataHubReturn<AmrDataArray3D> GetFieldData(const std::string& field_name, const std::vector<long>& grid_id_list);
     void ClearCache();
+    const std::string& GetErrorStr() const { return error_str_; }
     ~DataHubAmr() { ClearCache(); }
 };
 

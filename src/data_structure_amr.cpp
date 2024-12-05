@@ -4,8 +4,8 @@
 #include "libyt_process_control.h"
 #include "yt_prototype.h"
 
-const std::vector<AmrDataArray3D>& DataHubAmr::GetFieldData(const std::string& field_name,
-                                                            const std::vector<long>& grid_id_list) {
+DataHubReturn<AmrDataArray3D> DataHubAmr::GetFieldData(const std::string& field_name,
+                                                       const std::vector<long>& grid_id_list) {
     // Free cache before doing new query
     ClearCache();
 
@@ -20,11 +20,10 @@ const std::vector<AmrDataArray3D>& DataHubAmr::GetFieldData(const std::string& f
         }
     }
     if (field_id == -1) {
-        // TODO: deal with error later, make rma work first
         std::string error_msg = std::string("Cannot find field_name [ ") + field_name +
                                 std::string(" ] in field_list on MPI rank ") +
                                 std::to_string(LibytProcessControl::Get().mpi_rank_) + std::string(".\n");
-        return amr_data_array_3d_list_;
+        return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
     }
 
     if (strcmp(field_list[field_id].field_type, "derived_func") == 0) {
@@ -36,11 +35,10 @@ const std::vector<AmrDataArray3D>& DataHubAmr::GetFieldData(const std::string& f
             // TODO: Get data using libyt publich API, (this should be fixed later)
             int grid_dim[3];
             if (yt_getGridInfo_Dimensions(gid, &grid_dim) != YT_SUCCESS) {
-                // TODO: deal with error later, make rma work first
                 std::string error_msg = std::string("Failed to get grid dim for (field_name, gid) = (") + field_name +
                                         std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
                                         std::to_string(LibytProcessControl::Get().mpi_rank_) + std::string(".\n");
-                return amr_data_array_3d_list_;
+                return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
             }
             if (field_list[field_id].contiguous_in_x) {
                 amr_data.data_dim[0] = grid_dim[2];
@@ -58,22 +56,20 @@ const std::vector<AmrDataArray3D>& DataHubAmr::GetFieldData(const std::string& f
             // Get derived function pointer
             void (*derived_func)(const int, const long*, const char*, yt_array*) = field_list[field_id].derived_func;
             if (derived_func == nullptr) {
-                // TODO: deal with error later, make rma work first
                 std::string error_msg = std::string("Derived function not set in field [ ") + field_name +
                                         std::string(" ] on MPI rank ") +
                                         std::to_string(LibytProcessControl::Get().mpi_rank_) + std::string(".\n");
-                return amr_data_array_3d_list_;
+                return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
             }
 
             // Allocate memory for data_ptr and generate data
             long data_len = amr_data.data_dim[0] * amr_data.data_dim[1] * amr_data.data_dim[2];
             if (get_dtype_allocation(amr_data.data_dtype, data_len, &amr_data.data_ptr) != YT_SUCCESS) {
-                // TODO: deal with error later, make rma work first
                 std::string error_msg = std::string("Failed to allocate memory for (field_name, gid) = (") +
                                         field_name + std::string(", ") + std::to_string(gid) +
                                         std::string(") on MPI rank ") +
                                         std::to_string(LibytProcessControl::Get().mpi_rank_) + std::string(".\n");
-                return amr_data_array_3d_list_;
+                return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
             }
             yt_array data_array[1];
             data_array[0].gid = amr_data.id;
@@ -92,11 +88,10 @@ const std::vector<AmrDataArray3D>& DataHubAmr::GetFieldData(const std::string& f
             // TODO: Get data using libyt publich API, (this should be fixed later)
             yt_data field_data;
             if (yt_getGridInfo_FieldData(gid, field_name.c_str(), &field_data) != YT_SUCCESS) {
-                // TODO: deal with error later, make rma work first
                 std::string error_msg = std::string("Failed to get data (field_name, gid) = (") + field_name +
                                         std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
                                         std::to_string(LibytProcessControl::Get().mpi_rank_) + std::string(".\n");
-                return amr_data_array_3d_list_;
+                return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
             }
             AmrDataArray3D amr_data{};
             amr_data.id = gid;
@@ -110,14 +105,13 @@ const std::vector<AmrDataArray3D>& DataHubAmr::GetFieldData(const std::string& f
             amr_data_array_3d_list_.emplace_back(amr_data);
         }
     } else {
-        // TODO: deal with error later, make rma work first
         std::string error_msg = std::string("Unknown field type [ ") + std::string(field_list[field_id].field_type) +
                                 std::string(" ] in field [ ") + field_name + std::string(" ] on MPI rank ") +
                                 std::to_string(LibytProcessControl::Get().mpi_rank_) + std::string(".\n");
-        return amr_data_array_3d_list_;
+        return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
     }
 
-    return amr_data_array_3d_list_;
+    return {DataHubStatus::kDataHubSuccess, amr_data_array_3d_list_};
 }
 
 void DataHubAmr::ClearCache() {
@@ -126,6 +120,7 @@ void DataHubAmr::ClearCache() {
             free(amr_data_array_3d_list_[i].data_ptr);
         }
     }
+    is_new_allocation_ = false;
     amr_data_array_3d_list_.clear();
     error_str_ = std::string("");
 }
