@@ -524,6 +524,47 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_work) {
     }
 }
 
+TEST_F(TestRma, CommMpiRma_with_AmrDataArray1D_can_work) {
+    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
+    // Arrange
+    std::vector<AmrDataArray1D> prepared_data_list;
+    std::vector<CommMpiRmaQueryInfo> fetch_id_list;
+
+    // Create data buffer with array values and id equal to mpi rank
+    int* data_buffer = new int[10];
+    for (int i = 0; i < 10; i++) {
+        data_buffer[i] = CommMpi::mpi_rank_;
+    }
+    prepared_data_list.emplace_back(AmrDataArray1D{CommMpi::mpi_rank_, YT_INT, data_buffer, 10});
+
+    // Create fetch id list which gets the other mpi rank's data
+    for (int r = 0; r < CommMpi::mpi_size_; r++) {
+        if (r != CommMpi::mpi_rank_) {
+            fetch_id_list.emplace_back(CommMpiRmaQueryInfo{r, r});
+        }
+    }
+
+    // This fails hard. (edge case)
+    // prepared_data_list.emplace_back(AMRFieldDataArray3D{CommMPI::mpi_rank_, YT_INT, {1, 1, 1}, false, nullptr});
+
+    // Act
+    CommMpiRmaAmrDataArray1D comm_mpi_rma("test", "amr_grid");
+    CommMpiRmaReturn<AmrDataArray1D> result = comm_mpi_rma.GetRemoteData(prepared_data_list, fetch_id_list);
+
+    // Assert
+    EXPECT_EQ(result.status, CommMpiRmaStatus::kMpiSuccess) << "Error: " << comm_mpi_rma.GetErrorStr();
+    for (const AmrDataArray1D& fetched_data : result.data_list) {
+        EXPECT_EQ(fetched_data.data_len, 10);
+        EXPECT_EQ(((int*)fetched_data.data_ptr)[fetched_data.data_len - 1], fetched_data.id);
+    }
+
+    // Clean up
+    delete[] data_buffer;
+    for (const AmrDataArray1D& fetched_data : result.data_list) {
+        delete[] fetched_data.data_ptr;
+    }
+}
+
 int main(int argc, char* argv[]) {
     int result = 0;
 

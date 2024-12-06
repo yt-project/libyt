@@ -70,5 +70,15 @@ public:
         : CommMpiRma<AmrDataArray3D>(data_group_name, data_format) {}
 };
 
+class CommMpiRmaAmrDataArray1D : public CommMpiRma<AmrDataArray1D> {
+private:
+    std::size_t GetDataSize(const AmrDataArray1D& data) override;
+    std::size_t GetDataLen(const AmrDataArray1D& data) override;
+
+public:
+    CommMpiRmaAmrDataArray1D(const std::string& data_group_name, const std::string& data_format)
+        : CommMpiRma<AmrDataArray1D>(data_group_name, data_format) {}
+};
+
 #endif  // #ifndef SERIAL_MODE
 #endif  // LIBYT_PROJECT_INCLUDE_COMM_MPI_RMA_H_

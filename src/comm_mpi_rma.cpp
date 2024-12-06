@@ -230,6 +230,7 @@ CommMpiRmaStatus CommMpiRma<DataClass>::CleanUp(const std::vector<DataClass>& pr
 }
 
 template class CommMpiRma<AmrDataArray3D>;
+template class CommMpiRma<AmrDataArray1D>;
 
 std::size_t CommMpiRmaAmrDataArray3D::GetDataSize(const AmrDataArray3D& data) {
     for (int i = 0; i < 3; i++) {
@@ -249,6 +250,22 @@ std::size_t CommMpiRmaAmrDataArray3D::GetDataLen(const AmrDataArray3D& data) {
         }
     }
     return data.data_dim[0] * data.data_dim[1] * data.data_dim[2];
+}
+
+std::size_t CommMpiRmaAmrDataArray1D::GetDataSize(const AmrDataArray1D& data) {
+    if (data.data_len <= 0) {
+        return 0;
+    }
+    int dtype_size;
+    get_dtype_size(data.data_dtype, &dtype_size);
+    return data.data_len * dtype_size;
+}
+
+std::size_t CommMpiRmaAmrDataArray1D::GetDataLen(const AmrDataArray1D& data) {
+    if (data.data_len <= 0) {
+        return 0;
+    }
+    return data.data_len;
 }
 
 #endif
