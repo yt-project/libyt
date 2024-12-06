@@ -167,8 +167,9 @@ CommMpiRmaStatus CommMpiRma<DataClass>::FetchRemoteData(const std::vector<CommMp
 
     // Fetch data
     mpi_fetched_data_.reserve(fetch_id_list.size());
+    bool data_found = true;
     for (const CommMpiRmaQueryInfo& fid : fetch_id_list) {
-        bool data_found = false;
+        data_found = false;
 
         for (long s = search_range_[fid.mpi_rank]; s < search_range_[fid.mpi_rank + 1]; s++) {
             if (all_prepared_data_list_[s].id == fid.id) {
@@ -188,7 +189,7 @@ CommMpiRmaStatus CommMpiRma<DataClass>::FetchRemoteData(const std::vector<CommMp
                                  std::string(") failed on MPI rank ") + std::to_string(CommMpi::mpi_rank_) +
                                  std::string("!");
                     free(fetched_data_buffer);
-                    return CommMpiRmaStatus::kMpiFailed;
+                    break;
                 }
 
                 // Push to fetched data list
@@ -203,14 +204,18 @@ CommMpiRmaStatus CommMpiRma<DataClass>::FetchRemoteData(const std::vector<CommMp
                          data_group_name_ + std::string(", ") + std::to_string(fid.id) + std::string(", ") +
                          std::to_string(fid.mpi_rank) + std::string(") on MPI rank ") +
                          std::to_string(CommMpi::mpi_rank_) + std::string("!");
-            return CommMpiRmaStatus::kMpiFailed;
+            break;
         }
     }
 
-    // Close the window epoch, every data should be fetched by now
+    // Close the window epoch, even if the fetch failed
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOSUCCEED, mpi_window_);
 
-    return CommMpiRmaStatus::kMpiSuccess;
+    if (data_found) {
+        return CommMpiRmaStatus::kMpiSuccess;
+    } else {
+        return CommMpiRmaStatus::kMpiFailed;
+    }
 }
 
 template<typename DataClass>
