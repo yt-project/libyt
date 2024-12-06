@@ -507,7 +507,7 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_work) {
     // prepared_data_list.emplace_back(AMRFieldDataArray3D{CommMPI::mpi_rank_, YT_INT, {1, 1, 1}, false, nullptr});
 
     // Act
-    CommMpiRma<AmrDataArray3D> comm_mpi_rma("test", "amr_grid");
+    CommMpiRmaAmrDataArray3D comm_mpi_rma("test", "amr_grid");
     CommMpiRmaReturn<AmrDataArray3D> result = comm_mpi_rma.GetRemoteData(prepared_data_list, fetch_id_list);
 
     // Assert

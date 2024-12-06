@@ -301,7 +301,7 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
         }
 
         // Call MPI RMA operation
-        CommMpiRma<AmrDataArray3D> comm_mpi_rma(fname, "amr_grid");
+        CommMpiRmaAmrDataArray3D comm_mpi_rma(fname, "amr_grid");
         CommMpiRmaReturn<AmrDataArray3D> rma_return =
             comm_mpi_rma.GetRemoteData(prepared_data.data_list, fetch_data_list);
         if (rma_return.status != CommMpiRmaStatus::kMpiSuccess) {
