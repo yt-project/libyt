@@ -226,7 +226,6 @@ CommMpiRmaStatus CommMpiRma<DataClass>::CleanUp(const std::vector<DataClass>& pr
         MPI_Win_detach(mpi_window_, pdata.data_ptr);
     }
     MPI_Win_free(&mpi_window_);
-    mpi_prepared_data_address_list_.clear();
     search_range_.clear();
     delete[] all_prepared_data_list_;
     delete[] all_prepared_data_address_list_;
