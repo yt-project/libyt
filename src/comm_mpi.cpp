@@ -1,6 +1,7 @@
 #ifndef SERIAL_MODE
 #include "comm_mpi.h"
 
+#include "comm_mpi_rma.h"
 #include "data_structure_amr.h"
 #include "timer.h"
 
@@ -39,13 +40,14 @@ void CommMpi::InitializeYtHierarchyMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int lengths[7] = {3, 3, 1, 1, 3, 1, 1};
-    const MPI_Aint displacements[7] = {0,
-                                       3 * sizeof(double),
-                                       6 * sizeof(double),
-                                       6 * sizeof(double) + sizeof(long),
-                                       6 * sizeof(double) + 2 * sizeof(long),
-                                       6 * sizeof(double) + 2 * sizeof(long) + 3 * sizeof(int),
-                                       6 * sizeof(double) + 2 * sizeof(long) + 4 * sizeof(int)};
+    MPI_Aint displacements[7];
+    displacements[0] = offsetof(yt_hierarchy, left_edge);
+    displacements[1] = offsetof(yt_hierarchy, right_edge);
+    displacements[2] = offsetof(yt_hierarchy, id);
+    displacements[3] = offsetof(yt_hierarchy, parent_id);
+    displacements[4] = offsetof(yt_hierarchy, dimensions);
+    displacements[5] = offsetof(yt_hierarchy, level);
+    displacements[6] = offsetof(yt_hierarchy, proc_num);
     MPI_Datatype types[7] = {MPI_DOUBLE, MPI_DOUBLE, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT};
     MPI_Type_create_struct(7, lengths, displacements, types, &yt_hierarchy_mpi_type_);
     MPI_Type_commit(&yt_hierarchy_mpi_type_);
@@ -55,7 +57,9 @@ void CommMpi::InitializeMpiRmaAddressMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int lengths[2] = {1, 1};
-    const MPI_Aint displacements[2] = {0, 1 * sizeof(MPI_Aint)};
+    MPI_Aint displacements[2];
+    displacements[0] = offsetof(MpiRmaAddress, mpi_address);
+    displacements[1] = offsetof(MpiRmaAddress, mpi_rank);
     MPI_Datatype types[2] = {MPI_AINT, MPI_INT};
     MPI_Type_create_struct(2, lengths, displacements, types, &mpi_rma_address_mpi_type_);
     MPI_Type_commit(&mpi_rma_address_mpi_type_);
@@ -69,13 +73,12 @@ void CommMpi::InitializeAmrDataArray3DMpiDataType() {
     static_assert(sizeof(void*) == sizeof(long), "sizeof(void*) and sizeof(long) have difference size");
 
     int lengths[5] = {1, 1, 3, 1, 1};
-    const MPI_Aint displacements[5] = {
-        0,
-        1 * sizeof(long),
-        1 * sizeof(long) + 1 * sizeof(int),
-        1 * sizeof(long) + 4 * sizeof(int),
-        2 * sizeof(long) + 4 * sizeof(int),
-    };
+    MPI_Aint displacements[5];
+    displacements[0] = offsetof(AmrDataArray3D, id);
+    displacements[1] = offsetof(AmrDataArray3D, data_dtype);
+    displacements[2] = offsetof(AmrDataArray3D, data_dim);
+    displacements[3] = offsetof(AmrDataArray3D, data_ptr);
+    displacements[4] = offsetof(AmrDataArray3D, contiguous_in_x);
     MPI_Datatype types[5] = {MPI_LONG, MPI_INT, MPI_INT, MPI_LONG, MPI_CXX_BOOL};
     MPI_Type_create_struct(5, lengths, displacements, types, &amr_data_array_3d_mpi_type_);
     MPI_Type_commit(&amr_data_array_3d_mpi_type_);
@@ -85,8 +88,6 @@ void CommMpi::InitializeAmrDataArray3DMpiDataType() {
 
 void CommMpi::InitializeAmrDataArray1DMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
-
-    AmrDataArray1D amr_1d{};
 
     int lengths[4] = {1, 1, 1, 1};
     MPI_Aint displacements[4];
@@ -104,6 +105,7 @@ void CommMpi::InitializeAmrDataArray1DMpiDataType() {
 void CommMpi::InitializeYtRmaGridInfoMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
+    // TODO: this part will be removed after refactoring RMA
     int lengths[5] = {1, 1, 1, 1, 3};
     const MPI_Aint displacements[5] = {0, 1 * sizeof(long), 1 * sizeof(long) + 1 * sizeof(MPI_Aint),
                                        1 * sizeof(long) + 1 * sizeof(MPI_Aint) + 1 * sizeof(int),
@@ -116,6 +118,7 @@ void CommMpi::InitializeYtRmaGridInfoMpiDataType() {
 void CommMpi::InitializeYtRmaParticleInfoMpiDataType() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
+    // TODO: this part will be removed after refactoring RMA
     int lengths[4] = {1, 1, 1, 1};
     const MPI_Aint displacements[4] = {0, 1 * sizeof(long), 1 * sizeof(long) + 1 * sizeof(MPI_Aint),
                                        2 * sizeof(long) + 1 * sizeof(MPI_Aint)};

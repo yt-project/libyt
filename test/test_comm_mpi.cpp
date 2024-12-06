@@ -156,7 +156,8 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray3D) {
         for (int d = 0; d < 3; d++) {
             send_buffer[i].data_dim[d] = d;
         }
-        send_buffer[i].data_ptr = nullptr;  // TODO: use the method in AmrDataArray1D
+        long temp = displacement + i;
+        std::memcpy(&(send_buffer[i].data_ptr), &temp, sizeof(temp));
     }
 
     AmrDataArray3D* recv_buffer = nullptr;
@@ -178,7 +179,7 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray3D) {
             for (int d = 0; d < 3; d++) {
                 EXPECT_EQ(recv_buffer[i].data_dim[d], d);
             }
-            EXPECT_EQ(recv_buffer[i].data_ptr, nullptr);  // TODO: use the method in AmrDataArray1D
+            EXPECT_EQ(reinterpret_cast<long>(recv_buffer[i].data_ptr), i);
         }
     }
 
@@ -364,36 +365,73 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray3D) {
     MPI_Datatype mpi_datatype = CommMpi::amr_data_array_3d_mpi_type_;
 
     const long total_send_counts = 1000;  // TODO: make this a test parameter
-    AmrDataArray3D* send_buffer = new AmrDataArray3D[total_send_counts];
+    AmrDataArray3D* buffer = new AmrDataArray3D[total_send_counts];
     if (mpi_rank == mpi_root) {
         for (int i = 0; i < total_send_counts; i++) {
-            send_buffer[i].id = i;
-            send_buffer[i].data_dtype = YT_INT;
-            send_buffer[i].contiguous_in_x = true;
+            buffer[i].id = i;
+            buffer[i].data_dtype = YT_INT;
+            buffer[i].contiguous_in_x = true;
             for (int d = 0; d < 3; d++) {
-                send_buffer[i].data_dim[d] = d;
+                buffer[i].data_dim[d] = d;
             }
-            send_buffer[i].data_ptr = nullptr;
+            long temp = i;
+            std::memcpy(&(buffer[i].data_ptr), &temp, sizeof(temp));
         }
     }
 
     // Act
-    const int result = big_MPI_Bcast<AmrDataArray3D>(mpi_root, total_send_counts, (void*)send_buffer, &mpi_datatype);
+    const int result = big_MPI_Bcast<AmrDataArray3D>(mpi_root, total_send_counts, (void*)buffer, &mpi_datatype);
 
     // Assert
     EXPECT_EQ(result, YT_SUCCESS);
     for (int i = 0; i < total_send_counts; i++) {
-        EXPECT_EQ(send_buffer[i].id, i);
-        EXPECT_EQ(send_buffer[i].data_dtype, YT_INT);
-        EXPECT_EQ(send_buffer[i].contiguous_in_x, true);
+        EXPECT_EQ(buffer[i].id, i);
+        EXPECT_EQ(buffer[i].data_dtype, YT_INT);
+        EXPECT_EQ(buffer[i].contiguous_in_x, true);
         for (int d = 0; d < 3; d++) {
-            EXPECT_EQ(send_buffer[i].data_dim[d], d);
+            EXPECT_EQ(buffer[i].data_dim[d], d);
         }
-        EXPECT_EQ(send_buffer[i].data_ptr, nullptr);
+        EXPECT_EQ(reinterpret_cast<long>(buffer[i].data_ptr), i);
     }
 
     // Clean up
-    delete[] send_buffer;
+    delete[] buffer;
+}
+
+TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray1D) {
+    // Arrange
+    int mpi_size = CommMpi::mpi_size_;
+    int mpi_rank = CommMpi::mpi_rank_;
+    int mpi_root = CommMpi::mpi_root_;
+    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
+    MPI_Datatype mpi_datatype = CommMpi::amr_data_array_1d_mpi_type_;
+
+    const long total_send_counts = 1000;  // TODO: make this a test parameter
+    AmrDataArray1D* buffer = new AmrDataArray1D[total_send_counts];
+    if (mpi_rank == mpi_root) {
+        for (int i = 0; i < total_send_counts; i++) {
+            buffer[i].id = i;
+            buffer[i].data_dtype = YT_INT;
+            buffer[i].data_len = i;
+            long temp = i;
+            std::memcpy(&(buffer[i].data_ptr), &temp, sizeof(temp));
+        }
+    }
+
+    // Act
+    const int result = big_MPI_Bcast<AmrDataArray1D>(mpi_root, total_send_counts, (void*)buffer, &mpi_datatype);
+
+    // Assert
+    EXPECT_EQ(result, YT_SUCCESS);
+    for (int i = 0; i < total_send_counts; i++) {
+        EXPECT_EQ(buffer[i].id, i);
+        EXPECT_EQ(buffer[i].data_dtype, YT_INT);
+        EXPECT_EQ(buffer[i].data_len, i);
+        EXPECT_EQ(reinterpret_cast<long>(buffer[i].data_ptr), i);
+    }
+
+    // Clean up
+    delete[] buffer;
 }
 
 TEST_F(TestBigMpi, big_MPI_Bcast_with_MpiRmaAddress) {
