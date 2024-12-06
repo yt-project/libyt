@@ -1,6 +1,7 @@
 #ifndef SERIAL_MODE
 #include "comm_mpi.h"
 
+#include "data_structure_amr.h"
 #include "timer.h"
 
 int CommMpi::mpi_rank_ = 0;
@@ -12,6 +13,7 @@ MPI_Datatype CommMpi::yt_long_mpi_type_;
 MPI_Datatype CommMpi::yt_hierarchy_mpi_type_;
 MPI_Datatype CommMpi::mpi_rma_address_mpi_type_;
 MPI_Datatype CommMpi::amr_data_array_3d_mpi_type_;
+MPI_Datatype CommMpi::amr_data_array_1d_mpi_type_;
 MPI_Datatype CommMpi::yt_rma_grid_info_mpi_type_;
 MPI_Datatype CommMpi::yt_rma_particle_info_mpi_type_;
 
@@ -79,6 +81,24 @@ void CommMpi::InitializeAmrDataArray3DMpiDataType() {
     MPI_Type_commit(&amr_data_array_3d_mpi_type_);
 
     mpi_custom_type_map_["amr_grid"] = &amr_data_array_3d_mpi_type_;
+}
+
+void CommMpi::InitializeAmrDataArray1DMpiDataType() {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    AmrDataArray1D amr_1d{};
+
+    int lengths[4] = {1, 1, 1, 1};
+    MPI_Aint displacements[4];
+    displacements[0] = offsetof(AmrDataArray1D, id);
+    displacements[1] = offsetof(AmrDataArray1D, data_dtype);
+    displacements[2] = offsetof(AmrDataArray1D, data_ptr);
+    displacements[3] = offsetof(AmrDataArray1D, data_len);
+    MPI_Datatype types[4] = {MPI_LONG, MPI_INT, MPI_AINT, MPI_LONG};
+    MPI_Type_create_struct(4, lengths, displacements, types, &amr_data_array_1d_mpi_type_);
+    MPI_Type_commit(&amr_data_array_1d_mpi_type_);
+
+    mpi_custom_type_map_["amr_particle"] = &amr_data_array_1d_mpi_type_;
 }
 
 void CommMpi::InitializeYtRmaGridInfoMpiDataType() {

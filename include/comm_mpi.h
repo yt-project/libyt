@@ -18,6 +18,7 @@ public:
     static MPI_Datatype yt_hierarchy_mpi_type_;
     static MPI_Datatype mpi_rma_address_mpi_type_;
     static MPI_Datatype amr_data_array_3d_mpi_type_;
+    static MPI_Datatype amr_data_array_1d_mpi_type_;
     static MPI_Datatype yt_rma_grid_info_mpi_type_;
     static MPI_Datatype yt_rma_particle_info_mpi_type_;
 
@@ -25,6 +26,7 @@ public:
     static void InitializeYtHierarchyMpiDataType();
     static void InitializeMpiRmaAddressMpiDataType();
     static void InitializeAmrDataArray3DMpiDataType();
+    static void InitializeAmrDataArray1DMpiDataType();
     static void InitializeYtRmaGridInfoMpiDataType();
     static void InitializeYtRmaParticleInfoMpiDataType();
 

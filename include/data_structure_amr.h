@@ -38,6 +38,13 @@ struct AmrDataArray3D {
     bool contiguous_in_x;
 };
 
+struct AmrDataArray1D {
+    long id;
+    yt_dtype data_dtype;
+    void* data_ptr;
+    long data_len;
+};
+
 enum class DataHubStatus : int { kDataHubFailed = 0, kDataHubSuccess = 1 };
 
 template<typename DataClass>
