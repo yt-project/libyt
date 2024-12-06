@@ -90,10 +90,7 @@ CommMpiRmaStatus CommMpiRma<DataClass>::PrepareData(const std::vector<DataClass>
         }
 
         // Attach buffer to window (TODO: consider particle data too)
-        int dtype_size;
-        get_dtype_size(pdata.data_dtype, &dtype_size);
-        MPI_Aint data_size = pdata.data_dim[0] * pdata.data_dim[1] * pdata.data_dim[2] * dtype_size;
-        int mpi_return_code = MPI_Win_attach(mpi_window_, pdata.data_ptr, data_size);
+        int mpi_return_code = MPI_Win_attach(mpi_window_, pdata.data_ptr, (MPI_Aint)GetDataSize(pdata));
         if (mpi_return_code != MPI_SUCCESS) {
             error_str_ = std::string("Attach buffer (data_group, gid) = (") + data_group_name_ + std::string(", ") +
                          std::to_string(pdata.id) + std::string(") to one-sided MPI (RMA) window failed on MPI rank ") +
@@ -170,26 +167,23 @@ CommMpiRmaStatus CommMpiRma<DataClass>::FetchRemoteData(const std::vector<CommMp
 
     // Fetch data
     mpi_fetched_data_.reserve(fetch_id_list.size());
-    for (const CommMpiRmaQueryInfo& fdata : fetch_id_list) {
+    for (const CommMpiRmaQueryInfo& fid : fetch_id_list) {
         bool data_found = false;
 
-        for (long s = search_range_[fdata.mpi_rank]; s < search_range_[fdata.mpi_rank + 1]; s++) {
-            if (all_prepared_data_list_[s].id == fdata.id) {
+        for (long s = search_range_[fid.mpi_rank]; s < search_range_[fid.mpi_rank + 1]; s++) {
+            if (all_prepared_data_list_[s].id == fid.id) {
                 DataClass fetched_data = all_prepared_data_list_[s];
 
                 // Copy data from remote buffer to local, and set the pointer in fetched_data
-                int data_size;
-                long data_len = fetched_data.data_dim[0] * fetched_data.data_dim[1] * fetched_data.data_dim[2];
-                get_dtype_size(fetched_data.data_dtype, &data_size);
                 MPI_Datatype mpi_dtype;
                 get_mpi_dtype(fetched_data.data_dtype, &mpi_dtype);
-                void* fetched_data_buffer = malloc(data_len * data_size);
+                void* fetched_data_buffer = malloc(GetDataSize(fetched_data));
                 fetched_data.data_ptr = fetched_data_buffer;
-                if (big_MPI_Get_dtype(fetched_data_buffer, data_len, &fetched_data.data_dtype, &mpi_dtype,
-                                      all_prepared_data_address_list_[s].mpi_rank,
+                if (big_MPI_Get_dtype(fetched_data_buffer, GetDataLen(fetched_data), &fetched_data.data_dtype,
+                                      &mpi_dtype, all_prepared_data_address_list_[s].mpi_rank,
                                       all_prepared_data_address_list_[s].mpi_address, &mpi_window_) != YT_SUCCESS) {
                     error_str_ = std::string("Fetch remote data buffer (data_group, id, mpi_rank) = (") +
-                                 data_group_name_ + std::string(", ") + std::to_string(fdata.id) + std::string(", ") +
+                                 data_group_name_ + std::string(", ") + std::to_string(fid.id) + std::string(", ") +
                                  std::to_string(all_prepared_data_address_list_[s].mpi_rank) +
                                  std::string(") failed on MPI rank ") + std::to_string(CommMpi::mpi_rank_) +
                                  std::string("!");
@@ -206,8 +200,8 @@ CommMpiRmaStatus CommMpiRma<DataClass>::FetchRemoteData(const std::vector<CommMp
 
         if (!data_found) {
             error_str_ = std::string("Cannot find remote data buffer (data_group, id, mpi_rank) = (") +
-                         data_group_name_ + std::string(", ") + std::to_string(fdata.id) + std::string(", ") +
-                         std::to_string(fdata.mpi_rank) + std::string(") on MPI rank ") +
+                         data_group_name_ + std::string(", ") + std::to_string(fid.id) + std::string(", ") +
+                         std::to_string(fid.mpi_rank) + std::string(") on MPI rank ") +
                          std::to_string(CommMpi::mpi_rank_) + std::string("!");
             return CommMpiRmaStatus::kMpiFailed;
         }
@@ -236,5 +230,25 @@ CommMpiRmaStatus CommMpiRma<DataClass>::CleanUp(const std::vector<DataClass>& pr
 }
 
 template class CommMpiRma<AmrDataArray3D>;
+
+std::size_t CommMpiRmaAmrDataArray3D::GetDataSize(const AmrDataArray3D& data) {
+    for (int i = 0; i < 3; i++) {
+        if (data.data_dim[i] <= 0) {
+            return 0;
+        }
+    }
+    int dtype_size;
+    get_dtype_size(data.data_dtype, &dtype_size);
+    return data.data_dim[0] * data.data_dim[1] * data.data_dim[2] * dtype_size;
+}
+
+std::size_t CommMpiRmaAmrDataArray3D::GetDataLen(const AmrDataArray3D& data) {
+    for (int i = 0; i < 3; i++) {
+        if (data.data_dim[i] <= 0) {
+            return 0;
+        }
+    }
+    return data.data_dim[0] * data.data_dim[1] * data.data_dim[2];
+}
 
 #endif
