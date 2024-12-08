@@ -4,8 +4,8 @@
 #include "libyt_process_control.h"
 #include "yt_prototype.h"
 
-DataHubReturn<AmrDataArray3D> DataHubAmr::GetFieldData(const std::string& field_name,
-                                                       const std::vector<long>& grid_id_list) {
+DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const std::string& field_name,
+                                                            const std::vector<long>& grid_id_list) {
     // Free cache before doing new query
     ClearCache();
 
@@ -27,7 +27,6 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetFieldData(const std::string& field_
     }
 
     if (strcmp(field_list[field_id].field_type, "derived_func") == 0) {
-        is_new_allocation_ = true;
         for (const long& gid : grid_id_list) {
             AmrDataArray3D amr_data{};
 
@@ -79,11 +78,11 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetFieldData(const std::string& field_
             long list_gid[1] = {amr_data.id};
             (*derived_func)(list_len, list_gid, field_name.c_str(), data_array);
 
+            is_new_allocation_list_.emplace_back(true);
             amr_data_array_3d_list_.emplace_back(amr_data);
         }
     } else if (strcmp(field_list[field_id].field_type, "cell-centered") == 0 ||
                strcmp(field_list[field_id].field_type, "face-centered") == 0) {
-        is_new_allocation_ = false;
         for (const long& gid : grid_id_list) {
             // TODO: Get data using libyt publich API, (this should be fixed later)
             yt_data field_data;
@@ -102,6 +101,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetFieldData(const std::string& field_
             }
             amr_data.data_ptr = field_data.data_ptr;
 
+            is_new_allocation_list_.emplace_back(false);
             amr_data_array_3d_list_.emplace_back(amr_data);
         }
     } else {
@@ -115,12 +115,29 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetFieldData(const std::string& field_
 }
 
 void DataHubAmr::ClearCache() {
-    if (is_new_allocation_) {
-        for (size_t i = 0; i < amr_data_array_3d_list_.size(); i++) {
-            free(amr_data_array_3d_list_[i].data_ptr);
+    if (!take_ownership_) {
+        // TODO: this is just weird (make particle RMA work first)
+        //       since the class holds both 1D and 3D data cache, and only one of them will be used,
+        //       we need to check which one is is_new_allocation_list_ referring to.
+        if (is_new_allocation_list_.size() == amr_data_array_3d_list_.size()) {
+            for (size_t i = 0; i < amr_data_array_3d_list_.size(); i++) {
+                if (is_new_allocation_list_[i]) {
+                    free(amr_data_array_3d_list_[i].data_ptr);
+                }
+            }
+        } else if (is_new_allocation_list_.size() == amr_data_array_1d_list_.size()) {
+            for (size_t i = 0; i < amr_data_array_1d_list_.size(); i++) {
+                if (is_new_allocation_list_[i]) {
+                    free(amr_data_array_1d_list_[i].data_ptr);
+                }
+            }
+        }
+        for (size_t i = 0; i < amr_data_array_1d_list_.size(); i++) {
+            free(amr_data_array_1d_list_[i].data_ptr);
         }
     }
-    is_new_allocation_ = false;
+    is_new_allocation_list_.clear();
     amr_data_array_3d_list_.clear();
+    amr_data_array_1d_list_.clear();
     error_str_ = std::string("");
 }

@@ -56,12 +56,20 @@ struct DataHubReturn {
 class DataHubAmr {
 private:
     std::vector<AmrDataArray3D> amr_data_array_3d_list_;
-    bool is_new_allocation_;
+    std::vector<AmrDataArray1D> amr_data_array_1d_list_;
+    std::vector<bool> is_new_allocation_list_;
     std::string error_str_;
 
+    // TODO: need to be able to set this flag based on user input,
+    //       since this is only used in RMA currently, will apply it to get_particle/derived_func later.
+    bool take_ownership_;
+
 public:
-    DataHubAmr() : is_new_allocation_(false) {}
-    DataHubReturn<AmrDataArray3D> GetFieldData(const std::string& field_name, const std::vector<long>& grid_id_list);
+    DataHubAmr() : take_ownership_(false) {}
+    DataHubReturn<AmrDataArray3D> GetLocalFieldData(const std::string& field_name,
+                                                    const std::vector<long>& grid_id_list);
+    DataHubReturn<AmrDataArray1D> GetLocalParticleData(const std::string& ptype, const std::string& pattr,
+                                                       const std::vector<long>& grid_id_list);
     void ClearCache();
     const std::string& GetErrorStr() const { return error_str_; }
     ~DataHubAmr() { ClearCache(); }
