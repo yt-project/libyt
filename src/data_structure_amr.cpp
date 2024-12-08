@@ -132,9 +132,6 @@ void DataHubAmr::ClearCache() {
                 }
             }
         }
-        for (size_t i = 0; i < amr_data_array_1d_list_.size(); i++) {
-            free(amr_data_array_1d_list_[i].data_ptr);
-        }
     }
     is_new_allocation_list_.clear();
     amr_data_array_3d_list_.clear();
