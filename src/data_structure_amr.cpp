@@ -55,7 +55,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const std::string& f
             // Get derived function pointer
             void (*derived_func)(const int, const long*, const char*, yt_array*) = field_list[field_id].derived_func;
             if (derived_func == nullptr) {
-                std::string error_msg = std::string("Derived function not set in field [ ") + field_name +
+                std::string error_msg = std::string("Derived function derived_func not set in field [ ") + field_name +
                                         std::string(" ] on MPI rank ") +
                                         std::to_string(LibytProcessControl::Get().mpi_rank_) + std::string(".\n");
                 return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
@@ -112,6 +112,102 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const std::string& f
     }
 
     return {DataHubStatus::kDataHubSuccess, amr_data_array_3d_list_};
+}
+
+DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const std::string& ptype, const std::string& pattr,
+                                                               const std::vector<long>& grid_id_list) {
+    // Free cache before doing new query
+    ClearCache();
+
+    // Since everything is under LibytProcessControl, we need to include it.
+    // TODO: Move data structure in LibytProcessControl to this class later
+    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
+    int ptype_index = -1, pattr_index = -1;
+    for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_par_types; v++) {
+        if (ptype == particle_list[v].par_type) {
+            ptype_index = v;
+            for (int a = 0; a < particle_list[v].num_attr; a++) {
+                if (pattr == particle_list[v].attr_list[a].attr_name) {
+                    pattr_index = a;
+                    break;
+                }
+            }
+            break;
+        }
+    }
+    if (ptype_index == -1 || pattr_index == -1) {
+        std::string error_msg = std::string("Cannot find (particle type, attribute) = (") + ptype + std::string(", ") +
+                                pattr + std::string(") in particle_list on MPI rank ") +
+                                std::to_string(LibytProcessControl::Get().mpi_rank_) + std::string(".\n");
+        return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
+    }
+
+    for (const long& gid : grid_id_list) {
+        AmrDataArray1D amr_1d_data{};
+
+        // Get particle info
+        amr_1d_data.id = gid;
+        amr_1d_data.data_dtype = particle_list[ptype_index].attr_list[pattr_index].attr_dtype;
+        if (yt_getGridInfo_ParticleCount(gid, ptype.c_str(), &(amr_1d_data.data_len)) != YT_SUCCESS) {
+            std::string error_msg = std::string("Failed to get particle count for (particle type, gid) = (") + ptype +
+                                    std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
+                                    std::to_string(LibytProcessControl::Get().mpi_rank_) + std::string(".\n");
+            return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
+        }
+        if (amr_1d_data.data_len < 0) {
+            std::string error_msg = std::string("Particle count = ") + std::to_string(amr_1d_data.data_len) +
+                                    std::string(" < 0 for (particle type, gid) = (") + ptype + std::string(", ") +
+                                    std::to_string(gid) + std::string(") on MPI rank ") +
+                                    std::to_string(LibytProcessControl::Get().mpi_rank_) + std::string(".\n");
+            return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
+        } else if (amr_1d_data.data_len == 0) {
+            amr_1d_data.data_ptr = nullptr;
+            is_new_allocation_list_.emplace_back(false);
+            amr_data_array_1d_list_.emplace_back(amr_1d_data);
+            continue;
+        }
+
+        // Get particle data, it first tries to read in libyt.particle_data, if not, it generates data in get_par_attr
+        yt_data par_array;
+        if (GetLocalParticleDataFromPython(gid, ptype.c_str(), pattr.c_str(), &par_array) == YT_SUCCESS) {
+            // Read from libyt.particle_data
+            amr_1d_data.data_ptr = par_array.data_ptr;
+            is_new_allocation_list_.emplace_back(false);
+            amr_data_array_1d_list_.emplace_back(amr_1d_data);
+        } else {
+            // Get particle function get_par_attr
+            void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*) =
+                particle_list[ptype_index].get_par_attr;
+            if (get_par_attr == nullptr) {
+                std::string error_msg = std::string("Get particle function get_par_attr not set in particle type [ ") +
+                                        ptype + std::string(" ] on MPI rank ") +
+                                        std::to_string(LibytProcessControl::Get().mpi_rank_) + std::string(".\n");
+                return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
+            }
+
+            // Generate buffer
+            if (get_dtype_allocation(amr_1d_data.data_dtype, amr_1d_data.data_len, &amr_1d_data.data_ptr) !=
+                YT_SUCCESS) {
+                std::string error_msg =
+                    std::string("Failed to allocate memory for (particle type, attribute, gid, data_len) = (") + ptype +
+                    std::string(", ") + pattr + std::string(", ") + std::to_string(gid) + std::string(", ") +
+                    std::to_string(amr_1d_data.data_len) + std::string(") on MPI rank ") +
+                    std::to_string(LibytProcessControl::Get().mpi_rank_) + std::string(".\n");
+                return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
+            }
+            int list_len = 1;
+            long list_gid[1] = {gid};
+            yt_array data_array[1];
+            data_array[0].gid = gid;
+            data_array[0].data_length = amr_1d_data.data_len;
+            data_array[0].data_ptr = amr_1d_data.data_ptr;
+            (*get_par_attr)(list_len, list_gid, ptype.c_str(), pattr.c_str(), data_array);
+            is_new_allocation_list_.emplace_back(true);
+            amr_data_array_1d_list_.emplace_back(amr_1d_data);
+        }
+    }
+
+    return {DataHubStatus::kDataHubSuccess, amr_data_array_1d_list_};
 }
 
 void DataHubAmr::ClearCache() {
