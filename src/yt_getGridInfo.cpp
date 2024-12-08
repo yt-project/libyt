@@ -367,3 +367,61 @@ int yt_getGridInfo_ParticleData(const long gid, const char* ptype, const char* a
 
     return YT_SUCCESS;
 }
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  GetLocalParticleDataFromPython
+// Description :  Get libyt.particle_data of ptype attr attributes in the grid with grid id = gid silently,
+//                doesn't print any error message. It is the same as yt_getGridInfo_ParticleData.
+//
+// Parameter   :  const long   gid              : Target grid id.
+//                const char  *ptype            : Target particle type.
+//                const char  *attr             : Target attribute name.
+//                yt_data     *par_data         : Store the yt_data struct pointer that points to data.
+//
+// Return      :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int GetLocalParticleDataFromPython(const long gid, const char* ptype, const char* attr, yt_data* par_data) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    if (!LibytProcessControl::Get().commit_grids) {
+        YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
+                 __FUNCTION__);
+    }
+
+    // get dictionary libyt.particle_data[gid][ptype]
+    PyObject* py_grid_id = PyLong_FromLong(gid);
+    PyObject* py_ptype = PyUnicode_FromString(ptype);
+    PyObject* py_attr = PyUnicode_FromString(attr);
+
+    if (PyDict_Contains(LibytProcessControl::Get().py_particle_data_, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype) != 1 ||
+        PyDict_Contains(
+            PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype),
+            py_attr) != 1) {
+        Py_DECREF(py_grid_id);
+        Py_DECREF(py_ptype);
+        Py_DECREF(py_attr);
+        return YT_FAIL;
+    }
+    PyArrayObject* py_data = (PyArrayObject*)PyDict_GetItem(
+        PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype), py_attr);
+
+    Py_DECREF(py_grid_id);
+    Py_DECREF(py_ptype);
+    Py_DECREF(py_attr);
+
+    // extracting py_data to par_data
+    npy_intp* py_data_dims = PyArray_DIMS(py_data);
+    (*par_data).data_dimensions[0] = (int)py_data_dims[0];
+    (*par_data).data_dimensions[1] = 0;
+    (*par_data).data_dimensions[2] = 0;
+
+    (*par_data).data_ptr = PyArray_DATA(py_data);
+
+    PyArray_Descr* py_data_info = PyArray_DESCR(py_data);
+    if (get_yt_dtype_from_npy(py_data_info->type_num, &(*par_data).data_dtype) != YT_SUCCESS) {
+        return YT_FAIL;
+    }
+
+    return YT_SUCCESS;
+}
