@@ -286,7 +286,7 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
             prepare_id_list.emplace_back(py_gid.cast<long>());
         }
         DataHubAmr local_amr_data;
-        DataHubReturn<AmrDataArray3D> prepared_data = local_amr_data.GetFieldData(fname, prepare_id_list);
+        DataHubReturn<AmrDataArray3D> prepared_data = local_amr_data.GetLocalFieldData(fname, prepare_id_list);
         if (prepared_data.status != DataHubStatus::kDataHubSuccess) {
             PyErr_SetString(PyExc_RuntimeError, local_amr_data.GetErrorStr().c_str());
             throw pybind11::error_already_set();
