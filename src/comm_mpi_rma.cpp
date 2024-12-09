@@ -1,11 +1,8 @@
 #ifndef SERIAL_MODE
 #include "comm_mpi_rma.h"
 
-#include <iostream>
-
 #include "big_mpi.h"
 #include "comm_mpi.h"
-#include "data_structure_amr.h"
 #include "timer.h"
 #include "yt_prototype.h"
 
@@ -82,17 +79,24 @@ CommMpiRmaStatus CommMpiRma<DataClass>::PrepareData(const std::vector<DataClass>
     mpi_prepared_data_address_list_.reserve(prepared_data_list.size());
 
     for (const DataClass& pdata : prepared_data_list) {
-        // Check if data pointer is nullptr
+        // If data pointer is nullptr, we don't need to wrap it.
         if (pdata.data_ptr == nullptr) {
-            error_str_ = std::string("Data pointer is nullptr in (data_group, gid) = (") + data_group_name_ +
-                         std::string(", ") + std::to_string(pdata.id) + std::string(")!");
-            return CommMpiRmaStatus::kMpiFailed;
+            mpi_prepared_data_address_list_.emplace_back(
+                MpiRmaAddress{reinterpret_cast<MPI_Aint>(nullptr), CommMpi::mpi_rank_});
+            continue;
         }
 
-        // Attach buffer to window (TODO: consider particle data too)
-        int mpi_return_code = MPI_Win_attach(mpi_window_, pdata.data_ptr, (MPI_Aint)GetDataSize(pdata));
+        // Attach buffer to window for all the prepared data passed in
+        long data_size = GetDataSize(pdata);
+        if (data_size < 0) {
+            error_str_ = std::string("Prepare data size is invalid in (data_group, id) = (") + data_group_name_ +
+                         std::string(", ") + std::to_string(pdata.id) + std::string(") on MPI rank ") +
+                         std::to_string(CommMpi::mpi_rank_) + std::string("!");
+            return CommMpiRmaStatus::kMpiFailed;
+        }
+        int mpi_return_code = MPI_Win_attach(mpi_window_, pdata.data_ptr, (MPI_Aint)data_size);
         if (mpi_return_code != MPI_SUCCESS) {
-            error_str_ = std::string("Attach buffer (data_group, gid) = (") + data_group_name_ + std::string(", ") +
+            error_str_ = std::string("Attach buffer (data_group, id) = (") + data_group_name_ + std::string(", ") +
                          std::to_string(pdata.id) + std::string(") to one-sided MPI (RMA) window failed on MPI rank ") +
                          std::to_string(CommMpi::mpi_rank_) +
                          std::string("!\n"
@@ -162,6 +166,8 @@ template<typename DataClass>
 CommMpiRmaStatus CommMpiRma<DataClass>::FetchRemoteData(const std::vector<CommMpiRmaQueryInfo>& fetch_id_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
+    // TODO: do I need to sync all MPI process here? (Making sure they have reached this step)
+
     // Open the window epoch
     MPI_Win_fence(MPI_MODE_NOSTORE | MPI_MODE_NOPUT | MPI_MODE_NOPRECEDE, mpi_window_);
 
@@ -175,13 +181,39 @@ CommMpiRmaStatus CommMpiRma<DataClass>::FetchRemoteData(const std::vector<CommMp
             if (all_prepared_data_list_[s].id == fid.id) {
                 DataClass fetched_data = all_prepared_data_list_[s];
 
-                // Copy data from remote buffer to local, and set the pointer in fetched_data
+                // If data pointer to fetch is nullptr, we don't need to fetch it.
+                if (reinterpret_cast<void*>(all_prepared_data_address_list_[s].mpi_address) == nullptr) {
+                    fetched_data.data_ptr = nullptr;
+                    mpi_fetched_data_.emplace_back(fetched_data);
+                    data_found = true;
+                    break;
+                }
+
+                // Check the size, length, and data pointer
                 MPI_Datatype mpi_dtype;
                 get_mpi_dtype(fetched_data.data_dtype, &mpi_dtype);
-                void* fetched_data_buffer = malloc(GetDataSize(fetched_data));
+                long data_size = GetDataSize(fetched_data);
+                long data_len = GetDataLen(fetched_data);
+                if (data_size < 0) {
+                    error_str_ = std::string("Fetch remote data size is invalid in (data_group, id, mpi_rank) = (") +
+                                 data_group_name_ + std::string(", ") + std::to_string(fetched_data.id) +
+                                 std::string(", ") + std::to_string(all_prepared_data_address_list_[s].mpi_rank) +
+                                 std::string(") on MPI rank ") + std::to_string(CommMpi::mpi_rank_) + std::string("!");
+                    break;
+                }
+                if (data_len < 0) {
+                    error_str_ = std::string("Fetch remote data length is invalid in (data_group, id, mpi_rank) = (") +
+                                 data_group_name_ + std::string(", ") + std::to_string(fetched_data.id) +
+                                 std::string(", ") + std::to_string(all_prepared_data_address_list_[s].mpi_rank) +
+                                 std::string(") on MPI rank ") + std::to_string(CommMpi::mpi_rank_) + std::string("!");
+                    break;
+                }
+
+                // Copy data from remote buffer to local, and set the pointer in fetched_data
+                void* fetched_data_buffer = malloc(data_size);
                 fetched_data.data_ptr = fetched_data_buffer;
-                if (big_MPI_Get_dtype(fetched_data_buffer, GetDataLen(fetched_data), &fetched_data.data_dtype,
-                                      &mpi_dtype, all_prepared_data_address_list_[s].mpi_rank,
+                if (big_MPI_Get_dtype(fetched_data_buffer, data_len, &fetched_data.data_dtype, &mpi_dtype,
+                                      all_prepared_data_address_list_[s].mpi_rank,
                                       all_prepared_data_address_list_[s].mpi_address, &mpi_window_) != YT_SUCCESS) {
                     error_str_ = std::string("Fetch remote data buffer (data_group, id, mpi_rank) = (") +
                                  data_group_name_ + std::string(", ") + std::to_string(fid.id) + std::string(", ") +
@@ -236,38 +268,43 @@ CommMpiRmaStatus CommMpiRma<DataClass>::CleanUp(const std::vector<DataClass>& pr
 template class CommMpiRma<AmrDataArray3D>;
 template class CommMpiRma<AmrDataArray1D>;
 
-std::size_t CommMpiRmaAmrDataArray3D::GetDataSize(const AmrDataArray3D& data) {
+long CommMpiRmaAmrDataArray3D::GetDataSize(const AmrDataArray3D& data) {
     for (int i = 0; i < 3; i++) {
-        if (data.data_dim[i] <= 0) {
-            return 0;
+        if (data.data_dim[i] < 0) {
+            return -1;
         }
     }
+    if (data.data_dtype == YT_DTYPE_UNKNOWN) {
+        return -1;
+    }
+
     int dtype_size;
     get_dtype_size(data.data_dtype, &dtype_size);
     return data.data_dim[0] * data.data_dim[1] * data.data_dim[2] * dtype_size;
 }
 
-std::size_t CommMpiRmaAmrDataArray3D::GetDataLen(const AmrDataArray3D& data) {
+long CommMpiRmaAmrDataArray3D::GetDataLen(const AmrDataArray3D& data) {
     for (int i = 0; i < 3; i++) {
-        if (data.data_dim[i] <= 0) {
-            return 0;
+        if (data.data_dim[i] < 0) {
+            return -1;
         }
     }
     return data.data_dim[0] * data.data_dim[1] * data.data_dim[2];
 }
 
-std::size_t CommMpiRmaAmrDataArray1D::GetDataSize(const AmrDataArray1D& data) {
-    if (data.data_len <= 0) {
-        return 0;
+long CommMpiRmaAmrDataArray1D::GetDataSize(const AmrDataArray1D& data) {
+    if (data.data_len < 0 || data.data_dtype == YT_DTYPE_UNKNOWN) {
+        return -1;
     }
+
     int dtype_size;
     get_dtype_size(data.data_dtype, &dtype_size);
     return data.data_len * dtype_size;
 }
 
-std::size_t CommMpiRmaAmrDataArray1D::GetDataLen(const AmrDataArray1D& data) {
-    if (data.data_len <= 0) {
-        return 0;
+long CommMpiRmaAmrDataArray1D::GetDataLen(const AmrDataArray1D& data) {
+    if (data.data_len < 0) {
+        return -1;
     }
     return data.data_len;
 }

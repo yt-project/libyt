@@ -49,8 +49,8 @@ private:
     CommMpiRmaStatus FetchRemoteData(const std::vector<CommMpiRmaQueryInfo>& fetch_id_list);
     CommMpiRmaStatus CleanUp(const std::vector<DataClass>& prepared_data_list);
 
-    virtual std::size_t GetDataSize(const DataClass& data) = 0;
-    virtual std::size_t GetDataLen(const DataClass& data) = 0;
+    virtual long GetDataSize(const DataClass& data) = 0;
+    virtual long GetDataLen(const DataClass& data) = 0;
     // TODO: create virtual function to select the data (ex: id)
 
 public:
@@ -62,8 +62,8 @@ public:
 
 class CommMpiRmaAmrDataArray3D : public CommMpiRma<AmrDataArray3D> {
 private:
-    std::size_t GetDataSize(const AmrDataArray3D& data) override;
-    std::size_t GetDataLen(const AmrDataArray3D& data) override;
+    long GetDataSize(const AmrDataArray3D& data) override;
+    long GetDataLen(const AmrDataArray3D& data) override;
 
 public:
     CommMpiRmaAmrDataArray3D(const std::string& data_group_name, const std::string& data_format)
@@ -72,8 +72,8 @@ public:
 
 class CommMpiRmaAmrDataArray1D : public CommMpiRma<AmrDataArray1D> {
 private:
-    std::size_t GetDataSize(const AmrDataArray1D& data) override;
-    std::size_t GetDataLen(const AmrDataArray1D& data) override;
+    long GetDataSize(const AmrDataArray1D& data) override;
+    long GetDataLen(const AmrDataArray1D& data) override;
 
 public:
     CommMpiRmaAmrDataArray1D(const std::string& data_group_name, const std::string& data_format)
