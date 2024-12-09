@@ -31,18 +31,18 @@ struct yt_hierarchy {
 };
 
 struct AmrDataArray3D {
-    long id;
-    yt_dtype data_dtype;
-    int data_dim[3];
-    void* data_ptr;
-    bool contiguous_in_x;
+    long id = -1;
+    yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
+    int data_dim[3]{0, 0, 0};
+    void* data_ptr = nullptr;
+    bool contiguous_in_x = false;
 };
 
 struct AmrDataArray1D {
-    long id;
-    yt_dtype data_dtype;
-    void* data_ptr;
-    long data_len;
+    long id = -1;
+    yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
+    void* data_ptr = nullptr;
+    long data_len = 0;
 };
 
 enum class DataHubStatus : int { kDataHubFailed = 0, kDataHubSuccess = 1 };
