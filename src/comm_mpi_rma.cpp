@@ -29,45 +29,43 @@ CommMpiRmaReturn<DataClass> CommMpiRma<DataClass>::GetRemoteData(
     int step = 0;
     while (1) {
         status = InitializeMpiWindow();
-        step = 1;
         all_status = static_cast<CommMpiRmaStatus>(CommMpi::GetAllStates(
             static_cast<int>(status), static_cast<int>(CommMpiRmaStatus::kMpiSuccess),
             static_cast<int>(CommMpiRmaStatus::kMpiSuccess), static_cast<int>(CommMpiRmaStatus::kMpiFailed)));
         if (all_status != CommMpiRmaStatus::kMpiSuccess) {
             break;
         }
+        step = 1;
 
         status = PrepareData(prepared_data_list);
-        step = 2;
         all_status = static_cast<CommMpiRmaStatus>(CommMpi::GetAllStates(
             static_cast<int>(status), static_cast<int>(CommMpiRmaStatus::kMpiSuccess),
             static_cast<int>(CommMpiRmaStatus::kMpiSuccess), static_cast<int>(CommMpiRmaStatus::kMpiFailed)));
         if (all_status != CommMpiRmaStatus::kMpiSuccess) {
             break;
         }
+        step = 2;
 
         status = GatherAllPreparedData(prepared_data_list);
-        step = 3;
         all_status = static_cast<CommMpiRmaStatus>(CommMpi::GetAllStates(
             static_cast<int>(status), static_cast<int>(CommMpiRmaStatus::kMpiSuccess),
             static_cast<int>(CommMpiRmaStatus::kMpiSuccess), static_cast<int>(CommMpiRmaStatus::kMpiFailed)));
         if (all_status != CommMpiRmaStatus::kMpiSuccess) {
             break;
         }
+        step = 3;
 
         status = FetchRemoteData(fetch_id_list);
-        step = 4;
         all_status = static_cast<CommMpiRmaStatus>(CommMpi::GetAllStates(
             static_cast<int>(status), static_cast<int>(CommMpiRmaStatus::kMpiSuccess),
             static_cast<int>(CommMpiRmaStatus::kMpiSuccess), static_cast<int>(CommMpiRmaStatus::kMpiFailed)));
+        step = 4;
 
         break;
     }
 
-    if (status == CommMpiRmaStatus::kMpiSuccess && step >= 2) {
+    if (step >= 1) {
         DetachBuffer(prepared_data_list);
-    }
-    if (status == CommMpiRmaStatus::kMpiSuccess) {
         FreeMpiWindow();
     }
     CleanUp(prepared_data_list);
@@ -284,8 +282,9 @@ template<typename DataClass>
 CommMpiRmaStatus CommMpiRma<DataClass>::DetachBuffer(const std::vector<DataClass>& prepared_data_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    for (const DataClass& pdata : prepared_data_list) {
-        MPI_Win_detach(mpi_window_, pdata.data_ptr);
+    // Detach what is attached in PrepareData
+    for (std::size_t i = 0; i < mpi_prepared_data_address_list_.size(); i++) {
+        MPI_Win_detach(mpi_window_, prepared_data_list[i].data_ptr);
     }
 
     return CommMpiRmaStatus::kMpiSuccess;
