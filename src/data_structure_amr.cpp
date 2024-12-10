@@ -4,6 +4,19 @@
 #include "libyt_process_control.h"
 #include "yt_prototype.h"
 
+//-------------------------------------------------------------------------------------------------------
+// Class         :  DataHubAmr
+// Public Method :  GetLocalFieldData
+//
+// Notes       :  1. Get local field data and cache it.
+//                2. The method is specific for AMR data defined in libyt.
+//                3. The method is designed to be called many times by user and fails fast.
+//                4. Can retrieve data type derived_func/cell-centered/face-centered.
+//                5. If the data retrival requires new allocation of data buffer (ex: derived function),
+//                   then it will be marked in is_new_allocation_list_. It will later be freed by ClearCache.
+//                6. TODO: The function is not tested yet, will do so after separate data structure from
+//                         LibytProcessControl.
+//-------------------------------------------------------------------------------------------------------
 DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const std::string& field_name,
                                                             const std::vector<long>& grid_id_list) {
     // Free cache before doing new query
@@ -84,7 +97,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const std::string& f
     } else if (strcmp(field_list[field_id].field_type, "cell-centered") == 0 ||
                strcmp(field_list[field_id].field_type, "face-centered") == 0) {
         for (const long& gid : grid_id_list) {
-            // TODO: Get data using libyt publich API, (this should be fixed later)
+            // TODO: Get data using libyt public API, (this should be fixed later)
             yt_data field_data;
             if (yt_getGridInfo_FieldData(gid, field_name.c_str(), &field_data) != YT_SUCCESS) {
                 std::string error_msg = std::string("Failed to get data (field_name, gid) = (") + field_name +
@@ -114,6 +127,19 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const std::string& f
     return {DataHubStatus::kDataHubSuccess, amr_data_array_3d_list_};
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Class         :  DataHubAmr
+// Public Method :  GetLocalParticleData
+//
+// Notes       :  1. Get local particle data and cache it.
+//                2. The method is specific for AMR data defined in libyt.
+//                3. The method is designed to be called many times by user and fails fast.
+//                4. If the data retrival requires new allocation of data buffer (ex: get_par_attr),
+//                   then it will be marked in is_new_allocation_list_. It will later be freed by ClearCache.
+//                5. It first look for data in libyt.particle_data, if not found, it will call get_par_attr.
+//                6. TODO: The function is not tested yet, will do so after separate data structure from
+//                         LibytProcessControl.
+//-------------------------------------------------------------------------------------------------------
 DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const std::string& ptype, const std::string& pattr,
                                                                const std::vector<long>& grid_id_list) {
     // Free cache before doing new query
@@ -210,11 +236,16 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const std::string
     return {DataHubStatus::kDataHubSuccess, amr_data_array_1d_list_};
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Class         :  DataHubAmr
+// Public Method :  ClearCache
+//
+// Notes       :  1. Clear the cache, and decide if new allocation needs to be freed.
+//                2. TODO: since the class holds both 1D and 3D data cache, and only one of them will be
+//                         used at a time, we need to check which one is is_new_allocation_list_ referring to.
+//-------------------------------------------------------------------------------------------------------
 void DataHubAmr::ClearCache() {
     if (!take_ownership_) {
-        // TODO: this is just weird (make particle RMA work first)
-        //       since the class holds both 1D and 3D data cache, and only one of them will be used,
-        //       we need to check which one is is_new_allocation_list_ referring to.
         if (is_new_allocation_list_.size() == amr_data_array_3d_list_.size()) {
             for (size_t i = 0; i < amr_data_array_3d_list_.size(); i++) {
                 if (is_new_allocation_list_[i]) {

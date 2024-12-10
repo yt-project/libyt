@@ -371,11 +371,13 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
 // Note        :  1. We return in dictionary objects.
 //                2. We assume that the list of to-get attribute has the same ptype and attr order in each
 //                   rank.
-//                3. If there are no particles in one grid, then we write Py_None to it.
-//                4. Directly return None if it is in SERIAL_MODE
+//                3. We first filter out data len <= 0 in prepared data and fetched data. So that we don't
+//                   pass nullptr around in rma.
+//                4. If there are no particles in one grid, then we write Py_None to it.
+//                5. Directly return None if it is in SERIAL_MODE
 //                   TODO: Not sure if this would affect the performance. And do I even need this?
 //                         Wondering if pybind11 do dynamic casting back to a dictionary.
-//                5. TODO: Some of the passed in arguments are not used, will fix it and define new API in the future.
+//                6. TODO: Some of the passed in arguments are not used, will fix it and define new API in the future.
 //                         get_field_remote and get_particle_remote should be merged.
 //
 // Parameter   :  dict obj : ptf          : {<ptype>: [<attr1>, <attr2>, ...]} particle type and attributes
@@ -459,7 +461,7 @@ pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind1
                 throw pybind11::error_already_set();
             }
 
-            // Wrap to Python dictionary
+            // Wrap fetched data to a Python dictionary
             for (const AmrDataArray1D& fetched_data : rma_return.data_list) {
                 // Create dictionary data[grid id][ptype]
                 long gid = fetched_data.id;
@@ -485,6 +487,7 @@ pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind1
                 }
             }
 
+            // Wrap particle count = 0 to a Python dictionary
             for (const long& gid : fetch_particle_count0_list) {
                 if (!py_output.contains(pybind11::int_(gid))) {
                     py_output[pybind11::int_(gid)] = pybind11::dict();

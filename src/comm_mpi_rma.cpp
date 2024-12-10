@@ -6,12 +6,35 @@
 #include "timer.h"
 #include "yt_prototype.h"
 
+//-------------------------------------------------------------------------------------------------------
+// Class         :  CommMpiRma<DataClass>
+// Public Method :  Constructor
+//
+// Notes       :  1. Set up data group name and data format.
+//                2. Data format maps to custom MPI datatype defined in CommMpi::mpi_custom_type_map_.
+//-------------------------------------------------------------------------------------------------------
 template<typename DataClass>
 CommMpiRma<DataClass>::CommMpiRma(const std::string& data_group_name, const std::string& data_format)
     : data_group_name_(data_group_name), data_format_(data_format) {
     SET_TIMER(__PRETTY_FUNCTION__);
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Class         :  CommMpiRma<DataClass>
+// Public Method :  GetRemoteData
+//
+// Notes       :  1. Correctly call each sub-step of MPI RMA operation, and make sure every process has
+//                   reach the same step before entering the next step.
+//                2. If a step failed in any process, the other processes will know and fail fast.
+//                   This is because some steps use collective MPI operations, which needs all processes
+//                   to participate.
+//                3. The returned struct contains status of current MPI process, status of all processes,
+//                   and the fetched data if it has.
+//                4. Fetched data are cached in class, so it only returns a const reference to the data.
+//                5. This function is designed to be called many times by user.
+//                6. The class uses template design pattern for other class to inherit and implement the
+//                   GetDataLen/GetDataSize function for some specific data struct to pass around.
+//-------------------------------------------------------------------------------------------------------
 template<typename DataClass>
 CommMpiRmaReturn<DataClass> CommMpiRma<DataClass>::GetRemoteData(
     const std::vector<DataClass>& prepared_data_list, const std::vector<CommMpiRmaQueryInfo>& fetch_id_list) {
@@ -73,6 +96,15 @@ CommMpiRmaReturn<DataClass> CommMpiRma<DataClass>::GetRemoteData(
     return {.status = status, .all_status = static_cast<CommMpiRmaStatus>(all_status), .data_list = mpi_fetched_data_};
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Class          :  CommMpiRma<DataClass>
+// Private Method :  InitializeMpiWindow
+//
+// Notes       :  1. Initialize one-sided MPI (RMA) window.
+//                2. MPI_Win_create_dynamic is a collective operation;
+//                   it must be called by all MPI processes in the intra-communicator.
+//                   (ref: https://rookiehpc.org/mpi/docs/mpi_win_create_dynamic/index.html)
+//-------------------------------------------------------------------------------------------------------
 template<typename DataClass>
 CommMpiRmaStatus CommMpiRma<DataClass>::InitializeMpiWindow() {
     SET_TIMER(__PRETTY_FUNCTION__);
@@ -92,6 +124,17 @@ CommMpiRmaStatus CommMpiRma<DataClass>::InitializeMpiWindow() {
     return CommMpiRmaStatus::kMpiSuccess;
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Class          :  CommMpiRma<DataClass>
+// Private Method :  PrepareData
+//
+// Notes       :  1. Faithfully attaching buffer to window for all the prepared data passed in, even if
+//                   nullptr is passed in.
+//                2. Does not check the validity of the data. Return error if it is unable to attach the
+//                   buffer to the window.
+//                3. Call GetDataSize to get the size of the data. The method is implemented by the
+//                   derived class.
+//-------------------------------------------------------------------------------------------------------
 template<typename DataClass>
 CommMpiRmaStatus CommMpiRma<DataClass>::PrepareData(const std::vector<DataClass>& prepared_data_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
@@ -144,6 +187,13 @@ CommMpiRmaStatus CommMpiRma<DataClass>::PrepareData(const std::vector<DataClass>
     return CommMpiRmaStatus::kMpiSuccess;
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Class          :  CommMpiRma<DataClass>
+// Private Method :  GatherAllPreparedData
+//
+// Notes       :  1. Gather all prepared data from all MPI ranks.
+//                2. Use collective MPI operation, which requires all processes to participate.
+//-------------------------------------------------------------------------------------------------------
 template<typename DataClass>
 CommMpiRmaStatus CommMpiRma<DataClass>::GatherAllPreparedData(const std::vector<DataClass>& prepared_data_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
@@ -183,6 +233,20 @@ CommMpiRmaStatus CommMpiRma<DataClass>::GatherAllPreparedData(const std::vector<
     return CommMpiRmaStatus::kMpiSuccess;
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Class          :  CommMpiRma<DataClass>
+// Private Method :  FetchRemoteData
+//
+// Notes       :  1. MPI_Win_fence is a collective operation, which requires all processes to participate.
+//                2. Close the window epoch even if the fetch failed, since it is a collective operation.
+//                3. Allocate new buffer and fetch/copy data from remote buffer to local buffer.
+//                4. If fetch id contains nullptr, we don't need to fetch it; just get the data info and
+//                   set the pointer to nullptr.
+//                5. If unable to fetch data, or the data size/length is invalid, return error.
+//                   If there is error, it would ignore the rest of the fetch ids.
+//                6. Call GetDataLen/GetDataSize to get the length and size of the data. The method is
+//                   implemented by the derived class.
+//-------------------------------------------------------------------------------------------------------
 template<typename DataClass>
 CommMpiRmaStatus CommMpiRma<DataClass>::FetchRemoteData(const std::vector<CommMpiRmaQueryInfo>& fetch_id_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
@@ -304,6 +368,13 @@ CommMpiRmaStatus CommMpiRma<DataClass>::CleanUp(const std::vector<DataClass>& pr
 template class CommMpiRma<AmrDataArray3D>;
 template class CommMpiRma<AmrDataArray1D>;
 
+//-------------------------------------------------------------------------------------------------------
+// Class          :  CommMpiRmaAmrDataArray3D
+// Private Method :  GetDataSize
+//
+// Notes          :  1. The method is used in PrepareData and FetchRemoteData to get the size of the data.
+//                   2. For invalid data, return value < 0.
+//-------------------------------------------------------------------------------------------------------
 long CommMpiRmaAmrDataArray3D::GetDataSize(const AmrDataArray3D& data) {
     for (int i = 0; i < 3; i++) {
         if (data.data_dim[i] < 0) {
@@ -319,6 +390,13 @@ long CommMpiRmaAmrDataArray3D::GetDataSize(const AmrDataArray3D& data) {
     return data.data_dim[0] * data.data_dim[1] * data.data_dim[2] * dtype_size;
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Class          :  CommMpiRmaAmrDataArray3D
+// Private Method :  GetDataLen
+//
+// Notes          :  1. The method is used in FetchRemoteData to get the length of the data.
+//                   2. For invalid data, return value < 0.
+//-------------------------------------------------------------------------------------------------------
 long CommMpiRmaAmrDataArray3D::GetDataLen(const AmrDataArray3D& data) {
     for (int i = 0; i < 3; i++) {
         if (data.data_dim[i] < 0) {
@@ -328,6 +406,13 @@ long CommMpiRmaAmrDataArray3D::GetDataLen(const AmrDataArray3D& data) {
     return data.data_dim[0] * data.data_dim[1] * data.data_dim[2];
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Class          :  CommMpiRmaAmrDataArray1D
+// Private Method :  GetDataSize
+//
+// Notes          :  1. The method is used in PrepareData and FetchRemoteData to get the size of the data.
+//                   2. For invalid data, return value < 0.
+//-------------------------------------------------------------------------------------------------------
 long CommMpiRmaAmrDataArray1D::GetDataSize(const AmrDataArray1D& data) {
     if (data.data_len < 0 || data.data_dtype == YT_DTYPE_UNKNOWN) {
         return -1;
@@ -338,6 +423,13 @@ long CommMpiRmaAmrDataArray1D::GetDataSize(const AmrDataArray1D& data) {
     return data.data_len * dtype_size;
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Class          :  CommMpiRmaAmrDataArray1D
+// Private Method :  GetDataLen
+//
+// Notes          :  1. The method is used in FetchRemoteData to get the length of the data.
+//                   2. For invalid data, return value < 0.
+//-------------------------------------------------------------------------------------------------------
 long CommMpiRmaAmrDataArray1D::GetDataLen(const AmrDataArray1D& data) {
     if (data.data_len < 0) {
         return -1;
