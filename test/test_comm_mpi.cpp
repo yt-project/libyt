@@ -541,7 +541,7 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_handle_nullptr) {
     std::vector<AmrDataArray3D> prepared_data_list;
     std::vector<CommMpiRmaQueryInfo> fetch_id_list;
 
-    // Create data buffer with array values and id equal to mpi rank
+    // Create id equal to mpi rank and pass in a nullptr data buffer
     int* data_buffer = nullptr;
     prepared_data_list.emplace_back(AmrDataArray3D{CommMpi::mpi_rank_, YT_INT, {0, 0, 0}, data_buffer, false});
 
@@ -592,6 +592,49 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_handle_prepared_data_unable_t
         if (r != CommMpi::mpi_rank_) {
             fetch_id_list.emplace_back(CommMpiRmaQueryInfo{r, r});
         }
+    }
+
+    // Act
+    CommMpiRmaAmrDataArray3D comm_mpi_rma("test", "amr_grid");
+    CommMpiRmaReturn<AmrDataArray3D> result = comm_mpi_rma.GetRemoteData(prepared_data_list, fetch_id_list);
+
+    // Assert
+    EXPECT_EQ(result.all_status, CommMpiRmaStatus::kMpiFailed) << "Error: " << comm_mpi_rma.GetErrorStr();
+    if (CommMpi::mpi_rank_ == 0) {
+        EXPECT_EQ(result.status, CommMpiRmaStatus::kMpiFailed) << "Error: " << comm_mpi_rma.GetErrorStr();
+    } else {
+        EXPECT_EQ(result.status, CommMpiRmaStatus::kMpiSuccess) << "Error: " << comm_mpi_rma.GetErrorStr();
+    }
+
+    // Clean up
+    delete[] data_buffer;
+    for (const AmrDataArray3D& fetched_data : result.data_list) {
+        delete[] fetched_data.data_ptr;
+    }
+}
+
+TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_handle_fetch_id_not_found_error) {
+    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
+    // Arrange
+    std::vector<AmrDataArray3D> prepared_data_list;
+    std::vector<CommMpiRmaQueryInfo> fetch_id_list;
+
+    // Create data buffer with array values and id equal to mpi rank
+    int* data_buffer = new int[10];
+    for (int i = 0; i < 10; i++) {
+        data_buffer[i] = CommMpi::mpi_rank_;
+    }
+    prepared_data_list.emplace_back(AmrDataArray3D{CommMpi::mpi_rank_, YT_INT, {10, 1, 1}, data_buffer, false});
+
+    // Create fetch id list which gets the other mpi rank's data,
+    // and make root rank get some unknown data id on the last MPI process
+    for (int r = 0; r < CommMpi::mpi_size_; r++) {
+        if (r != CommMpi::mpi_rank_) {
+            fetch_id_list.emplace_back(CommMpiRmaQueryInfo{r, r});
+        }
+    }
+    if (CommMpi::mpi_rank_ == 0) {
+        fetch_id_list.emplace_back(CommMpiRmaQueryInfo{CommMpi::mpi_size_ - 1, CommMpi::mpi_size_});
     }
 
     // Act
