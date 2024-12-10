@@ -277,15 +277,26 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
     pybind11::dict py_output = pybind11::dict();
     pybind11::dict py_field;
 
+    // Create fetch data list
+    std::vector<CommMpiRmaQueryInfo> fetch_data_list;
+    fetch_data_list.reserve(len_nonlocal);
+    for (int i = 0; i < len_nonlocal; i++) {
+        fetch_data_list.emplace_back(
+            CommMpiRmaQueryInfo{py_nonlocal_rank[i].cast<int>(), py_nonlocal_id[i].cast<long>()});
+    }
+
+    // Create prepare id list
+    std::vector<long> prepare_id_list;
+    for (auto& py_gid : py_to_prepare) {
+        prepare_id_list.emplace_back(py_gid.cast<long>());
+    }
+
     // Initialize one CommMpiRma at a time for a field.
     // TODO: Will support distributing multiple types of field after dealing with labeling for each type of field.
     for (auto& py_fname : py_fname_list) {
         // Prepare data for each field on each MPI rank.
         std::string fname = py_fname.cast<std::string>();
-        std::vector<long> prepare_id_list;
-        for (auto& py_gid : py_to_prepare) {
-            prepare_id_list.emplace_back(py_gid.cast<long>());
-        }
+
         DataHubAmr local_amr_data;
         DataHubReturn<AmrDataArray3D> prepared_data = local_amr_data.GetLocalFieldData(fname, prepare_id_list);
 
@@ -301,14 +312,6 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
             }
             // local_amr_data.ClearCache();
             throw pybind11::error_already_set();
-        }
-
-        // Create fetch data list
-        std::vector<CommMpiRmaQueryInfo> fetch_data_list;
-        fetch_data_list.reserve(len_nonlocal);
-        for (int i = 0; i < len_nonlocal; i++) {
-            fetch_data_list.emplace_back(
-                CommMpiRmaQueryInfo{py_nonlocal_rank[i].cast<int>(), py_nonlocal_id[i].cast<long>()});
         }
 
         // Call MPI RMA operation
@@ -392,80 +395,90 @@ pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind1
 
 #ifndef SERIAL_MODE
     pybind11::dict py_output = pybind11::dict();
+
+    // TODO: Kick out particle with length 0 in the list later. Don't pass length 0 particle in rma
+    // Create fetch data list
+    std::vector<CommMpiRmaQueryInfo> fetch_data_list;
+    fetch_data_list.reserve(len_nonlocal);
+    for (int i = 0; i < len_nonlocal; i++) {
+        fetch_data_list.emplace_back(
+            CommMpiRmaQueryInfo{py_nonlocal_rank[i].cast<int>(), py_nonlocal_id[i].cast<long>()});
+    }
+
+    // Create prepare id list
+    std::vector<long> prepare_id_list;
+    for (auto& py_gid : py_to_prepare) {
+        prepare_id_list.emplace_back(py_gid.cast<long>());
+    }
+
+    // Initialize one CommMpiRma at a time for a particle attribute.
+    // TODO: Will support distributing multiple types of field/particle after dealing with labeling for each of them
+    //       And also, get_field_remote/get_particle_remote can be merged once the API to yt_libyt has changed.
     for (auto& py_ptype : py_ptf_keys) {
         for (auto& py_attr : py_ptf[py_ptype]) {
-            // initialize RMA
-            yt_rma_particle RMAOperation =
-                yt_rma_particle(py_ptype.cast<std::string>().c_str(), py_attr.cast<std::string>().c_str(),
-                                len_to_prepare, len_nonlocal);
+            // Prepare data
+            std::string ptype = py_ptype.cast<std::string>();
+            std::string attr = py_attr.cast<std::string>();
 
-            // prepare data
-            for (auto& py_gid : py_to_prepare) {
-                long gid = py_gid.cast<long>();
-                if (RMAOperation.prepare_data(gid) != YT_SUCCESS) {
-                    std::string error_msg = "Something went wrong in yt_rma_particle when preparing data.";
-                    PyErr_SetString(PyExc_RuntimeError, error_msg.c_str());
-                    throw pybind11::error_already_set();
+            DataHubAmr local_particle_data;
+            DataHubReturn<AmrDataArray1D> prepared_data =
+                local_particle_data.GetLocalParticleData(ptype, attr, prepare_id_list);
+            DataHubStatus all_status = static_cast<DataHubStatus>(CommMpi::GetAllStates(
+                static_cast<int>(prepared_data.status), static_cast<int>(DataHubStatus::kDataHubSuccess),
+                static_cast<int>(DataHubStatus::kDataHubSuccess), static_cast<int>(DataHubStatus::kDataHubFailed)));
+
+            if (all_status != DataHubStatus::kDataHubSuccess) {
+                if (prepared_data.status == DataHubStatus::kDataHubFailed) {
+                    PyErr_SetString(PyExc_RuntimeError, local_particle_data.GetErrorStr().c_str());
+                } else {
+                    PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
                 }
+                // local_particle_data.ClearCache();
+                throw pybind11::error_already_set();
             }
 
-            // Gather all prepared data and using rank 0 as root
-            RMAOperation.gather_all_prepare_data(0);
-
-            // Fetch remote data
-            for (int i = 0; i < len_nonlocal; i++) {
-                long get_gid = py_nonlocal_id[i].cast<long>();
-                int get_rank = py_nonlocal_rank[i].cast<int>();
-                if (RMAOperation.fetch_remote_data(get_gid, get_rank) != YT_SUCCESS) {
-                    std::string error_msg = "Something went wrong in yt_rma_particle when fetching remote data.";
-                    PyErr_SetString(PyExc_RuntimeError, error_msg.c_str());
-                    throw pybind11::error_already_set();
+            // Call MPI RMA operation
+            CommMpiRmaAmrDataArray1D comm_mpi_rma(ptype + "-" + attr, "amr_particle");
+            CommMpiRmaReturn<AmrDataArray1D> rma_return =
+                comm_mpi_rma.GetRemoteData(prepared_data.data_list, fetch_data_list);
+            if (rma_return.all_status != CommMpiRmaStatus::kMpiSuccess) {
+                if (rma_return.status != CommMpiRmaStatus::kMpiSuccess) {
+                    PyErr_SetString(PyExc_RuntimeError, comm_mpi_rma.GetErrorStr().c_str());
+                } else {
+                    PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
                 }
+                // local_particle_data.ClearCache();
+                throw pybind11::error_already_set();
             }
 
-            // Clean up
-            RMAOperation.clean_up();
-
-            // Get fetched data, wrap them, and bind to Python dictionary
-            PyObject* py_data = nullptr;
-            for (int i = 0; i < len_nonlocal; i++) {
-                // (1) Get fetched data
-                long gid;
-                const char* ptype = nullptr;
-                const char* attr_name = nullptr;
-                yt_dtype data_dtype;
-                long data_length;
-                void* data_ptr = nullptr;
-                if (RMAOperation.get_fetched_data(&gid, &ptype, &attr_name, &data_dtype, &data_length, &data_ptr) !=
-                    YT_SUCCESS) {
-                    break;
-                }
-
-                // (2) Wrap data_ptr to numpy array and make it owned by Python
-                if (data_length > 0) {
-                    npy_intp npy_dim[1] = {data_length};
-                    int npy_dtype;
-                    get_npy_dtype(data_dtype, &npy_dtype);
-                    py_data = PyArray_SimpleNewFromData(1, npy_dim, npy_dtype, data_ptr);
-                    PyArray_ENABLEFLAGS((PyArrayObject*)py_data, NPY_ARRAY_OWNDATA);
-                }
-
-                // (3) Build Python dictionary data[grid id][ptype][attr] = py_data or None
+            // Wrap to Python dictionary
+            for (const AmrDataArray1D& fetched_data : rma_return.data_list) {
+                // Create dictionary data[grid id][ptype]
+                long gid = fetched_data.id;
                 if (!py_output.contains(pybind11::int_(gid))) {
                     py_output[pybind11::int_(gid)] = pybind11::dict();
                 }
                 if (!py_output[pybind11::int_(gid)].contains(ptype)) {
-                    py_output[pybind11::int_(gid)][ptype] = pybind11::dict();
+                    py_output[pybind11::int_(gid)][ptype.c_str()] = pybind11::dict();
                 }
-                if (data_length > 0) {
-                    py_output[pybind11::int_(gid)][ptype][attr_name] = py_data;
-                    Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.}
+
+                if (fetched_data.data_len > 0) {
+                    PyObject* py_data;
+                    npy_intp npy_dim[1] = {fetched_data.data_len};
+                    int npy_dtype;
+                    get_npy_dtype(fetched_data.data_dtype, &npy_dtype);
+                    py_data = PyArray_SimpleNewFromData(1, npy_dim, npy_dtype, fetched_data.data_ptr);
+                    PyArray_ENABLEFLAGS((PyArrayObject*)py_data, NPY_ARRAY_OWNDATA);
+
+                    py_output[pybind11::int_(gid)][ptype.c_str()][attr.c_str()] = py_data;
+                    Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.
                 } else {
-                    py_output[pybind11::int_(gid)][ptype][attr_name] = pybind11::none();
+                    py_output[pybind11::int_(gid)][ptype.c_str()][attr.c_str()] = pybind11::none();
                 }
             }
         }
     }
+
     return py_output;
 #else   // #ifndef SERIAL_MODE
     return pybind11::none();
