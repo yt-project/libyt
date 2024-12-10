@@ -497,7 +497,7 @@ TEST_F(TestUtility, GetAllStates_can_check_all_status_is_in_desired_state) {
     EXPECT_EQ(result, success_value);
 }
 
-TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_work) {
+TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_distribute_data) {
     std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     std::vector<AmrDataArray3D> prepared_data_list;
@@ -538,7 +538,7 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_work) {
     }
 }
 
-TEST_F(TestRma, CommMpiRma_with_AmrDataArray1D_can_work) {
+TEST_F(TestRma, CommMpiRma_with_AmrDataArray1D_can_distribute_data) {
     std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     std::vector<AmrDataArray1D> prepared_data_list;
