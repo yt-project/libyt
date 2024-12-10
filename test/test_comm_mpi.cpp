@@ -1,12 +1,10 @@
 #include <gtest/gtest.h>
-#include <limits.h>
 
 #include <cstring>
 
 #include "big_mpi.h"
 #include "comm_mpi.h"
 #include "comm_mpi_rma.h"
-#include "data_structure_amr.h"
 
 class CommMpiFixture : public testing::Test {
 protected:
@@ -36,6 +34,7 @@ private:
 
 class TestBigMpi : public CommMpiFixture {};
 class TestRma : public CommMpiFixture {};
+class TestUtility : public CommMpiFixture {};
 
 TEST_F(TestBigMpi, Big_MPI_Gatherv_with_yt_long) {
     // Arrange
@@ -465,7 +464,7 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_MpiRmaAddress) {
     delete[] send_buffer;
 }
 
-TEST(Function, SetAllNumGridsLocal_can_work) {
+TEST_F(TestUtility, SetAllNumGridsLocal_can_work) {
     std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     int num_grids_local = CommMpi::mpi_rank_;
@@ -481,6 +480,21 @@ TEST(Function, SetAllNumGridsLocal_can_work) {
 
     // Clean up
     delete[] all_num_grids_local;
+}
+
+TEST_F(TestUtility, GetAllStates_can_check_all_status_is_in_desired_state) {
+    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
+    // Arrange
+    int local_state = 1;
+    int desired_state = 1;
+    int success_value = 1;
+    int failure_value = 0;
+
+    // Act
+    int result = CommMpi::GetAllStates(local_state, desired_state, success_value, failure_value);
+
+    // Assert
+    EXPECT_EQ(result, success_value);
 }
 
 TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_work) {

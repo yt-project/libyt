@@ -133,4 +133,24 @@ void CommMpi::SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local)
     MPI_Allgather(&num_grids_local, 1, MPI_INT, all_num_grids_local, 1, MPI_INT, MPI_COMM_WORLD);
 }
 
+int CommMpi::GetAllStates(const int local_state, const int desired_state, const int success_value,
+                          const int failure_value) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    int* all_results = new int[mpi_size_];
+    MPI_Allgather(&local_state, 1, MPI_INT, all_results, 1, MPI_INT, MPI_COMM_WORLD);
+
+    bool match_desired_state = true;
+    for (int r = 0; r < mpi_size_; r++) {
+        if (all_results[r] != desired_state) {
+            match_desired_state = false;
+            break;
+        }
+    }
+
+    delete[] all_results;
+
+    return match_desired_state ? success_value : failure_value;
+}
+
 #endif
