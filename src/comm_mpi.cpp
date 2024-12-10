@@ -133,6 +133,15 @@ void CommMpi::SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local)
     MPI_Allgather(&num_grids_local, 1, MPI_INT, all_num_grids_local, 1, MPI_INT, MPI_COMM_WORLD);
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Class                :  CommMpi
+// Public Static Method :  GetAllStates
+//
+// Notes       :  1. Get all states from all ranks and check if every state matches the desired state,
+//                   if yes, return success value; otherwise return failure value.
+//                2. Both success value and failure value are passed in as arguments.
+//                3. It supports only integer state, which are states declared in a enum class.
+//-------------------------------------------------------------------------------------------------------
 int CommMpi::GetAllStates(const int local_state, const int desired_state, const int success_value,
                           const int failure_value) {
     SET_TIMER(__PRETTY_FUNCTION__);
