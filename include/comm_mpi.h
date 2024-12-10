@@ -32,6 +32,8 @@ public:
 
     static void InitializeInfo(int mpi_root = 0);
     static void SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local);
+    static int GetAllStates(const int local_state, const int desired_state, const int success_value,
+                            const int failure_value);
 };
 
 #endif  // COMM_MPI_H
