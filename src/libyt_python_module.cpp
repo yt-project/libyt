@@ -396,29 +396,23 @@ pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind1
 #ifndef SERIAL_MODE
     pybind11::dict py_output = pybind11::dict();
 
-    // TODO: Kick out particle with length 0 in the list later. Don't pass length 0 particle in rma
-    // Create fetch data list
-    std::vector<CommMpiRmaQueryInfo> fetch_data_list;
-    fetch_data_list.reserve(len_nonlocal);
-    for (int i = 0; i < len_nonlocal; i++) {
-        fetch_data_list.emplace_back(
-            CommMpiRmaQueryInfo{py_nonlocal_rank[i].cast<int>(), py_nonlocal_id[i].cast<long>()});
-    }
-
-    // Create prepare id list
-    std::vector<long> prepare_id_list;
-    for (auto& py_gid : py_to_prepare) {
-        prepare_id_list.emplace_back(py_gid.cast<long>());
-    }
-
     // Initialize one CommMpiRma at a time for a particle attribute.
     // TODO: Will support distributing multiple types of field/particle after dealing with labeling for each of them
     //       And also, get_field_remote/get_particle_remote can be merged once the API to yt_libyt has changed.
     for (auto& py_ptype : py_ptf_keys) {
         for (auto& py_attr : py_ptf[py_ptype]) {
-            // Prepare data
+            // Prepare data for particle count > 0
             std::string ptype = py_ptype.cast<std::string>();
             std::string attr = py_attr.cast<std::string>();
+
+            std::vector<long> prepare_id_list;
+            for (auto& py_gid : py_to_prepare) {
+                long count;
+                yt_getGridInfo_ParticleCount(py_gid.cast<long>(), ptype.c_str(), &count);
+                if (count > 0) {
+                    prepare_id_list.emplace_back(py_gid.cast<long>());
+                }
+            }
 
             DataHubAmr local_particle_data;
             DataHubReturn<AmrDataArray1D> prepared_data =
@@ -435,6 +429,20 @@ pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind1
                 }
                 // local_particle_data.ClearCache();
                 throw pybind11::error_already_set();
+            }
+
+            // Separate particle count > 0 and create fetch data list
+            std::vector<CommMpiRmaQueryInfo> fetch_data_list;
+            std::vector<long> fetch_particle_count0_list;
+            for (int i = 0; i < len_nonlocal; i++) {
+                long count;
+                yt_getGridInfo_ParticleCount(py_nonlocal_id[i].cast<long>(), ptype.c_str(), &count);
+                if (count > 0) {
+                    fetch_data_list.emplace_back(
+                        CommMpiRmaQueryInfo{py_nonlocal_rank[i].cast<int>(), py_nonlocal_id[i].cast<long>()});
+                } else {
+                    fetch_particle_count0_list.emplace_back(py_nonlocal_id[i].cast<long>());
+                }
             }
 
             // Call MPI RMA operation
@@ -475,6 +483,16 @@ pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind1
                 } else {
                     py_output[pybind11::int_(gid)][ptype.c_str()][attr.c_str()] = pybind11::none();
                 }
+            }
+
+            for (const long& gid : fetch_particle_count0_list) {
+                if (!py_output.contains(pybind11::int_(gid))) {
+                    py_output[pybind11::int_(gid)] = pybind11::dict();
+                }
+                if (!py_output[pybind11::int_(gid)].contains(ptype)) {
+                    py_output[pybind11::int_(gid)][ptype.c_str()] = pybind11::dict();
+                }
+                py_output[pybind11::int_(gid)][ptype.c_str()][attr.c_str()] = pybind11::none();
             }
         }
     }
