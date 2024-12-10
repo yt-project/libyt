@@ -25,6 +25,7 @@ enum class CommMpiRmaStatus : int { kMpiFailed = 0, kMpiSuccess = 1 };
 template<typename DataClass>
 struct CommMpiRmaReturn {
     CommMpiRmaStatus status;
+    CommMpiRmaStatus all_status;
     const std::vector<DataClass>& data_list;
 };
 
@@ -47,6 +48,8 @@ private:
     CommMpiRmaStatus PrepareData(const std::vector<DataClass>& prepared_data_list);
     CommMpiRmaStatus GatherAllPreparedData(const std::vector<DataClass>& prepared_data_list);
     CommMpiRmaStatus FetchRemoteData(const std::vector<CommMpiRmaQueryInfo>& fetch_id_list);
+    CommMpiRmaStatus FreeMpiWindow();
+    CommMpiRmaStatus DetachBuffer(const std::vector<DataClass>& prepared_data_list);
     CommMpiRmaStatus CleanUp(const std::vector<DataClass>& prepared_data_list);
 
     virtual long GetDataSize(const DataClass& data) = 0;

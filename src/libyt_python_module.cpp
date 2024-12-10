@@ -1,13 +1,14 @@
 #ifdef USE_PYBIND11
 
+#include <pybind11/embed.h>
+#include <pybind11/numpy.h>
+#include <pybind11/pytypes.h>
+
 #include <iostream>
 
 #include "comm_mpi_rma.h"
 #include "libyt.h"
 #include "libyt_process_control.h"
-#include "pybind11/embed.h"
-#include "pybind11/numpy.h"
-#include "pybind11/pytypes.h"
 #include "yt_combo.h"
 #include "yt_rma_field.h"
 #include "yt_rma_particle.h"
@@ -287,8 +288,18 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
         }
         DataHubAmr local_amr_data;
         DataHubReturn<AmrDataArray3D> prepared_data = local_amr_data.GetLocalFieldData(fname, prepare_id_list);
-        if (prepared_data.status != DataHubStatus::kDataHubSuccess) {
-            PyErr_SetString(PyExc_RuntimeError, local_amr_data.GetErrorStr().c_str());
+
+        // Make sure every process can get the local field data correctly, otherwise fail fast.
+        DataHubStatus all_status = static_cast<DataHubStatus>(CommMpi::GetAllStates(
+            static_cast<int>(prepared_data.status), static_cast<int>(DataHubStatus::kDataHubSuccess),
+            static_cast<int>(DataHubStatus::kDataHubSuccess), static_cast<int>(DataHubStatus::kDataHubFailed)));
+        if (all_status != DataHubStatus::kDataHubSuccess) {
+            if (prepared_data.status == DataHubStatus::kDataHubFailed) {
+                PyErr_SetString(PyExc_RuntimeError, local_amr_data.GetErrorStr().c_str());
+            } else {
+                PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
+            }
+            // local_amr_data.ClearCache();
             throw pybind11::error_already_set();
         }
 
@@ -304,9 +315,13 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
         CommMpiRmaAmrDataArray3D comm_mpi_rma(fname, "amr_grid");
         CommMpiRmaReturn<AmrDataArray3D> rma_return =
             comm_mpi_rma.GetRemoteData(prepared_data.data_list, fetch_data_list);
-        if (rma_return.status != CommMpiRmaStatus::kMpiSuccess) {
-            PyErr_SetString(PyExc_RuntimeError, comm_mpi_rma.GetErrorStr().c_str());
-            local_amr_data.ClearCache();
+        if (rma_return.all_status != CommMpiRmaStatus::kMpiSuccess) {
+            if (rma_return.status != CommMpiRmaStatus::kMpiSuccess) {
+                PyErr_SetString(PyExc_RuntimeError, comm_mpi_rma.GetErrorStr().c_str());
+            } else {
+                PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
+            }
+            // local_amr_data.ClearCache();
             throw pybind11::error_already_set();
         }
 
@@ -337,7 +352,7 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
             Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.
         }
 
-        local_amr_data.ClearCache();
+        // local_amr_data.ClearCache();
     }
 
     return py_output;
