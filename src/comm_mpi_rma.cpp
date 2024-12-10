@@ -139,8 +139,8 @@ CommMpiRmaStatus CommMpiRma<DataClass>::PrepareData(const std::vector<DataClass>
         mpi_prepared_data_address_list_.emplace_back(MpiRmaAddress{mpi_address, CommMpi::mpi_rank_});
 
         // TODO: After single out loggging, change to debug (debug purpose only)
-        printf("Attach buffer (data_group, id) = (%s, %ld) to one-sided MPI (RMA) window on MPI rank %d\n",
-               data_group_name_.c_str(), pdata.id, CommMpi::mpi_rank_);
+        // printf("Attach buffer (data_group, id) = (%s, %ld) to one-sided MPI (RMA) window on MPI rank %d\n",
+        //        data_group_name_.c_str(), pdata.id, CommMpi::mpi_rank_);
     }
 
     return CommMpiRmaStatus::kMpiSuccess;
