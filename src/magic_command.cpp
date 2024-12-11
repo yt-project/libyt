@@ -64,23 +64,9 @@ MagicCommandOutput& MagicCommand::Run(const std::string& command) {
     // Get command from root_ if command is empty
 #ifndef SERIAL_MODE
     if (mpi_rank_ == mpi_root_) {
-        int code_len = (int)command.length();
-        MPI_Bcast(&code_len, 1, MPI_INT, mpi_root_, MPI_COMM_WORLD);
-        MPI_Bcast((void*)command.c_str(), code_len, MPI_CHAR, mpi_root_, MPI_COMM_WORLD);
-
         command_ = command;
-    } else {
-        int code_len;
-        MPI_Bcast(&code_len, 1, MPI_INT, mpi_root_, MPI_COMM_WORLD);
-
-        char* code;
-        code = (char*)malloc((code_len + 1) * sizeof(char));
-        MPI_Bcast(code, code_len, MPI_CHAR, mpi_root_, MPI_COMM_WORLD);
-        code[code_len] = '\0';
-
-        command_ = std::string(code);
-        free(code);
     }
+    CommMpi::SetStringUsingValueOnRank(command_, mpi_root_);
 #else
     command_ = command;
 #endif
