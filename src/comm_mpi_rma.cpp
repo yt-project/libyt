@@ -34,6 +34,8 @@ CommMpiRma<DataClass>::CommMpiRma(const std::string& data_group_name, const std:
 //                5. This function is designed to be called many times by user.
 //                6. The class uses template design pattern for other class to inherit and implement the
 //                   GetDataLen/GetDataSize function for some specific data struct to pass around.
+//                   It is agnostic to what the data is.
+//                7. TODO: chunking data?
 //-------------------------------------------------------------------------------------------------------
 template<typename DataClass>
 CommMpiRmaReturn<DataClass> CommMpiRma<DataClass>::GetRemoteData(
@@ -52,7 +54,7 @@ CommMpiRmaReturn<DataClass> CommMpiRma<DataClass>::GetRemoteData(
     int step = 0;
     while (1) {
         status = InitializeMpiWindow();
-        all_status = static_cast<CommMpiRmaStatus>(CommMpi::GetAllStates(
+        all_status = static_cast<CommMpiRmaStatus>(CommMpi::CheckAllStates(
             static_cast<int>(status), static_cast<int>(CommMpiRmaStatus::kMpiSuccess),
             static_cast<int>(CommMpiRmaStatus::kMpiSuccess), static_cast<int>(CommMpiRmaStatus::kMpiFailed)));
         if (all_status != CommMpiRmaStatus::kMpiSuccess) {
@@ -61,7 +63,7 @@ CommMpiRmaReturn<DataClass> CommMpiRma<DataClass>::GetRemoteData(
         step = 1;
 
         status = PrepareData(prepared_data_list);
-        all_status = static_cast<CommMpiRmaStatus>(CommMpi::GetAllStates(
+        all_status = static_cast<CommMpiRmaStatus>(CommMpi::CheckAllStates(
             static_cast<int>(status), static_cast<int>(CommMpiRmaStatus::kMpiSuccess),
             static_cast<int>(CommMpiRmaStatus::kMpiSuccess), static_cast<int>(CommMpiRmaStatus::kMpiFailed)));
         if (all_status != CommMpiRmaStatus::kMpiSuccess) {
@@ -70,7 +72,7 @@ CommMpiRmaReturn<DataClass> CommMpiRma<DataClass>::GetRemoteData(
         step = 2;
 
         status = GatherAllPreparedData(prepared_data_list);
-        all_status = static_cast<CommMpiRmaStatus>(CommMpi::GetAllStates(
+        all_status = static_cast<CommMpiRmaStatus>(CommMpi::CheckAllStates(
             static_cast<int>(status), static_cast<int>(CommMpiRmaStatus::kMpiSuccess),
             static_cast<int>(CommMpiRmaStatus::kMpiSuccess), static_cast<int>(CommMpiRmaStatus::kMpiFailed)));
         if (all_status != CommMpiRmaStatus::kMpiSuccess) {
@@ -79,7 +81,7 @@ CommMpiRmaReturn<DataClass> CommMpiRma<DataClass>::GetRemoteData(
         step = 3;
 
         status = FetchRemoteData(fetch_id_list);
-        all_status = static_cast<CommMpiRmaStatus>(CommMpi::GetAllStates(
+        all_status = static_cast<CommMpiRmaStatus>(CommMpi::CheckAllStates(
             static_cast<int>(status), static_cast<int>(CommMpiRmaStatus::kMpiSuccess),
             static_cast<int>(CommMpiRmaStatus::kMpiSuccess), static_cast<int>(CommMpiRmaStatus::kMpiFailed)));
         step = 4;

@@ -491,7 +491,7 @@ TEST_F(TestUtility, GetAllStates_can_check_all_status_is_in_desired_state) {
     int failure_value = 0;
 
     // Act
-    int result = CommMpi::GetAllStates(local_state, desired_state, success_value, failure_value);
+    int result = CommMpi::CheckAllStates(local_state, desired_state, success_value, failure_value);
 
     // Assert
     EXPECT_EQ(result, success_value);
