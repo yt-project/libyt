@@ -32,8 +32,8 @@ public:
 
     static void InitializeInfo(int mpi_root = 0);
     static void SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local);
-    static int CheckAllStates(const int local_state, const int desired_state, const int success_value,
-                              const int failure_value);
+    static int CheckAllStates(int local_state, int desired_state, int success_value, int failure_value);
+    static void SetStringUsingValueOnRank(std::string& str_out, int rank);
 };
 
 #endif  // COMM_MPI_H
