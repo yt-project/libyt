@@ -166,7 +166,7 @@ int CommMpi::CheckAllStates(int local_state, int desired_state, int success_valu
 // Public Static Method :  SetStringUsingValueOnRank
 //
 // Notes       :  1. Sync the string on all ranks using the value on the specified rank.
-//                2. The string is passed in by reference, so the string will be updated on all ranks.
+//                2. The string is passed in by reference, so the string will be sync to the src rank.
 //-------------------------------------------------------------------------------------------------------
 void CommMpi::SetStringUsingValueOnRank(std::string& sync_string, int src_mpi_rank) {
     SET_TIMER(__PRETTY_FUNCTION__);
