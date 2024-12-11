@@ -161,4 +161,35 @@ int CommMpi::CheckAllStates(int local_state, int desired_state, int success_valu
     return match_desired_state ? success_value : failure_value;
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Class                :  CommMpi
+// Public Static Method :  SetStringUsingValueOnRank
+//
+// Notes       :  1. Sync the string on all ranks using the value on the specified rank.
+//                2. The string is passed in by reference, so the string will be updated on all ranks.
+//-------------------------------------------------------------------------------------------------------
+void CommMpi::SetStringUsingValueOnRank(std::string& sync_string, int src_mpi_rank) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    // Get the length of the string
+    unsigned long sync_string_len = 0;
+    if (mpi_rank_ == src_mpi_rank) {
+        sync_string_len = sync_string.length();
+    }
+    MPI_Bcast(&sync_string_len, 1, MPI_UNSIGNED_LONG, src_mpi_rank, MPI_COMM_WORLD);
+
+    // Allocate the memory only on other ranks, and broadcast the string
+    // Create new string on other ranks
+    if (mpi_rank_ == src_mpi_rank) {
+        MPI_Bcast((void*)sync_string.c_str(), (int)sync_string_len, MPI_CHAR, src_mpi_rank, MPI_COMM_WORLD);
+    } else {
+        char* dest_string = nullptr;
+        dest_string = new char[sync_string_len + 1];
+        MPI_Bcast((void*)dest_string, (int)sync_string_len, MPI_CHAR, src_mpi_rank, MPI_COMM_WORLD);
+        dest_string[sync_string_len] = '\0';
+        sync_string = std::string(dest_string);
+        delete[] dest_string;
+    }
+}
+
 #endif

@@ -497,6 +497,22 @@ TEST_F(TestUtility, CheckAllStates_can_check_all_status_is_in_desired_state) {
     EXPECT_EQ(result, success_value);
 }
 
+TEST_F(TestUtility, SetStringUsingValueOnRank_can_sync_string_on_all_ranks) {
+    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
+    // Arrange
+    std::string sync_string;
+    int src_mpi_rank = 0;  // TODO: make it parameterized
+    if (CommMpi::mpi_rank_ == src_mpi_rank) {
+        sync_string = "def func():\n    pass\n";  // TODO: make it parameterized
+    }
+
+    // Act
+    CommMpi::SetStringUsingValueOnRank(sync_string, src_mpi_rank);
+
+    // Assert
+    EXPECT_EQ(sync_string, "def func():\n    pass\n");
+}
+
 TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_distribute_data) {
     std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
