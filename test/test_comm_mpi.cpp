@@ -482,7 +482,7 @@ TEST_F(TestUtility, SetAllNumGridsLocal_can_work) {
     delete[] all_num_grids_local;
 }
 
-TEST_F(TestUtility, GetAllStates_can_check_all_status_is_in_desired_state) {
+TEST_F(TestUtility, CheckAllStates_can_check_all_status_is_in_desired_state) {
     std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     int local_state = 1;

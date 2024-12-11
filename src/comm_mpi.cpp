@@ -142,8 +142,7 @@ void CommMpi::SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local)
 //                2. Both success value and failure value are passed in as arguments.
 //                3. It supports only integer state, which are states declared in a enum class.
 //-------------------------------------------------------------------------------------------------------
-int CommMpi::CheckAllStates(const int local_state, const int desired_state, const int success_value,
-                            const int failure_value) {
+int CommMpi::CheckAllStates(int local_state, int desired_state, int success_value, int failure_value) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int* all_results = new int[mpi_size_];
