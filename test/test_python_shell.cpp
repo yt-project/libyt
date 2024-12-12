@@ -95,22 +95,32 @@ TEST_F(TestPythonShell, AllExecutePrompt_can_execute_a_valid_single_statement) {
     std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
     // Arrange
     int src_mpi_rank = 0;
+    int mpi_root = 0;
     std::string src_code = "print('hello')";  // TODO: parameterize this
+    std::string expected_output = "hello\n";
 
     // Act
     std::vector<PythonOutput> output;
+    PythonStatus status;
     if (GetMpiRank() == src_mpi_rank) {
-        python_shell_.AllExecutePrompt(src_code, "<test>", src_mpi_rank, output);
+        status = python_shell_.AllExecutePrompt(src_code, "<test>", src_mpi_rank, output);
     } else {
-        python_shell_.AllExecutePrompt("", "", src_mpi_rank, output);
+        status = python_shell_.AllExecutePrompt("", "", src_mpi_rank, output);
     }
 
     // Assert
+    EXPECT_EQ(status, PythonStatus::kPythonSuccess);
     EXPECT_EQ(GetMpiSize(), output.size()) << "Output size is not equal to MPI size.";
-    for (int r = 0; r < output.size(); r++) {
-        EXPECT_EQ(output[r].status, PythonStatus::kPythonSuccess);
-        EXPECT_EQ(output[r].output, "hello");
-        EXPECT_EQ(output[r].error, "");
+    if (GetMpiRank() == mpi_root) {
+        for (int r = 0; r < output.size(); r++) {
+            EXPECT_EQ(output[r].status, PythonStatus::kPythonSuccess);
+            EXPECT_EQ(output[r].output, expected_output);
+            EXPECT_EQ(output[r].error, "");
+        }
+    } else {
+        EXPECT_EQ(output[GetMpiRank()].status, PythonStatus::kPythonSuccess);
+        EXPECT_EQ(output[GetMpiRank()].output, expected_output);
+        EXPECT_EQ(output[GetMpiRank()].error, "");
     }
 }
 

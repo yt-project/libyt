@@ -817,11 +817,72 @@ PythonStatus LibytPythonShell::AllExecutePrompt(const std::string& code, const s
     }
 
     // Clear the template buffer and redirect stdout, stderr
-    // TODO: store it in other variable for the stdout/stderr buffer
+    // TODO: store it in other variable for the stdout/stderr buffer (create a new class??)
     PyErr_Clear();
     PyRun_SimpleString("import sys, io\n");
     PyRun_SimpleString("sys.OUTPUT_STDOUT=''\nstdout_buf=io.StringIO()\nsys.stdout=stdout_buf\n");
     PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
+
+    PyObject* py_src = Py_CompileString(code_ptr, cell_base_name_ptr, Py_single_input);
+    bool has_error = false;
+    if (py_src != NULL) {
+        PyObject* py_dump = PyEval_EvalCode(py_src, get_script_namespace(), get_script_namespace());
+        if (PyErr_Occurred()) {
+            has_error = true;
+            PyErr_Print();
+            load_input_func_body(code_ptr);
+        } else {
+            load_input_func_body(code_ptr);
+            update_prompt_history(std::string(code_ptr));
+        }
+        Py_DECREF(py_src);
+        Py_XDECREF(py_dump);
+    } else {
+        has_error = true;
+        PyErr_Print();
+    }
+
+    // Close the redirect buffer and set it back to standard
+    PyRun_SimpleString("sys.stdout.flush()\n");
+    PyRun_SimpleString("sys.stderr.flush()\n");
+    PyRun_SimpleString("sys.OUTPUT_STDOUT=stdout_buf.getvalue()\nstdout_buf.close()\n");
+    PyRun_SimpleString("sys.OUTPUT_STDERR=stderr_buf.getvalue()\nstderr_buf.close()\n");
+    PyRun_SimpleString("sys.stdout=sys.__stdout__\n");
+    PyRun_SimpleString("sys.stderr=sys.__stderr__\n");
+    PyErr_Clear();
+
+    // Sync the results
+#ifndef SERIAL_MODE
+    bool all_has_error = CommMpi::CheckAllStates(has_error, false, false, true);
+#else
+    bool all_has_error = has_error;
+#endif
+
+    // Collect the local stdout/stderr and store in output vector, the elements are stored in the same order as rank
+    output.clear();
+    output.assign(
+        mpi_size_,
+        PythonOutput{.status = PythonStatus::kPythonUnknown, .output = std::string(""), .error = std::string("")});
+
+    PyObject* py_module_sys = PyImport_ImportModule("sys");
+    PyObject* py_stdout_buf = PyObject_GetAttrString(py_module_sys, "OUTPUT_STDOUT");
+    PyObject* py_stderr_buf = PyObject_GetAttrString(py_module_sys, "OUTPUT_STDERR");
+
+    output[mpi_rank_].output = std::string(PyUnicode_AsUTF8(py_stdout_buf));
+    output[mpi_rank_].error = std::string(PyUnicode_AsUTF8(py_stderr_buf));
+
+    if (has_error) {
+        output[mpi_rank_].status = PythonStatus::kPythonFailed;
+    } else {
+        output[mpi_rank_].status = PythonStatus::kPythonSuccess;
+    }
+
+    Py_DECREF(py_module_sys);
+    Py_DECREF(py_stdout_buf);
+    Py_DECREF(py_stderr_buf);
+
+    // Gather the output from all ranks to root (TODO)
+    return all_has_error ? PythonStatus::kPythonFailed : PythonStatus::kPythonSuccess;
 }
 
 //-------------------------------------------------------------------------------------------------------
