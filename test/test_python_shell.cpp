@@ -28,11 +28,13 @@ protected:
 
 class TestPythonShell : public PythonFixture {};
 
-TEST_F(TestPythonShell, AllExecutePrompt_can_execute_code) {
-    // Act
+TEST_F(TestPythonShell, AllExecutePrompt_can_execute_rvalue_empty_code) {
+    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
+    // Arrange
     int src_mpi_rank = 0;
-    std::vector<PythonOutput> output;
 
+    // Act
+    std::vector<PythonOutput> output;
     if (GetMpiRank() == src_mpi_rank) {
         python_shell_.AllExecutePrompt("", "<test>", src_mpi_rank, output);
     } else {
@@ -41,9 +43,32 @@ TEST_F(TestPythonShell, AllExecutePrompt_can_execute_code) {
 
     // Assert
     EXPECT_EQ(GetMpiSize(), output.size()) << "Output size is not equal to MPI size.";
-    for (int r = 0; r < GetMpiSize(); r++) {
+    for (int r = 0; r < output.size(); r++) {
         EXPECT_EQ(output[r].status, PythonStatus::kPythonSuccess);
         EXPECT_EQ(output[r].output, "");
+        EXPECT_EQ(output[r].error, "");
+    }
+}
+
+TEST_F(TestPythonShell, AllExecutePrompt_can_execute_a_valid_single_statement) {
+    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
+    // Arrange
+    int src_mpi_rank = 0;
+    std::string src_code = "print('hello')";  // TODO: parameterize this
+
+    // Act
+    std::vector<PythonOutput> output;
+    if (GetMpiRank() == src_mpi_rank) {
+        python_shell_.AllExecutePrompt(src_code, "<test>", src_mpi_rank, output);
+    } else {
+        python_shell_.AllExecutePrompt("", "", src_mpi_rank, output);
+    }
+
+    // Assert
+    EXPECT_EQ(GetMpiSize(), output.size()) << "Output size is not equal to MPI size.";
+    for (int r = 0; r < output.size(); r++) {
+        EXPECT_EQ(output[r].status, PythonStatus::kPythonSuccess);
+        EXPECT_EQ(output[r].output, "hello");
         EXPECT_EQ(output[r].error, "");
     }
 }
