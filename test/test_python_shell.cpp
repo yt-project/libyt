@@ -10,23 +10,42 @@ private:
     // Though mpi_ prefix is used, in serial mode, it will be rank 0 and size 1.
     int mpi_rank_ = 0;
     int mpi_size_ = 1;
+
     void SetUp() override {
 #ifndef SERIAL_MODE
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
 #endif
+        LibytPythonShell::SetMPIInfo(mpi_size_, 0, mpi_rank_);
     }
 
 protected:
-    int GetRank() const { return mpi_rank_; }
-    int GetSize() const { return mpi_size_; }
+    LibytPythonShell python_shell_;
+
+    int GetMpiRank() const { return mpi_rank_; }
+    int GetMpiSize() const { return mpi_size_; }
 };
 
 class TestPythonShell : public PythonFixture {};
 
-TEST_F(TestPythonShell, Python_can_run) {
-    std::cout << "mpi_size = " << GetSize() << ", " << "mpi_rank = " << GetRank() << std::endl;
-    PyRun_SimpleString("print('Hello, Python!')");
+TEST_F(TestPythonShell, AllExecutePrompt_can_execute_code) {
+    // Act
+    int src_mpi_rank = 0;
+    std::vector<PythonOutput> output;
+
+    if (GetMpiRank() == src_mpi_rank) {
+        python_shell_.AllExecutePrompt("", "<test>", src_mpi_rank, output);
+    } else {
+        python_shell_.AllExecutePrompt("", "", src_mpi_rank, output);
+    }
+
+    // Assert
+    EXPECT_EQ(GetMpiSize(), output.size()) << "Output size is not equal to MPI size.";
+    for (int r = 0; r < GetMpiSize(); r++) {
+        EXPECT_EQ(output[r].status, PythonStatus::kPythonSuccess);
+        EXPECT_EQ(output[r].output, "");
+        EXPECT_EQ(output[r].error, "");
+    }
 }
 
 int main(int argc, char* argv[]) {
