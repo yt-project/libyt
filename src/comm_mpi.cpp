@@ -167,6 +167,8 @@ int CommMpi::CheckAllStates(int local_state, int desired_state, int success_valu
 //
 // Notes       :  1. Sync the string on all ranks using the value on the specified rank.
 //                2. The string is passed in by reference, so the string will be sync to the src rank.
+//                3. Though reference to a string is passed in, only ranks other than src rank will have
+//                   the string over-written.
 //-------------------------------------------------------------------------------------------------------
 void CommMpi::SetStringUsingValueOnRank(std::string& sync_string, int src_mpi_rank) {
     SET_TIMER(__PRETTY_FUNCTION__);

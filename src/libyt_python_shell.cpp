@@ -766,6 +766,64 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_file(const std:
 }
 
 //-------------------------------------------------------------------------------------------------------
+// Class         :  LibytPythonShell
+// Public Method :  AllExecutePrompt
+// Description   :  Execute a single statement code on every MPI process. (collective operation)
+//
+// Notes       :  1. This is a collective operation, requires every rank to call this function.
+//                2. To avoid copying data string back and forth, client will need to pass in the designated
+//                   output storage.
+//                3. To avoid unnecessary copying of code and cell name, they are stored in different variables,
+//                   ending with _sync, even though this will make the code less readable.
+//                3. TODO: Need to unit test for both SERIAL_MODE and MPI.
+//-------------------------------------------------------------------------------------------------------
+void LibytPythonShell::AllExecutePrompt(const std::string& code, const std::string& cell_base_name, int src_rank,
+                                        std::vector<PythonOutput>& output) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+#ifndef SERIAL_MODE
+    // Sync the code and cell name
+    std::string code_sync, cell_base_name_sync;
+    if (mpi_rank_ == src_rank) {
+        CommMpi::SetStringUsingValueOnRank(const_cast<std::string&>(code), src_rank);
+        CommMpi::SetStringUsingValueOnRank(const_cast<std::string&>(cell_base_name), src_rank);
+    } else {
+        CommMpi::SetStringUsingValueOnRank(code_sync, src_rank);
+        CommMpi::SetStringUsingValueOnRank(cell_base_name_sync, src_rank);
+    }
+#endif
+
+    // Refer to code and cell_name using pointers
+    const char* code_ptr = nullptr;
+    const char* cell_base_name_ptr = nullptr;
+    if (mpi_rank_ == src_rank) {
+        code_ptr = code.c_str();
+        cell_base_name_ptr = cell_base_name.c_str();
+    }
+#ifndef SERIAL_MODE
+    else {
+        code_ptr = code_sync.c_str();
+        cell_base_name_ptr = cell_base_name_sync.c_str();
+    }
+#endif
+
+    if (strlen(code_ptr) <= 0) {
+        output.clear();
+        output.assign(
+            mpi_size_,
+            PythonOutput{.status = PythonStatus::kPythonSuccess, .output = std::string(""), .error = std::string("")});
+        return;
+    }
+
+    // Clear the template buffer and redirect stdout, stderr
+    // TODO: store it in other variable for the stdout/stderr buffer
+    PyErr_Clear();
+    PyRun_SimpleString("import sys, io\n");
+    PyRun_SimpleString("sys.OUTPUT_STDOUT=''\nstdout_buf=io.StringIO()\nsys.stdout=stdout_buf\n");
+    PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Function      :  generate_err_msg
 //
 // Notes         :  1. Generate error msg that are caused by user not-done-yet.
