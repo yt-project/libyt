@@ -74,13 +74,15 @@ TEST_F(TestPythonShell, AllExecutePrompt_can_execute_rvalue_empty_code) {
 
     // Act
     std::vector<PythonOutput> output;
+    PythonStatus status;
     if (GetMpiRank() == src_mpi_rank) {
-        python_shell_.AllExecutePrompt("", "<test>", src_mpi_rank, output);
+        status = python_shell_.AllExecutePrompt("", "<test>", src_mpi_rank, output);
     } else {
-        python_shell_.AllExecutePrompt("", "", src_mpi_rank, output);
+        status = python_shell_.AllExecutePrompt("", "", src_mpi_rank, output);
     }
 
     // Assert
+    EXPECT_EQ(status, PythonStatus::kPythonSuccess);
     EXPECT_EQ(GetMpiSize(), output.size()) << "Output size is not equal to MPI size.";
     for (int r = 0; r < output.size(); r++) {
         EXPECT_EQ(output[r].status, PythonStatus::kPythonSuccess);

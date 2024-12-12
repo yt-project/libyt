@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-enum class PythonStatus { kPythonFailed = 0, kPythonSuccess = 1 };
+enum class PythonStatus { kPythonUnknown = -1, kPythonFailed = 0, kPythonSuccess = 1 };
 
 struct AccumulatedOutputString {
     std::string output_string;
@@ -68,8 +68,8 @@ public:
                                                           const std::string& cell_name = std::string("<libyt-stdin>"));
     std::array<AccumulatedOutputString, 2> execute_file(const std::string& code = std::string(""),
                                                         const std::string& file_name = std::string(""));
-    void AllExecutePrompt(const std::string& code, const std::string& cell_base_name, int src_rank,
-                          std::vector<PythonOutput>& output);
+    PythonStatus AllExecutePrompt(const std::string& code, const std::string& cell_base_name, int src_rank,
+                                  std::vector<PythonOutput>& output);
 };
 
 #endif  // __LIBYT_PYTHON_SHELL_H__

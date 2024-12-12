@@ -773,12 +773,13 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_file(const std:
 // Notes       :  1. This is a collective operation, requires every rank to call this function.
 //                2. To avoid copying data string back and forth, client will need to pass in the designated
 //                   output storage.
-//                3. To avoid unnecessary copying of code and cell name, they are stored in different variables,
+//                3. The local output are stored in the mpi rank order, which is output[mpi_rank_], and the
+//                   returned status represents all ranks successfully done or failed the job.
+//                4. To avoid unnecessary copying of code and cell name, they are stored in different variables,
 //                   ending with _sync, even though this will make the code less readable.
-//                3. TODO: Need to unit test for both SERIAL_MODE and MPI.
 //-------------------------------------------------------------------------------------------------------
-void LibytPythonShell::AllExecutePrompt(const std::string& code, const std::string& cell_base_name, int src_rank,
-                                        std::vector<PythonOutput>& output) {
+PythonStatus LibytPythonShell::AllExecutePrompt(const std::string& code, const std::string& cell_base_name,
+                                                int src_rank, std::vector<PythonOutput>& output) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef SERIAL_MODE
@@ -812,7 +813,7 @@ void LibytPythonShell::AllExecutePrompt(const std::string& code, const std::stri
         output.assign(
             mpi_size_,
             PythonOutput{.status = PythonStatus::kPythonSuccess, .output = std::string(""), .error = std::string("")});
-        return;
+        return PythonStatus::kPythonSuccess;
     }
 
     // Clear the template buffer and redirect stdout, stderr
