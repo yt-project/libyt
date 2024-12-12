@@ -57,7 +57,7 @@ public:
     static std::vector<std::string> get_funcname_defined(const char* filename);
     static int set_exception_hook();
     static int init_not_done_err_msg();
-    static int init_script_namespace();
+    static int SetExecutionNamespace(PyObject* execution_namespace);
     static PyObject* get_script_namespace() { return s_PyGlobals; }
     static bool is_not_done_err_msg(const std::string& code);
     static CodeValidity check_code_validity(const std::string& code, bool prompt_env = false,
