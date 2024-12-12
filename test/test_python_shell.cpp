@@ -2,6 +2,7 @@
 #ifndef SERIAL_MODE
 #include <mpi.h>
 #endif
+#include <fstream>
 
 #include "libyt_python_shell.h"
 
@@ -11,19 +12,57 @@ private:
     int mpi_rank_ = 0;
     int mpi_size_ = 1;
 
+    // Neglect ".py" extension
+    std::string script_ = "inline_script";
+
     void SetUp() override {
 #ifndef SERIAL_MODE
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
 #endif
         LibytPythonShell::SetMPIInfo(mpi_size_, 0, mpi_rank_);
+
+        // Create namespace for PythonShell to execute code
+        InitializeAndImportScript(script_);
+        GetScriptPyNamespace(script_);
+        LibytPythonShell::SetExecutionNamespace(GetScriptPyNamespace(script_));
     }
 
 protected:
     LibytPythonShell python_shell_;
-
     int GetMpiRank() const { return mpi_rank_; }
     int GetMpiSize() const { return mpi_size_; }
+    void InitializeAndImportScript(const std::string& script) {
+        if (mpi_rank_ == 0) {
+            // Create a script file
+            struct stat buffer;
+            std::string script_fullname = script + std::string(".py");
+            if (stat(script_fullname.c_str(), &buffer) == 0) {
+                std::cout << "Test script '" << script_fullname << "' ... found" << std::endl;
+            } else {
+                std::ofstream python_script(script_fullname.c_str());
+                python_script.close();
+                std::cout << "Empty test script '" << script_fullname << "' ... created" << std::endl;
+            }
+        }
+#ifndef SERIAL_MODE
+        MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+        // Import the script
+        std::string statement = "import " + script;
+        PyRun_SimpleString("import sys; sys.path.insert(0, '.')");
+        PyRun_SimpleString(statement.c_str());
+    }
+    PyObject* GetScriptPyNamespace(const std::string& script) {
+        PyObject* py_sys = PyImport_ImportModule("sys");
+        PyObject* py_modules = PyObject_GetAttrString(py_sys, "modules");
+        PyObject* py_script_module = PyDict_GetItemString(py_modules, script.c_str());
+        PyObject* py_script_namespace = PyModule_GetDict(py_script_module);
+        Py_DECREF(py_sys);
+        Py_DECREF(py_modules);
+        return py_script_namespace;
+    }
 };
 
 class TestPythonShell : public PythonFixture {};
