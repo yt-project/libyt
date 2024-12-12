@@ -338,21 +338,21 @@ int LibytPythonShell::init_not_done_err_msg() {
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  LibytPythonShell
-// Static Method :  init_script_namespace
+// Static Method :  SetExecutionNamespace
 //
 // Notes         :  1. This is a static method.
-//                  2. Initialize m_PyGlobals, which is a Python dict object that contains namespace of
-//                     the script.
-//                  3. It is a borrowed reference.
+//                  2. Set the execution namespace for Python interpreter. The namespace is used to execute
+//                     Python code.
+//                  3. Only sets the pointer, and doesn't alter the reference count.
 //
 // Arguments     :  None
 //
 // Return        :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int LibytPythonShell::init_script_namespace() {
+int LibytPythonShell::SetExecutionNamespace(PyObject* execution_namespace) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    s_PyGlobals = PyDict_GetItemString(LibytProcessControl::Get().py_interactive_mode_, "script_globals");
+    s_PyGlobals = execution_namespace;
 
     return YT_SUCCESS;
 }

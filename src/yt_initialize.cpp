@@ -72,7 +72,9 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
     // set python exception hook and set not-yet-done error msg
     if (LibytPythonShell::set_exception_hook() != YT_SUCCESS) return YT_FAIL;
     if (LibytPythonShell::init_not_done_err_msg() != YT_SUCCESS) return YT_FAIL;
-    if (LibytPythonShell::init_script_namespace() != YT_SUCCESS) return YT_FAIL;
+
+    PyObject* exec_namespace = PyDict_GetItemString(LibytProcessControl::Get().py_interactive_mode_, "script_globals");
+    if (LibytPythonShell::SetExecutionNamespace(exec_namespace) != YT_SUCCESS) return YT_FAIL;
 #endif
 
     LibytProcessControl::Get().libyt_initialized = true;
