@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #ifndef SERIAL_MODE
-#include <mpi.h>
+#include "comm_mpi.h"
 #endif
 #include <fstream>
 
@@ -19,6 +19,7 @@ private:
 #ifndef SERIAL_MODE
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
+        CommMpi::InitializeInfo(0);
 #endif
         LibytPythonShell::SetMPIInfo(mpi_size_, 0, mpi_rank_);
 
@@ -71,14 +72,15 @@ TEST_F(TestPythonShell, AllExecutePrompt_can_execute_rvalue_empty_code) {
     std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
     // Arrange
     int src_mpi_rank = 0;
+    int output_mpi_rank = 0;
 
     // Act
     std::vector<PythonOutput> output;
     PythonStatus status;
     if (GetMpiRank() == src_mpi_rank) {
-        status = python_shell_.AllExecutePrompt("", "<test>", src_mpi_rank, output);
+        status = python_shell_.AllExecutePrompt("", "<test>", src_mpi_rank, output, output_mpi_rank);
     } else {
-        status = python_shell_.AllExecutePrompt("", "", src_mpi_rank, output);
+        status = python_shell_.AllExecutePrompt("", "", src_mpi_rank, output, output_mpi_rank);
     }
 
     // Assert
@@ -95,7 +97,7 @@ TEST_F(TestPythonShell, AllExecutePrompt_can_execute_a_valid_single_statement) {
     std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
     // Arrange
     int src_mpi_rank = 0;
-    int mpi_root = 0;
+    int output_mpi_rank = 0;
     std::string src_code = "print('hello')";  // TODO: parameterize this
     std::string expected_output = "hello\n";
 
@@ -103,15 +105,15 @@ TEST_F(TestPythonShell, AllExecutePrompt_can_execute_a_valid_single_statement) {
     std::vector<PythonOutput> output;
     PythonStatus status;
     if (GetMpiRank() == src_mpi_rank) {
-        status = python_shell_.AllExecutePrompt(src_code, "<test>", src_mpi_rank, output);
+        status = python_shell_.AllExecutePrompt(src_code, "<test>", src_mpi_rank, output, output_mpi_rank);
     } else {
-        status = python_shell_.AllExecutePrompt("", "", src_mpi_rank, output);
+        status = python_shell_.AllExecutePrompt("", "", src_mpi_rank, output, output_mpi_rank);
     }
 
     // Assert
     EXPECT_EQ(status, PythonStatus::kPythonSuccess);
     EXPECT_EQ(GetMpiSize(), output.size()) << "Output size is not equal to MPI size.";
-    if (GetMpiRank() == mpi_root) {
+    if (GetMpiRank() == output_mpi_rank) {
         for (int r = 0; r < output.size(); r++) {
             EXPECT_EQ(output[r].status, PythonStatus::kPythonSuccess);
             EXPECT_EQ(output[r].output, expected_output);

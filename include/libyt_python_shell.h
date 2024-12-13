@@ -69,7 +69,7 @@ public:
     std::array<AccumulatedOutputString, 2> execute_file(const std::string& code = std::string(""),
                                                         const std::string& file_name = std::string(""));
     PythonStatus AllExecutePrompt(const std::string& code, const std::string& cell_base_name, int src_rank,
-                                  std::vector<PythonOutput>& output);
+                                  std::vector<PythonOutput>& output, int output_mpi_rank);
 };
 
 #endif  // __LIBYT_PYTHON_SHELL_H__

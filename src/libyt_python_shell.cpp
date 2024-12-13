@@ -777,9 +777,11 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_file(const std:
 //                   returned status represents all ranks successfully done or failed the job.
 //                4. To avoid unnecessary copying of code and cell name, they are stored in different variables,
 //                   ending with _sync, even though this will make the code less readable.
+//                5. TODO: probably need to find another to redirect and capture the stdout/stderr, or
+//                         create a new class. also, the current method is probably not thread-safe.
 //-------------------------------------------------------------------------------------------------------
 PythonStatus LibytPythonShell::AllExecutePrompt(const std::string& code, const std::string& cell_base_name,
-                                                int src_rank, std::vector<PythonOutput>& output) {
+                                                int src_rank, std::vector<PythonOutput>& output, int output_mpi_rank) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef SERIAL_MODE
@@ -881,7 +883,24 @@ PythonStatus LibytPythonShell::AllExecutePrompt(const std::string& code, const s
     Py_DECREF(py_stdout_buf);
     Py_DECREF(py_stderr_buf);
 
-    // Gather the output from all ranks to root (TODO)
+#ifndef SERIAL_MODE
+    std::vector<std::string> all_gather_string;
+
+    // Gather the output from all ranks to root, move the gathered string to output
+    CommMpi::GatherAllStringsToRank(all_gather_string, output[mpi_rank_].output, output_mpi_rank);
+    if (mpi_rank_ == output_mpi_rank) {
+        for (int i = 0; i < mpi_size_; i++) {
+            output[i].output = std::move(all_gather_string[i]);
+        }
+    }
+    CommMpi::GatherAllStringsToRank(all_gather_string, output[mpi_rank_].error, output_mpi_rank);
+    if (mpi_rank_ == output_mpi_rank) {
+        for (int i = 0; i < mpi_size_; i++) {
+            output[i].error = std::move(all_gather_string[i]);
+        }
+    }
+#endif
+
     return all_has_error ? PythonStatus::kPythonFailed : PythonStatus::kPythonSuccess;
 }
 
