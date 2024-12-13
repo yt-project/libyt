@@ -513,6 +513,27 @@ TEST_F(TestUtility, SetStringUsingValueOnRank_can_sync_string_on_all_ranks) {
     EXPECT_EQ(sync_string, "def func():\n    pass\n");
 }
 
+TEST_F(TestUtility, GatherAllStringsToRank_can_gather_all_strings_to_dest_rank) {
+    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
+    // Arrange
+    std::vector<std::string> all_strings;
+    std::string src_string = "def func():\n    pass\n";  // TODO: make it parameterized
+    int dest_mpi_rank = 0;                               // TODO: make it parameterized
+
+    // Act
+    CommMpi::GatherAllStringsToRank(all_strings, src_string, dest_mpi_rank);
+
+    // Assert
+    if (CommMpi::mpi_rank_ == dest_mpi_rank) {
+        EXPECT_EQ(all_strings.size(), CommMpi::mpi_size_);
+        for (int r = 0; r < CommMpi::mpi_size_; r++) {
+            EXPECT_EQ(all_strings[r], "def func():\n    pass\n");
+        }
+    } else {
+        EXPECT_EQ(all_strings.size(), 0);
+    }
+}
+
 TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_distribute_data) {
     std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
