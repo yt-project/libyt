@@ -41,6 +41,9 @@ private:
     static int mpi_root_;
     static int mpi_rank_;
 
+    PythonStatus AllExecute(int python_input_type, const std::string& code, const std::string& cell_base_name,
+                            int src_rank, std::vector<PythonOutput>& output, int output_mpi_rank);
+
 public:
     LibytPythonShell() : m_PromptHistory(""), m_PromptHistoryCount(0){};
     static void SetMPIInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
