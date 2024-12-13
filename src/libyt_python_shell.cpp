@@ -884,9 +884,17 @@ PythonStatus LibytPythonShell::AllExecutePrompt(const std::string& code, const s
     Py_DECREF(py_stderr_buf);
 
 #ifndef SERIAL_MODE
-    std::vector<std::string> all_gather_string;
+    // Gather all results to root rank
+    std::vector<int> all_status;
+    CommMpi::GatherAllIntsToRank(all_status, static_cast<int>(output[mpi_rank_].status), output_mpi_rank);
+    if (mpi_rank_ == output_mpi_rank) {
+        for (int i = 0; i < mpi_size_; i++) {
+            output[i].status = static_cast<PythonStatus>(all_status[i]);
+        }
+    }
 
     // Gather the output from all ranks to root, move the gathered string to output
+    std::vector<std::string> all_gather_string;
     CommMpi::GatherAllStringsToRank(all_gather_string, output[mpi_rank_].output, output_mpi_rank);
     if (mpi_rank_ == output_mpi_rank) {
         for (int i = 0; i < mpi_size_; i++) {

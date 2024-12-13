@@ -241,4 +241,21 @@ void CommMpi::GatherAllStringsToRank(std::vector<std::string>& all_strings, cons
     }
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Class                :  CommMpi
+// Public Static Method :  GatherAllStringsToRank
+//
+// Notes       :  1. It's a collective operation.
+//                2. I'm not sure if using int* instead of std::vector<int> will be faster.
+//-------------------------------------------------------------------------------------------------------
+void CommMpi::GatherAllIntsToRank(std::vector<int>& all_ints, const int src_int, int dest_mpi_rank) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    all_ints.clear();
+    if (CommMpi::mpi_rank_ == dest_mpi_rank) {
+        all_ints.assign(mpi_size_, 0);
+    }
+    MPI_Gather(&src_int, 1, MPI_INT, all_ints.data(), 1, MPI_INT, dest_mpi_rank, MPI_COMM_WORLD);
+}
+
 #endif
