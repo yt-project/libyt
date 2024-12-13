@@ -18,6 +18,7 @@ static bool last_line_has_colon(const std::string& code);
 std::vector<std::string> LibytPythonShell::s_Bracket_NotDoneErr;
 std::vector<std::string> LibytPythonShell::s_CompoundKeyword_NotDoneErr;
 PyObject* LibytPythonShell::s_PyGlobals;
+PyObject* LibytPythonShell::function_body_dict_;
 
 int LibytPythonShell::mpi_size_;
 int LibytPythonShell::mpi_root_;
@@ -38,6 +39,7 @@ int LibytPythonShell::mpi_rank_;
 // Return      :  (None)
 //-------------------------------------------------------------------------------------------------------
 AccumulatedOutputString::AccumulatedOutputString() {
+    // TODO: remove this (not using this at all)
     output_string = std::string("");
     output_length.reserve(LibytProcessControl::Get().mpi_size_);
     for (int i = 0; i < LibytProcessControl::Get().mpi_size_; i++) {
@@ -85,6 +87,8 @@ int LibytPythonShell::clear_prompt_history() {
 //                  3. Get only keyword def defined functions. If the functors are defined using __call__
 //                     this method cannot grab the corresponding definition.
 //                  4. TODO: It needs script's scope, otherwise some functors aren't detectable.
+//                  5. TODO: Re-write this using C API instead of PyRun_SimpleString, and make it store
+//                           the function body under some PyObject* dictionary in the class data member.
 //
 // Arguments     :  const char *filename: update function body for function defined inside filename
 //
@@ -131,6 +135,7 @@ int LibytPythonShell::load_file_func_body(const char* filename) {
 //                  5. To silent the printing when PyEval_EvalCode evaluates the code, that sys.stdout
 //                     point to somewhere else when evaluating.
 //                  6. It accepts indent size different from 4.
+//                  7. TODO: (Unit Test) It probably needs a mock for LibytProcessControl::Get().function_info_list_
 //                  7. TODO: It needs script's scope, otherwise some functors aren't detectable.
 //                     (ex: b = np.random.rand)
 //
@@ -177,8 +182,7 @@ int LibytPythonShell::load_input_func_body(const char* code) {
                                                                               FunctionInfo::RunStatus::kWillIdle);
 
                 // update function body
-                PyObject* py_func_body_dict =
-                    PyDict_GetItemString(LibytProcessControl::Get().py_interactive_mode_, "func_body");
+                PyObject* py_func_body_dict = GetFunctionBodyDict();
                 PyObject* py_func_body = PyUnicode_FromString((const char*)code);
                 PyDict_SetItemString(py_func_body_dict, func_name, py_func_body);
                 Py_DECREF(py_func_body);
@@ -204,6 +208,8 @@ int LibytPythonShell::load_input_func_body(const char* code) {
 //
 // Notes         :  1. This is a static method.
 //                  2. It grabs functions or any callable object's name defined in filename.
+//                  3. TODO: Re-write this using C API instead of PyRun_SimpleString, and make it store
+//                           the function body under some PyObject* dictionary in the class data member.
 //
 // Arguments     :  const char *filename: update function body for function defined inside filename
 //
@@ -353,6 +359,26 @@ int LibytPythonShell::SetExecutionNamespace(PyObject* execution_namespace) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     s_PyGlobals = execution_namespace;
+
+    return YT_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  LibytPythonShell
+// Static Method :  SetExecutionNamespace
+//
+// Notes         :  1. This is a static method.
+//                  2. Set the dictionary storage pointer where function body is stored.
+//                  3. Only sets the pointer, and doesn't alter the reference count.
+//
+// Arguments     :  None
+//
+// Return        :  YT_SUCCESS or YT_FAIL
+//-------------------------------------------------------------------------------------------------------
+int LibytPythonShell::SetFunctionBodyDict(PyObject* function_body_dict) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    function_body_dict_ = function_body_dict;
 
     return YT_SUCCESS;
 }
