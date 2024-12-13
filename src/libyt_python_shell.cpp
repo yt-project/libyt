@@ -767,21 +767,26 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_file(const std:
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  LibytPythonShell
-// Public Method :  AllExecutePrompt
-// Description   :  Execute a single statement code on every MPI process. (collective operation)
+// Public Method :  AllExecute
+// Description   :  Execute code on every MPI process based on Python input type. (collective operation)
 //
 // Notes       :  1. This is a collective operation, requires every rank to call this function.
 //                2. To avoid copying data string back and forth, client will need to pass in the designated
 //                   output storage.
 //                3. The local output are stored in the mpi rank order, which is output[mpi_rank_], and the
 //                   returned status represents all ranks successfully done or failed the job.
+//                   Only the output_mpi_rank has full knowledge (status, output, error) of each rank,
+//                   the others only knows itself and the overall status.
 //                4. To avoid unnecessary copying of code and cell name, they are stored in different variables,
 //                   ending with _sync, even though this will make the code less readable.
+//                5. Python input type should be: Py_single_input (256), Py_file_input (257), Py_eval_input (258)
+//                   define in Python header. (TODO: should check in unit test)
 //                5. TODO: probably need to find another to redirect and capture the stdout/stderr, or
 //                         create a new class. also, the current method is probably not thread-safe.
 //-------------------------------------------------------------------------------------------------------
-PythonStatus LibytPythonShell::AllExecutePrompt(const std::string& code, const std::string& cell_base_name,
-                                                int src_rank, std::vector<PythonOutput>& output, int output_mpi_rank) {
+PythonStatus LibytPythonShell::AllExecute(int python_input_type, const std::string& code,
+                                          const std::string& cell_base_name, int src_rank,
+                                          std::vector<PythonOutput>& output, int output_mpi_rank) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef SERIAL_MODE
@@ -825,7 +830,7 @@ PythonStatus LibytPythonShell::AllExecutePrompt(const std::string& code, const s
     PyRun_SimpleString("sys.OUTPUT_STDOUT=''\nstdout_buf=io.StringIO()\nsys.stdout=stdout_buf\n");
     PyRun_SimpleString("sys.OUTPUT_STDERR=''\nstderr_buf=io.StringIO()\nsys.stderr=stderr_buf\n");
 
-    PyObject* py_src = Py_CompileString(code_ptr, cell_base_name_ptr, Py_single_input);
+    PyObject* py_src = Py_CompileString(code_ptr, cell_base_name_ptr, python_input_type);
     bool has_error = false;
     if (py_src != NULL) {
         PyObject* py_dump = PyEval_EvalCode(py_src, get_script_namespace(), get_script_namespace());
@@ -910,6 +915,21 @@ PythonStatus LibytPythonShell::AllExecutePrompt(const std::string& code, const s
 #endif
 
     return all_has_error ? PythonStatus::kPythonFailed : PythonStatus::kPythonSuccess;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  LibytPythonShell
+// Public Method :  AllExecutePrompt
+// Description   :  Execute a single statement code on every MPI process. (collective operation)
+//
+// Notes       :  1. Call AllExecute with python input type as Py_single_input (int).
+//-------------------------------------------------------------------------------------------------------
+PythonStatus LibytPythonShell::AllExecutePrompt(const std::string& code, const std::string& cell_base_name,
+                                                int src_rank, std::vector<PythonOutput>& output, int output_mpi_rank) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    PythonStatus status = AllExecute(Py_single_input, code, cell_base_name, src_rank, output, output_mpi_rank);
+    return status;
 }
 
 //-------------------------------------------------------------------------------------------------------
