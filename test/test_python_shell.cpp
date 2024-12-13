@@ -25,9 +25,11 @@ private:
 
         // Create namespace for PythonShell to execute code
         InitializeAndImportScript(script_);
-        GetScriptPyNamespace(script_);
         LibytPythonShell::SetExecutionNamespace(GetScriptPyNamespace(script_));
+        LibytPythonShell::SetFunctionBodyDict(CreateTemplateDictStorage());
     }
+
+    void TearDown() override { PyRun_SimpleString("del sys"); }
 
 protected:
     LibytPythonShell python_shell_;
@@ -63,6 +65,14 @@ protected:
         Py_DECREF(py_sys);
         Py_DECREF(py_modules);
         return py_script_namespace;
+    }
+    PyObject* CreateTemplateDictStorage() {
+        PyRun_SimpleString("import sys; sys.TEMPLATE_DICT_STORAGE = dict()");
+        PyObject* py_sys = PyImport_ImportModule("sys");
+        PyObject* py_template_dict_storage = PyObject_GetAttrString(py_sys, "TEMPLATE_DICT_STORAGE");
+        Py_DECREF(py_sys);
+        Py_DECREF(py_template_dict_storage);
+        return py_template_dict_storage;
     }
 };
 

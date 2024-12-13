@@ -36,6 +36,7 @@ private:
     int m_PromptHistoryCount;
 
     static PyObject* s_PyGlobals;
+    static PyObject* function_body_dict_;
 
     static int mpi_size_;
     static int mpi_root_;
@@ -61,7 +62,9 @@ public:
     static int set_exception_hook();
     static int init_not_done_err_msg();
     static int SetExecutionNamespace(PyObject* execution_namespace);
+    static int SetFunctionBodyDict(PyObject* function_body_dict);
     static PyObject* get_script_namespace() { return s_PyGlobals; }
+    static PyObject* GetFunctionBodyDict() { return function_body_dict_; }
     static bool is_not_done_err_msg(const std::string& code);
     static CodeValidity check_code_validity(const std::string& code, bool prompt_env = false,
                                             const char* cell_name = "<libyt-stdin>");
