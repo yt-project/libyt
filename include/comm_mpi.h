@@ -37,6 +37,7 @@ public:
     static void SetStringUsingValueOnRank(std::string& sync_string, int src_mpi_rank);
     static void GatherAllStringsToRank(std::vector<std::string>& all_strings, const std::string& src_string,
                                        int dest_mpi_rank);
+    static void GatherAllIntsToRank(std::vector<int>& all_ints, const int src_int, int dest_mpi_rank);
 };
 
 #endif  // COMM_MPI_H
