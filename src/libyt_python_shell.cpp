@@ -959,6 +959,21 @@ PythonStatus LibytPythonShell::AllExecutePrompt(const std::string& code, const s
 }
 
 //-------------------------------------------------------------------------------------------------------
+// Class         :  LibytPythonShell
+// Public Method :  AllExecuteFile
+// Description   :  Execute an arbitrary length code on every MPI process. (collective operation)
+//
+// Notes       :  1. Call AllExecute with python input type as Py_file_input (int).
+//-------------------------------------------------------------------------------------------------------
+PythonStatus LibytPythonShell::AllExecuteFile(const std::string& code, const std::string& cell_base_name, int src_rank,
+                                              std::vector<PythonOutput>& output, int output_mpi_rank) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    PythonStatus status = AllExecute(Py_file_input, code, cell_base_name, src_rank, output, output_mpi_rank);
+    return status;
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Function      :  generate_err_msg
 //
 // Notes         :  1. Generate error msg that are caused by user not-done-yet.
