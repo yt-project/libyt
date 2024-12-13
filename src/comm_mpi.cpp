@@ -194,4 +194,51 @@ void CommMpi::SetStringUsingValueOnRank(std::string& sync_string, int src_mpi_ra
     }
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Class                :  CommMpi
+// Public Static Method :  GatherAllStringsToRank
+//
+// Notes       :  1. It's a collective operation.
+//                2. Should I also make it ignore the string on the destination rank?
+//-------------------------------------------------------------------------------------------------------
+void CommMpi::GatherAllStringsToRank(std::vector<std::string>& all_strings, const std::string& src_string,
+                                     int dest_mpi_rank) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    int src_string_len = static_cast<int>(src_string.length());
+    if (mpi_rank_ == dest_mpi_rank) {
+        // Get the length of all strings
+        int* all_src_string_len = new int[mpi_size_];
+        MPI_Gather(&src_string_len, 1, MPI_INT, all_src_string_len, 1, MPI_INT, dest_mpi_rank, MPI_COMM_WORLD);
+
+        // Allocate buffer, and gather all the strings to the destination rank
+        unsigned long sum_all_string_len = 0;
+        int* displacements = new int[mpi_size_];
+        for (int r = 0; r < mpi_size_; r++) {
+            sum_all_string_len += all_src_string_len[r];
+            displacements[r] = 0;
+            for (int r1 = 0; r1 < r; r1++) {
+                displacements[r] += all_src_string_len[r1];
+            }
+        }
+        char* buffer = new char[sum_all_string_len];
+        MPI_Gatherv(src_string.c_str(), src_string_len, MPI_CHAR, buffer, all_src_string_len, displacements, MPI_CHAR,
+                    dest_mpi_rank, MPI_COMM_WORLD);
+
+        // Copies the char* to std::string
+        all_strings.clear();
+        for (int r = 0; r < mpi_size_; r++) {
+            all_strings.emplace_back(std::string(&buffer[displacements[r]], all_src_string_len[r]));
+        }
+
+        delete[] all_src_string_len;
+        delete[] displacements;
+        delete[] buffer;
+    } else {
+        MPI_Gather(&src_string_len, 1, MPI_INT, nullptr, 0, MPI_INT, dest_mpi_rank, MPI_COMM_WORLD);
+        MPI_Gatherv(src_string.c_str(), src_string_len, MPI_CHAR, nullptr, nullptr, nullptr, MPI_CHAR, dest_mpi_rank,
+                    MPI_COMM_WORLD);
+    }
+}
+
 #endif

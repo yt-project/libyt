@@ -5,6 +5,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 class CommMpi {
 public:
@@ -34,6 +35,8 @@ public:
     static void SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local);
     static int CheckAllStates(int local_state, int desired_state, int success_value, int failure_value);
     static void SetStringUsingValueOnRank(std::string& sync_string, int src_mpi_rank);
+    static void GatherAllStringsToRank(std::vector<std::string>& all_strings, const std::string& src_string,
+                                       int dest_mpi_rank);
 };
 
 #endif  // COMM_MPI_H
