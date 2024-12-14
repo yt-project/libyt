@@ -14,6 +14,7 @@
 static std::vector<std::string> generate_err_msg(const std::vector<std::string>& statements);
 static bool last_line_has_backslash(const std::string& code);
 static bool last_line_has_colon(const std::string& code);
+static void SplitOnLine(const std::string& code, unsigned int lineno, std::array<std::string, 2>& code_split);
 
 std::vector<std::string> LibytPythonShell::s_Bracket_NotDoneErr;
 std::vector<std::string> LibytPythonShell::s_CompoundKeyword_NotDoneErr;
@@ -803,11 +804,13 @@ std::array<AccumulatedOutputString, 2> LibytPythonShell::execute_file(const std:
 //                   returned status represents all ranks successfully done or failed the job.
 //                   Only the output_mpi_rank has full knowledge (status, output, error) of each rank,
 //                   the others only knows itself and the overall status.
+//                   output_mpi_rank should be the same in every rank.
 //                4. To avoid unnecessary copying of code and cell name, they are stored in different variables,
 //                   ending with _sync, even though this will make the code less readable.
 //                5. Python input type should be: Py_single_input (256), Py_file_input (257), Py_eval_input (258)
 //                   define in Python header. (TODO: should check in unit test)
-//                5. TODO: probably need to find another to redirect and capture the stdout/stderr, or
+//                6. This function doesn't check code validity.
+//                7. TODO: probably need to find another to redirect and capture the stdout/stderr, or
 //                         create a new class. also, the current method is probably not thread-safe.
 //-------------------------------------------------------------------------------------------------------
 PythonStatus LibytPythonShell::AllExecute(int python_input_type, const std::string& code,
@@ -974,6 +977,94 @@ PythonStatus LibytPythonShell::AllExecuteFile(const std::string& code, const std
 }
 
 //-------------------------------------------------------------------------------------------------------
+// Class         :  LibytPythonShell
+// Public Method :  AllExecuteCell
+// Description   :  Execute an arbitrary length code and display the output like a JupyterLab cell
+//                  (collective operation)
+//
+// Notes       :  1. For the code execution to be like a JupyterLab cell, the last line of code should
+//                   behave like AllExecutePrompt and the rest of the code should behave like AllExecuteFile.
+//                2. Use Python ast to split the last statement and the rest of the code, and then call
+//                   AllExecuteFile and AllExecutePrompt one-by-one.
+//                   Since only the src_rank will input the code, we do the parsing on the src_rank only.
+//                3  If error occurred in AllExecuteFile, it will skip AllExecutePrompt and return the error.
+//                   Otherwise, it will combine the output and error from AllExecuteFile and AllExecutePrompt.
+//                4. AllExecute doesn't check validity, it just executes it. But this method should be able to
+//                   resolve an invalid code.
+//-------------------------------------------------------------------------------------------------------
+PythonStatus LibytPythonShell::AllExecuteCell(const std::string& code, const std::string& cell_base_name, int src_rank,
+                                              std::vector<PythonOutput>& output, int output_mpi_rank) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    // Parse the code using ast and separate the last statement on src_rank only
+    if (mpi_rank_ == src_rank) {
+        PyObject* py_module_ast = PyImport_ImportModule("ast");
+        PyObject* py_ast_parse = PyObject_GetAttrString(py_module_ast, "parse");
+        PyObject* py_result = PyObject_CallFunction(py_ast_parse, "s", code.c_str());
+        PyObject* py_result_body = PyObject_GetAttrString(py_result, "body");
+
+        // index guard, though this is unlikely happen
+        Py_ssize_t num_statements = PyList_Size(py_result_body);
+        if (num_statements <= 0) {
+            // TODO: return success and set the output if the code is blank.
+            return PythonStatus::kPythonSuccess;
+        }
+
+        // TODO: also need to resolve the error
+
+        PyObject* py_lineno = PyObject_GetAttrString(PyList_GET_ITEM(py_result_body, num_statements - 1), "lineno");
+        long last_statement_lineno = PyLong_AsLong(py_lineno);
+        Py_DECREF(py_lineno);
+        std::array<std::string, 2> code_split = {std::string(""), std::string("")};
+        SplitOnLine(code, last_statement_lineno - 1, code_split);
+
+        // Append newline at the end of the last statement, so that Python won't produce EOF error
+        if (!code_split[1].empty()) {
+            code_split[1].append("\n");
+        }
+
+        // Append newline at the front of the last statement, so that Python error buffer can catch the correct lineno
+        if (last_statement_lineno >= 1) {
+            code_split[1].insert(0, std::string(last_statement_lineno - 1, '\n'));
+        }
+
+        Py_DECREF(py_module_ast);
+        Py_DECREF(py_ast_parse);
+        Py_DECREF(py_result);
+        Py_DECREF(py_result_body);
+
+        // Call AllExecuteFile and AllExecutePrompt and combine the output
+        PythonStatus status = AllExecuteFile(code_split[0], cell_base_name, src_rank, output, output_mpi_rank);
+        if (status == PythonStatus::kPythonFailed) {
+            return status;
+        }
+
+        std::vector<PythonOutput> output_prompt;
+        status = AllExecutePrompt(code_split[1], cell_base_name, src_rank, output_prompt, output_mpi_rank);
+        for (int r = 0; r < mpi_size_; r++) {
+            output[r].status = output_prompt[r].status;
+            output[r].output += output_prompt[r].output;
+            output[r].error += output_prompt[r].error;
+        }
+        return status;
+    } else {
+        // TODO: should sync the current state with the src_rank
+        PythonStatus status = AllExecuteFile(code, cell_base_name, src_rank, output, output_mpi_rank);
+        if (status == PythonStatus::kPythonFailed) {
+            return status;
+        }
+
+        // Combine output
+        std::vector<PythonOutput> output_prompt;
+        status = AllExecutePrompt(code, cell_base_name, src_rank, output_prompt, output_mpi_rank);
+        output[mpi_rank_].status = output_prompt[mpi_rank_].status;
+        output[mpi_rank_].output += output_prompt[mpi_rank_].output;
+        output[mpi_rank_].error += output_prompt[mpi_rank_].error;
+        return status;
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Function      :  generate_err_msg
 //
 // Notes         :  1. Generate error msg that are caused by user not-done-yet.
@@ -1100,6 +1191,36 @@ static bool last_line_has_colon(const std::string& code) {
         } else {
             return false;
         }
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Method      :  SplitOnLine
+// Description :  Split the string to two parts on lineno.
+//
+// Notes       :  1. It's a local method.
+//                2. Line count starts at 1.
+//                3. code_split[0] contains line 1 ~ lineno, code_split[1] contains the rest.
+//-------------------------------------------------------------------------------------------------------
+static void SplitOnLine(const std::string& code, unsigned int lineno, std::array<std::string, 2>& code_split) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    std::size_t start_pos = 0, found;
+    unsigned int line = 1;
+    while (!code.empty()) {
+        found = code.find('\n', start_pos);
+        if (found != std::string::npos) {
+            if (line == lineno) {
+                code_split[0] = std::move(code.substr(0, found));
+                code_split[1] = std::move(code.substr(found + 1, code.length() - found));
+                break;
+            }
+        } else {
+            code_split[1] = std::move(code.substr(0, code.length()));
+            break;
+        }
+        start_pos = found + 1;
+        line += 1;
     }
 }
 
