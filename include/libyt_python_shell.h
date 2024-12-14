@@ -9,13 +9,6 @@
 
 enum class PythonStatus { kPythonUnknown = -1, kPythonFailed = 0, kPythonSuccess = 1 };
 
-struct AccumulatedOutputString {
-    std::string output_string;
-    std::vector<int> output_length;
-
-    AccumulatedOutputString();
-};
-
 struct PythonOutput {
     PythonStatus status;
     std::string output;
@@ -69,8 +62,6 @@ public:
     static bool is_not_done_err_msg(const std::string& code);
     static CodeValidity check_code_validity(const std::string& code, bool prompt_env = false,
                                             const char* cell_name = "<libyt-stdin>");
-    std::array<AccumulatedOutputString, 2> execute_cell(const std::array<std::string, 2>& code_split = {"", ""},
-                                                        const std::string& cell_name = std::string(""));
     PythonStatus AllExecutePrompt(const std::string& code, const std::string& cell_base_name, int src_rank,
                                   std::vector<PythonOutput>& output, int output_mpi_rank);
     PythonStatus AllExecuteFile(const std::string& code, const std::string& cell_base_name, int src_rank,

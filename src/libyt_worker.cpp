@@ -48,8 +48,9 @@ void LibytWorker::start() {
                 break;
             }
             case 1: {
-                std::array<AccumulatedOutputString, 2> temp_string =
-                    LibytProcessControl::Get().python_shell_.execute_cell();
+                std::vector<PythonOutput> output;
+                PythonStatus all_execute_status =
+                    LibytProcessControl::Get().python_shell_.AllExecuteCell("", "", m_mpi_root, output, m_mpi_root);
                 break;
             }
             case 2: {
