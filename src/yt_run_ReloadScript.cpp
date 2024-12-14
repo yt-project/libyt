@@ -204,9 +204,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     reload_success = (all_execute_status == PythonStatus::kPythonSuccess);
 
                     // Load function body from file
-                    if (reload_success) {
-                        LibytPythonShell::load_file_func_body(script_name);
-                    }
+                    LibytPythonShell::load_file_func_body(script_name);
 
                     // Write output to file
                     reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
@@ -301,9 +299,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     std::vector<PythonOutput> output;
                     PythonStatus all_execute_status =
                         LibytProcessControl::Get().python_shell_.AllExecuteFile("", "", mpi_root, output, mpi_root);
-                    if (all_execute_status == PythonStatus::kPythonSuccess) {
-                        LibytPythonShell::load_file_func_body(script_name);
-                    }
+                    LibytPythonShell::load_file_func_body(script_name);
                     break;
                 }
             }
