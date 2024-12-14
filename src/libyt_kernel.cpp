@@ -10,8 +10,8 @@
 #include "magic_command.h"
 #include "yt_combo.h"
 
-static std::vector<std::string> split(const std::string& code, const char* c);
-static std::array<int, 2> find_lineno_columno(const std::string& code, int pos);
+static std::vector<std::string> SplitByChar(const std::string& code, const char* c);
+static std::array<int, 2> FindLinenoColumno(const std::string& code, int pos);
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytKernel
@@ -88,7 +88,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
             publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
         }
         if (!command_output.error.empty()) {
-            publish_execution_error("LibytMagicCommandError", "", split(command_output.error, "\n"));
+            publish_execution_error("LibytMagicCommandError", "", SplitByChar(command_output.error, "\n"));
         }
 
         return xeus::create_successful_reply();
@@ -97,7 +97,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     // Make sure code is valid before continue
     CodeValidity code_validity = LibytPythonShell::check_code_validity(code, false, cell_name.c_str());
     if (code_validity.is_valid != "complete") {
-        publish_execution_error("", "", split(code_validity.error_msg, "\n"));
+        publish_execution_error("", "", SplitByChar(code_validity.error_msg, "\n"));
         return xeus::create_successful_reply();
     }
 
@@ -153,7 +153,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
         publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
     }
     if (!combined_error.empty()) {
-        publish_execution_error("", "", split(combined_error, "\n"));
+        publish_execution_error("", "", SplitByChar(combined_error, "\n"));
     }
 
     return xeus::create_successful_reply();
@@ -194,7 +194,7 @@ nl::json LibytKernel::complete_request_impl(const std::string& code, int cursor_
     Py_XDECREF(py_list_scope);
 
     // find lineno and columno of the cursor position, and call script.complete(lineno, columno)
-    std::array<int, 2> pos_no = find_lineno_columno(code, cursor_pos);
+    std::array<int, 2> pos_no = FindLinenoColumno(code, cursor_pos);
     PyObject* py_script_complete_callable = PyObject_GetAttrString(py_script, "complete");
     py_tuple_args = PyTuple_New(2);
     PyTuple_SET_ITEM(py_tuple_args, 0, PyLong_FromLong(pos_no[0]));
@@ -354,7 +354,7 @@ void LibytKernel::shutdown_request_impl() {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Method      :  split
+// Method      :  SplitByChar
 // Description :  Split the string based on character
 //
 // Notes       :  1. It's a local method.
@@ -367,7 +367,7 @@ void LibytKernel::shutdown_request_impl() {
 //
 // Return      :  std::vector<std::string>
 //-------------------------------------------------------------------------------------------------------
-static std::vector<std::string> split(const std::string& code, const char* c) {
+static std::vector<std::string> SplitByChar(const std::string& code, const char* c) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     std::vector<std::string> code_split;
@@ -386,7 +386,7 @@ static std::vector<std::string> split(const std::string& code, const char* c) {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Method      :  find_lineno_columno
+// Method      :  FindLinenoColumno
 // Description :  Convert cursor position to lineno and columno, count starts from 1.
 //
 // Notes       :  1. Cursor position, lineno, and columno count start from 1.
@@ -399,7 +399,7 @@ static std::vector<std::string> split(const std::string& code, const char* c) {
 // Return      : std::array<int, 2> no[0] : lineno
 //                                  no[1] : columno
 //-------------------------------------------------------------------------------------------------------
-static std::array<int, 2> find_lineno_columno(const std::string& code, int pos) {
+static std::array<int, 2> FindLinenoColumno(const std::string& code, int pos) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     if (code.length() < pos) return {-1, -1};
