@@ -1003,12 +1003,14 @@ PythonStatus LibytPythonShell::AllExecuteCell(const std::string& code, const std
 
     // Parse the code using ast and separate the last statement on src_rank only
     std::array<std::string, 2> code_split = {std::string(""), std::string("")};
-    long last_statement_lineno;
+    long last_statement_lineno = -1;
     if (mpi_rank_ == src_rank) {
         last_statement_lineno = GetLastStatementLineno(code);
 
         // Early return if the code is invalid or its empty
+#ifndef SERIAL_MODE
         MPI_Bcast(&last_statement_lineno, 1, MPI_LONG, src_rank, MPI_COMM_WORLD);
+#endif
         if (last_statement_lineno > 0) {
             SplitOnLine(code, last_statement_lineno - 1, code_split);
 
@@ -1019,9 +1021,12 @@ PythonStatus LibytPythonShell::AllExecuteCell(const std::string& code, const std
                 code_split[1].append("\n");
             }
         }
-    } else {
+    }
+#ifndef SERIAL_MODE
+    else {
         MPI_Bcast(&last_statement_lineno, 1, MPI_LONG, src_rank, MPI_COMM_WORLD);
     }
+#endif
 
     // Early return if the code is invalid or its empty
     output.clear();
