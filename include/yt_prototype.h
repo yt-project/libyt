@@ -8,6 +8,8 @@
 
 #ifdef USE_PYBIND11
 #include "pybind11/numpy.h"
+#else
+#include <Python.h>
 #endif
 
 #ifndef SERIAL_MODE

@@ -148,7 +148,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
 
             // check validity
             CodeValidity code_validity = LibytPythonShell::check_code_validity(std::string(code), true);
-            if (code_validity.is_valid.compare("complete") == 0) {
+            if (code_validity.is_valid == "complete") {
                 // is complete and is a single-line statement or second \n for multi-line statement
                 if (prompt == ps1 || code[code_len + input_len - 1] == '\n') {
 #ifndef SERIAL_MODE
@@ -158,20 +158,33 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
 #endif
 
                     // Execute code and print result
-                    std::array<AccumulatedOutputString, 2> output =
-                        LibytProcessControl::Get().python_shell_.execute_prompt(std::string(code));
-                    for (int i = 0; i < 2; i++) {
-                        if (output[i].output_string.length() > 0) {
-                            int offset = 0;
-                            for (int r = 0; r < mpi_size; r++) {
-                                printf("\033[1;34m[MPI Process %d]\033[0;37m\n", r);
-                                if (output[i].output_length[r] == 0) {
-                                    printf("(None)\n");
-                                }
-                                printf("%s\n",
-                                       output[i].output_string.substr(offset, output[i].output_length[r]).c_str());
-                                offset += output[i].output_length[r];
-                            }
+                    std::vector<PythonOutput> output;
+                    PythonStatus all_execute_status = LibytProcessControl::Get().python_shell_.AllExecutePrompt(
+                        std::string(code), std::string("<libyt-stdin>"), root, output, root);
+                    bool all_output_is_none = true;
+                    bool all_error_is_none = true;
+                    for (int r = 0; r < mpi_size; r++) {
+                        if (!output[r].output.empty()) {
+                            all_output_is_none = false;
+                            break;
+                        }
+                    }
+                    for (int r = 0; r < mpi_size; r++) {
+                        if (!output[r].error.empty()) {
+                            all_error_is_none = false;
+                            break;
+                        }
+                    }
+                    if (!all_output_is_none) {
+                        for (int r = 0; r < mpi_size; r++) {
+                            printf("\033[1;34m[MPI Process %d]\033[0;37m\n", r);
+                            printf("%s\n", (!output[r].output.empty() ? output[r].output.c_str() : "(None)\n"));
+                        }
+                    }
+                    if (!all_error_is_none) {
+                        for (int r = 0; r < mpi_size; r++) {
+                            printf("\033[1;36m[MPI Process %d -- Error Msg ]\033[0;37m\n", r);
+                            printf("%s\n", (!output[r].error.empty() ? output[r].error.c_str() : "(None)\n"));
                         }
                     }
 
@@ -185,7 +198,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                     MPI_Barrier(MPI_COMM_WORLD);
 #endif
                 }
-            } else if (code_validity.is_valid.compare("incomplete") == 0) {
+            } else if (code_validity.is_valid == "incomplete") {
                 prompt = ps2;
             } else {
                 // Print error
@@ -209,9 +222,10 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                 command_result = command.Run();
                 done = command_result.exit_entry_point;
             } else {
-                // Execute code, the code must be a vaild code and successfully compile now
-                std::array<AccumulatedOutputString, 2> temp_output =
-                    LibytProcessControl::Get().python_shell_.execute_prompt();
+                // Execute code, the code must be a valid code and successfully compile now
+                std::vector<PythonOutput> output;
+                PythonStatus all_execute_status =
+                    LibytProcessControl::Get().python_shell_.AllExecutePrompt("", "", root, output, root);
             }
 
             // clean up and wait
