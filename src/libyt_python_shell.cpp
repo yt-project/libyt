@@ -991,9 +991,7 @@ PythonStatus LibytPythonShell::AllExecuteFile(const std::string& code, const std
 //
 // Notes       :  1. For the code execution to be like a JupyterLab cell, the last line of code should
 //                   behave like AllExecutePrompt and the rest of the code should behave like AllExecuteFile.
-//                2. Use Python ast to split the last statement and the rest of the code, and then call
-//                   AllExecuteFile and AllExecutePrompt one-by-one.
-//                   Since only the src_rank will input the code, we do the parsing on the src_rank only.
+//                2. Since only the src_rank will input the code, we do the parsing on the src_rank only.
 //                3  If error occurred in AllExecuteFile, it will skip AllExecutePrompt and return the error.
 //                   Otherwise, it will combine the output and error from AllExecuteFile and AllExecutePrompt.
 //                4. AllExecute doesn't check validity, it just executes it. But this method should be able to
@@ -1004,71 +1002,112 @@ PythonStatus LibytPythonShell::AllExecuteCell(const std::string& code, const std
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Parse the code using ast and separate the last statement on src_rank only
+    std::array<std::string, 2> code_split = {std::string(""), std::string("")};
+    long last_statement_lineno;
     if (mpi_rank_ == src_rank) {
-        PyObject* py_module_ast = PyImport_ImportModule("ast");
-        PyObject* py_ast_parse = PyObject_GetAttrString(py_module_ast, "parse");
-        PyObject* py_result = PyObject_CallFunction(py_ast_parse, "s", code.c_str());
-        PyObject* py_result_body = PyObject_GetAttrString(py_result, "body");
+        last_statement_lineno = GetLastStatementLineno(code);
 
-        // index guard, though this is unlikely happen
-        Py_ssize_t num_statements = PyList_Size(py_result_body);
-        if (num_statements <= 0) {
-            // TODO: return success and set the output if the code is blank.
-            return PythonStatus::kPythonSuccess;
-        }
+        // Early return if the code is invalid or its empty
+        MPI_Bcast(&last_statement_lineno, 1, MPI_LONG, src_rank, MPI_COMM_WORLD);
+        if (last_statement_lineno > 0) {
+            SplitOnLine(code, last_statement_lineno - 1, code_split);
 
-        // TODO: also need to resolve the error
-
-        PyObject* py_lineno = PyObject_GetAttrString(PyList_GET_ITEM(py_result_body, num_statements - 1), "lineno");
-        long last_statement_lineno = PyLong_AsLong(py_lineno);
-        Py_DECREF(py_lineno);
-        std::array<std::string, 2> code_split = {std::string(""), std::string("")};
-        SplitOnLine(code, last_statement_lineno - 1, code_split);
-
-        // Append newline at the end of the last statement, so that Python won't produce EOF error
-        if (!code_split[1].empty()) {
-            code_split[1].append("\n");
-        }
-
-        // Append newline at the front of the last statement, so that Python error buffer can catch the correct lineno
-        if (last_statement_lineno >= 1) {
+            // Add newline at the end of the last statement, so that Python won't produce EOF error
+            // Add newline at the front of the last statement, so that Python error buffer can catch the correct lineno.
             code_split[1].insert(0, std::string(last_statement_lineno - 1, '\n'));
+            if (!code_split[1].empty()) {
+                code_split[1].append("\n");
+            }
         }
+    } else {
+        MPI_Bcast(&last_statement_lineno, 1, MPI_LONG, src_rank, MPI_COMM_WORLD);
+    }
 
-        Py_DECREF(py_module_ast);
-        Py_DECREF(py_ast_parse);
-        Py_DECREF(py_result);
-        Py_DECREF(py_result_body);
-
-        // Call AllExecuteFile and AllExecutePrompt and combine the output
-        PythonStatus status = AllExecuteFile(code_split[0], cell_base_name, src_rank, output, output_mpi_rank);
-        if (status == PythonStatus::kPythonFailed) {
-            return status;
+    // Early return if the code is invalid or its empty
+    output.clear();
+    if (last_statement_lineno == 0) {
+        if (mpi_rank_ == output_mpi_rank) {
+            output.assign(mpi_size_, PythonOutput{.status = PythonStatus::kPythonSuccess,
+                                                  .output = std::string(""),
+                                                  .error = std::string("")});
+        } else {
+            output.assign(mpi_size_, PythonOutput{.status = PythonStatus::kPythonUnknown,
+                                                  .output = std::string(""),
+                                                  .error = std::string("")});
+            output[mpi_rank_].status = PythonStatus::kPythonSuccess;
         }
+        return PythonStatus::kPythonSuccess;
+    } else if (last_statement_lineno < 0) {
+        if (mpi_rank_ == output_mpi_rank) {
+            output.assign(mpi_size_, PythonOutput{.status = PythonStatus::kPythonFailed,
+                                                  .output = std::string(""),
+                                                  .error = std::string("")});
+        } else {
+            output.assign(mpi_size_, PythonOutput{.status = PythonStatus::kPythonUnknown,
+                                                  .output = std::string(""),
+                                                  .error = std::string("")});
+            output[mpi_rank_].status = PythonStatus::kPythonFailed;
+        }
+        return PythonStatus::kPythonFailed;
+    }
 
-        std::vector<PythonOutput> output_prompt;
-        status = AllExecutePrompt(code_split[1], cell_base_name, src_rank, output_prompt, output_mpi_rank);
+    // Call AllExecuteFile and AllExecutePrompt and combine the output
+    PythonStatus status = AllExecuteFile(code_split[0], cell_base_name, src_rank, output, output_mpi_rank);
+    if (status == PythonStatus::kPythonFailed) {
+        return status;
+    }
+
+    std::vector<PythonOutput> output_prompt;
+    status = AllExecutePrompt(code_split[1], cell_base_name, src_rank, output_prompt, output_mpi_rank);
+    if (mpi_rank_ == output_mpi_rank) {
         for (int r = 0; r < mpi_size_; r++) {
             output[r].status = output_prompt[r].status;
             output[r].output += output_prompt[r].output;
             output[r].error += output_prompt[r].error;
         }
-        return status;
-    } else {
-        // TODO: should sync the current state with the src_rank
-        PythonStatus status = AllExecuteFile(code, cell_base_name, src_rank, output, output_mpi_rank);
-        if (status == PythonStatus::kPythonFailed) {
-            return status;
-        }
-
-        // Combine output
-        std::vector<PythonOutput> output_prompt;
-        status = AllExecutePrompt(code, cell_base_name, src_rank, output_prompt, output_mpi_rank);
-        output[mpi_rank_].status = output_prompt[mpi_rank_].status;
-        output[mpi_rank_].output += output_prompt[mpi_rank_].output;
-        output[mpi_rank_].error += output_prompt[mpi_rank_].error;
-        return status;
     }
+    return status;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  LibytPythonShell
+// Private Method:  GetLastStatementLineno
+// Description   :  Get the last statement lineno in the code
+//
+// Notes       :  1. Use Python ast to split the last statement and the rest of the code.
+//                2. If the code is valid, it will return lineno > 0;
+//                   If the code is invalid, it will return -1.
+//                3. Python lineno count starts at 1. So If lineno is 0, it means the code is blank.
+//                   And if lineno is -1, it means the code is invalid.
+//-------------------------------------------------------------------------------------------------------
+long LibytPythonShell::GetLastStatementLineno(const std::string& code) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    PyObject* py_module_ast = PyImport_ImportModule("ast");
+    PyObject* py_ast_parse = PyObject_GetAttrString(py_module_ast, "parse");
+    PyObject* py_result = PyObject_CallFunction(py_ast_parse, "s", code.c_str());
+
+    Py_DECREF(py_module_ast);
+    Py_DECREF(py_ast_parse);
+
+    long last_statement_lineno;
+    if (py_result == NULL) {
+        last_statement_lineno = -1;  // code invalid
+    } else {
+        PyObject* py_result_body = PyObject_GetAttrString(py_result, "body");
+        Py_ssize_t num_statements = PyList_Size(py_result_body);
+        if (num_statements <= 0) {
+            last_statement_lineno = 0;  // blank code
+        } else {
+            PyObject* py_lineno = PyObject_GetAttrString(PyList_GET_ITEM(py_result_body, num_statements - 1), "lineno");
+            last_statement_lineno = PyLong_AsLong(py_lineno);
+            Py_DECREF(py_lineno);
+        }
+        Py_DECREF(py_result_body);
+        Py_DECREF(py_result);
+    }
+
+    return last_statement_lineno;
 }
 
 //-------------------------------------------------------------------------------------------------------
