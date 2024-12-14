@@ -177,13 +177,17 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
                     }
                     if (!all_output_is_none) {
                         for (int r = 0; r < mpi_size; r++) {
+#ifndef SERIAL_MODE
                             printf("\033[1;34m[MPI Process %d]\033[0;37m\n", r);
+#endif
                             printf("%s\n", (!output[r].output.empty() ? output[r].output.c_str() : "(None)\n"));
                         }
                     }
                     if (!all_error_is_none) {
                         for (int r = 0; r < mpi_size; r++) {
-                            printf("\033[1;36m[MPI Process %d -- Error Msg ]\033[0;37m\n", r);
+#ifndef SERIAL_MODE
+                            printf("\033[1;36m[MPI Process %d -- Error Msg]\033[0;37m\n", r);
+#endif
                             printf("%s\n", (!output[r].error.empty() ? output[r].error.c_str() : "(None)\n"));
                         }
                     }
