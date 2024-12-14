@@ -1057,13 +1057,13 @@ PythonStatus LibytPythonShell::AllExecuteCell(const std::string& code, const std
     }
 
     // Call AllExecuteFile and AllExecutePrompt and combine the output
-    PythonStatus status = AllExecuteFile(code_split[0], cell_base_name, src_rank, output, output_mpi_rank);
+    PythonStatus status = AllExecute(Py_file_input, code_split[0], cell_base_name, src_rank, output, output_mpi_rank);
     if (status == PythonStatus::kPythonFailed) {
         return status;
     }
 
     std::vector<PythonOutput> output_prompt;
-    status = AllExecutePrompt(code_split[1], cell_base_name, src_rank, output_prompt, output_mpi_rank);
+    status = AllExecute(Py_single_input, code_split[1], cell_base_name, src_rank, output_prompt, output_mpi_rank);
     for (int r = 0; r < mpi_size_; r++) {
         output[r].status = output_prompt[r].status;
         output[r].output += output_prompt[r].output;
