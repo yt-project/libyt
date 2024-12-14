@@ -193,40 +193,39 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 // check code validity then load python code
                 CodeValidity code_validity =
                     LibytPythonShell::check_code_validity(python_code_buffer.str(), false, script_name);
-                if (code_validity.is_valid.compare("complete") == 0) {
+                if (code_validity.is_valid == "complete") {
 #ifndef SERIAL_MODE
                     int indicator = 1;
                     MPI_Bcast(&indicator, 1, MPI_INT, mpi_root, MPI_COMM_WORLD);
 #endif
-                    std::array<AccumulatedOutputString, 2> output =
-                        LibytProcessControl::Get().python_shell_.execute_file(python_code_buffer.str(), script_name);
-                    reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
-                    for (int i = 0; i < 2; i++) {
-                        if (output[i].output_string.length() > 0) {
-                            int offset = 0;
-                            for (int r = 0; r < mpi_size; r++) {
-                                reload_result_file << "====== MPI Process " << r << (i == 0 ? "" : " - ErrorMsg")
-                                                   << " ======\n";
-                                if (output[i].output_length[r] == 0) {
-                                    reload_result_file << "(None)\n";
-                                }
-                                reload_result_file
-                                    << output[i].output_string.substr(offset, output[i].output_length[r]).c_str()
-                                    << "\n";
-                                offset += output[i].output_length[r];
-                            }
+                    std::vector<PythonOutput> output;
+                    PythonStatus all_execute_status = LibytProcessControl::Get().python_shell_.AllExecuteFile(
+                        python_code_buffer.str(), script_name, mpi_root, output, mpi_root);
+                    reload_success = (all_execute_status == PythonStatus::kPythonSuccess);
 
-                            // error output[1] length > 0, which means there is an error
-                            if (i == 1) {
-                                reload_success = false;
-                            }
-                        } else {
-                            // error output[1] length == 0, which means there is no error msg
-                            if (i == 1) {
-                                reload_success = true;
-                                LibytPythonShell::load_file_func_body(script_name);
-                            }
-                        }
+                    // Load function body from file
+                    if (reload_success) {
+                        LibytPythonShell::load_file_func_body(script_name);
+                    }
+
+                    // Write output to file
+                    reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
+                    for (int r = 0; r < mpi_size; r++) {
+#ifndef SERIAL_MODE
+                        reload_result_file << "[MPI Process " << r << "]\n";
+#else
+                        reload_result_file << "[Process " << r << "]\n";
+#endif
+                        reload_result_file << (output[r].output.empty() ? "(None)\n" : output[r].output.c_str())
+                                           << "\n";
+                    }
+                    for (int r = 0; r < mpi_size; r++) {
+#ifndef SERIAL_MODE
+                        reload_result_file << "[MPI Process " << r << " -- ErrorMsg]\n";
+#else
+                        reload_result_file << "[Process " << r << " -- ErrorMsg]\n";
+#endif
+                        reload_result_file << (output[r].error.empty() ? "(None)\n" : output[r].error.c_str()) << "\n";
                     }
                     reload_result_file.close();
                 } else {
@@ -299,9 +298,10 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     break;
                 }
                 case 1: {
-                    std::array<AccumulatedOutputString, 2> output =
-                        LibytProcessControl::Get().python_shell_.execute_file();
-                    if (output[1].output_string.length() <= 0) {
+                    std::vector<PythonOutput> output;
+                    PythonStatus all_execute_status =
+                        LibytProcessControl::Get().python_shell_.AllExecuteFile("", "", mpi_root, output, mpi_root);
+                    if (all_execute_status == PythonStatus::kPythonSuccess) {
                         LibytPythonShell::load_file_func_body(script_name);
                     }
                     break;
