@@ -339,8 +339,6 @@ TEST_F(TestPythonShell, AllExecuteCell_can_resolve_an_invalid_code) {
     if (GetMpiRank() == output_mpi_rank) {
         for (int r = 0; r < output.size(); r++) {
             EXPECT_EQ(output[r].status, PythonStatus::kPythonFailed);
-            std::cout << "output[" << r << "].output = " << output[r].output << std::endl;
-            std::cout << "output[" << r << "].error = " << output[r].error << std::endl;
         }
     } else {
         for (int r = 0; r < output.size(); r++) {
@@ -349,8 +347,6 @@ TEST_F(TestPythonShell, AllExecuteCell_can_resolve_an_invalid_code) {
             } else {
                 EXPECT_EQ(output[r].status, PythonStatus::kPythonUnknown);
             }
-            std::cout << "output[" << r << "].output = " << output[r].output << std::endl;
-            std::cout << "output[" << r << "].error = " << output[r].error << std::endl;
         }
     }
 }

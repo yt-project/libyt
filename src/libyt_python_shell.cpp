@@ -1064,12 +1064,10 @@ PythonStatus LibytPythonShell::AllExecuteCell(const std::string& code, const std
 
     std::vector<PythonOutput> output_prompt;
     status = AllExecutePrompt(code_split[1], cell_base_name, src_rank, output_prompt, output_mpi_rank);
-    if (mpi_rank_ == output_mpi_rank) {
-        for (int r = 0; r < mpi_size_; r++) {
-            output[r].status = output_prompt[r].status;
-            output[r].output += output_prompt[r].output;
-            output[r].error += output_prompt[r].error;
-        }
+    for (int r = 0; r < mpi_size_; r++) {
+        output[r].status = output_prompt[r].status;
+        output[r].output += output_prompt[r].output;
+        output[r].error += output_prompt[r].error;
     }
     return status;
 }
