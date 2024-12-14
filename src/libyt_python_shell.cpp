@@ -846,9 +846,16 @@ PythonStatus LibytPythonShell::AllExecute(int python_input_type, const std::stri
 
     if (strlen(code_ptr) <= 0) {
         output.clear();
-        output.assign(
-            mpi_size_,
-            PythonOutput{.status = PythonStatus::kPythonSuccess, .output = std::string(""), .error = std::string("")});
+        if (mpi_rank_ == output_mpi_rank) {
+            output.assign(mpi_size_, PythonOutput{.status = PythonStatus::kPythonSuccess,
+                                                  .output = std::string(""),
+                                                  .error = std::string("")});
+        } else {
+            output.assign(mpi_size_, PythonOutput{.status = PythonStatus::kPythonUnknown,
+                                                  .output = std::string(""),
+                                                  .error = std::string("")});
+            output[mpi_rank_].status = PythonStatus::kPythonSuccess;
+        }
         return PythonStatus::kPythonSuccess;
     }
 
