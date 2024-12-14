@@ -71,8 +71,6 @@ public:
                                             const char* cell_name = "<libyt-stdin>");
     std::array<AccumulatedOutputString, 2> execute_cell(const std::array<std::string, 2>& code_split = {"", ""},
                                                         const std::string& cell_name = std::string(""));
-    std::array<AccumulatedOutputString, 2> execute_prompt(const std::string& code = std::string(""),
-                                                          const std::string& cell_name = std::string("<libyt-stdin>"));
     std::array<AccumulatedOutputString, 2> execute_file(const std::string& code = std::string(""),
                                                         const std::string& file_name = std::string(""));
     PythonStatus AllExecutePrompt(const std::string& code, const std::string& cell_base_name, int src_rank,
