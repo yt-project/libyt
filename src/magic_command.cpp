@@ -501,9 +501,12 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
             if (!all_output_is_none) {
                 for (int r = 0; r < mpi_size_; r++) {
 #ifndef SERIAL_MODE
-                    if (entry_point_ == kLibytInteractiveMode || entry_point_ == kLibytJupyterKernel) {
+                    if (entry_point_ == kLibytInteractiveMode) {
                         output_.output +=
                             std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\n\033[0;37m");
+                    } else if (entry_point_ == kLibytJupyterKernel) {
+                        output_.output +=
+                            std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\n\033[0;30m");
                     } else {
                         output_.output += std::string("[MPI Process ") + std::to_string(r) + std::string("]\n");
                     }
@@ -515,9 +518,12 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
             if (!all_error_is_none) {
                 for (int r = 0; r < mpi_size_; r++) {
 #ifndef SERIAL_MODE
-                    if (entry_point_ == kLibytInteractiveMode || entry_point_ == kLibytJupyterKernel) {
+                    if (entry_point_ == kLibytInteractiveMode) {
                         output_.error += std::string("\033[1;36m[MPI Process ") + std::to_string(r) +
                                          std::string(" -- Error Msg]\n\033[0;37m");
+                    } else if (entry_point_ == kLibytJupyterKernel) {
+                        output_.error += std::string("\033[1;36m[MPI Process ") + std::to_string(r) +
+                                         std::string(" -- Error Msg]\n\033[0;30m");
                     } else {
                         output_.error +=
                             std::string("[MPI Process ") + std::to_string(r) + std::string(" -- Error Msg]\n");
