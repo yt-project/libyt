@@ -11,7 +11,6 @@
 #include "yt_combo.h"
 
 static std::vector<std::string> split(const std::string& code, const char* c);
-static std::array<std::string, 2> split_on_line(const std::string& code, unsigned int lineno);
 static std::array<int, 2> find_lineno_columno(const std::string& code, int pos);
 
 //-------------------------------------------------------------------------------------------------------
@@ -97,40 +96,10 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
 
     // Make sure code is valid before continue
     CodeValidity code_validity = LibytPythonShell::check_code_validity(code, false, cell_name.c_str());
-    if (code_validity.is_valid.compare("complete") != 0) {
+    if (code_validity.is_valid != "complete") {
         publish_execution_error("", "", split(code_validity.error_msg, "\n"));
         return xeus::create_successful_reply();
     }
-
-    // Parse the code using ast, and separate the last statement
-    PyObject* py_module_ast = PyImport_ImportModule("ast");
-    PyObject* py_ast_parse = PyObject_GetAttrString(py_module_ast, "parse");
-    PyObject* py_result = PyObject_CallFunction(py_ast_parse, "s", code.c_str());
-    PyObject* py_result_body = PyObject_GetAttrString(py_result, "body");
-
-    // index guard, though this is unlikely happen
-    Py_ssize_t num_statements = PyList_Size(py_result_body);
-    if (num_statements <= 0) {
-        return xeus::create_successful_reply();
-    }
-    long last_statement_lineno =
-        PyLong_AsLong(PyObject_GetAttrString(PyList_GET_ITEM(py_result_body, num_statements - 1), "lineno"));
-    std::array<std::string, 2> code_split = split_on_line(code, last_statement_lineno - 1);
-
-    // Append newline at the end of the last statement, so that Python won't produce EOF error
-    if (code_split[1].length() > 0) {
-        code_split[1].append("\n");
-    }
-
-    // Append newline at the front of the last statement, so that Python error buffer can catch the correct lineno
-    if (last_statement_lineno >= 1) {
-        code_split[1].insert(0, std::string(last_statement_lineno - 1, '\n'));
-    }
-
-    Py_DECREF(py_module_ast);
-    Py_DECREF(py_ast_parse);
-    Py_DECREF(py_result);
-    Py_DECREF(py_result_body);
 
     // Call execute cell, and concatenate the string
     // TODO: It is a bad practice to send execute signal msg to other ranks like this, should wrap in function.
@@ -138,33 +107,53 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     int indicator = 1;
     MPI_Bcast(&indicator, 1, MPI_INT, LibytProcessControl::Get().mpi_root_, MPI_COMM_WORLD);
 #endif
-    std::array<AccumulatedOutputString, 2> output =
-        LibytProcessControl::Get().python_shell_.execute_cell(code_split, cell_name);
+    std::vector<PythonOutput> output;
+    PythonStatus all_execute_status = LibytProcessControl::Get().python_shell_.AllExecuteCell(
+        code, cell_name, LibytProcessControl::Get().mpi_root_, output, LibytProcessControl::Get().mpi_root_);
 
     // Insert header to string
-    for (int i = 0; i < 2; i++) {
-        if (output[i].output_string.length() > 0) {
-            int offset = 0;
-            for (int r = 0; r < LibytProcessControl::Get().mpi_size_; r++) {
-                std::string head =
-                    std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\n\033[0;30m");
-                if (output[i].output_length[r] == 0) {
-                    head += std::string("(None)\n");
-                }
-                output[i].output_string.insert(offset, head);
-                offset = offset + head.length() + output[i].output_length[r];
-            }
+    bool all_output_is_none = true;
+    bool all_error_is_none = true;
+    std::string combined_output, combined_error;
+    for (int r = 0; r < LibytProcessControl::Get().mpi_size_; r++) {
+        if (!output[r].output.empty()) {
+            all_output_is_none = false;
+            break;
+        }
+    }
+    for (int r = 0; r < LibytProcessControl::Get().mpi_size_; r++) {
+        if (!output[r].error.empty()) {
+            all_error_is_none = false;
+            break;
+        }
+    }
+    if (!all_output_is_none) {
+        for (int r = 0; r < LibytProcessControl::Get().mpi_size_; r++) {
+#ifndef SERIAL_MODE
+            combined_output +=
+                std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\033[0;30m\n");
+#endif
+            combined_output += (!output[r].output.empty() ? output[r].output : "(None)\n");
+        }
+    }
+    if (!all_error_is_none) {
+        for (int r = 0; r < LibytProcessControl::Get().mpi_size_; r++) {
+#ifndef SERIAL_MODE
+            combined_error +=
+                std::string("\033[1;36m[MPI Process ") + std::to_string(r) + std::string(" -- Error Msg]\033[0;30m\n");
+#endif
+            combined_error += (!output[r].error.empty() ? output[r].error : "(None)\n");
         }
     }
 
     // Publish results
-    if (output[0].output_string.length() > 0) {
+    if (!combined_output.empty()) {
         nl::json pub_data;
-        pub_data["text/plain"] = output[0].output_string.c_str();
+        pub_data["text/plain"] = std::move(combined_output);
         publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
     }
-    if (output[1].output_string.length() > 0) {
-        publish_execution_error("", "", split(output[1].output_string, "\n"));
+    if (!combined_error.empty()) {
+        publish_execution_error("", "", split(combined_error, "\n"));
     }
 
     return xeus::create_successful_reply();
@@ -280,7 +269,7 @@ nl::json LibytKernel::is_complete_request_impl(const std::string& code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     CodeValidity code_validity = LibytPythonShell::check_code_validity(code, true);
-    if (code_validity.is_valid.compare("complete") == 0) {
+    if (code_validity.is_valid == "complete") {
         return xeus::create_is_complete_reply("complete");
     } else {
         return xeus::create_is_complete_reply("incomplete");
@@ -383,7 +372,7 @@ static std::vector<std::string> split(const std::string& code, const char* c) {
 
     std::vector<std::string> code_split;
     std::size_t start_pos = 0, found;
-    while (code.length() > 0) {
+    while (!code.empty()) {
         found = code.find(c, start_pos);
         if (found != std::string::npos) {
             code_split.emplace_back(code.substr(start_pos, found - start_pos));
@@ -392,44 +381,6 @@ static std::vector<std::string> split(const std::string& code, const char* c) {
             break;
         }
         start_pos = found + 1;
-    }
-    return code_split;
-}
-
-//-------------------------------------------------------------------------------------------------------
-// Method      :  split_on_line
-// Description :  Split the string to two parts on lineno.
-//
-// Notes       :  1. It's a local method.
-//                2. Line count starts at 1.
-//                3. code_split[0] contains line 1 ~ lineno, code_split[1] contains the rest.
-//
-// Arguments   :  const std::string& code  : raw code
-//                unsigned int     lineno  : split on lineno, code_split[0] includes lineno
-//
-// Return      :  std::array<std::string, 2> code_split[0] : code from line 1 ~ lineno
-//                                           code_split[1] : the rest of the code
-//-------------------------------------------------------------------------------------------------------
-static std::array<std::string, 2> split_on_line(const std::string& code, unsigned int lineno) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
-    std::array<std::string, 2> code_split = {std::string(""), std::string("")};
-    std::size_t start_pos = 0, found;
-    unsigned int line = 1;
-    while (code.length() > 0) {
-        found = code.find('\n', start_pos);
-        if (found != std::string::npos) {
-            if (line == lineno) {
-                code_split[0] = std::move(code.substr(0, found));
-                code_split[1] = std::move(code.substr(found + 1, code.length() - found));
-                break;
-            }
-        } else {
-            code_split[1] = std::move(code.substr(0, code.length()));
-            break;
-        }
-        start_pos = found + 1;
-        line += 1;
     }
     return code_split;
 }
