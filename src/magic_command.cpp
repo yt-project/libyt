@@ -477,39 +477,55 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
             int indicator = 1;
             MPI_Bcast(&indicator, 1, MPI_INT, mpi_root_, MPI_COMM_WORLD);
 #endif
-            std::array<AccumulatedOutputString, 2> output =
-                LibytProcessControl::Get().python_shell_.execute_file(ss.str(), args[2]);
-            if (output[1].output_string.empty()) {
-                python_run_successfully = true;
-            } else {
-                python_run_successfully = false;
-            }
-#ifndef SERIAL_MODE
-            MPI_Bcast(&python_run_successfully, 1, MPI_C_BOOL, mpi_root_, MPI_COMM_WORLD);
-#endif
-
-            for (int i = 0; i < 2; i++) {
-                if (!output[i].output_string.empty()) {
-                    size_t offset = 0;
-                    for (int r = 0; r < mpi_size_; r++) {
-                        std::string head;
-                        if (entry_point_ == kLibytInteractiveMode || entry_point_ == kLibytJupyterKernel) {
-                            head += std::string("\033[1;34m[MPI Process ") + std::to_string(r) +
-                                    std::string("]\n\033[0;37m");
-                        } else {
-                            head += std::string("[MPI Process ") + std::to_string(r) + std::string("]\n");
-                        }
-
-                        if (output[i].output_length[r] == 0) {
-                            head += std::string("(None)\n");
-                        }
-                        output[i].output_string.insert(offset, head);
-                        offset = offset + head.length() + output[i].output_length[r];
-                    }
+            std::vector<PythonOutput> output;
+            PythonStatus all_execute_status = LibytProcessControl::Get().python_shell_.AllExecuteFile(
+                ss.str(), args[2], mpi_root_, output, mpi_root_);
+            python_run_successfully = (all_execute_status == PythonStatus::kPythonSuccess);
+            bool all_output_is_none = true;
+            bool all_error_is_none = true;
+            for (int r = 0; r < mpi_size_; r++) {
+                if (!output[r].output.empty()) {
+                    all_output_is_none = false;
+                    break;
                 }
             }
-            output_.output = std::move(output[0].output_string);
-            output_.error = std::move(output[1].output_string);
+            for (int r = 0; r < mpi_size_; r++) {
+                if (!output[r].error.empty()) {
+                    all_error_is_none = false;
+                    break;
+                }
+            }
+
+            output_.output = std::string("");
+            output_.error = std::string("");
+            if (!all_output_is_none) {
+                for (int r = 0; r < mpi_size_; r++) {
+#ifndef SERIAL_MODE
+                    if (entry_point_ == kLibytInteractiveMode || entry_point_ == kLibytJupyterKernel) {
+                        output_.output +=
+                            std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\n\033[0;37m");
+                    } else {
+                        output_.output += std::string("[MPI Process ") + std::to_string(r) + std::string("]\n");
+                    }
+#endif
+                    output_.output += (output[r].output.empty() ? "(None)\n" : output[r].output) + "\n";
+                }
+            }
+
+            if (!all_error_is_none) {
+                for (int r = 0; r < mpi_size_; r++) {
+#ifndef SERIAL_MODE
+                    if (entry_point_ == kLibytInteractiveMode || entry_point_ == kLibytJupyterKernel) {
+                        output_.error += std::string("\033[1;36m[MPI Process ") + std::to_string(r) +
+                                         std::string(" -- Error Msg]\n\033[0;37m");
+                    } else {
+                        output_.error +=
+                            std::string("[MPI Process ") + std::to_string(r) + std::string(" -- Error Msg]\n");
+                    }
+#endif
+                    output_.error += (output[r].error.empty() ? "(None)\n" : output[r].error) + "\n";
+                }
+            }
         } else {
 #ifndef SERIAL_MODE
             int indicator = -1;
@@ -531,8 +547,10 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
             output_.status = "Error";
             return YT_FAIL;
         } else {
-            std::array<AccumulatedOutputString, 2> output = LibytProcessControl::Get().python_shell_.execute_file();
-            MPI_Bcast(&python_run_successfully, 1, MPI_C_BOOL, mpi_root_, MPI_COMM_WORLD);
+            std::vector<PythonOutput> output;
+            PythonStatus all_execute_status =
+                LibytProcessControl::Get().python_shell_.AllExecuteFile("", "", mpi_root_, output, mpi_root_);
+            python_run_successfully = (all_execute_status == PythonStatus::kPythonSuccess);
         }
     }
 #endif
