@@ -16,9 +16,9 @@ static bool last_line_has_backslash(const std::string& code);
 static bool last_line_has_colon(const std::string& code);
 static void SplitOnLine(const std::string& code, unsigned int lineno, std::array<std::string, 2>& code_split);
 
-std::vector<std::string> LibytPythonShell::s_Bracket_NotDoneErr;
-std::vector<std::string> LibytPythonShell::s_CompoundKeyword_NotDoneErr;
-PyObject* LibytPythonShell::s_PyGlobals;
+std::vector<std::string> LibytPythonShell::bracket_not_done_err_;
+std::vector<std::string> LibytPythonShell::compound_keyword_not_done_err_;
+PyObject* LibytPythonShell::execution_namespace_;
 PyObject* LibytPythonShell::function_body_dict_;
 
 int LibytPythonShell::mpi_size_;
@@ -41,17 +41,17 @@ int LibytPythonShell::mpi_rank_;
 int LibytPythonShell::update_prompt_history(const std::string& cmd_prompt) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    m_PromptHistory = m_PromptHistory + std::string("#In[") + std::to_string(m_PromptHistoryCount) + std::string("]\n");
-    m_PromptHistory = m_PromptHistory + cmd_prompt + std::string("\n\n");
-    m_PromptHistoryCount += 1;
+    history_ = history_ + std::string("#In[") + std::to_string(history_count_) + std::string("]\n");
+    history_ = history_ + cmd_prompt + std::string("\n\n");
+    history_count_ += 1;
     return YT_SUCCESS;
 }
 
 int LibytPythonShell::clear_prompt_history() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    m_PromptHistory = std::string("");
-    m_PromptHistoryCount = 0;
+    history_ = std::string("");
+    history_count_ = 0;
     return YT_SUCCESS;
 }
 
@@ -314,8 +314,8 @@ int LibytPythonShell::InitializeNotDoneErrMsg() {
 #endif
 
     // get python error type and its statement.
-    s_Bracket_NotDoneErr = std::move(generate_err_msg(bracket_statement));
-    s_CompoundKeyword_NotDoneErr = std::move(generate_err_msg(compound_keyword));
+    bracket_not_done_err_ = std::move(generate_err_msg(bracket_statement));
+    compound_keyword_not_done_err_ = std::move(generate_err_msg(compound_keyword));
 
     return YT_SUCCESS;
 }
@@ -336,7 +336,7 @@ int LibytPythonShell::InitializeNotDoneErrMsg() {
 int LibytPythonShell::SetExecutionNamespace(PyObject* execution_namespace) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    s_PyGlobals = execution_namespace;
+    execution_namespace_ = execution_namespace;
 
     return YT_SUCCESS;
 }
@@ -421,8 +421,8 @@ bool LibytPythonShell::IsNotDoneErrMsg(const std::string& code) {
     // (2) error msg matches && if ':' exist && lineno is at last line
     std::size_t line_count = std::count(code.begin(), code.end(), '\n');
     bool match_compoundkeyword_errmsg = false;
-    for (int i = 0; i < s_CompoundKeyword_NotDoneErr.size(); i++) {
-        if (err_msg_str.find(s_CompoundKeyword_NotDoneErr[i]) == 0) {
+    for (int i = 0; i < compound_keyword_not_done_err_.size(); i++) {
+        if (err_msg_str.find(compound_keyword_not_done_err_[i]) == 0) {
             match_compoundkeyword_errmsg = true;
             break;
         }
@@ -434,8 +434,8 @@ bool LibytPythonShell::IsNotDoneErrMsg(const std::string& code) {
 
     // (3) check if it is caused by brackets
     if (!user_not_done) {
-        for (int i = 0; i < s_Bracket_NotDoneErr.size(); i++) {
-            if (err_msg_str.find(s_Bracket_NotDoneErr[i]) == 0) {
+        for (int i = 0; i < bracket_not_done_err_.size(); i++) {
+            if (err_msg_str.find(bracket_not_done_err_[i]) == 0) {
                 user_not_done = true;
                 break;
             }
