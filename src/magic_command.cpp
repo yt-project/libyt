@@ -470,7 +470,7 @@ int MagicCommand::LoadScript(const std::vector<std::string>& args) {
         stream.close();
 
         // Check code validity
-        CodeValidity code_validity = LibytPythonShell::check_code_validity(ss.str(), false, args[2].c_str());
+        CodeValidity code_validity = LibytPythonShell::CheckCodeValidity(ss.str(), false, args[2].c_str());
         if (code_validity.is_valid == "complete") {
             // Run file and format output from the results, and check if Python run successfully
 #ifndef SERIAL_MODE

@@ -147,7 +147,7 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
             free(input_line);
 
             // check validity
-            CodeValidity code_validity = LibytPythonShell::check_code_validity(std::string(code), true);
+            CodeValidity code_validity = LibytPythonShell::CheckCodeValidity(std::string(code), true);
             if (code_validity.is_valid == "complete") {
                 // is complete and is a single-line statement or second \n for multi-line statement
                 if (prompt == ps1 || code[code_len + input_len - 1] == '\n') {

@@ -421,7 +421,7 @@ TEST_F(TestPythonExecution, AllExecuteCell_can_execute_a_valid_arbitrary_code) {
     }
 }
 
-TEST_F(TestPythonExecution, AllExecuteCell_can_resolve_an_invalid_code) {
+TEST_F(TestPythonExecution, AllExecuteCell_can_resolve_an_invalid_arbitrary_code) {
     std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
     // Arrange
     int src_mpi_rank = 0;

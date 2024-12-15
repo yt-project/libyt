@@ -477,7 +477,7 @@ bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
 // Return      :  CodeValidity.is_valid : "complete", "incomplete", "invalid", "unknown"
 //                             error_msg: error message from Python if it failed.
 //-------------------------------------------------------------------------------------------------------
-CodeValidity LibytPythonShell::check_code_validity(const std::string& code, bool prompt_env, const char* cell_name) {
+CodeValidity LibytPythonShell::CheckCodeValidity(const std::string& code, bool prompt_env, const char* cell_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     CodeValidity code_validity;

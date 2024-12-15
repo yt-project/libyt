@@ -192,7 +192,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
 
                 // check code validity then load python code
                 CodeValidity code_validity =
-                    LibytPythonShell::check_code_validity(python_code_buffer.str(), false, script_name);
+                    LibytPythonShell::CheckCodeValidity(python_code_buffer.str(), false, script_name);
                 if (code_validity.is_valid == "complete") {
 #ifndef SERIAL_MODE
                     int indicator = 1;
