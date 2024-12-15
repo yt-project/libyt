@@ -536,7 +536,7 @@ CodeValidity LibytPythonShell::check_code_validity(const std::string& code, bool
 //                   ending with _sync, even though this will make the code less readable.
 //                5. Python input type should be: Py_single_input (256), Py_file_input (257), Py_eval_input (258)
 //                   define in Python header. (TODO: should check in unit test)
-//                6. This function doesn't check code validity.
+//                6. This function doesn't check code validity. It's better to call CheckCodeValidity before calling.
 //                7. TODO: probably need to find another to redirect and capture the stdout/stderr, or
 //                         create a new class. also, the current method is probably not thread-safe.
 //-------------------------------------------------------------------------------------------------------
