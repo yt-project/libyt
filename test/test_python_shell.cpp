@@ -23,6 +23,9 @@ private:
 #endif
         LibytPythonShell::SetMPIInfo(mpi_size_, 0, mpi_rank_);
 
+        // Initialize not-done-yet error msg
+        LibytPythonShell::InitializeNotDoneErrMsg();
+
         // Create namespace for PythonShell to execute code
         InitializeAndImportScript(script_);
         LibytPythonShell::SetExecutionNamespace(GetScriptPyNamespace(script_));
@@ -77,6 +80,7 @@ protected:
 };
 
 class TestPythonExecution : public PythonFixture {};
+class TestCheckCodeValidity : public PythonFixture, public testing::WithParamInterface<std::string> {};
 
 TEST_F(TestPythonExecution, AllExecutePrompt_can_execute_rvalue_empty_code) {
     std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
@@ -468,6 +472,21 @@ TEST_F(TestPythonExecution, AllExecuteCell_can_resolve_an_invalid_arbitrary_code
         }
     }
 }
+
+TEST_P(TestCheckCodeValidity, Can_distinguish_user_not_done_yet_error) {
+    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
+
+    // Arrange
+    std::string not_done_code = GetParam();
+
+    // Act
+    CodeValidity code_validity = LibytPythonShell::CheckCodeValidity(not_done_code, true, "<test>");
+
+    // Assert
+    EXPECT_EQ(code_validity.is_valid, "incomplete");
+}
+
+INSTANTIATE_TEST_SUITE_P(TestCheckCodeValiditySuite, TestCheckCodeValidity, testing::Values("if 1==1:\n"));
 
 int main(int argc, char* argv[]) {
     int result = 0;
