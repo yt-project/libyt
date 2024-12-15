@@ -27,7 +27,7 @@ int LibytPythonShell::mpi_rank_;
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytPythonShell
-// Method      :  update_prompt_history / clear_prompt_history
+// Method      :  UpdateHistory / ClearHistory
 //
 // Notes       :  1. Only root rank will record all the successful inputs from interactive prompt.
 //                2. Input that failed will not be recorded.
@@ -38,7 +38,7 @@ int LibytPythonShell::mpi_rank_;
 //
 // Return      :  YT_SUCCESS
 //-------------------------------------------------------------------------------------------------------
-int LibytPythonShell::update_prompt_history(const std::string& cmd_prompt) {
+int LibytPythonShell::UpdateHistory(const std::string& cmd_prompt) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     history_ = history_ + std::string("#In[") + std::to_string(history_count_) + std::string("]\n");
@@ -47,7 +47,7 @@ int LibytPythonShell::update_prompt_history(const std::string& cmd_prompt) {
     return YT_SUCCESS;
 }
 
-int LibytPythonShell::clear_prompt_history() {
+int LibytPythonShell::ClearHistory() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     history_ = std::string("");
@@ -603,7 +603,7 @@ PythonStatus LibytPythonShell::AllExecute(int python_input_type, const std::stri
             load_input_func_body(code_ptr);
         } else {
             load_input_func_body(code_ptr);
-            update_prompt_history(std::string(code_ptr));
+            UpdateHistory(std::string(code_ptr));
         }
         Py_DECREF(py_src);
         Py_XDECREF(py_dump);

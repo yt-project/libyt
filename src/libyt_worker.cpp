@@ -44,7 +44,7 @@ void LibytWorker::start() {
         switch (indicator) {
             case -1: {
                 done = true;
-                LibytProcessControl::Get().python_shell_.clear_prompt_history();
+                LibytProcessControl::Get().python_shell_.ClearHistory();
                 break;
             }
             case 1: {
