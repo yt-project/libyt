@@ -185,8 +185,8 @@ nl::json LibytKernel::complete_request_impl(const std::string& code, int cursor_
 
     PyObject* py_tuple_args = PyTuple_New(2);
     PyObject* py_list_scope = PyList_New(1);
-    PyList_SET_ITEM(py_list_scope, 0, LibytPythonShell::get_script_namespace());  // steal ref
-    Py_INCREF(LibytPythonShell::get_script_namespace());
+    PyList_SET_ITEM(py_list_scope, 0, LibytPythonShell::GetExecutionNamespace());  // steal ref
+    Py_INCREF(LibytPythonShell::GetExecutionNamespace());
     PyTuple_SET_ITEM(py_tuple_args, 0, Py_BuildValue("s", code.c_str()));  // steal ref
     PyTuple_SET_ITEM(py_tuple_args, 1, py_list_scope);                     // steal ref
     PyObject* py_script = PyObject_CallObject(m_py_jedi_interpreter, py_tuple_args);

@@ -228,7 +228,7 @@ std::vector<std::string> LibytPythonShell::get_funcname_defined(const char* file
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  LibytPythonShell
-// Static Method :  set_exception_hook()
+// Static Method :  SetExceptionHook()
 //
 // Notes         :  1. This is a static method.
 //                  2. Makes MPI not invoke MPI_Abort when getting errors in Python in interactive mode.
@@ -238,7 +238,7 @@ std::vector<std::string> LibytPythonShell::get_funcname_defined(const char* file
 //
 // Return        :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int LibytPythonShell::set_exception_hook() {
+int LibytPythonShell::SetExceptionHook() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     char command[600];
@@ -259,7 +259,7 @@ int LibytPythonShell::set_exception_hook() {
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  LibytPythonShell
-// Static Method :  init_not_done_err_msg
+// Static Method :  InitializeNotDoneErrMsg
 //
 // Notes         :  1. This is a static method.
 //                  2. The not-done-error message initialized are those that can span multi-line.
@@ -286,7 +286,7 @@ int LibytPythonShell::set_exception_hook() {
 //
 // Return        :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int LibytPythonShell::init_not_done_err_msg() {
+int LibytPythonShell::InitializeNotDoneErrMsg() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // statement that can have newline in it
@@ -363,7 +363,7 @@ int LibytPythonShell::SetFunctionBodyDict(PyObject* function_body_dict) {
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  LibytPythonShell
-// Static Method :  is_not_done_err_msg
+// Static Method :  IsNotDoneErrMsg
 //
 // Notes         :  1. This is a static method.
 //                  2. Check if the error buffer is error msg that is caused by user input
@@ -382,7 +382,7 @@ int LibytPythonShell::SetFunctionBodyDict(PyObject* function_body_dict) {
 //
 // Return        :  true / false : true for not-yet-done, false for a real error.
 //-------------------------------------------------------------------------------------------------------
-bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
+bool LibytPythonShell::IsNotDoneErrMsg(const std::string& code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     bool user_not_done = false;
@@ -465,7 +465,7 @@ bool LibytPythonShell::is_not_done_err_msg(const std::string& code) {
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  LibytPythonShell
-// Static Method :  check_code_validity
+// Static Method :  CheckCodeValidity
 //
 // Notes       :  1. Test if it can compile based on Py_single_input (if in prompt env), otherwise compile
 //                   base on Py_file_input.
@@ -496,7 +496,7 @@ CodeValidity LibytPythonShell::CheckCodeValidity(const std::string& code, bool p
 
     if (py_test_compile != NULL) {
         code_validity.is_valid = "complete";
-    } else if (prompt_env && is_not_done_err_msg(code)) {
+    } else if (prompt_env && IsNotDoneErrMsg(code)) {
         code_validity.is_valid = "incomplete";
     } else {
         code_validity.is_valid = "invalid";
@@ -596,7 +596,7 @@ PythonStatus LibytPythonShell::AllExecute(int python_input_type, const std::stri
     PyObject* py_src = Py_CompileString(code_ptr, cell_base_name_ptr, python_input_type);
     bool has_error = false;
     if (py_src != NULL) {
-        PyObject* py_dump = PyEval_EvalCode(py_src, get_script_namespace(), get_script_namespace());
+        PyObject* py_dump = PyEval_EvalCode(py_src, GetExecutionNamespace(), GetExecutionNamespace());
         if (PyErr_Occurred()) {
             has_error = true;
             PyErr_Print();

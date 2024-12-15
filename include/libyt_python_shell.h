@@ -53,13 +53,13 @@ public:
     static int load_file_func_body(const char* filename);
     static int load_input_func_body(const char* code);
     static std::vector<std::string> get_funcname_defined(const char* filename);
-    static int set_exception_hook();
-    static int init_not_done_err_msg();
+    static int SetExceptionHook();
+    static int InitializeNotDoneErrMsg();
     static int SetExecutionNamespace(PyObject* execution_namespace);
     static int SetFunctionBodyDict(PyObject* function_body_dict);
-    static PyObject* get_script_namespace() { return s_PyGlobals; }
+    static PyObject* GetExecutionNamespace() { return s_PyGlobals; }
     static PyObject* GetFunctionBodyDict() { return function_body_dict_; }
-    static bool is_not_done_err_msg(const std::string& code);
+    static bool IsNotDoneErrMsg(const std::string& code);
     static CodeValidity CheckCodeValidity(const std::string& code, bool prompt_env = false,
                                           const char* cell_name = "<libyt-stdin>");
     PythonStatus AllExecutePrompt(const std::string& code, const std::string& cell_base_name, int src_rank,
