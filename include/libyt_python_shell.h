@@ -22,13 +22,13 @@ struct CodeValidity {
 
 class LibytPythonShell {
 private:
-    static std::vector<std::string> s_Bracket_NotDoneErr;
-    static std::vector<std::string> s_CompoundKeyword_NotDoneErr;
+    static std::vector<std::string> bracket_not_done_err_;
+    static std::vector<std::string> compound_keyword_not_done_err_;
 
-    std::string m_PromptHistory;
-    int m_PromptHistoryCount;
+    std::string history_;
+    int history_count_;
 
-    static PyObject* s_PyGlobals;
+    static PyObject* execution_namespace_;
     static PyObject* function_body_dict_;
 
     static int mpi_size_;
@@ -40,7 +40,7 @@ private:
     static long GetLastStatementLineno(const std::string& code);
 
 public:
-    LibytPythonShell() : m_PromptHistory(""), m_PromptHistoryCount(0){};
+    LibytPythonShell() : history_(""), history_count_(0){};
     static void SetMPIInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
         mpi_size_ = mpi_size;
         mpi_root_ = mpi_root;
@@ -48,7 +48,7 @@ public:
     }
     int update_prompt_history(const std::string& cmd_prompt);
     int clear_prompt_history();
-    std::string& get_prompt_history() { return m_PromptHistory; };
+    std::string& get_prompt_history() { return history_; };
 
     static int load_file_func_body(const char* filename);
     static int load_input_func_body(const char* code);
@@ -57,7 +57,7 @@ public:
     static int InitializeNotDoneErrMsg();
     static int SetExecutionNamespace(PyObject* execution_namespace);
     static int SetFunctionBodyDict(PyObject* function_body_dict);
-    static PyObject* GetExecutionNamespace() { return s_PyGlobals; }
+    static PyObject* GetExecutionNamespace() { return execution_namespace_; }
     static PyObject* GetFunctionBodyDict() { return function_body_dict_; }
     static bool IsNotDoneErrMsg(const std::string& code);
     static CodeValidity CheckCodeValidity(const std::string& code, bool prompt_env = false,
