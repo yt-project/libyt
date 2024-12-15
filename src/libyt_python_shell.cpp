@@ -11,9 +11,9 @@
 #include "libyt_process_control.h"
 #include "yt_combo.h"
 
-static std::vector<std::string> generate_err_msg(const std::vector<std::string>& statements);
-static bool last_line_has_backslash(const std::string& code);
-static bool last_line_has_colon(const std::string& code);
+static std::vector<std::string> GenerateErrMsg(const std::vector<std::string>& statements);
+static bool LastLineHasBackSlash(const std::string& code);
+static bool LastLineHasColon(const std::string& code);
 static void SplitOnLine(const std::string& code, unsigned int lineno, std::array<std::string, 2>& code_split);
 
 std::vector<std::string> LibytPythonShell::bracket_not_done_err_;
@@ -314,8 +314,8 @@ int LibytPythonShell::InitializeNotDoneErrMsg() {
 #endif
 
     // get python error type and its statement.
-    bracket_not_done_err_ = std::move(generate_err_msg(bracket_statement));
-    compound_keyword_not_done_err_ = std::move(generate_err_msg(compound_keyword));
+    bracket_not_done_err_ = std::move(GenerateErrMsg(bracket_statement));
+    compound_keyword_not_done_err_ = std::move(GenerateErrMsg(compound_keyword));
 
     return YT_SUCCESS;
 }
@@ -388,7 +388,7 @@ bool LibytPythonShell::IsNotDoneErrMsg(const std::string& code) {
     bool user_not_done = false;
 
     // (1) check if last line has '\'
-    if (last_line_has_backslash(code)) {
+    if (LastLineHasBackSlash(code)) {
         user_not_done = true;
         return user_not_done;
     }
@@ -428,7 +428,7 @@ bool LibytPythonShell::IsNotDoneErrMsg(const std::string& code) {
         }
     }
 
-    if (match_compoundkeyword_errmsg && last_line_has_colon(code) && err_lineno == line_count) {
+    if (match_compoundkeyword_errmsg && LastLineHasColon(code) && err_lineno == line_count) {
         user_not_done = true;
     }
 
@@ -841,7 +841,7 @@ long LibytPythonShell::GetLastStatementLineno(const std::string& code) {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Function      :  generate_err_msg
+// Function      :  GenerateErrMsg
 //
 // Notes         :  1. Generate error msg that are caused by user not-done-yet.
 //                  2. The error msg drops everything after the numbers.
@@ -851,7 +851,7 @@ long LibytPythonShell::GetLastStatementLineno(const std::string& code) {
 // Return        :  std::vector<std::string> : a list of error msg, neglecting everything after numbers
 //                                             if there is.
 //-------------------------------------------------------------------------------------------------------
-static std::vector<std::string> generate_err_msg(const std::vector<std::string>& statements) {
+static std::vector<std::string> GenerateErrMsg(const std::vector<std::string>& statements) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     std::vector<std::string> generated_error_msg;
@@ -901,7 +901,7 @@ static std::vector<std::string> generate_err_msg(const std::vector<std::string>&
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Function      :  last_line_has_backslash
+// Function      :  LastLineHasBackSlash
 //
 // Notes         :  1. Find if last line ends with '\' and does not have comments '#'
 //                  2. Code passed in always ends with '\n'.
@@ -911,7 +911,7 @@ static std::vector<std::string> generate_err_msg(const std::vector<std::string>&
 // Return        :  false : last line has no '\' at the very end, neglecting the comments
 //                  true  : last line has '\' at the very end, neglecting the comments
 //-------------------------------------------------------------------------------------------------------
-static bool last_line_has_backslash(const std::string& code) {
+static bool LastLineHasBackSlash(const std::string& code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     std::size_t code_len = code.length();
@@ -931,7 +931,7 @@ static bool last_line_has_backslash(const std::string& code) {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Function      :  last_line_has_colon
+// Function      :  LastLineHasColon
 //
 // Notes         :  1. This function is used for distinguishing keywords for multi-line and the true error.
 //                  2. An indentation error caused by user-not-done-yet will end with ':' in the last line.
@@ -941,7 +941,7 @@ static bool last_line_has_backslash(const std::string& code) {
 // Return        :  true  : contains valid ':' in the last line at the end
 //                  false : doesn't contain ':' in the last line at the end
 //-------------------------------------------------------------------------------------------------------
-static bool last_line_has_colon(const std::string& code) {
+static bool LastLineHasColon(const std::string& code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     std::size_t code_len = code.length();
