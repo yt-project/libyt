@@ -498,7 +498,12 @@ INSTANTIATE_TEST_SUITE_P(IsIncompleteInPrompt, TestCheckCodeValidity,
                                          std::string("rf\"\"\"\n"), std::string("rb\"\"\"\n"), std::string("r'''\n"),
                                          std::string("u'''\n"), std::string("f'''\n"), std::string("b'''\n"),
                                          std::string("rf'''\n"), std::string("rb'''\n"), std::string("(\n"),
-                                         std::string("[\n"), std::string("{\n")));
+                                         std::string("[\n"), std::string("{\n")
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 10
+                                                                 ,
+                                         std::string("match (100):\n"), std::string("match (100):\n  case 100:\n")
+#endif
+                                             ));
 
 int main(int argc, char* argv[]) {
     int result = 0;
