@@ -609,7 +609,7 @@ int MagicCommand::ExportScript(const std::vector<std::string>& args) {
     if (mpi_rank_ == mpi_root_) {
         std::ofstream dump_file;
         dump_file.open(args[2], std::ofstream::trunc);
-        dump_file << LibytProcessControl::Get().python_shell_.get_prompt_history();
+        dump_file << LibytProcessControl::Get().python_shell_.GetHistory();
         dump_file.close();
     }
 

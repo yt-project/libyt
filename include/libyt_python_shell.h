@@ -49,7 +49,7 @@ public:
     }
     int UpdateHistory(const std::string& cmd_prompt);
     int ClearHistory();
-    std::string& get_prompt_history() { return history_; };
+    std::string& GetHistory() { return history_; };
 
     static int load_file_func_body(const char* filename);
     static int load_input_func_body(const char* code);

@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <cstring>
-#include <iostream>
 #include <string>
 
 #include "function_info.h"
@@ -12,7 +11,7 @@
 #include "yt_combo.h"
 
 static std::vector<std::string> GenerateErrMsg(const std::vector<std::string>& statements);
-static bool LastLineHasBackSlash(const std::string& code);
+static bool LastLineHasBackslash(const std::string& code);
 static bool LastLineHasColon(const std::string& code);
 static void SplitOnLine(const std::string& code, unsigned int lineno, std::array<std::string, 2>& code_split);
 
@@ -389,7 +388,7 @@ bool LibytPythonShell::IsNotDoneErrMsg(const std::string& code) {
     bool user_not_done = false;
 
     // (1) check if last line has '\'
-    if (LastLineHasBackSlash(code)) {
+    if (LastLineHasBackslash(code)) {
         user_not_done = true;
         return user_not_done;
     }
@@ -422,8 +421,8 @@ bool LibytPythonShell::IsNotDoneErrMsg(const std::string& code) {
     // (2) error msg matches && if ':' exist && lineno is at last line
     std::size_t line_count = std::count(code.begin(), code.end(), '\n');
     bool match_compoundkeyword_errmsg = false;
-    for (int i = 0; i < compound_keyword_not_done_err_.size(); i++) {
-        if (err_msg_str.find(compound_keyword_not_done_err_[i]) == 0) {
+    for (const std::string& not_done_err : compound_keyword_not_done_err_) {
+        if (err_msg_str.find(not_done_err) == 0) {
             match_compoundkeyword_errmsg = true;
             break;
         }
@@ -435,8 +434,8 @@ bool LibytPythonShell::IsNotDoneErrMsg(const std::string& code) {
 
     // (3) check if it is caused by brackets
     if (!user_not_done) {
-        for (int i = 0; i < bracket_not_done_err_.size(); i++) {
-            if (err_msg_str.find(bracket_not_done_err_[i]) == 0) {
+        for (const std::string& not_done_err : bracket_not_done_err_) {
+            if (err_msg_str.find(not_done_err) == 0) {
                 user_not_done = true;
                 break;
             }
@@ -912,7 +911,7 @@ static std::vector<std::string> GenerateErrMsg(const std::vector<std::string>& s
 // Return        :  false : last line has no '\' at the very end, neglecting the comments
 //                  true  : last line has '\' at the very end, neglecting the comments
 //-------------------------------------------------------------------------------------------------------
-static bool LastLineHasBackSlash(const std::string& code) {
+static bool LastLineHasBackslash(const std::string& code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     std::size_t code_len = code.length();
