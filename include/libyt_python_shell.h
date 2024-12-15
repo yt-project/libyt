@@ -38,6 +38,7 @@ private:
     PythonStatus AllExecute(int python_input_type, const std::string& code, const std::string& cell_base_name,
                             int src_rank, std::vector<PythonOutput>& output, int output_mpi_rank);
     static long GetLastStatementLineno(const std::string& code);
+    static bool IsNotDoneErrMsg(const std::string& code);
 
 public:
     LibytPythonShell() : history_count_(0){};
@@ -59,7 +60,6 @@ public:
     static int SetFunctionBodyDict(PyObject* function_body_dict);
     static PyObject* GetExecutionNamespace() { return execution_namespace_; }
     static PyObject* GetFunctionBodyDict() { return function_body_dict_; }
-    static bool IsNotDoneErrMsg(const std::string& code);
     static CodeValidity CheckCodeValidity(const std::string& code, bool prompt_env = false,
                                           const char* cell_name = "<libyt-stdin>");
     PythonStatus AllExecutePrompt(const std::string& code, const std::string& cell_base_name, int src_rank,
