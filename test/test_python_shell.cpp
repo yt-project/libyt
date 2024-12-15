@@ -77,10 +77,42 @@ protected:
         Py_DECREF(py_template_dict_storage);
         return py_template_dict_storage;
     }
+    std::string GenerateFullErrMsg(const std::string& code) {
+        PyObject *py_src, *py_exc, *py_val;
+        std::string err_msg_str;
+
+        py_src = Py_CompileString(code.c_str(), "<get err msg>", Py_single_input);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+        py_exc = PyErr_GetRaisedException();
+        py_val = PyObject_GetAttrString(py_exc, "msg");
+        err_msg_str = std::string(PyUnicode_AsUTF8(py_val));
+#else
+        PyObject *py_traceback, *py_obj;
+        const char* err_msg;
+        PyErr_Fetch(&py_exc, &py_val, &py_traceback);
+        PyArg_ParseTuple(py_val, "sO", &err_msg, &py_obj);
+        err_msg_str = std::string(err_msg);
+#endif
+
+        // dereference
+        Py_XDECREF(py_src);
+        Py_XDECREF(py_val);
+        Py_XDECREF(py_exc);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#else
+        Py_XDECREF(py_traceback);
+        Py_XDECREF(py_obj);
+#endif
+        PyErr_Clear();
+
+        return err_msg_str;
+    }
 };
 
 class TestPythonExecution : public PythonFixture {};
 class TestCheckCodeValidity : public PythonFixture, public testing::WithParamInterface<std::string> {};
+class TestCheckCodeValidityAssumption : public PythonFixture, public testing::WithParamInterface<std::string> {};
 
 TEST_F(TestPythonExecution, AllExecutePrompt_can_execute_rvalue_empty_code) {
     std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
@@ -486,7 +518,41 @@ TEST_P(TestCheckCodeValidity, Can_distinguish_user_not_done_yet_error) {
     EXPECT_EQ(code_validity.is_valid, "incomplete");
 }
 
+TEST_P(TestCheckCodeValidityAssumption, Error_lineno_should_be_at_the_end) {
+    // Arrange
+    std::string not_done_code = GetParam();
+
+    // Act -- Get error message
+    std::string full_err_msg = GenerateFullErrMsg(not_done_code);
+    std::cout << full_err_msg << std::endl;
+
+    // Assert -- If there is number in it, it should be at the end of the error msg
+    std::size_t found_number = full_err_msg.find_first_of("0123456789");
+    if (found_number != std::string::npos) {
+        EXPECT_LE(full_err_msg.length() - found_number, 3);
+    }
+}
+
 INSTANTIATE_TEST_SUITE_P(IsIncompleteInPrompt, TestCheckCodeValidity,
+                         testing::Values(std::string("if 1==1:\n"), std::string("if 1==1:\n  pass\nelse:\n"),
+                                         std::string("if 1==1:\n  pass\nelif 2==2:\n"), std::string("try:\n"),
+                                         std::string("try:\n  pass\nexcept:\n"),
+                                         std::string("try:\n  pass\nfinally:\n"), std::string("class A:\n"),
+                                         std::string("for _ in range(1):\n"), std::string("def func():\n"),
+                                         std::string("while(False):\n"), std::string("with open('') as f:\n"),
+                                         std::string("\"\"\"\n"), std::string("'''\n"), std::string("r\"\"\"\n"),
+                                         std::string("u\"\"\"\n"), std::string("f\"\"\"\n"), std::string("b\"\"\"\n"),
+                                         std::string("rf\"\"\"\n"), std::string("rb\"\"\"\n"), std::string("r'''\n"),
+                                         std::string("u'''\n"), std::string("f'''\n"), std::string("b'''\n"),
+                                         std::string("rf'''\n"), std::string("rb'''\n"), std::string("(\n"),
+                                         std::string("[\n"), std::string("{\n")
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 10
+                                                                 ,
+                                         std::string("match (100):\n"), std::string("match (100):\n  case 100:\n")
+#endif
+                                             ));
+
+INSTANTIATE_TEST_SUITE_P(ErrorMsgHasNumberAtTheEnd, TestCheckCodeValidityAssumption,
                          testing::Values(std::string("if 1==1:\n"), std::string("if 1==1:\n  pass\nelse:\n"),
                                          std::string("if 1==1:\n  pass\nelif 2==2:\n"), std::string("try:\n"),
                                          std::string("try:\n  pass\nexcept:\n"),

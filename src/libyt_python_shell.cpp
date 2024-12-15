@@ -277,9 +277,10 @@ int LibytPythonShell::SetExceptionHook() {
 //                       (7)  with
 //                       (8)  match / match-case
 //                     We will drop every string after first number occurs in the error message,
-//                     since some of them will print the lineno and it is Python version dependent.
-//                     TODO: Be careful that the lineno (if it has) is at the end of the string,
-//                           we should put this inside the test.
+//                     since some of them will print the lineno, and it is Python version dependent.
+//                     Ex: "SyntaxError: unterminated triple-quoted string literal (detected at line 1)"
+//                     This is put in unit test to make sure that the number appears within the last 3 chars
+//                     of the error msg.
 //                  3. Error messages are version dependent.
 //
 // Arguments     :  None
