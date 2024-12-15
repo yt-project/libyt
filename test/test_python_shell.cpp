@@ -486,7 +486,19 @@ TEST_P(TestCheckCodeValidity, Can_distinguish_user_not_done_yet_error) {
     EXPECT_EQ(code_validity.is_valid, "incomplete");
 }
 
-INSTANTIATE_TEST_SUITE_P(TestCheckCodeValiditySuite, TestCheckCodeValidity, testing::Values("if 1==1:\n"));
+INSTANTIATE_TEST_SUITE_P(IsIncompleteInPrompt, TestCheckCodeValidity,
+                         testing::Values(std::string("if 1==1:\n"), std::string("if 1==1:\n  pass\nelse:\n"),
+                                         std::string("if 1==1:\n  pass\nelif 2==2:\n"), std::string("try:\n"),
+                                         std::string("try:\n  pass\nexcept:\n"),
+                                         std::string("try:\n  pass\nfinally:\n"), std::string("class A:\n"),
+                                         std::string("for _ in range(1):\n"), std::string("def func():\n"),
+                                         std::string("while(False):\n"), std::string("with open('') as f:\n"),
+                                         std::string("\"\"\"\n"), std::string("'''\n"), std::string("r\"\"\"\n"),
+                                         std::string("u\"\"\"\n"), std::string("f\"\"\"\n"), std::string("b\"\"\"\n"),
+                                         std::string("rf\"\"\"\n"), std::string("rb\"\"\"\n"), std::string("r'''\n"),
+                                         std::string("u'''\n"), std::string("f'''\n"), std::string("b'''\n"),
+                                         std::string("rf'''\n"), std::string("rb'''\n"), std::string("(\n"),
+                                         std::string("[\n"), std::string("{\n")));
 
 int main(int argc, char* argv[]) {
     int result = 0;
