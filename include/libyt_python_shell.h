@@ -60,8 +60,8 @@ public:
     static PyObject* get_script_namespace() { return s_PyGlobals; }
     static PyObject* GetFunctionBodyDict() { return function_body_dict_; }
     static bool is_not_done_err_msg(const std::string& code);
-    static CodeValidity check_code_validity(const std::string& code, bool prompt_env = false,
-                                            const char* cell_name = "<libyt-stdin>");
+    static CodeValidity CheckCodeValidity(const std::string& code, bool prompt_env = false,
+                                          const char* cell_name = "<libyt-stdin>");
     PythonStatus AllExecutePrompt(const std::string& code, const std::string& cell_base_name, int src_rank,
                                   std::vector<PythonOutput>& output, int output_mpi_rank);
     PythonStatus AllExecuteFile(const std::string& code, const std::string& cell_base_name, int src_rank,

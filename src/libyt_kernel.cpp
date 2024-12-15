@@ -95,7 +95,7 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     }
 
     // Make sure code is valid before continue
-    CodeValidity code_validity = LibytPythonShell::check_code_validity(code, false, cell_name.c_str());
+    CodeValidity code_validity = LibytPythonShell::CheckCodeValidity(code, false, cell_name.c_str());
     if (code_validity.is_valid != "complete") {
         publish_execution_error("", "", SplitByChar(code_validity.error_msg, "\n"));
         return xeus::create_successful_reply();
@@ -268,7 +268,7 @@ nl::json LibytKernel::inspect_request_impl(const std::string& code, int cursor_p
 nl::json LibytKernel::is_complete_request_impl(const std::string& code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    CodeValidity code_validity = LibytPythonShell::check_code_validity(code, true);
+    CodeValidity code_validity = LibytPythonShell::CheckCodeValidity(code, true);
     if (code_validity.is_valid == "complete") {
         return xeus::create_is_complete_reply("complete");
     } else {
