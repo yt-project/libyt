@@ -348,7 +348,7 @@ void LibytKernel::shutdown_request_impl() {
         Py_DECREF(m_py_jedi_interpreter);
     }
 
-    LibytProcessControl::Get().python_shell_.clear_prompt_history();
+    LibytProcessControl::Get().python_shell_.ClearHistory();
 
     log_info("Shutting down libyt kernel ...\n");
 }

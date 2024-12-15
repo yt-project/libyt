@@ -122,8 +122,7 @@ MagicCommandOutput& MagicCommand::Run(const std::string& command) {
                         std::string("(Type %libyt help for help ...)");
     }
     if (write_to_history && mpi_rank_ == mpi_root_) {
-        LibytProcessControl::Get().python_shell_.update_prompt_history(std::string("# ") + command_ +
-                                                                       std::string("\n"));
+        LibytProcessControl::Get().python_shell_.UpdateHistory(std::string("# ") + command_ + std::string("\n"));
     }
 
     return output_;
@@ -162,7 +161,7 @@ int MagicCommand::Exit() {
 
         return YT_FAIL;
     } else {
-        LibytProcessControl::Get().python_shell_.clear_prompt_history();
+        LibytProcessControl::Get().python_shell_.ClearHistory();
 
         output_.exit_entry_point = true;
         output_.status = "Success";
