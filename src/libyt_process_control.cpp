@@ -79,7 +79,6 @@ LibytProcessControl::LibytProcessControl() {
     py_interactive_mode_ = nullptr;
 #endif
 
-#ifdef USE_PYBIND11
     grid_left_edge_ = nullptr;
     grid_right_edge_ = nullptr;
     grid_dimensions_ = nullptr;
@@ -87,7 +86,6 @@ LibytProcessControl::LibytProcessControl() {
     grid_levels_ = nullptr;
     proc_num_ = nullptr;
     par_count_list_ = nullptr;
-#endif
 }
 
 //-------------------------------------------------------------------------------------------------------

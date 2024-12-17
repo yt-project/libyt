@@ -74,7 +74,6 @@ public:
     PyObject* py_param_user_;
     PyObject* py_libyt_info_;
 
-#ifdef USE_PYBIND11
     // Hierarchy
     double* grid_left_edge_;
     double* grid_right_edge_;
@@ -83,7 +82,6 @@ public:
     int* grid_levels_;
     int* proc_num_;
     long* par_count_list_;
-#endif
 
     // Singleton Methods
     LibytProcessControl(const LibytProcessControl& other) = delete;
