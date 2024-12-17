@@ -5,6 +5,17 @@
 #include "pybind11/embed.h"
 #endif
 
+static PyObject* WrapToNumPyArray(int dim, npy_intp* npy_dim, yt_dtype data_dtype, void* data_ptr) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    int npy_dtype;
+    get_npy_dtype(data_dtype, &npy_dtype);
+
+    PyObject* py_data = PyArray_SimpleNewFromData(dim, npy_dim, npy_dtype, data_ptr);
+
+    return py_data;
+}
+
 //-------------------------------------------------------------------------------------------------------
 // Function    :  allocate_hierarchy
 // Description :  Fill the libyt.hierarchy dictionary with NumPy arrays or memoryviews
@@ -75,42 +86,42 @@ int allocate_hierarchy() {
     pybind11::module_ libyt = pybind11::module_::import("libyt");
     pybind11::dict py_hierarchy = libyt.attr("hierarchy");
 
-    py_hierarchy["grid_left_edge"] =
-        pybind11::memoryview::from_buffer(LibytProcessControl::Get().grid_left_edge,   // buffer pointer
-                                          std::vector<long>({param_yt.num_grids, 3}),  // shape (rows, cols)
-                                          {sizeof(double) * 3, sizeof(double)}         // strides in bytes
-        );
-    py_hierarchy["grid_right_edge"] =
-        pybind11::memoryview::from_buffer(LibytProcessControl::Get().grid_right_edge,  // buffer pointer
-                                          std::vector<long>({param_yt.num_grids, 3}),  // shape (rows, cols)
-                                          {sizeof(double) * 3, sizeof(double)}         // strides in bytes
-        );
-    py_hierarchy["grid_dimensions"] =
-        pybind11::memoryview::from_buffer(LibytProcessControl::Get().grid_dimensions,  // buffer pointer
-                                          std::vector<long>({param_yt.num_grids, 3}),  // shape (rows, cols)
-                                          {sizeof(int) * 3, sizeof(int)}               // strides in bytes
-        );
-    py_hierarchy["grid_parent_id"] =
-        pybind11::memoryview::from_buffer(LibytProcessControl::Get().grid_parent_id,   // buffer pointer
-                                          std::vector<long>({param_yt.num_grids, 1}),  // shape (rows)
-                                          {sizeof(long), sizeof(long)}                 // strides in bytes
-        );
-    py_hierarchy["grid_levels"] =
-        pybind11::memoryview::from_buffer(LibytProcessControl::Get().grid_levels,      // buffer pointer
-                                          std::vector<long>({param_yt.num_grids, 1}),  // shape (rows)
-                                          {sizeof(int), sizeof(int)}                   // strides in bytes
-        );
-    py_hierarchy["proc_num"] =
-        pybind11::memoryview::from_buffer(LibytProcessControl::Get().proc_num,         // buffer pointer
-                                          std::vector<long>({param_yt.num_grids, 1}),  // shape (rows)
-                                          {sizeof(int), sizeof(int)}                   // strides in bytes
-        );
+    PyObject* py_data;
+    npy_intp np_dim[2];
+
+    // Even though the pointer is de-referenced, still need to freed it in the memory ourselves at freed
+    np_dim[0] = param_yt.num_grids;
+    np_dim[1] = 3;
+    py_data = WrapToNumPyArray(2, np_dim, YT_DOUBLE, LibytProcessControl::Get().grid_left_edge);
+    py_hierarchy["grid_left_edge"] = py_data;
+    Py_DECREF(py_data);
+
+    py_data = WrapToNumPyArray(2, np_dim, YT_DOUBLE, LibytProcessControl::Get().grid_right_edge);
+    py_hierarchy["grid_right_edge"] = py_data;
+    Py_DECREF(py_data);
+
+    py_data = WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().grid_dimensions);
+    py_hierarchy["grid_dimensions"] = py_data;
+    Py_DECREF(py_data);
+
+    np_dim[1] = 1;
+    py_data = WrapToNumPyArray(2, np_dim, YT_LONG, LibytProcessControl::Get().grid_parent_id);
+    py_hierarchy["grid_parent_id"] = py_data;
+    Py_DECREF(py_data);
+
+    py_data = WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().grid_levels);
+    py_hierarchy["grid_levels"] = py_data;
+    Py_DECREF(py_data);
+
+    py_data = WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().proc_num);
+    py_hierarchy["proc_num"] = py_data;
+    Py_DECREF(py_data);
+
     if (param_yt.num_par_types > 0) {
-        py_hierarchy["par_count_list"] = pybind11::memoryview::from_buffer(
-            LibytProcessControl::Get().par_count_list,                        // buffer pointer
-            std::vector<long>({param_yt.num_grids, param_yt.num_par_types}),  // shape (rows, cols)
-            {sizeof(long) * param_yt.num_par_types, sizeof(long)}             // strides in bytes
-        );
+        np_dim[1] = param_yt.num_par_types;
+        py_data = WrapToNumPyArray(2, np_dim, YT_LONG, LibytProcessControl::Get().par_count_list);
+        py_hierarchy["par_count_list"] = py_data;
+        Py_DECREF(py_data);
     }
 #endif  // #ifndef USE_PYBIND11
 
