@@ -75,14 +75,14 @@ int yt_free() {
     }
 
 #ifdef USE_PYBIND11
-    delete[] LibytProcessControl::Get().grid_left_edge;
-    delete[] LibytProcessControl::Get().grid_right_edge;
-    delete[] LibytProcessControl::Get().grid_dimensions;
-    delete[] LibytProcessControl::Get().grid_parent_id;
-    delete[] LibytProcessControl::Get().grid_levels;
-    delete[] LibytProcessControl::Get().proc_num;
+    delete[] LibytProcessControl::Get().grid_left_edge_;
+    delete[] LibytProcessControl::Get().grid_right_edge_;
+    delete[] LibytProcessControl::Get().grid_dimensions_;
+    delete[] LibytProcessControl::Get().grid_parent_id_;
+    delete[] LibytProcessControl::Get().grid_levels_;
+    delete[] LibytProcessControl::Get().proc_num_;
     if (param_yt.num_par_types > 0) {
-        delete[] LibytProcessControl::Get().par_count_list;
+        delete[] LibytProcessControl::Get().par_count_list_;
     }
 #endif
 

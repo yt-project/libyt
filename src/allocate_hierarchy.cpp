@@ -71,16 +71,16 @@ int allocate_hierarchy() {
     }
 #undef ADD_DICT
 #else
-    LibytProcessControl::Get().grid_left_edge = new double[param_yt.num_grids * 3];
-    LibytProcessControl::Get().grid_right_edge = new double[param_yt.num_grids * 3];
-    LibytProcessControl::Get().grid_dimensions = new int[param_yt.num_grids * 3];
-    LibytProcessControl::Get().grid_parent_id = new long[param_yt.num_grids];
-    LibytProcessControl::Get().grid_levels = new int[param_yt.num_grids];
-    LibytProcessControl::Get().proc_num = new int[param_yt.num_grids];
+    LibytProcessControl::Get().grid_left_edge_ = new double[param_yt.num_grids * 3];
+    LibytProcessControl::Get().grid_right_edge_ = new double[param_yt.num_grids * 3];
+    LibytProcessControl::Get().grid_dimensions_ = new int[param_yt.num_grids * 3];
+    LibytProcessControl::Get().grid_parent_id_ = new long[param_yt.num_grids];
+    LibytProcessControl::Get().grid_levels_ = new int[param_yt.num_grids];
+    LibytProcessControl::Get().proc_num_ = new int[param_yt.num_grids];
     if (param_yt.num_par_types > 0) {
-        LibytProcessControl::Get().par_count_list = new long[param_yt.num_grids * param_yt.num_par_types];
+        LibytProcessControl::Get().par_count_list_ = new long[param_yt.num_grids * param_yt.num_par_types];
     } else {
-        LibytProcessControl::Get().par_count_list = nullptr;
+        LibytProcessControl::Get().par_count_list_ = nullptr;
     }
 
     pybind11::module_ libyt = pybind11::module_::import("libyt");
@@ -92,34 +92,34 @@ int allocate_hierarchy() {
     // Even though the pointer is de-referenced, still need to freed it in the memory ourselves at freed
     np_dim[0] = param_yt.num_grids;
     np_dim[1] = 3;
-    py_data = WrapToNumPyArray(2, np_dim, YT_DOUBLE, LibytProcessControl::Get().grid_left_edge);
+    py_data = WrapToNumPyArray(2, np_dim, YT_DOUBLE, LibytProcessControl::Get().grid_left_edge_);
     py_hierarchy["grid_left_edge"] = py_data;
     Py_DECREF(py_data);
 
-    py_data = WrapToNumPyArray(2, np_dim, YT_DOUBLE, LibytProcessControl::Get().grid_right_edge);
+    py_data = WrapToNumPyArray(2, np_dim, YT_DOUBLE, LibytProcessControl::Get().grid_right_edge_);
     py_hierarchy["grid_right_edge"] = py_data;
     Py_DECREF(py_data);
 
-    py_data = WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().grid_dimensions);
+    py_data = WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().grid_dimensions_);
     py_hierarchy["grid_dimensions"] = py_data;
     Py_DECREF(py_data);
 
     np_dim[1] = 1;
-    py_data = WrapToNumPyArray(2, np_dim, YT_LONG, LibytProcessControl::Get().grid_parent_id);
+    py_data = WrapToNumPyArray(2, np_dim, YT_LONG, LibytProcessControl::Get().grid_parent_id_);
     py_hierarchy["grid_parent_id"] = py_data;
     Py_DECREF(py_data);
 
-    py_data = WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().grid_levels);
+    py_data = WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().grid_levels_);
     py_hierarchy["grid_levels"] = py_data;
     Py_DECREF(py_data);
 
-    py_data = WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().proc_num);
+    py_data = WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().proc_num_);
     py_hierarchy["proc_num"] = py_data;
     Py_DECREF(py_data);
 
     if (param_yt.num_par_types > 0) {
         np_dim[1] = param_yt.num_par_types;
-        py_data = WrapToNumPyArray(2, np_dim, YT_LONG, LibytProcessControl::Get().par_count_list);
+        py_data = WrapToNumPyArray(2, np_dim, YT_LONG, LibytProcessControl::Get().par_count_list_);
         py_hierarchy["par_count_list"] = py_data;
         Py_DECREF(py_data);
     }

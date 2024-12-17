@@ -96,7 +96,7 @@ int yt_getGridInfo_Dimensions(const long gid, int (*dimensions)[3]) {
 
     for (int d = 0; d < 3; d++) {
         (*dimensions)[d] = LibytProcessControl::Get()
-                               .grid_dimensions[(gid - LibytProcessControl::Get().param_yt_.index_offset) * 3 + d];
+                               .grid_dimensions_[(gid - LibytProcessControl::Get().param_yt_.index_offset) * 3 + d];
     }
 
     return YT_SUCCESS;
@@ -112,7 +112,7 @@ int yt_getGridInfo_LeftEdge(const long gid, double (*left_edge)[3]) {
 
     for (int d = 0; d < 3; d++) {
         (*left_edge)[d] = LibytProcessControl::Get()
-                              .grid_left_edge[(gid - LibytProcessControl::Get().param_yt_.index_offset) * 3 + d];
+                              .grid_left_edge_[(gid - LibytProcessControl::Get().param_yt_.index_offset) * 3 + d];
     }
 
     return YT_SUCCESS;
@@ -128,7 +128,7 @@ int yt_getGridInfo_RightEdge(const long gid, double (*right_edge)[3]) {
 
     for (int d = 0; d < 3; d++) {
         (*right_edge)[d] = LibytProcessControl::Get()
-                               .grid_right_edge[(gid - LibytProcessControl::Get().param_yt_.index_offset) * 3 + d];
+                               .grid_right_edge_[(gid - LibytProcessControl::Get().param_yt_.index_offset) * 3 + d];
     }
 
     return YT_SUCCESS;
@@ -142,7 +142,7 @@ int yt_getGridInfo_ParentId(const long gid, long* parent_id) {
                  __FUNCTION__);
     }
 
-    *parent_id = LibytProcessControl::Get().grid_parent_id[gid - LibytProcessControl::Get().param_yt_.index_offset];
+    *parent_id = LibytProcessControl::Get().grid_parent_id_[gid - LibytProcessControl::Get().param_yt_.index_offset];
 
     return YT_SUCCESS;
 }
@@ -155,7 +155,7 @@ int yt_getGridInfo_Level(const long gid, int* level) {
                  __FUNCTION__);
     }
 
-    *level = LibytProcessControl::Get().grid_levels[gid - LibytProcessControl::Get().param_yt_.index_offset];
+    *level = LibytProcessControl::Get().grid_levels_[gid - LibytProcessControl::Get().param_yt_.index_offset];
 
     return YT_SUCCESS;
 }
@@ -168,7 +168,7 @@ int yt_getGridInfo_ProcNum(const long gid, int* proc_num) {
                  __FUNCTION__);
     }
 
-    *proc_num = LibytProcessControl::Get().proc_num[gid - LibytProcessControl::Get().param_yt_.index_offset];
+    *proc_num = LibytProcessControl::Get().proc_num_[gid - LibytProcessControl::Get().param_yt_.index_offset];
 
     return YT_SUCCESS;
 }
@@ -223,7 +223,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_co
     // read libyt.hierarchy["par_count_list"][index][ptype]
     *par_count = *(long*)PyArray_GETPTR2(py_array_obj, gid - LibytProcessControl::Get().param_yt_.index_offset, label);
 #else
-    long* par_count_list = LibytProcessControl::Get().par_count_list;
+    long* par_count_list = LibytProcessControl::Get().par_count_list_;
     *par_count = par_count_list[(gid - LibytProcessControl::Get().param_yt_.index_offset) *
                                     LibytProcessControl::Get().param_yt_.num_par_types +
                                 label];

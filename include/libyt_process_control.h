@@ -1,5 +1,5 @@
-#ifndef __LIBYTPROCESSCONTROL_H__
-#define __LIBYTPROCESSCONTROL_H__
+#ifndef LIBYT_PROJECT_INCLUDE_LIBYT_PROCESS_CONTROL_H_
+#define LIBYT_PROJECT_INCLUDE_LIBYT_PROCESS_CONTROL_H_
 
 #include <Python.h>
 
@@ -76,13 +76,13 @@ public:
 
 #ifdef USE_PYBIND11
     // Hierarchy
-    double* grid_left_edge;
-    double* grid_right_edge;
-    int* grid_dimensions;
-    long* grid_parent_id;
-    int* grid_levels;
-    int* proc_num;
-    long* par_count_list;
+    double* grid_left_edge_;
+    double* grid_right_edge_;
+    int* grid_dimensions_;
+    long* grid_parent_id_;
+    int* grid_levels_;
+    int* proc_num_;
+    long* par_count_list_;
 #endif
 
     // Singleton Methods
@@ -98,4 +98,4 @@ private:
     static LibytProcessControl s_Instance;
 };
 
-#endif  // __LIBYTPROCESSCONTROL_H__
+#endif  // LIBYT_PROJECT_INCLUDE_LIBYT_PROCESS_CONTROL_H_
