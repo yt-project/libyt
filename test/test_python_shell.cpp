@@ -28,6 +28,7 @@ private:
 
         // Create namespace for PythonShell to execute code
         InitializeAndImportScript(script_);
+        std::cout << "LibytPythonShell will execute code in namespace '" << script_ << "'" << std::endl;
         LibytPythonShell::SetExecutionNamespace(GetScriptPyNamespace(script_));
         LibytPythonShell::SetFunctionBodyDict(CreateTemplateDictStorage());
     }
@@ -38,7 +39,7 @@ protected:
     LibytPythonShell python_shell_;
     int GetMpiRank() const { return mpi_rank_; }
     int GetMpiSize() const { return mpi_size_; }
-    void InitializeAndImportScript(const std::string& script) {
+    void InitializeAndImportScript(const std::string& script) const {
         if (mpi_rank_ == 0) {
             // Create a script file
             struct stat buffer;
@@ -60,7 +61,7 @@ protected:
         PyRun_SimpleString("import sys; sys.path.insert(0, '.')");
         PyRun_SimpleString(statement.c_str());
     }
-    PyObject* GetScriptPyNamespace(const std::string& script) {
+    static PyObject* GetScriptPyNamespace(const std::string& script) {
         PyObject* py_sys = PyImport_ImportModule("sys");
         PyObject* py_modules = PyObject_GetAttrString(py_sys, "modules");
         PyObject* py_script_module = PyDict_GetItemString(py_modules, script.c_str());
@@ -69,7 +70,7 @@ protected:
         Py_DECREF(py_modules);
         return py_script_namespace;
     }
-    PyObject* CreateTemplateDictStorage() {
+    static PyObject* CreateTemplateDictStorage() {
         PyRun_SimpleString("import sys; sys.TEMPLATE_DICT_STORAGE = dict()");
         PyObject* py_sys = PyImport_ImportModule("sys");
         PyObject* py_template_dict_storage = PyObject_GetAttrString(py_sys, "TEMPLATE_DICT_STORAGE");
@@ -77,7 +78,7 @@ protected:
         Py_DECREF(py_template_dict_storage);
         return py_template_dict_storage;
     }
-    std::string GenerateFullErrMsg(const std::string& code) {
+    static std::string GenerateFullErrMsg(const std::string& code) {
         PyObject *py_src, *py_exc, *py_val;
         std::string err_msg_str;
 
@@ -524,7 +525,6 @@ TEST_P(TestCheckCodeValidityAssumption, Error_lineno_should_be_at_the_end) {
 
     // Act -- Get error message
     std::string full_err_msg = GenerateFullErrMsg(not_done_code);
-    std::cout << full_err_msg << std::endl;
 
     // Assert -- If there is number in it, it should be at the end of the error msg
     std::size_t found_number = full_err_msg.find_first_of("0123456789");
@@ -578,7 +578,7 @@ int main(int argc, char* argv[]) {
 #ifndef SERIAL_MODE
     MPI_Init(&argc, &argv);
 #endif
-    // initialize python (todo: should call libyt api later)
+    // initialize python
     wchar_t* program = Py_DecodeLocale(argv[0], NULL);
     if (program == NULL) {
         fprintf(stderr, "Fatal error: cannot decode argv[0]\n");
@@ -589,7 +589,7 @@ int main(int argc, char* argv[]) {
 
     result = RUN_ALL_TESTS();
 
-    // finalize python (todo: should call libyt api later)
+    // finalize python
     if (Py_FinalizeEx() < 0) {
         exit(120);
     }
