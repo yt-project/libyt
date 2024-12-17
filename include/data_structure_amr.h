@@ -33,6 +33,11 @@ class DataStructureAmr {
 public:
     int* all_num_grids_local_;
 
+    // MPI
+    static int mpi_size_;
+    static int mpi_root_;
+    static int mpi_rank_;
+
     // Hierarchy -- set by yt_param_yt passed in
     long num_grids_;
     int num_fields_;
@@ -60,6 +65,11 @@ public:
 public:
     DataStructureAmr();
     void SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types = 0);
+    static void SetMpiInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
+        mpi_size_ = mpi_size;
+        mpi_root_ = mpi_root;
+        mpi_rank_ = mpi_rank;
+    }
 };
 
 #endif  // LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_

@@ -66,6 +66,10 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
     LibytProcessControl::Get().param_yt_ = *input_param_yt;
     yt_param_yt& param_yt = LibytProcessControl::Get().param_yt_;
 
+    // Set up DataStructureAmr
+    LibytProcessControl::Get().data_structure_amr_.SetUp(param_yt.num_grids, param_yt.num_grids_local,
+                                                         param_yt.num_fields, param_yt.num_par_types);
+
     // set the default figure base name if it's not set by users.
     // append LibytProcessControl::Get().param_libyt_.counter to prevent over-written
     char fig_basename[1000];

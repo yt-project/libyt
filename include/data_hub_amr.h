@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "data_structure_amr.h"
 #include "yt_type.h"
 
 struct AmrDataArray3D {
@@ -42,10 +43,10 @@ private:
 
 public:
     DataHubAmr() : take_ownership_(false) {}
-    DataHubReturn<AmrDataArray3D> GetLocalFieldData(const std::string& field_name,
+    DataHubReturn<AmrDataArray3D> GetLocalFieldData(const DataStructureAmr& ds_amr, const std::string& field_name,
                                                     const std::vector<long>& grid_id_list);
-    DataHubReturn<AmrDataArray1D> GetLocalParticleData(const std::string& ptype, const std::string& pattr,
-                                                       const std::vector<long>& grid_id_list);
+    DataHubReturn<AmrDataArray1D> GetLocalParticleData(const DataStructureAmr& ds_amr, const std::string& ptype,
+                                                       const std::string& pattr, const std::vector<long>& grid_id_list);
     void ClearCache();
     const std::string& GetErrorStr() const { return error_str_; }
     ~DataHubAmr() { ClearCache(); }

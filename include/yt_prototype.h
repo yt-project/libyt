@@ -13,8 +13,9 @@
 #endif
 
 #ifndef SERIAL_MODE
-#include "data_structure_amr.h"
+#include <mpi.h>
 
+#include "data_structure_amr.h"
 int big_MPI_Get_dtype(void* recv_buff, long data_len, yt_dtype* data_dtype, MPI_Datatype* mpi_dtype, int get_rank,
                       MPI_Aint base_address, MPI_Win* window);
 int get_mpi_dtype(yt_dtype data_type, MPI_Datatype* mpi_dtype);

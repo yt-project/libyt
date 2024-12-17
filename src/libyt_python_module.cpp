@@ -295,7 +295,8 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
         std::string fname = py_fname.cast<std::string>();
 
         DataHubAmr local_amr_data;
-        DataHubReturn<AmrDataArray3D> prepared_data = local_amr_data.GetLocalFieldData(fname, prepare_id_list);
+        DataHubReturn<AmrDataArray3D> prepared_data =
+            local_amr_data.GetLocalFieldData(LibytProcessControl::Get().data_structure_amr_, fname, prepare_id_list);
 
         // Make sure every process can get the local field data correctly, otherwise fail fast.
         DataHubStatus all_status = static_cast<DataHubStatus>(CommMpi::CheckAllStates(
@@ -414,8 +415,8 @@ pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind1
             }
 
             DataHubAmr local_particle_data;
-            DataHubReturn<AmrDataArray1D> prepared_data =
-                local_particle_data.GetLocalParticleData(ptype, attr, prepare_id_list);
+            DataHubReturn<AmrDataArray1D> prepared_data = local_particle_data.GetLocalParticleData(
+                LibytProcessControl::Get().data_structure_amr_, ptype, attr, prepare_id_list);
             DataHubStatus all_status = static_cast<DataHubStatus>(CommMpi::CheckAllStates(
                 static_cast<int>(prepared_data.status), static_cast<int>(DataHubStatus::kDataHubSuccess),
                 static_cast<int>(DataHubStatus::kDataHubSuccess), static_cast<int>(DataHubStatus::kDataHubFailed)));

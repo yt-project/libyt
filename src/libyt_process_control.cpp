@@ -75,8 +75,9 @@ void LibytProcessControl::Initialize() {
 #endif
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    LibytPythonShell::SetMPIInfo(mpi_size_, mpi_root_, mpi_rank_);
+    LibytPythonShell::SetMPIInfo(mpi_size_, mpi_root_, mpi_rank_);  // TODO: rename
 #endif
+    DataStructureAmr::SetMpiInfo(mpi_size_, mpi_root_, mpi_rank_);
 
 #ifdef SUPPORT_TIMER
     // Set time profile controller
