@@ -74,7 +74,7 @@ int yt_free() {
         delete[] grids_local;
     }
 
-#ifdef USE_PYBIND11
+    // Delete hierarchy data
     delete[] LibytProcessControl::Get().grid_left_edge_;
     delete[] LibytProcessControl::Get().grid_right_edge_;
     delete[] LibytProcessControl::Get().grid_dimensions_;
@@ -84,7 +84,6 @@ int yt_free() {
     if (param_yt.num_par_types > 0) {
         delete[] LibytProcessControl::Get().par_count_list_;
     }
-#endif
 
 #ifndef USE_PYBIND11
     // Reset data in libyt module
@@ -96,7 +95,7 @@ int yt_free() {
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     PyDict_Clear(PyDict_GetItemString(LibytProcessControl::Get().py_interactive_mode_, "func_err_msg"));
 #endif
-#else
+#else  // #ifndef USE_PYBIND11
     pybind11::module_ libyt = pybind11::module_::import("libyt");
 
     const char* keys_to_clear[] = {"grid_data", "particle_data", "hierarchy", "param_yt", "param_user"};
@@ -110,7 +109,7 @@ int yt_free() {
     pybind11::dict py_func_err_msg = py_interactive_mode["func_err_msg"];
     py_func_err_msg.clear();
 #endif
-#endif
+#endif  // #ifndef USE_PYBIND11
 
     PyRun_SimpleString("gc.collect()");
 

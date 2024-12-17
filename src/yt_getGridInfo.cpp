@@ -15,7 +15,7 @@
 //                4.    Function                                              Search NumPy Array
 //                   --------------------------------------------------------------------------------
 //                    yt_getGridInfo_Dimensions(const long, int (*)[3])       libyt.hierarchy["grid_dimensions"]
-//                    yt_getGridInfo_LefgEdge(const long, double (*)[3])      libyt.hierarchy["grid_left_edge"]
+//                    yt_getGridInfo_LeftEdge(const long, double (*)[3])      libyt.hierarchy["grid_left_edge"]
 //                    yt_getGridInfo_RightEdge(const long, double (*)[3])     libyt.hierarchy["grid_right_edge"]
 //                    yt_getGridInfo_ParentId(const long, long *)             libyt.hierarchy["grid_parent_id"]
 //                    yt_getGridInfo_Level(const long, int *)                 libyt.hierarchy["grid_levels"]
@@ -27,65 +27,6 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-#ifndef USE_PYBIND11
-#define GET_ARRAY(KEY, ARRAY, DIM, TYPE, GID)                                                                          \
-    {                                                                                                                  \
-        PyArrayObject* py_array_obj =                                                                                  \
-            (PyArrayObject*)PyDict_GetItemString(LibytProcessControl::Get().py_hierarchy_, KEY);                       \
-        for (int t = 0; t < DIM; t++) {                                                                                \
-            (ARRAY)[t] =                                                                                               \
-                *(TYPE*)PyArray_GETPTR2(py_array_obj, GID - LibytProcessControl::Get().param_yt_.index_offset, t);     \
-        }                                                                                                              \
-    }
-
-// function factory
-#define GET_GRIDINFO_DIM3(NAME, KEY, TYPE)                                                                             \
-    int yt_getGridInfo_##NAME(const long gid, TYPE(*NAME)[3]) {                                                        \
-        SET_TIMER(__PRETTY_FUNCTION__);                                                                                \
-        if (!LibytProcessControl::Get().commit_grids) {                                                                \
-            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",         \
-                     __FUNCTION__);                                                                                    \
-        }                                                                                                              \
-        GET_ARRAY(KEY, *NAME, 3, TYPE, gid)                                                                            \
-        return YT_SUCCESS;                                                                                             \
-    }
-
-// function factory
-#define GET_GRIDINFO_DIM1(NAME, KEY, TYPE)                                                                             \
-    int yt_getGridInfo_##NAME(const long gid, TYPE* NAME) {                                                            \
-        SET_TIMER(__PRETTY_FUNCTION__);                                                                                \
-        if (!LibytProcessControl::Get().commit_grids) {                                                                \
-            YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",         \
-                     __FUNCTION__);                                                                                    \
-        }                                                                                                              \
-        TYPE temp[1];                                                                                                  \
-        GET_ARRAY(KEY, temp, 1, TYPE, gid)                                                                             \
-        *NAME = temp[0];                                                                                               \
-        return YT_SUCCESS;                                                                                             \
-    }
-
-// int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] )
-GET_GRIDINFO_DIM3(Dimensions, "grid_dimensions", int)
-
-// int yt_getGridInfo_LeftEdge(const long, double (*)[3])
-GET_GRIDINFO_DIM3(LeftEdge, "grid_left_edge", double)
-
-// int yt_getGridInfo_RightEdge(const long, double (*)[3])
-GET_GRIDINFO_DIM3(RightEdge, "grid_right_edge", double)
-
-// int yt_getGridInfo_ParentId(const long, long *)
-GET_GRIDINFO_DIM1(ParentId, "grid_parent_id", long)
-
-// int yt_getGridInfo_Level(const long, int *)
-GET_GRIDINFO_DIM1(Level, "grid_levels", int)
-
-// int yt_getGridInfo_ProcNum(const long, int *)
-GET_GRIDINFO_DIM1(ProcNum, "proc_num", int)
-
-#undef GET_GRIDINFO_DIM1
-#undef GET_GRIDINFO_DIM3
-#undef GET_ARRAY
-#else
 int yt_getGridInfo_Dimensions(const long gid, int (*dimensions)[3]) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -172,7 +113,6 @@ int yt_getGridInfo_ProcNum(const long gid, int* proc_num) {
 
     return YT_SUCCESS;
 }
-#endif  // #ifndef USE_PYBIND11
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_getGridInfo_ParticleCount
@@ -214,20 +154,10 @@ int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_co
     }
     if (label == -1) YT_ABORT("Cannot find species name [%s] in particle_list.\n", ptype);
 
-#ifndef USE_PYBIND11
-    // get particle count NumPy array in libyt.hierarchy["par_count_list"]
-    PyArrayObject* py_array_obj =
-        (PyArrayObject*)PyDict_GetItemString(LibytProcessControl::Get().py_hierarchy_, "par_count_list");
-    if (py_array_obj == NULL) YT_ABORT("Cannot find key \"par_count_list\" in libyt.hierarchy dict.\n");
-
-    // read libyt.hierarchy["par_count_list"][index][ptype]
-    *par_count = *(long*)PyArray_GETPTR2(py_array_obj, gid - LibytProcessControl::Get().param_yt_.index_offset, label);
-#else
     long* par_count_list = LibytProcessControl::Get().par_count_list_;
     *par_count = par_count_list[(gid - LibytProcessControl::Get().param_yt_.index_offset) *
                                     LibytProcessControl::Get().param_yt_.num_par_types +
                                 label];
-#endif
 
     return YT_SUCCESS;
 }

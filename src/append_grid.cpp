@@ -24,34 +24,6 @@ static int set_particle_data(yt_grid* grid);
 //-------------------------------------------------------------------------------------------------------
 int append_grid(yt_grid* grid) {
     // export grid info to libyt.hierarchy
-#ifndef USE_PYBIND11
-    PyArrayObject* py_array_obj;
-
-// convenient macro
-// note that PyDict_GetItemString() returns a **borrowed** reference ==> no need to call Py_DECREF
-#define FILL_ARRAY(KEY, ARRAY, DIM, TYPE)                                                                              \
-    {                                                                                                                  \
-        for (int t = 0; t < DIM; t++) {                                                                                \
-            if ((py_array_obj =                                                                                        \
-                     (PyArrayObject*)PyDict_GetItemString(LibytProcessControl::Get().py_hierarchy_, KEY)) == NULL)     \
-                YT_ABORT("Accessing the key \"%s\" from libyt.hierarchy ... failed!\n", KEY);                          \
-                                                                                                                       \
-            *(TYPE*)PyArray_GETPTR2(py_array_obj, (grid->id) - LibytProcessControl::Get().param_yt_.index_offset, t) = \
-                (TYPE)(ARRAY)[t];                                                                                      \
-        }                                                                                                              \
-    }
-
-    FILL_ARRAY("grid_left_edge", grid->left_edge, 3, npy_double)
-    FILL_ARRAY("grid_right_edge", grid->right_edge, 3, npy_double)
-    FILL_ARRAY("grid_dimensions", grid->grid_dimensions, 3, npy_int)
-    FILL_ARRAY("grid_parent_id", &grid->parent_id, 1, npy_long)
-    FILL_ARRAY("grid_levels", &grid->level, 1, npy_int)
-    FILL_ARRAY("proc_num", &grid->proc_num, 1, npy_int)
-    if (LibytProcessControl::Get().param_yt_.num_par_types > 0) {
-        FILL_ARRAY("par_count_list", grid->par_count_list, LibytProcessControl::Get().param_yt_.num_par_types, npy_long)
-    }
-#undef FILL_ARRAY
-#else
     long index = grid->id - LibytProcessControl::Get().param_yt_.index_offset;
     for (int d = 0; d < 3; d++) {
         LibytProcessControl::Get().grid_left_edge_[index * 3 + d] = grid->left_edge[d];
@@ -67,7 +39,6 @@ int append_grid(yt_grid* grid) {
                 grid->par_count_list[p];
         }
     }
-#endif  // #ifndef USE_PYBIND11
 
     log_debug("Inserting grid [%ld] info to libyt.hierarchy ... done\n", grid->id);
 
