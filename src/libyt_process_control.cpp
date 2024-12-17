@@ -80,13 +80,13 @@ LibytProcessControl::LibytProcessControl() {
 #endif
 
 #ifdef USE_PYBIND11
-    grid_left_edge = nullptr;
-    grid_right_edge = nullptr;
-    grid_dimensions = nullptr;
-    grid_parent_id = nullptr;
-    grid_levels = nullptr;
-    proc_num = nullptr;
-    par_count_list = nullptr;
+    grid_left_edge_ = nullptr;
+    grid_right_edge_ = nullptr;
+    grid_dimensions_ = nullptr;
+    grid_parent_id_ = nullptr;
+    grid_levels_ = nullptr;
+    proc_num_ = nullptr;
+    par_count_list_ = nullptr;
 #endif
 }
 

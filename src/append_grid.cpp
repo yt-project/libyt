@@ -54,16 +54,16 @@ int append_grid(yt_grid* grid) {
 #else
     long index = grid->id - LibytProcessControl::Get().param_yt_.index_offset;
     for (int d = 0; d < 3; d++) {
-        LibytProcessControl::Get().grid_left_edge[index * 3 + d] = grid->left_edge[d];
-        LibytProcessControl::Get().grid_right_edge[index * 3 + d] = grid->right_edge[d];
-        LibytProcessControl::Get().grid_dimensions[index * 3 + d] = grid->grid_dimensions[d];
+        LibytProcessControl::Get().grid_left_edge_[index * 3 + d] = grid->left_edge[d];
+        LibytProcessControl::Get().grid_right_edge_[index * 3 + d] = grid->right_edge[d];
+        LibytProcessControl::Get().grid_dimensions_[index * 3 + d] = grid->grid_dimensions[d];
     }
-    LibytProcessControl::Get().grid_parent_id[index] = grid->parent_id;
-    LibytProcessControl::Get().grid_levels[index] = grid->level;
-    LibytProcessControl::Get().proc_num[index] = grid->proc_num;
+    LibytProcessControl::Get().grid_parent_id_[index] = grid->parent_id;
+    LibytProcessControl::Get().grid_levels_[index] = grid->level;
+    LibytProcessControl::Get().proc_num_[index] = grid->proc_num;
     if (LibytProcessControl::Get().param_yt_.num_par_types > 0) {
         for (int p = 0; p < LibytProcessControl::Get().param_yt_.num_par_types; p++) {
-            LibytProcessControl::Get().par_count_list[index * LibytProcessControl::Get().param_yt_.num_par_types + p] =
+            LibytProcessControl::Get().par_count_list_[index * LibytProcessControl::Get().param_yt_.num_par_types + p] =
                 grid->par_count_list[p];
         }
     }
