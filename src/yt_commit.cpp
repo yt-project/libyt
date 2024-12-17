@@ -110,7 +110,7 @@ int yt_commit() {
     }
 #endif
 
-    yt_grid* grids_local = LibytProcessControl::Get().grids_local;
+    yt_grid* grids_local = LibytProcessControl::Get().data_structure_amr_.grids_local_;
 
 #ifndef SERIAL_MODE
     // move user passed in data to hierarchy_local and particle_count_list_local for later MPI process
@@ -131,7 +131,7 @@ int yt_commit() {
     }
 
     // Big MPI_Gatherv, this is just a workaround method.
-    int* num_grids_local_MPI = LibytProcessControl::Get().all_num_grids_local_;
+    int* num_grids_local_MPI = LibytProcessControl::Get().data_structure_amr_.all_num_grids_local_;
     big_MPI_Gatherv<yt_hierarchy>(RootRank, num_grids_local_MPI, (void*)hierarchy_local,
                                   &CommMpi::yt_hierarchy_mpi_type_, (void*)hierarchy_full);
     for (int s = 0; s < param_yt.num_par_types; s++) {

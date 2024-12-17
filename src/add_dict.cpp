@@ -202,7 +202,7 @@ int add_dict_field_list() {
     PyObject* field_list_dict = PyDict_New();
     PyObject *key, *val;
 
-    yt_field* field_list = LibytProcessControl::Get().field_list;
+    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.field_list_;
 
     for (int i = 0; i < LibytProcessControl::Get().param_yt_.num_fields; i++) {
         PyObject* field_info_dict = PyDict_New();
@@ -359,7 +359,7 @@ int add_dict_field_list() {
     pybind11::dict py_field_list = pybind11::dict();
     py_param_yt["field_list"] = py_field_list;
 
-    yt_field* field_list = LibytProcessControl::Get().field_list;
+    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.field_list_;
 
     for (int i = 0; i < LibytProcessControl::Get().param_yt_.num_fields; i++) {
         py_field_list[field_list[i].field_name] = pybind11::dict();
@@ -415,7 +415,7 @@ int add_dict_particle_list() {
     PyObject* particle_list_dict = PyDict_New();
     PyObject *key, *val;
 
-    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
+    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.particle_list_;
 
     for (int s = 0; s < LibytProcessControl::Get().param_yt_.num_par_types; s++) {
         PyObject* species_dict = PyDict_New();
@@ -633,7 +633,7 @@ int add_dict_particle_list() {
     pybind11::dict py_particle_list = pybind11::dict();
     py_param_yt["particle_list"] = py_particle_list;
 
-    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
+    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.particle_list_;
 
     for (int i = 0; i < LibytProcessControl::Get().param_yt_.num_par_types; i++) {
         py_particle_list[particle_list[i].par_type] = pybind11::dict();

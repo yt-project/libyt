@@ -42,7 +42,7 @@ yt_rma_field::yt_rma_field(const char* fname, int len_prepare, long len_get_grid
         log_error("yt_rma_field: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
     }
 
-    yt_field* field_list = LibytProcessControl::Get().field_list;
+    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.field_list_;
     for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_fields; v++) {
         if (strcmp(fname, field_list[v].field_name) == 0) {
             m_FieldName = field_list[v].field_name;
@@ -136,7 +136,7 @@ int yt_rma_field::prepare_data(long& gid) {
         }
 
         // get data type
-        grid_info.data_dtype = LibytProcessControl::Get().field_list[m_FieldIndex].field_dtype;
+        grid_info.data_dtype = LibytProcessControl::Get().data_structure_amr_.field_list_[m_FieldIndex].field_dtype;
 
         // allocate data_ptr
         long gridLength = grid_info.data_dim[0] * grid_info.data_dim[1] * grid_info.data_dim[2];
@@ -152,9 +152,9 @@ int yt_rma_field::prepare_data(long& gid) {
         data_array[0].data_length = gridLength;
         data_array[0].data_ptr = data_ptr;
 
-        if (LibytProcessControl::Get().field_list[m_FieldIndex].derived_func != nullptr) {
+        if (LibytProcessControl::Get().data_structure_amr_.field_list_[m_FieldIndex].derived_func != nullptr) {
             void (*derived_func)(const int, const long*, const char*, yt_array*);
-            derived_func = LibytProcessControl::Get().field_list[m_FieldIndex].derived_func;
+            derived_func = LibytProcessControl::Get().data_structure_amr_.field_list_[m_FieldIndex].derived_func;
             (*derived_func)(list_length, list_gid, m_FieldName, data_array);
         } else {
             free(data_ptr);

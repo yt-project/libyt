@@ -33,54 +33,66 @@ int allocate_hierarchy() {
     // TODO: check this warning when doing DataStructureAmr (it should have mechanism to allocate and free this)
     // remove all key-value pairs if one wants to overwrite the existing dictionary
     // ==> it should happen only if one calls yt_set_Parameters() more than once
-    //    if (PyDict_Size(LibytProcessControl::Get().py_hierarchy_) > 0) {
-    //        PyDict_Clear(LibytProcessControl::Get().py_hierarchy_);
+    //    if (PyDict_Size(LibytProcessControl::Get().data_structure_amr_.py_hierarchy_) > 0) {
+    //        PyDict_Clear(LibytProcessControl::Get().data_structure_amr_.py_hierarchy_);
     //        log_warning("Removing existing key-value pairs in libyt.hierarchy ... done\n");
     //    }
 
     yt_param_yt& param_yt = LibytProcessControl::Get().param_yt_;
-    LibytProcessControl::Get().grid_left_edge_ = new double[param_yt.num_grids * 3];
-    LibytProcessControl::Get().grid_right_edge_ = new double[param_yt.num_grids * 3];
-    LibytProcessControl::Get().grid_dimensions_ = new int[param_yt.num_grids * 3];
-    LibytProcessControl::Get().grid_parent_id_ = new long[param_yt.num_grids];
-    LibytProcessControl::Get().grid_levels_ = new int[param_yt.num_grids];
-    LibytProcessControl::Get().proc_num_ = new int[param_yt.num_grids];
+    LibytProcessControl::Get().data_structure_amr_.grid_left_edge_ = new double[param_yt.num_grids * 3];
+    LibytProcessControl::Get().data_structure_amr_.grid_right_edge_ = new double[param_yt.num_grids * 3];
+    LibytProcessControl::Get().data_structure_amr_.grid_dimensions_ = new int[param_yt.num_grids * 3];
+    LibytProcessControl::Get().data_structure_amr_.grid_parent_id_ = new long[param_yt.num_grids];
+    LibytProcessControl::Get().data_structure_amr_.grid_levels_ = new int[param_yt.num_grids];
+    LibytProcessControl::Get().data_structure_amr_.proc_num_ = new int[param_yt.num_grids];
     if (param_yt.num_par_types > 0) {
-        LibytProcessControl::Get().par_count_list_ = new long[param_yt.num_grids * param_yt.num_par_types];
+        LibytProcessControl::Get().data_structure_amr_.par_count_list_ =
+            new long[param_yt.num_grids * param_yt.num_par_types];
     } else {
-        LibytProcessControl::Get().par_count_list_ = nullptr;
+        LibytProcessControl::Get().data_structure_amr_.par_count_list_ = nullptr;
     }
 
     npy_intp np_dim[2];
     np_dim[0] = param_yt.num_grids;
 
     np_dim[1] = 3;
-    PyObject* py_grid_left_edge = WrapToNumPyArray(2, np_dim, YT_DOUBLE, LibytProcessControl::Get().grid_left_edge_);
-    PyObject* py_grid_right_edge = WrapToNumPyArray(2, np_dim, YT_DOUBLE, LibytProcessControl::Get().grid_right_edge_);
-    PyObject* py_grid_dimensions = WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().grid_dimensions_);
+    PyObject* py_grid_left_edge =
+        WrapToNumPyArray(2, np_dim, YT_DOUBLE, LibytProcessControl::Get().data_structure_amr_.grid_left_edge_);
+    PyObject* py_grid_right_edge =
+        WrapToNumPyArray(2, np_dim, YT_DOUBLE, LibytProcessControl::Get().data_structure_amr_.grid_right_edge_);
+    PyObject* py_grid_dimensions =
+        WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().data_structure_amr_.grid_dimensions_);
 
     np_dim[1] = 1;
-    PyObject* py_grid_parent_id = WrapToNumPyArray(2, np_dim, YT_LONG, LibytProcessControl::Get().grid_parent_id_);
-    PyObject* py_grid_levels = WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().grid_levels_);
-    PyObject* py_proc_num = WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().proc_num_);
+    PyObject* py_grid_parent_id =
+        WrapToNumPyArray(2, np_dim, YT_LONG, LibytProcessControl::Get().data_structure_amr_.grid_parent_id_);
+    PyObject* py_grid_levels =
+        WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().data_structure_amr_.grid_levels_);
+    PyObject* py_proc_num =
+        WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().data_structure_amr_.proc_num_);
     PyObject* py_par_count_list;
     if (param_yt.num_par_types > 0) {
         np_dim[1] = param_yt.num_par_types;
-        py_par_count_list = WrapToNumPyArray(2, np_dim, YT_LONG, LibytProcessControl::Get().par_count_list_);
+        py_par_count_list =
+            WrapToNumPyArray(2, np_dim, YT_LONG, LibytProcessControl::Get().data_structure_amr_.par_count_list_);
     }
 
     // Bind them to libyt.hierarchy
     // Even though the pointer is de-referenced, still need to freed it in the memory ourselves at freed
-    // (TODO: should I make it owned by python?)
 #ifndef USE_PYBIND11
-    PyDict_SetItemString(LibytProcessControl::Get().py_hierarchy_, "grid_left_edge", py_grid_left_edge);
-    PyDict_SetItemString(LibytProcessControl::Get().py_hierarchy_, "grid_right_edge", py_grid_right_edge);
-    PyDict_SetItemString(LibytProcessControl::Get().py_hierarchy_, "grid_dimensions", py_grid_dimensions);
-    PyDict_SetItemString(LibytProcessControl::Get().py_hierarchy_, "grid_parent_id", py_grid_parent_id);
-    PyDict_SetItemString(LibytProcessControl::Get().py_hierarchy_, "grid_levels", py_grid_levels);
-    PyDict_SetItemString(LibytProcessControl::Get().py_hierarchy_, "proc_num", py_proc_num);
+    PyDict_SetItemString(LibytProcessControl::Get().data_structure_amr_.py_hierarchy_, "grid_left_edge",
+                         py_grid_left_edge);
+    PyDict_SetItemString(LibytProcessControl::Get().data_structure_amr_.py_hierarchy_, "grid_right_edge",
+                         py_grid_right_edge);
+    PyDict_SetItemString(LibytProcessControl::Get().data_structure_amr_.py_hierarchy_, "grid_dimensions",
+                         py_grid_dimensions);
+    PyDict_SetItemString(LibytProcessControl::Get().data_structure_amr_.py_hierarchy_, "grid_parent_id",
+                         py_grid_parent_id);
+    PyDict_SetItemString(LibytProcessControl::Get().data_structure_amr_.py_hierarchy_, "grid_levels", py_grid_levels);
+    PyDict_SetItemString(LibytProcessControl::Get().data_structure_amr_.py_hierarchy_, "proc_num", py_proc_num);
     if (param_yt.num_par_types > 0) {
-        PyDict_SetItemString(LibytProcessControl::Get().py_hierarchy_, "par_count_list", py_par_count_list);
+        PyDict_SetItemString(LibytProcessControl::Get().data_structure_amr_.py_hierarchy_, "par_count_list",
+                             py_par_count_list);
     }
 #else   // #ifndef USE_PYBIND11
     pybind11::module_ libyt = pybind11::module_::import("libyt");

@@ -42,8 +42,8 @@ int yt_free() {
     // Free resource allocated in yt_set_Parameters():
     //    field_list, particle_list, attr_list, num_grids_local_MPI
     yt_param_yt& param_yt = LibytProcessControl::Get().param_yt_;
-    yt_field* field_list = LibytProcessControl::Get().field_list;
-    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
+    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.field_list_;
+    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.particle_list_;
     if (LibytProcessControl::Get().param_yt_set) {
         if (param_yt.num_fields > 0) delete[] field_list;
         if (param_yt.num_par_types > 0) {
@@ -52,12 +52,12 @@ int yt_free() {
             }
             delete[] particle_list;
         }
-        delete[] LibytProcessControl::Get().all_num_grids_local_;
+        delete[] LibytProcessControl::Get().data_structure_amr_.all_num_grids_local_;
     }
 
     // Free resource allocated in yt_get_GridsPtr() in case it hasn't got freed yet:
     //    grids_local, field_data, particle_data, par_count_list
-    yt_grid* grids_local = LibytProcessControl::Get().grids_local;
+    yt_grid* grids_local = LibytProcessControl::Get().data_structure_amr_.grids_local_;
     if (LibytProcessControl::Get().get_gridsPtr && param_yt.num_grids_local > 0) {
         for (int i = 0; i < param_yt.num_grids_local; i = i + 1) {
             if (param_yt.num_fields > 0) {
@@ -75,21 +75,21 @@ int yt_free() {
     }
 
     // Delete hierarchy data
-    delete[] LibytProcessControl::Get().grid_left_edge_;
-    delete[] LibytProcessControl::Get().grid_right_edge_;
-    delete[] LibytProcessControl::Get().grid_dimensions_;
-    delete[] LibytProcessControl::Get().grid_parent_id_;
-    delete[] LibytProcessControl::Get().grid_levels_;
-    delete[] LibytProcessControl::Get().proc_num_;
+    delete[] LibytProcessControl::Get().data_structure_amr_.grid_left_edge_;
+    delete[] LibytProcessControl::Get().data_structure_amr_.grid_right_edge_;
+    delete[] LibytProcessControl::Get().data_structure_amr_.grid_dimensions_;
+    delete[] LibytProcessControl::Get().data_structure_amr_.grid_parent_id_;
+    delete[] LibytProcessControl::Get().data_structure_amr_.grid_levels_;
+    delete[] LibytProcessControl::Get().data_structure_amr_.proc_num_;
     if (param_yt.num_par_types > 0) {
-        delete[] LibytProcessControl::Get().par_count_list_;
+        delete[] LibytProcessControl::Get().data_structure_amr_.par_count_list_;
     }
 
 #ifndef USE_PYBIND11
     // Reset data in libyt module
-    PyDict_Clear(LibytProcessControl::Get().py_grid_data_);
-    PyDict_Clear(LibytProcessControl::Get().py_particle_data_);
-    PyDict_Clear(LibytProcessControl::Get().py_hierarchy_);
+    PyDict_Clear(LibytProcessControl::Get().data_structure_amr_.py_grid_data_);
+    PyDict_Clear(LibytProcessControl::Get().data_structure_amr_.py_particle_data_);
+    PyDict_Clear(LibytProcessControl::Get().data_structure_amr_.py_hierarchy_);
     PyDict_Clear(LibytProcessControl::Get().py_param_yt_);
     PyDict_Clear(LibytProcessControl::Get().py_param_user_);
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)

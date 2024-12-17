@@ -50,7 +50,7 @@ pybind11::array derived_func(long gid, const char* field_name) {
 
     // Get field info and catch error
     void (*derived_func)(const int, const long*, const char*, yt_array*) = nullptr;
-    yt_field* field_list = LibytProcessControl::Get().field_list;
+    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.field_list_;
     int field_id = -1;
     yt_dtype field_dtype = YT_DTYPE_UNKNOWN;
 
@@ -150,7 +150,7 @@ pybind11::array get_particle(long gid, const char* ptype, const char* attr_name)
 
     // Get particle info and catch error
     void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*) = nullptr;
-    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
+    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.particle_list_;
     int particle_id = -1, attr_id = -1;
     yt_dtype attr_dtype = YT_DTYPE_UNKNOWN;
 

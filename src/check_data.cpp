@@ -49,7 +49,7 @@ int check_sum_num_grids_local_MPI(int mpi_size, int* num_grids_local_MPI) {
 int check_field_list() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    yt_field* field_list = LibytProcessControl::Get().field_list;
+    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.field_list_;
 
     // (1) Validate each yt_field element in field_list.
     for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_fields; v++) {
@@ -89,7 +89,7 @@ int check_field_list() {
 int check_particle_list() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
+    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.particle_list_;
 
     // (1) Validate each yt_particle element in particle_list.
     // (2) Check particle type name (or ptype in YT-term) cannot be the same as
@@ -144,8 +144,8 @@ int check_particle_list() {
 int check_grid() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    yt_grid* grids_local = LibytProcessControl::Get().grids_local;
-    yt_field* field_list = LibytProcessControl::Get().field_list;
+    yt_grid* grids_local = LibytProcessControl::Get().data_structure_amr_.grids_local_;
+    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.field_list_;
 
     // Checking grids
     // check each grids individually
