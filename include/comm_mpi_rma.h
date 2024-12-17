@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-#include "data_structure_amr.h"
+#include "data_hub_amr.h"
 
 struct MpiRmaAddress {
     MPI_Aint mpi_address;

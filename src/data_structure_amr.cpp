@@ -1,5 +1,4 @@
-#include "data_structure_amr.h"
-
+#include "data_hub_amr.h"
 #include "libyt.h"
 #include "libyt_process_control.h"
 #include "yt_prototype.h"

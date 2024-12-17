@@ -1,5 +1,5 @@
-#ifndef LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_
-#define LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_
+#ifndef LIBYT_PROJECT_INCLUDE_DATA_HUB_AMR_H_
+#define LIBYT_PROJECT_INCLUDE_DATA_HUB_AMR_H_
 
 #include <string>
 #include <vector>
@@ -75,4 +75,4 @@ public:
     ~DataHubAmr() { ClearCache(); }
 };
 
-#endif  // LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_
+#endif  // LIBYT_PROJECT_INCLUDE_DATA_HUB_AMR_H_

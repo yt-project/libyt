@@ -3,6 +3,7 @@
 
 #include <Python.h>
 
+#include "data_hub_amr.h"
 #include "yt_type.h"
 
 #ifndef SERIAL_MODE
@@ -21,7 +22,7 @@
 // Description :  Singleton to deal with libyt internal process. (not thread-safe)
 //
 // Notes       :  1. Initialize libyt process control.
-//                2. TOOD: probably should manage different modules into different classes,
+//                2. TODO: probably should manage different modules into different classes,
 //                   like timer and python shell.
 //-------------------------------------------------------------------------------------------------------
 class LibytProcessControl {
@@ -43,6 +44,7 @@ public:
     // Python shell
     LibytPythonShell python_shell_;
     FunctionInfoList function_info_list_;
+    PyObject* py_interactive_mode_;
 #endif
 
     // Process control check point and data management for libyt
@@ -71,9 +73,6 @@ public:
     PyObject* py_param_yt_;
     PyObject* py_param_user_;
     PyObject* py_libyt_info_;
-#if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    PyObject* py_interactive_mode_;
-#endif
 
 #ifdef USE_PYBIND11
     // Hierarchy
