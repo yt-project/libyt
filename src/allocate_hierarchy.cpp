@@ -57,7 +57,7 @@ int allocate_hierarchy() {
     np_dim[1] = 3;
     PyObject* py_grid_left_edge = WrapToNumPyArray(2, np_dim, YT_DOUBLE, LibytProcessControl::Get().grid_left_edge_);
     PyObject* py_grid_right_edge = WrapToNumPyArray(2, np_dim, YT_DOUBLE, LibytProcessControl::Get().grid_right_edge_);
-    PyObject* py_grid_dimensions = WrapToNumPyArray(2, np_dim, YT_DOUBLE, LibytProcessControl::Get().grid_dimensions_);
+    PyObject* py_grid_dimensions = WrapToNumPyArray(2, np_dim, YT_INT, LibytProcessControl::Get().grid_dimensions_);
 
     np_dim[1] = 1;
     PyObject* py_grid_parent_id = WrapToNumPyArray(2, np_dim, YT_LONG, LibytProcessControl::Get().grid_parent_id_);
