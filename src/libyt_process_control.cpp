@@ -26,28 +26,6 @@ LibytProcessControl LibytProcessControl::s_Instance;
 //                   the current libyt API is _not_ thread-safe.
 //                5. Should only have one instance in each MPI process.
 //                6. Initialize timer profile heading and file.
-//
-// Data Member : libyt_initialized : true ==> yt_initialize() has been called successfully
-//               param_yt_set      : true ==> yt_set_Parameters() has been called successfully
-//               get_fieldsPtr     : true ==> yt_get_FieldsPtr() has been called successfully
-//               get_particlesPtr  : true ==> yt_get_ParticlesPtr() has been called successfully
-//               get_gridsPtr      : true ==> yt_get_GridsPtr() has been called successfully
-//               commit_grids      : true ==> yt_commit() has been called successfully
-//               free_gridsPtr     : true ==> yt_free() has been called successfully, everything is reset and freed.
-//
-//               field_list          : field list, including field name, field data type, field definition ...
-//               particle_list       : particle list, including particle name, data type ...
-//               grids_local         : a data structure for storing local grids hierarchy and data memory
-//                                     mapping temporary.
-//               all_num_grids_local : for gathering different MPI processes hierarchy.
-//
-//               grid_left_edge      : AMR hierarchy for Pybind11.
-//               grid_right_edge     :
-//               grid_dimensions     :
-//               grid_parent_id      :
-//               grid_levels         :
-//               proc_num            :
-//               par_count_list      :
 //-------------------------------------------------------------------------------------------------------
 LibytProcessControl::LibytProcessControl() {
     // MPI info
@@ -64,28 +42,12 @@ LibytProcessControl::LibytProcessControl() {
     commit_grids = false;
     free_gridsPtr = true;
 
-    field_list = nullptr;
-    particle_list = nullptr;
-    grids_local = nullptr;
-    all_num_grids_local_ = nullptr;
-
-    py_grid_data_ = nullptr;
-    py_particle_data_ = nullptr;
-    py_hierarchy_ = nullptr;
     py_param_yt_ = nullptr;
     py_param_user_ = nullptr;
     py_libyt_info_ = nullptr;
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     py_interactive_mode_ = nullptr;
 #endif
-
-    grid_left_edge_ = nullptr;
-    grid_right_edge_ = nullptr;
-    grid_dimensions_ = nullptr;
-    grid_parent_id_ = nullptr;
-    grid_levels_ = nullptr;
-    proc_num_ = nullptr;
-    par_count_list_ = nullptr;
 }
 
 //-------------------------------------------------------------------------------------------------------

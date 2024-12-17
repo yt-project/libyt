@@ -4,7 +4,7 @@
 #include <Python.h>
 
 #include "data_hub_amr.h"
-#include "yt_type.h"
+#include "data_structure_amr.h"
 
 #ifndef SERIAL_MODE
 #include "comm_mpi.h"
@@ -58,37 +58,20 @@ public:
 
     // libyt parameters
     yt_param_libyt param_libyt_;
-
-    // AMR data structure and hierarchy
-    yt_param_yt param_yt_;
-
-    yt_field* field_list;
-    yt_particle* particle_list;
-    yt_grid* grids_local;
-    int* all_num_grids_local_;
-
-    PyObject* py_grid_data_;
-    PyObject* py_particle_data_;
-    PyObject* py_hierarchy_;
-    PyObject* py_param_yt_;
-    PyObject* py_param_user_;
     PyObject* py_libyt_info_;
 
-    // Hierarchy
-    double* grid_left_edge_;
-    double* grid_right_edge_;
-    int* grid_dimensions_;
-    long* grid_parent_id_;
-    int* grid_levels_;
-    int* proc_num_;
-    long* par_count_list_;
+    // yt and user parameters
+    yt_param_yt param_yt_;
+    PyObject* py_param_yt_;
+    PyObject* py_param_user_;
 
-    // Singleton Methods
+    // Amr data structure
+    DataStructureAmr data_structure_amr_;
+
+    // Singleton methods
     LibytProcessControl(const LibytProcessControl& other) = delete;
     LibytProcessControl& operator=(const LibytProcessControl& other) = delete;
     static LibytProcessControl& Get();
-
-    // Methods
     void Initialize();
 
 private:

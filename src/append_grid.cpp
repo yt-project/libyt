@@ -26,16 +26,17 @@ int append_grid(yt_grid* grid) {
     // export grid info to libyt.hierarchy
     long index = grid->id - LibytProcessControl::Get().param_yt_.index_offset;
     for (int d = 0; d < 3; d++) {
-        LibytProcessControl::Get().grid_left_edge_[index * 3 + d] = grid->left_edge[d];
-        LibytProcessControl::Get().grid_right_edge_[index * 3 + d] = grid->right_edge[d];
-        LibytProcessControl::Get().grid_dimensions_[index * 3 + d] = grid->grid_dimensions[d];
+        LibytProcessControl::Get().data_structure_amr_.grid_left_edge_[index * 3 + d] = grid->left_edge[d];
+        LibytProcessControl::Get().data_structure_amr_.grid_right_edge_[index * 3 + d] = grid->right_edge[d];
+        LibytProcessControl::Get().data_structure_amr_.grid_dimensions_[index * 3 + d] = grid->grid_dimensions[d];
     }
-    LibytProcessControl::Get().grid_parent_id_[index] = grid->parent_id;
-    LibytProcessControl::Get().grid_levels_[index] = grid->level;
-    LibytProcessControl::Get().proc_num_[index] = grid->proc_num;
+    LibytProcessControl::Get().data_structure_amr_.grid_parent_id_[index] = grid->parent_id;
+    LibytProcessControl::Get().data_structure_amr_.grid_levels_[index] = grid->level;
+    LibytProcessControl::Get().data_structure_amr_.proc_num_[index] = grid->proc_num;
     if (LibytProcessControl::Get().param_yt_.num_par_types > 0) {
         for (int p = 0; p < LibytProcessControl::Get().param_yt_.num_par_types; p++) {
-            LibytProcessControl::Get().par_count_list_[index * LibytProcessControl::Get().param_yt_.num_par_types + p] =
+            LibytProcessControl::Get()
+                .data_structure_amr_.par_count_list_[index * LibytProcessControl::Get().param_yt_.num_par_types + p] =
                 grid->par_count_list[p];
         }
     }
@@ -65,7 +66,7 @@ int append_grid(yt_grid* grid) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 static int set_field_data(yt_grid* grid) {
-    yt_field* field_list = LibytProcessControl::Get().field_list;
+    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.field_list_;
 
     PyObject *py_grid_id, *py_field_labels, *py_field_data;
     py_grid_id = PyLong_FromLong(grid->id);
@@ -75,8 +76,8 @@ static int set_field_data(yt_grid* grid) {
         if ((grid->field_data)[v].data_ptr == nullptr) continue;
 
         // check if dictionary exists, if no add new dict under key gid
-        if (PyDict_Contains(LibytProcessControl::Get().py_grid_data_, py_grid_id) != 1) {
-            PyDict_SetItem(LibytProcessControl::Get().py_grid_data_, py_grid_id, py_field_labels);
+        if (PyDict_Contains(LibytProcessControl::Get().data_structure_amr_.py_grid_data_, py_grid_id) != 1) {
+            PyDict_SetItem(LibytProcessControl::Get().data_structure_amr_.py_grid_data_, py_grid_id, py_field_labels);
         }
 
         // insert data under py_field_labels dict
@@ -166,7 +167,7 @@ static int set_field_data(yt_grid* grid) {
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 static int set_particle_data(yt_grid* grid) {
-    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
+    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.particle_list_;
 
     PyObject *py_grid_id, *py_ptype_labels, *py_attributes, *py_data;
     py_grid_id = PyLong_FromLong(grid->id);
@@ -193,9 +194,9 @@ static int set_particle_data(yt_grid* grid) {
             PyArray_CLEARFLAGS((PyArrayObject*)py_data, NPY_ARRAY_WRITEABLE);
 
             // Get the dictionary and append py_data
-            if (PyDict_Contains(LibytProcessControl::Get().py_particle_data_, py_grid_id) != 1) {
+            if (PyDict_Contains(LibytProcessControl::Get().data_structure_amr_.py_particle_data_, py_grid_id) != 1) {
                 // 1st time append, nothing exist under libyt.particle_data[gid]
-                PyDict_SetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id,
+                PyDict_SetItem(LibytProcessControl::Get().data_structure_amr_.py_particle_data_, py_grid_id,
                                py_ptype_labels);  // libyt.particle_data[gid] = dict()
                 PyDict_SetItemString(py_ptype_labels, particle_list[p].par_type, py_attributes);
             } else {

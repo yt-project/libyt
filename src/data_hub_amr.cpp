@@ -24,7 +24,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const std::string& f
 
     // Since everything is under LibytProcessControl, we need to include it.
     // TODO: Move data structure in LibytProcessControl to this class later
-    yt_field* field_list = LibytProcessControl::Get().field_list;
+    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.field_list_;
     int field_id = -1;
     for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_fields; v++) {
         if (field_name == field_list[v].field_name) {
@@ -147,7 +147,7 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const std::string
 
     // Since everything is under LibytProcessControl, we need to include it.
     // TODO: Move data structure in LibytProcessControl to this class later
-    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
+    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.particle_list_;
     int ptype_index = -1, pattr_index = -1;
     for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_par_types; v++) {
         if (ptype == particle_list[v].par_type) {

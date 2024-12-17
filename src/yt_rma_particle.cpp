@@ -44,7 +44,7 @@ yt_rma_particle::yt_rma_particle(const char* ptype, const char* attribute, int l
         log_error("yt_rma_particle: try setting \"OMPI_MCA_osc=sm,pt2pt\" when using \"mpirun\".\n");
     }
 
-    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
+    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.particle_list_;
     for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_par_types; v++) {
         if (strcmp(ptype, particle_list[v].par_type) == 0) {
             m_ParticleType = particle_list[v].par_type;
@@ -160,7 +160,7 @@ int yt_rma_particle::prepare_data(long& gid) {
 
             // Generate particle data through get_par_attr function pointer, if we cannot find it in libyt.particle_data
             void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*);
-            get_par_attr = LibytProcessControl::Get().particle_list[m_ParticleIndex].get_par_attr;
+            get_par_attr = LibytProcessControl::Get().data_structure_amr_.particle_list_[m_ParticleIndex].get_par_attr;
             if (get_par_attr == nullptr) {
                 YT_ABORT("yt_rma_particle: Particle type [%s], get_par_attr not set!\n", m_ParticleType);
             }
@@ -437,10 +437,12 @@ static int get_particle_data(const long gid, const char* ptype, const char* attr
     PyObject* py_ptype = PyUnicode_FromString(ptype);
     PyObject* py_attr = PyUnicode_FromString(attr);
 
-    if (PyDict_Contains(LibytProcessControl::Get().py_particle_data_, py_grid_id) != 1 ||
-        PyDict_Contains(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype) != 1 ||
+    if (PyDict_Contains(LibytProcessControl::Get().data_structure_amr_.py_particle_data_, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(LibytProcessControl::Get().data_structure_amr_.py_particle_data_, py_grid_id),
+                        py_ptype) != 1 ||
         PyDict_Contains(
-            PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype),
+            PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().data_structure_amr_.py_particle_data_, py_grid_id),
+                           py_ptype),
             py_attr) != 1) {
         Py_DECREF(py_grid_id);
         Py_DECREF(py_ptype);
@@ -448,7 +450,9 @@ static int get_particle_data(const long gid, const char* ptype, const char* attr
         return YT_FAIL;
     }
     PyArrayObject* py_data = (PyArrayObject*)PyDict_GetItem(
-        PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype), py_attr);
+        PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().data_structure_amr_.py_particle_data_, py_grid_id),
+                       py_ptype),
+        py_attr);
 
     Py_DECREF(py_grid_id);
     Py_DECREF(py_ptype);

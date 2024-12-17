@@ -37,6 +37,7 @@ int yt_getGridInfo_Dimensions(const long gid, int (*dimensions)[3]) {
 
     for (int d = 0; d < 3; d++) {
         (*dimensions)[d] = LibytProcessControl::Get()
+                               .data_structure_amr_
                                .grid_dimensions_[(gid - LibytProcessControl::Get().param_yt_.index_offset) * 3 + d];
     }
 
@@ -52,8 +53,9 @@ int yt_getGridInfo_LeftEdge(const long gid, double (*left_edge)[3]) {
     }
 
     for (int d = 0; d < 3; d++) {
-        (*left_edge)[d] = LibytProcessControl::Get()
-                              .grid_left_edge_[(gid - LibytProcessControl::Get().param_yt_.index_offset) * 3 + d];
+        (*left_edge)[d] =
+            LibytProcessControl::Get()
+                .data_structure_amr_.grid_left_edge_[(gid - LibytProcessControl::Get().param_yt_.index_offset) * 3 + d];
     }
 
     return YT_SUCCESS;
@@ -69,6 +71,7 @@ int yt_getGridInfo_RightEdge(const long gid, double (*right_edge)[3]) {
 
     for (int d = 0; d < 3; d++) {
         (*right_edge)[d] = LibytProcessControl::Get()
+                               .data_structure_amr_
                                .grid_right_edge_[(gid - LibytProcessControl::Get().param_yt_.index_offset) * 3 + d];
     }
 
@@ -83,7 +86,8 @@ int yt_getGridInfo_ParentId(const long gid, long* parent_id) {
                  __FUNCTION__);
     }
 
-    *parent_id = LibytProcessControl::Get().grid_parent_id_[gid - LibytProcessControl::Get().param_yt_.index_offset];
+    *parent_id = LibytProcessControl::Get()
+                     .data_structure_amr_.grid_parent_id_[gid - LibytProcessControl::Get().param_yt_.index_offset];
 
     return YT_SUCCESS;
 }
@@ -96,7 +100,8 @@ int yt_getGridInfo_Level(const long gid, int* level) {
                  __FUNCTION__);
     }
 
-    *level = LibytProcessControl::Get().grid_levels_[gid - LibytProcessControl::Get().param_yt_.index_offset];
+    *level = LibytProcessControl::Get()
+                 .data_structure_amr_.grid_levels_[gid - LibytProcessControl::Get().param_yt_.index_offset];
 
     return YT_SUCCESS;
 }
@@ -109,7 +114,8 @@ int yt_getGridInfo_ProcNum(const long gid, int* proc_num) {
                  __FUNCTION__);
     }
 
-    *proc_num = LibytProcessControl::Get().proc_num_[gid - LibytProcessControl::Get().param_yt_.index_offset];
+    *proc_num = LibytProcessControl::Get()
+                    .data_structure_amr_.proc_num_[gid - LibytProcessControl::Get().param_yt_.index_offset];
 
     return YT_SUCCESS;
 }
@@ -142,7 +148,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_co
     }
 
     // find index of ptype
-    yt_particle* particle_list = LibytProcessControl::Get().particle_list;
+    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.particle_list_;
     if (particle_list == nullptr) YT_ABORT("No particle.\n");
 
     int label = -1;
@@ -154,7 +160,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_co
     }
     if (label == -1) YT_ABORT("Cannot find species name [%s] in particle_list.\n", ptype);
 
-    long* par_count_list = LibytProcessControl::Get().par_count_list_;
+    long* par_count_list = LibytProcessControl::Get().data_structure_amr_.par_count_list_;
     *par_count = par_count_list[(gid - LibytProcessControl::Get().param_yt_.index_offset) *
                                     LibytProcessControl::Get().param_yt_.num_par_types +
                                 label];
@@ -197,16 +203,17 @@ int yt_getGridInfo_FieldData(const long gid, const char* field_name, yt_data* fi
     PyObject* py_grid_id = PyLong_FromLong(gid);
     PyObject* py_field = PyUnicode_FromString(field_name);
 
-    if (PyDict_Contains(LibytProcessControl::Get().py_grid_data_, py_grid_id) != 1 ||
-        PyDict_Contains(PyDict_GetItem(LibytProcessControl::Get().py_grid_data_, py_grid_id), py_field) != 1) {
+    if (PyDict_Contains(LibytProcessControl::Get().data_structure_amr_.py_grid_data_, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(LibytProcessControl::Get().data_structure_amr_.py_grid_data_, py_grid_id),
+                        py_field) != 1) {
         log_error("Cannot find grid [%ld] data [%s] on MPI rank [%d].\n", gid, field_name,
                   LibytProcessControl::Get().mpi_rank_);
         Py_DECREF(py_grid_id);
         Py_DECREF(py_field);
         return YT_FAIL;
     }
-    PyArrayObject* py_array_obj =
-        (PyArrayObject*)PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_grid_data_, py_grid_id), py_field);
+    PyArrayObject* py_array_obj = (PyArrayObject*)PyDict_GetItem(
+        PyDict_GetItem(LibytProcessControl::Get().data_structure_amr_.py_grid_data_, py_grid_id), py_field);
 
     Py_DECREF(py_grid_id);
     Py_DECREF(py_field);
@@ -263,10 +270,12 @@ int yt_getGridInfo_ParticleData(const long gid, const char* ptype, const char* a
     PyObject* py_ptype = PyUnicode_FromString(ptype);
     PyObject* py_attr = PyUnicode_FromString(attr);
 
-    if (PyDict_Contains(LibytProcessControl::Get().py_particle_data_, py_grid_id) != 1 ||
-        PyDict_Contains(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype) != 1 ||
+    if (PyDict_Contains(LibytProcessControl::Get().data_structure_amr_.py_particle_data_, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(LibytProcessControl::Get().data_structure_amr_.py_particle_data_, py_grid_id),
+                        py_ptype) != 1 ||
         PyDict_Contains(
-            PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype),
+            PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().data_structure_amr_.py_particle_data_, py_grid_id),
+                           py_ptype),
             py_attr) != 1) {
         log_error("Cannot find particle type [%s] attribute [%s] data in grid [%ld] on MPI rank [%d].\n", ptype, attr,
                   gid, LibytProcessControl::Get().mpi_rank_);
@@ -276,7 +285,9 @@ int yt_getGridInfo_ParticleData(const long gid, const char* ptype, const char* a
         return YT_FAIL;
     }
     PyArrayObject* py_data = (PyArrayObject*)PyDict_GetItem(
-        PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype), py_attr);
+        PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().data_structure_amr_.py_particle_data_, py_grid_id),
+                       py_ptype),
+        py_attr);
 
     Py_DECREF(py_grid_id);
     Py_DECREF(py_ptype);
@@ -323,10 +334,12 @@ int GetLocalParticleDataFromPython(const long gid, const char* ptype, const char
     PyObject* py_ptype = PyUnicode_FromString(ptype);
     PyObject* py_attr = PyUnicode_FromString(attr);
 
-    if (PyDict_Contains(LibytProcessControl::Get().py_particle_data_, py_grid_id) != 1 ||
-        PyDict_Contains(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype) != 1 ||
+    if (PyDict_Contains(LibytProcessControl::Get().data_structure_amr_.py_particle_data_, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(LibytProcessControl::Get().data_structure_amr_.py_particle_data_, py_grid_id),
+                        py_ptype) != 1 ||
         PyDict_Contains(
-            PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype),
+            PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().data_structure_amr_.py_particle_data_, py_grid_id),
+                           py_ptype),
             py_attr) != 1) {
         Py_DECREF(py_grid_id);
         Py_DECREF(py_ptype);
@@ -334,7 +347,9 @@ int GetLocalParticleDataFromPython(const long gid, const char* ptype, const char
         return YT_FAIL;
     }
     PyArrayObject* py_data = (PyArrayObject*)PyDict_GetItem(
-        PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().py_particle_data_, py_grid_id), py_ptype), py_attr);
+        PyDict_GetItem(PyDict_GetItem(LibytProcessControl::Get().data_structure_amr_.py_particle_data_, py_grid_id),
+                       py_ptype),
+        py_attr);
 
     Py_DECREF(py_grid_id);
     Py_DECREF(py_ptype);

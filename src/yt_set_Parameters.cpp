@@ -153,9 +153,9 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
 
     // if num_fields > 0, which means we want to load fields
     if (param_yt.num_fields > 0) {
-        LibytProcessControl::Get().field_list = new yt_field[param_yt.num_fields];
+        LibytProcessControl::Get().data_structure_amr_.field_list_ = new yt_field[param_yt.num_fields];
     } else {
-        LibytProcessControl::Get().field_list = nullptr;
+        LibytProcessControl::Get().data_structure_amr_.field_list_ = nullptr;
         LibytProcessControl::Get().get_fieldsPtr = true;
     }
 
@@ -169,16 +169,16 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
             particle_list[s].num_attr = param_yt.par_type_list[s].num_attr;
             particle_list[s].attr_list = new yt_attribute[particle_list[s].num_attr];
         }
-        LibytProcessControl::Get().particle_list = particle_list;
+        LibytProcessControl::Get().data_structure_amr_.particle_list_ = particle_list;
     } else {
         // don't need to load particle, set as NULL.
-        LibytProcessControl::Get().particle_list = nullptr;
+        LibytProcessControl::Get().data_structure_amr_.particle_list_ = nullptr;
         LibytProcessControl::Get().get_particlesPtr = true;
     }
 
     // if num_grids_local <= 0, which means this rank doesn't need to load in grids_local info.
     if (param_yt.num_grids_local <= 0) {
-        LibytProcessControl::Get().grids_local = nullptr;
+        LibytProcessControl::Get().data_structure_amr_.grids_local_ = nullptr;
         LibytProcessControl::Get().get_gridsPtr = true;
     }
 
@@ -196,13 +196,15 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
 
 #ifndef SERIAL_MODE
     // Gather number of local grids in each MPI rank
-    LibytProcessControl::Get().all_num_grids_local_ = new int[LibytProcessControl::Get().mpi_size_];
-    CommMpi::SetAllNumGridsLocal(LibytProcessControl::Get().all_num_grids_local_, param_yt.num_grids_local);
+    LibytProcessControl::Get().data_structure_amr_.all_num_grids_local_ = new int[LibytProcessControl::Get().mpi_size_];
+    CommMpi::SetAllNumGridsLocal(LibytProcessControl::Get().data_structure_amr_.all_num_grids_local_,
+                                 param_yt.num_grids_local);
 
     // Check that sum of num_grids_local_MPI is equal to num_grids (total number of grids), abort if not.
     if (LibytProcessControl::Get().param_libyt_.check_data) {
         if (check_sum_num_grids_local_MPI(LibytProcessControl::Get().mpi_size_,
-                                          LibytProcessControl::Get().all_num_grids_local_) != YT_SUCCESS) {
+                                          LibytProcessControl::Get().data_structure_amr_.all_num_grids_local_) !=
+            YT_SUCCESS) {
             YT_ABORT("Check sum of local grids in each MPI rank failed in %s!\n", __FUNCTION__);
         }
     }

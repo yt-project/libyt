@@ -51,7 +51,7 @@ int yt_get_GridsPtr(yt_grid** grids_local) {
         // Set the value if overlapped with param_yt,
         // and each fields data are set to NULL, so that we can check if user input the data
         *grids_local = new yt_grid[param_yt.num_grids_local];
-        yt_particle* particle_list = LibytProcessControl::Get().particle_list;
+        yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.particle_list_;
         for (int id = 0; id < param_yt.num_grids_local; id = id + 1) {
             (*grids_local)[id].proc_num = mpi_rank;
 
@@ -81,11 +81,11 @@ int yt_get_GridsPtr(yt_grid** grids_local) {
             }
         }
 
-        LibytProcessControl::Get().grids_local = *grids_local;
+        LibytProcessControl::Get().data_structure_amr_.grids_local_ = *grids_local;
     } else {
         // If user already called this function before, we just return the initialized grids_local,
         // to avoid memory leak.
-        *grids_local = LibytProcessControl::Get().grids_local;
+        *grids_local = LibytProcessControl::Get().data_structure_amr_.grids_local_;
     }
 
     // Above all works like charm
