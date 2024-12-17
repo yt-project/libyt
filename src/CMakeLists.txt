@@ -16,7 +16,7 @@ add_library(yt SHARED
         init_libyt_module.cpp init_python.cpp logging.cpp print_data.cpp comm_mpi.cpp comm_mpi_rma.cpp
         yt_commit.cpp yt_finalize.cpp yt_free.cpp yt_get_FieldsPtr.cpp yt_get_GridsPtr.cpp yt_run_JupyterKernel.cpp
         yt_get_ParticlesPtr.cpp yt_getGridInfo.cpp yt_initialize.cpp yt_rma_field.cpp yt_run_ReloadScript.cpp
-        yt_rma_particle.cpp yt_run.cpp yt_run_InteractiveMode.cpp yt_set_Parameters.cpp data_structure_amr.cpp
+        yt_rma_particle.cpp yt_run.cpp yt_run_InteractiveMode.cpp yt_set_Parameters.cpp data_hub_amr.cpp
         yt_set_UserParameter.cpp libyt_process_control.cpp timer.cpp timer_control.cpp
         libyt_python_shell.cpp libyt_kernel.cpp libyt_worker.cpp libyt_python_module.cpp
 )
