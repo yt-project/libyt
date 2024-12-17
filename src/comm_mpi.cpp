@@ -2,7 +2,7 @@
 #include "comm_mpi.h"
 
 #include "comm_mpi_rma.h"
-#include "data_structure_amr.h"
+#include "data_hub_amr.h"
 #include "timer.h"
 
 int CommMpi::mpi_rank_ = 0;

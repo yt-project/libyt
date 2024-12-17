@@ -10,9 +10,6 @@
 #include "libyt.h"
 #include "libyt_process_control.h"
 #include "yt_combo.h"
-#include "yt_rma_field.h"
-#include "yt_rma_particle.h"
-#include "yt_type_array.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Description :  List of libyt C extension python methods built using Pybind11 API
