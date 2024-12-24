@@ -38,22 +38,26 @@ int yt_commit() {
         YT_ABORT("Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__);
     }
 
+    // TODO: get_fieldsPtr is used here (need to have a new mechanism to make sure the amr structure
+    //       is properly set before calling commit.
     // check if user sets field_list
-    if (!LibytProcessControl::Get().get_fieldsPtr) {
-        YT_ABORT("num_fields == %d, please invoke yt_get_FieldsPtr() before calling %s()!\n",
-                 LibytProcessControl::Get().param_yt_.num_fields, __FUNCTION__);
-    }
+    //    if (!LibytProcessControl::Get().get_fieldsPtr) {
+    //        YT_ABORT("num_fields == %d, please invoke yt_get_FieldsPtr() before calling %s()!\n",
+    //                 LibytProcessControl::Get().param_yt_.num_fields, __FUNCTION__);
+    //    }
 
+    // TODO: Same reason as above
     // check if user sets particle_list
-    if (!LibytProcessControl::Get().get_particlesPtr) {
-        YT_ABORT("num_par_types == %d, please invoke yt_get_ParticlesPtr() before calling %s()!\n",
-                 LibytProcessControl::Get().param_yt_.num_par_types, __FUNCTION__);
-    }
+    //    if (!LibytProcessControl::Get().get_particlesPtr) {
+    //        YT_ABORT("num_par_types == %d, please invoke yt_get_ParticlesPtr() before calling %s()!\n",
+    //                 LibytProcessControl::Get().param_yt_.num_par_types, __FUNCTION__);
+    //    }
 
+    // TODO: same reason as above
     // check if user has call yt_get_GridsPtr()
-    if (!LibytProcessControl::Get().get_gridsPtr) {
-        YT_ABORT("Please invoke yt_get_GridsPtr() before calling %s()!\n", __FUNCTION__);
-    }
+    //    if (!LibytProcessControl::Get().get_gridsPtr) {
+    //        YT_ABORT("Please invoke yt_get_GridsPtr() before calling %s()!\n", __FUNCTION__);
+    //    }
 
     log_info("Loading grids to yt ...\n");
 

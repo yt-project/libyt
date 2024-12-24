@@ -70,6 +70,10 @@ public:
         mpi_root_ = mpi_root;
         mpi_rank_ = mpi_rank;
     }
+
+    DataStructureAmr();
+    void SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types = 0,
+               yt_par_type* par_type_list = nullptr);
 };
 
 #endif  // LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_

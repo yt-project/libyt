@@ -24,7 +24,20 @@ DataStructureAmr::DataStructureAmr()
       py_particle_data_(nullptr),
       py_hierarchy_(nullptr) {}
 
-void DataStructureAmr::SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types) {
+//-------------------------------------------------------------------------------------------------------
+// Class         :  DataStructureAmr
+// Public Method :  SetUp
+//
+// Notes       :  1. Initialize the Amr structure storage.
+//                   (1) Field list
+//                   (2) Particle list
+//                   (3) Local grid list
+//                   (4) Hierarchy bindings at C-side
+//                2. Particles and its type list are optional input. If num_par_types > 0, then par_type_list
+//                   is read.
+//-------------------------------------------------------------------------------------------------------
+void DataStructureAmr::SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types,
+                             yt_par_type* par_type_list) {
     num_grids_ = num_grids;
     num_fields_ = num_fields;
     num_par_types_ = num_par_types;
