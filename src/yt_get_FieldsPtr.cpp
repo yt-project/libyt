@@ -6,8 +6,9 @@
 // Function    :  yt_get_FieldsPtr
 // Description :  Get pointer of the array of struct yt_field with length num_fields.
 //
-// Note        :  1. User should call this function after yt_set_Parameters(), since we allocate field_list
-//                   there.
+// Note        :  1. User should call this function after yt_set_Parameters(), because the Amr structure
+//                   is initialized there.
+//                   (This also shows a bad design of API, should fix it in libyt-v1.0.)
 //
 // Parameter   :  yt_field **field_list  : Initialize and store the field list array under this pointer
 //                                         points to.

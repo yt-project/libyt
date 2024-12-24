@@ -10,19 +10,19 @@
 // Function    :  yt_set_Parameters
 // Description :  Set YT-specific parameters
 //
-// Note        :  1. Store yt relavent data in input "param_yt" to libyt.param_yt. Note that not all the
+// Note        :  1. Store yt relevant data in input "param_yt" to libyt.param_yt. Note that not all the
 //                   data are passed in to python.
-//                   To avoid user free the passed in array par_type_list, we initialize particle_list
-//                   (needs info from par_type_list) right away. If num_par_types > 0.
-//                   To make loading field_list and particle_list more systematic, we will allocate both
-//                   field_list (if num_fields>0 ) and particle_list (if num_par_types>0) here.
-//                2. Should be called after yt_initialize().
-//                3. Check the validation of the data in param_yt.
-//                4. Initialize python hierarchy allocate_hierarchy() and particle_list.
-//                5. Gather each ranks number of local grids, we need this info in yt_commit().
+//                2. To avoid user free the passed in array par_type_list, we initialize particle_list
+//                   (needs info from par_type_list) right away if num_par_types > 0.
+//                   The Amr data structure and storage is initialized here.
+//                   TODO: The Api name is bad, should fix it in libyt-v1.0.
+//                3. Should be called after yt_initialize().
+//                4. Check the validation of the data in param_yt.
+//                5. Initialize python hierarchy allocate_hierarchy() and particle_list.
+//                6. Gather each ranks number of local grids, we need this info in yt_commit().
 //
 // Parameter   :  param_yt : Structure storing YT-specific parameters that will later pass to YT, and
-//                           other relavent data.
+//                           other relevant data.
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
@@ -61,14 +61,18 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
     print_yt_param_yt(*input_param_yt);
 
     // store user-provided parameters to a libyt internal variable
-    // ==> must do this before calling allocate_hierarchy() since it will need "param_yt.num_grids"
-    // ==> must do this before setting the default figure base name since it will overwrite param_yt.fig_basename
     LibytProcessControl::Get().param_yt_ = *input_param_yt;
     yt_param_yt& param_yt = LibytProcessControl::Get().param_yt_;
 
     // Set up DataStructureAmr
-    LibytProcessControl::Get().data_structure_amr_.SetUp(param_yt.num_grids, param_yt.num_grids_local,
-                                                         param_yt.num_fields, param_yt.num_par_types);
+    if (param_yt.num_par_types > 0) {
+        LibytProcessControl::Get().data_structure_amr_.SetUp(param_yt.num_grids, param_yt.num_grids_local,
+                                                             param_yt.num_fields, param_yt.num_par_types,
+                                                             param_yt.par_type_list);
+    } else {
+        LibytProcessControl::Get().data_structure_amr_.SetUp(param_yt.num_grids, param_yt.num_grids_local,
+                                                             param_yt.num_fields);
+    }
 
     // set the default figure base name if it's not set by users.
     // append LibytProcessControl::Get().param_libyt_.counter to prevent over-written
