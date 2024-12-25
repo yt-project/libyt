@@ -30,6 +30,12 @@ struct yt_hierarchy {
 };
 
 class DataStructureAmr {
+private:
+    void AllocateFieldList();
+    void AllocateParticleList(yt_par_type* par_type_list);
+    void AllocateGridsLocal();
+    void AllocateHierarchy();
+
 public:
     int* all_num_grids_local_;
 
@@ -63,8 +69,6 @@ public:
     PyObject* py_hierarchy_;
 
 public:
-    DataStructureAmr();
-    void SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types = 0);
     static void SetMpiInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
         mpi_size_ = mpi_size;
         mpi_root_ = mpi_root;

@@ -73,6 +73,7 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
         LibytProcessControl::Get().data_structure_amr_.SetUp(param_yt.num_grids, param_yt.num_grids_local,
                                                              param_yt.num_fields);
     }
+    log_debug("Allocate storage for amr data structure ... done\n");
 
     // set the default figure base name if it's not set by users.
     // append LibytProcessControl::Get().param_libyt_.counter to prevent over-written
@@ -158,37 +159,6 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
 #endif  // #ifdef USE_PYBIND11
 
     log_debug("Inserting YT parameters to libyt.param_yt ... done\n");
-
-    // if num_fields > 0, which means we want to load fields
-    if (param_yt.num_fields > 0) {
-        LibytProcessControl::Get().data_structure_amr_.field_list_ = new yt_field[param_yt.num_fields];
-    } else {
-        LibytProcessControl::Get().data_structure_amr_.field_list_ = nullptr;
-        LibytProcessControl::Get().get_fieldsPtr = true;
-    }
-
-    // if num_par_types > 0, which means want to load particle
-    if (param_yt.num_par_types > 0) {
-        // Initialize and setup yt_particle *particle_list in param_yt.particle_list,
-        // to avoid user freeing yt_par_type *par_type_list.
-        yt_particle* particle_list = new yt_particle[param_yt.num_par_types];
-        for (int s = 0; s < param_yt.num_par_types; s++) {
-            particle_list[s].par_type = param_yt.par_type_list[s].par_type;
-            particle_list[s].num_attr = param_yt.par_type_list[s].num_attr;
-            particle_list[s].attr_list = new yt_attribute[particle_list[s].num_attr];
-        }
-        LibytProcessControl::Get().data_structure_amr_.particle_list_ = particle_list;
-    } else {
-        // don't need to load particle, set as NULL.
-        LibytProcessControl::Get().data_structure_amr_.particle_list_ = nullptr;
-        LibytProcessControl::Get().get_particlesPtr = true;
-    }
-
-    // if num_grids_local <= 0, which means this rank doesn't need to load in grids_local info.
-    if (param_yt.num_grids_local <= 0) {
-        LibytProcessControl::Get().data_structure_amr_.grids_local_ = nullptr;
-        LibytProcessControl::Get().get_gridsPtr = true;
-    }
 
     // Make sure param_yt.num_grids_local is set,
     // and if param_yt.num_grids_local < 0, set it = 0
