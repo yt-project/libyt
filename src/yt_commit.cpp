@@ -63,6 +63,7 @@ int yt_commit() {
 
     yt_param_yt& param_yt = LibytProcessControl::Get().param_yt_;
 
+    // TODO: move check data process into data_structure_amr class
     // Check yt_field* field_list
     if (LibytProcessControl::Get().param_libyt_.check_data && param_yt.num_fields > 0) {
         if (check_field_list() != YT_SUCCESS) {
@@ -98,7 +99,7 @@ int yt_commit() {
         }
     }
 
-    int RootRank = 0;
+    int root_rank = 0;
 
 #ifndef SERIAL_MODE
     // initialize hierarchy array, prepare for collecting hierarchy in different ranks.
@@ -136,16 +137,16 @@ int yt_commit() {
 
     // Big MPI_Gatherv, this is just a workaround method.
     int* num_grids_local_MPI = LibytProcessControl::Get().data_structure_amr_.all_num_grids_local_;
-    big_MPI_Gatherv<yt_hierarchy>(RootRank, num_grids_local_MPI, (void*)hierarchy_local,
+    big_MPI_Gatherv<yt_hierarchy>(root_rank, num_grids_local_MPI, (void*)hierarchy_local,
                                   &CommMpi::yt_hierarchy_mpi_type_, (void*)hierarchy_full);
     for (int s = 0; s < param_yt.num_par_types; s++) {
-        big_MPI_Gatherv<long>(RootRank, num_grids_local_MPI, (void*)particle_count_list_local[s],
+        big_MPI_Gatherv<long>(root_rank, num_grids_local_MPI, (void*)particle_count_list_local[s],
                               &CommMpi::yt_long_mpi_type_, (void*)particle_count_list_full[s]);
     }
 #endif
 
     // Check that the hierarchy are correct, do the test on RootRank only
-    if (LibytProcessControl::Get().param_libyt_.check_data && LibytProcessControl::Get().mpi_rank_ == RootRank) {
+    if (LibytProcessControl::Get().param_libyt_.check_data && LibytProcessControl::Get().mpi_rank_ == root_rank) {
 #ifndef SERIAL_MODE
         if (check_hierarchy(hierarchy_full) == YT_SUCCESS) {
 #else
@@ -172,9 +173,9 @@ int yt_commit() {
     MPI_Barrier(MPI_COMM_WORLD);
 
     // broadcast hierarchy_full, particle_count_list_full to each rank as well.
-    big_MPI_Bcast<yt_hierarchy>(RootRank, param_yt.num_grids, (void*)hierarchy_full, &CommMpi::yt_hierarchy_mpi_type_);
+    big_MPI_Bcast<yt_hierarchy>(root_rank, param_yt.num_grids, (void*)hierarchy_full, &CommMpi::yt_hierarchy_mpi_type_);
     for (int s = 0; s < param_yt.num_par_types; s++) {
-        big_MPI_Bcast<long>(RootRank, param_yt.num_grids, (void*)particle_count_list_full[s],
+        big_MPI_Bcast<long>(root_rank, param_yt.num_grids, (void*)particle_count_list_full[s],
                             &CommMpi::yt_long_mpi_type_);
     }
 #endif
