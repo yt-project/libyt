@@ -160,34 +160,6 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
 
     log_debug("Inserting YT parameters to libyt.param_yt ... done\n");
 
-    // Make sure param_yt.num_grids_local is set,
-    // and if param_yt.num_grids_local < 0, set it = 0
-    if (param_yt.num_grids_local < 0) {
-        // Prevent input long type and exceed int storage
-        log_warning(
-            "Number of local grids = %d at MPI rank %d, probably because of exceeding int storage or wrong input!\n",
-            param_yt.num_grids_local, LibytProcessControl::Get().mpi_rank_);
-
-        // if < 0, set it to 0, to avoid adding negative num_grids_local when checking num_grids.
-        param_yt.num_grids_local = 0;
-    }
-
-#ifndef SERIAL_MODE
-    // Gather number of local grids in each MPI rank
-    LibytProcessControl::Get().data_structure_amr_.all_num_grids_local_ = new int[LibytProcessControl::Get().mpi_size_];
-    CommMpi::SetAllNumGridsLocal(LibytProcessControl::Get().data_structure_amr_.all_num_grids_local_,
-                                 param_yt.num_grids_local);
-
-    // Check that sum of num_grids_local_MPI is equal to num_grids (total number of grids), abort if not.
-    if (LibytProcessControl::Get().param_libyt_.check_data) {
-        if (check_sum_num_grids_local_MPI(LibytProcessControl::Get().mpi_size_,
-                                          LibytProcessControl::Get().data_structure_amr_.all_num_grids_local_) !=
-            YT_SUCCESS) {
-            YT_ABORT("Check sum of local grids in each MPI rank failed in %s!\n", __FUNCTION__);
-        }
-    }
-#endif
-
     // If the above all works like charm.
     LibytProcessControl::Get().param_yt_set = true;
     LibytProcessControl::Get().free_gridsPtr = false;
