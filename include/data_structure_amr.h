@@ -34,11 +34,10 @@ private:
     void AllocateFieldList();
     void AllocateParticleList(yt_par_type* par_type_list);
     void AllocateGridsLocal();
-    void AllocateHierarchy();
+    void AllocateAllHierarchyStorageForPython();
+    void GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr, long*** full_particle_count_ptr);
 
 public:
-    int* all_num_grids_local_;
-
     // MPI
     static int mpi_size_;
     static int mpi_root_;
@@ -78,6 +77,14 @@ public:
     DataStructureAmr();
     void SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types = 0,
                yt_par_type* par_type_list = nullptr);
+    void BindAllHierarchyToPython(int mpi_root, bool check_data);
+    void BindLocalDataToPython();
+    void CleanUp();
+
+    // TODO: Provide check data method
+    // (1) check_sum_num_grids_local
+
+    // TODO: Provide look up method for yt_getGridInfo
 };
 
 #endif  // LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_
