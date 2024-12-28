@@ -3,6 +3,8 @@
 
 #include <Python.h>
 
+#include <string>
+
 #include "yt_type.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -29,6 +31,13 @@ struct yt_hierarchy {
     int proc_num = -1;
 };
 
+enum class DataStructureStatus : int { kDataStructureFailed = 0, kDataStructureSuccess = 1 };
+
+struct DataStructureOutput {
+    DataStructureStatus status;
+    std::string error;
+};
+
 class DataStructureAmr {
 private:
     void AllocateFieldList();
@@ -36,6 +45,8 @@ private:
     void AllocateGridsLocal();
     void AllocateAllHierarchyStorageForPython();
     void GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr, long*** full_particle_count_ptr);
+    DataStructureOutput BindLocalFieldDataToPython(const yt_grid& grid);
+    DataStructureOutput BindLocalParticleDataToPython(const yt_grid& grid);
 
 public:
     // MPI
@@ -48,6 +59,7 @@ public:
     int num_fields_;
     int num_par_types_;
     int num_grids_local_;
+    int index_offset_;
 
     double* grid_left_edge_;
     double* grid_right_edge_;
@@ -74,11 +86,13 @@ public:
         mpi_rank_ = mpi_rank;
     }
 
+    // TODO: return status
     DataStructureAmr();
-    void SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types = 0,
-               yt_par_type* par_type_list = nullptr);
+    void SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types, yt_par_type* par_type_list,
+               int index_offset);
     void BindAllHierarchyToPython(int mpi_root, bool check_data);
     void BindLocalDataToPython();
+    void CleanUpGridsLocal();
     void CleanUp();
 
     // TODO: Provide check data method
