@@ -11,7 +11,7 @@ endif ()
 
 # old tangled libyt stuff combined as a whole (will definitely split to smaller modules in future version)
 add_library(yt SHARED
-        add_dict.cpp allocate_hierarchy.cpp append_grid.cpp check_data.cpp
+        add_dict.cpp check_data.cpp
         get_dtype_property.cpp magic_command.cpp function_info.cpp data_structure_amr.cpp
         init_libyt_module.cpp init_python.cpp logging.cpp print_data.cpp comm_mpi.cpp comm_mpi_rma.cpp
         yt_commit.cpp yt_finalize.cpp yt_free.cpp yt_get_FieldsPtr.cpp yt_get_GridsPtr.cpp yt_run_JupyterKernel.cpp

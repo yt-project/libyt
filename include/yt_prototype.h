@@ -33,7 +33,6 @@ void log_error(const char* format, ...);
 int create_libyt_module();
 int init_python(int argc, char* argv[]);
 int init_libyt_module();
-int allocate_hierarchy();
 int get_npy_dtype(yt_dtype data_type, int* npy_dtype);
 int get_dtype_size(yt_dtype data_type, int* dtype_size);
 int get_dtype_typeid(yt_dtype data_type, const std::type_info** dtype_id);
@@ -43,7 +42,6 @@ int get_yt_dtype_from_npy(int npy_dtype, yt_dtype* data_dtype);
 pybind11::array get_pybind11_allocate_array_dtype(yt_dtype data_type, const std::vector<long>& shape,
                                                   const std::vector<long>& stride);
 #endif
-int append_grid(yt_grid* grid);
 
 int check_field_list();
 int check_particle_list();
