@@ -1,5 +1,5 @@
-#ifndef COMM_MPI_H
-#define COMM_MPI_H
+#ifndef LIBYT_PROJECT_INCLUDE_COMM_MPI_H_
+#define LIBYT_PROJECT_INCLUDE_COMM_MPI_H_
 
 #include <mpi.h>
 
@@ -40,4 +40,4 @@ public:
     static void GatherAllIntsToRank(std::vector<int>& all_ints, const int src_int, int dest_mpi_rank);
 };
 
-#endif  // COMM_MPI_H
+#endif  // LIBYT_PROJECT_INCLUDE_COMM_MPI_H_
