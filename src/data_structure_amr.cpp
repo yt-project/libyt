@@ -639,7 +639,7 @@ void DataStructureAmr::CleanUpGridsLocal() {
 
 //-------------------------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr
-// Public Method  :  CleanUpGridsLocal
+// Private Method :  CleanUpGridsLocal
 //
 // Notes       :  1. Clean all hierarchy Python bindings
 //                2. Counterpart for AllocateAllHierarchyStorageForPython().
@@ -676,7 +676,7 @@ void DataStructureAmr::CleanUpAllHierarchyStorageForPython() {
 
 //-------------------------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr
-// Public Method  :  CleanUpLocalDataPythonBindings
+// Private Method :  CleanUpLocalDataPythonBindings
 //
 // Notes       :  1. Clean local data Python bindings
 //                2. Counterpart for BindLocalDataToPython().
@@ -696,4 +696,19 @@ void DataStructureAmr::CleanUpLocalDataPythonBindings() {
         py_dict.clear();
     }
 #endif
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  CleanUp
+//
+// Notes       :  1. Clean up all the data structure and bindings to Python.
+//                2. TODO: should I separate Python bindings into a new class?
+//-------------------------------------------------------------------------------------------------------
+void DataStructureAmr::CleanUp() {
+    CleanUpFieldList();
+    CleanUpParticleList();
+    CleanUpGridsLocal();
+    CleanUpAllHierarchyStorageForPython();
+    CleanUpLocalDataPythonBindings();
 }

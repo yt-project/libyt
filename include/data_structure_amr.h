@@ -49,6 +49,10 @@ private:
     void GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr, long*** full_particle_count_ptr);
     DataStructureOutput BindLocalFieldDataToPython(const yt_grid& grid);
     DataStructureOutput BindLocalParticleDataToPython(const yt_grid& grid);
+    void CleanUpFieldList();
+    void CleanUpParticleList();
+    void CleanUpAllHierarchyStorageForPython();
+    void CleanUpLocalDataPythonBindings();
 
 public:
     // MPI
@@ -94,11 +98,8 @@ public:
                int index_offset);
     void BindAllHierarchyToPython(int mpi_root, bool check_data);
     void BindLocalDataToPython();
-    void CleanUpFieldList();
-    void CleanUpParticleList();
     void CleanUpGridsLocal();
-    void CleanUpAllHierarchyStorageForPython();
-    void CleanUpLocalDataPythonBindings();
+    void CleanUp();
 
     // TODO: Provide check data method
     // (1) check_sum_num_grids_local
