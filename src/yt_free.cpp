@@ -40,11 +40,7 @@ int yt_free() {
 #endif
 
     // Free resource allocated for data structure amr
-    LibytProcessControl::Get().data_structure_amr_.CleanUpFieldList();
-    LibytProcessControl::Get().data_structure_amr_.CleanUpParticleList();
-    LibytProcessControl::Get().data_structure_amr_.CleanUpGridsLocal();
-    LibytProcessControl::Get().data_structure_amr_.CleanUpAllHierarchyStorageForPython();
-    LibytProcessControl::Get().data_structure_amr_.CleanUpLocalDataPythonBindings();
+    LibytProcessControl::Get().data_structure_amr_.CleanUp();
 
 #ifndef USE_PYBIND11
     // Reset data in libyt module
