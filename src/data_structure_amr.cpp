@@ -72,6 +72,8 @@ void DataStructureAmr::SetUp(long num_grids, int num_grids_local, int num_fields
     num_grids_local_ = num_grids_local;
     index_offset_ = index_offset;
 
+    has_particle_ = (num_par_types_ > 0);
+
     // Initialize the data structure
     AllocateFieldList();
     AllocateParticleList(par_type_list);
@@ -215,7 +217,7 @@ void DataStructureAmr::AllocateAllHierarchyStorageForPython() {
     PyDict_SetItemString(py_hierarchy_, "grid_parent_id", py_grid_parent_id);
     PyDict_SetItemString(py_hierarchy_, "grid_levels", py_grid_levels);
     PyDict_SetItemString(py_hierarchy_, "proc_num", py_proc_num);
-    if (param_yt.num_par_types > 0) {
+    if (num_par_types_ > 0) {
         PyDict_SetItemString(py_hierarchy_, "par_count_list", py_par_count_list);
     }
 #else   // #ifndef USE_PYBIND11
@@ -568,11 +570,51 @@ void DataStructureAmr::BindLocalDataToPython() {
 
 //-------------------------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr
-// Public Method  :  BindLocalDataToPython
+// Private Method :  CleanUpFieldList
+//
+// Notes       :  1. Clean up field_list_
+//                2. Reset num_fields_ = 0 and field_list_ = nullptr.
+//                3. Counterpart of AllocateFieldList().
+//-------------------------------------------------------------------------------------------------------
+void DataStructureAmr::CleanUpFieldList() {
+    if (num_fields_ > 0) {
+        delete[] field_list_;
+    }
+
+    num_fields_ = 0;
+    field_list_ = nullptr;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Private Method :  CleanUpFieldList
+//
+// Notes       :  1. Clean up particle_list_
+//                2. Reset num_par_types_ = 0 and particle_list_ = nullptr.
+//                3. Counterpart of AllocateParticleList().
+//-------------------------------------------------------------------------------------------------------
+void DataStructureAmr::CleanUpParticleList() {
+    if (num_par_types_ > 0) {
+        for (int i = 0; i < num_par_types_; i++) {
+            delete[] particle_list_[i].attr_list;
+        }
+        delete[] particle_list_;
+    }
+
+    num_par_types_ = 0;
+    particle_list_ = nullptr;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  CleanUpGridsLocal
 //
 // Notes       :  1. Clean up grids_local_, since it's only for user to pass in hierarchy and data.
 //                2. Reset num_grids_local_ = 0 and grids_local_ = nullptr.
-//                2. TODO: bad Api design
+//                3. Counterpart of AllocateGridsLocal().
+//                4. This method is separate from the rest of the clean up methods is because it cleans up
+//                   the data for holding user input, which is not needed after committing everything.
+//                   TODO: bad Api design
 //-------------------------------------------------------------------------------------------------------
 void DataStructureAmr::CleanUpGridsLocal() {
     if (num_grids_local_ > 0) {
@@ -595,4 +637,46 @@ void DataStructureAmr::CleanUpGridsLocal() {
     grids_local_ = nullptr;
 }
 
-void DataStructureAmr::CleanUp() {}
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  CleanUpGridsLocal
+//
+// Notes       :  1. Clean all hierarchy Python bindings
+//                2. Counterpart for AllocateAllHierarchyStorageForPython().
+//-------------------------------------------------------------------------------------------------------
+void DataStructureAmr::CleanUpAllHierarchyStorageForPython() {
+    // C storage
+    delete[] grid_left_edge_;
+    delete[] grid_right_edge_;
+    delete[] grid_dimensions_;
+    delete[] grid_parent_id_;
+    delete[] grid_levels_;
+    delete[] proc_num_;
+    if (has_particle_) {
+        delete[] par_count_list_;
+    }
+    grid_left_edge_ = nullptr;
+    grid_right_edge_ = nullptr;
+    grid_dimensions_ = nullptr;
+    grid_parent_id_ = nullptr;
+    grid_levels_ = nullptr;
+    proc_num_ = nullptr;
+    par_count_list_ = nullptr;
+
+    // Python bindings
+#ifndef USE_PYBIND11
+    // Reset data in libyt module
+    PyDict_Clear(py_grid_data_);
+    PyDict_Clear(py_particle_data_);
+    PyDict_Clear(py_hierarchy_);
+#else
+    pybind11::module_ libyt = pybind11::module_::import("libyt");
+
+    const char* keys_to_clear[] = {"grid_data", "particle_data", "hierarchy"};
+    const int keys_len = 3;
+    for (int i = 0; i < keys_len; i++) {
+        pybind11::dict py_dict = libyt.attr(keys_to_clear[i]);
+        py_dict.clear();
+    }
+#endif
+}

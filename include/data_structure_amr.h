@@ -40,6 +40,8 @@ struct DataStructureOutput {
 
 class DataStructureAmr {
 private:
+    bool has_particle_;
+
     void AllocateFieldList();
     void AllocateParticleList(yt_par_type* par_type_list);
     void AllocateGridsLocal();
@@ -92,8 +94,10 @@ public:
                int index_offset);
     void BindAllHierarchyToPython(int mpi_root, bool check_data);
     void BindLocalDataToPython();
+    void CleanUpFieldList();
+    void CleanUpParticleList();
     void CleanUpGridsLocal();
-    void CleanUp();
+    void CleanUpAllHierarchyStorageForPython();
 
     // TODO: Provide check data method
     // (1) check_sum_num_grids_local
