@@ -44,6 +44,7 @@ int yt_free() {
     LibytProcessControl::Get().data_structure_amr_.CleanUpParticleList();
     LibytProcessControl::Get().data_structure_amr_.CleanUpGridsLocal();
     LibytProcessControl::Get().data_structure_amr_.CleanUpAllHierarchyStorageForPython();
+    LibytProcessControl::Get().data_structure_amr_.CleanUpLocalDataPythonBindings();
 
 #ifndef USE_PYBIND11
     // Reset data in libyt module

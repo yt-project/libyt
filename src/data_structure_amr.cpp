@@ -666,14 +666,31 @@ void DataStructureAmr::CleanUpAllHierarchyStorageForPython() {
     // Python bindings
 #ifndef USE_PYBIND11
     // Reset data in libyt module
-    PyDict_Clear(py_grid_data_);
-    PyDict_Clear(py_particle_data_);
     PyDict_Clear(py_hierarchy_);
 #else
     pybind11::module_ libyt = pybind11::module_::import("libyt");
+    pybind11::dict py_dict = libyt.attr("hierarchy");
+    py_dict.clear();
+#endif
+}
 
-    const char* keys_to_clear[] = {"grid_data", "particle_data", "hierarchy"};
-    const int keys_len = 3;
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  CleanUpLocalDataPythonBindings
+//
+// Notes       :  1. Clean local data Python bindings
+//                2. Counterpart for BindLocalDataToPython().
+//-------------------------------------------------------------------------------------------------------
+void DataStructureAmr::CleanUpLocalDataPythonBindings() {
+#ifndef USE_PYBIND11
+    // Reset data in libyt module
+    PyDict_Clear(py_grid_data_);
+    PyDict_Clear(py_particle_data_);
+#else
+    pybind11::module_ libyt = pybind11::module_::import("libyt");
+
+    const char* keys_to_clear[] = {"grid_data", "particle_data"};
+    const int keys_len = 2;
     for (int i = 0; i < keys_len; i++) {
         pybind11::dict py_dict = libyt.attr(keys_to_clear[i]);
         py_dict.clear();
