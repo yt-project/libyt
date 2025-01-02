@@ -1,6 +1,5 @@
 #include "data_hub_amr.h"
 
-#include "libyt.h"
 #include "yt_prototype.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -30,9 +29,9 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
         }
     }
     if (field_id == -1) {
-        std::string error_msg = std::string("Cannot find field_name [ ") + field_name +
-                                std::string(" ] in field_list on MPI rank ") + std::to_string(ds_amr.mpi_rank_) +
-                                std::string(".\n");
+        error_str_ = std::string("Cannot find field_name [ ") + field_name +
+                     std::string(" ] in field_list on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
+                     std::string(".\n");
         return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
     }
 
@@ -41,12 +40,13 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
             AmrDataArray3D amr_data{};
 
             // Get amr grid info
-            // TODO: Get data using libyt public API, (this should be fixed later)
             int grid_dim[3];
-            if (yt_getGridInfo_Dimensions(gid, &grid_dim) != YT_SUCCESS) {
-                std::string error_msg = std::string("Failed to get grid dim for (field_name, gid) = (") + field_name +
-                                        std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
-                                        std::to_string(ds_amr.mpi_rank_) + std::string(".\n");
+            DataStructureOutput status = ds_amr.GetFullHierarchyGridDimensions(gid, &grid_dim[0]);
+            if (status.status != DataStructureStatus::kDataStructureSuccess) {
+                error_str_ = status.error;
+                error_str_ += std::string("Failed to get grid dim for (field_name, gid) = (") + field_name +
+                              std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
+                              std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
                 return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
             }
             if (field_list[field_id].contiguous_in_x) {
@@ -65,21 +65,22 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
             // Get derived function pointer
             void (*derived_func)(const int, const long*, const char*, yt_array*) = field_list[field_id].derived_func;
             if (derived_func == nullptr) {
-                std::string error_msg = std::string("Derived function derived_func not set in field [ ") + field_name +
-                                        std::string(" ] on MPI rank ") + std::to_string(ds_amr.mpi_rank_) +
-                                        std::string(".\n");
+                error_str_ = std::string("Derived function derived_func not set in field [ ") + field_name +
+                             std::string(" ] on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
+                             std::string(".\n");
                 return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
             }
 
             // Allocate memory for data_ptr and generate data
             long data_len = amr_data.data_dim[0] * amr_data.data_dim[1] * amr_data.data_dim[2];
             if (get_dtype_allocation(amr_data.data_dtype, data_len, &amr_data.data_ptr) != YT_SUCCESS) {
-                std::string error_msg = std::string("Failed to allocate memory for (field_name, gid) = (") +
-                                        field_name + std::string(", ") + std::to_string(gid) +
-                                        std::string(") on MPI rank ") + std::to_string(ds_amr.mpi_rank_) +
-                                        std::string(".\n");
+                error_str_ = std::string("Failed to allocate memory for (field_name, gid) = (") + field_name +
+                             std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
+                             std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
                 return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
             }
+            // TODO: test using OpenMP in derived_func and pass in a group of ids.
+            //       What would happen if we didn't compile libyt with OpenMP? (Time Profile This)
             yt_array data_array[1];
             data_array[0].gid = amr_data.id;
             data_array[0].data_length = data_len;
@@ -94,12 +95,13 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
     } else if (strcmp(field_list[field_id].field_type, "cell-centered") == 0 ||
                strcmp(field_list[field_id].field_type, "face-centered") == 0) {
         for (const long& gid : grid_id_list) {
-            // TODO: Get data using libyt public API, (this should be fixed later)
             yt_data field_data;
-            if (yt_getGridInfo_FieldData(gid, field_name.c_str(), &field_data) != YT_SUCCESS) {
-                std::string error_msg = std::string("Failed to get data (field_name, gid) = (") + field_name +
-                                        std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
-                                        std::to_string(ds_amr.mpi_rank_) + std::string(".\n");
+            DataStructureOutput status = ds_amr.GetLocalFieldData(gid, field_name.c_str(), &field_data);
+            if (status.status != DataStructureStatus::kDataStructureSuccess) {
+                error_str_ = status.error;
+                error_str_ += std::string("Failed to get data (field_name, gid) = (") + field_name + std::string(", ") +
+                              std::to_string(gid) + std::string(") on MPI rank ") +
+                              std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
                 return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
             }
             AmrDataArray3D amr_data{};
@@ -115,9 +117,9 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
             amr_data_array_3d_list_.emplace_back(amr_data);
         }
     } else {
-        std::string error_msg = std::string("Unknown field type [ ") + std::string(field_list[field_id].field_type) +
-                                std::string(" ] in field [ ") + field_name + std::string(" ] on MPI rank ") +
-                                std::to_string(ds_amr.mpi_rank_) + std::string(".\n");
+        error_str_ = std::string("Unknown field type [ ") + std::string(field_list[field_id].field_type) +
+                     std::string(" ] in field [ ") + field_name + std::string(" ] on MPI rank ") +
+                     std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
         return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
     }
 
@@ -157,9 +159,9 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
         }
     }
     if (ptype_index == -1 || pattr_index == -1) {
-        std::string error_msg = std::string("Cannot find (particle type, attribute) = (") + ptype + std::string(", ") +
-                                pattr + std::string(") in particle_list on MPI rank ") +
-                                std::to_string(ds_amr.mpi_rank_) + std::string(".\n");
+        error_str_ = std::string("Cannot find (particle type, attribute) = (") + ptype + std::string(", ") + pattr +
+                     std::string(") in particle_list on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
+                     std::string(".\n");
         return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
     }
 
@@ -169,17 +171,20 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
         // Get particle info
         amr_1d_data.id = gid;
         amr_1d_data.data_dtype = particle_list[ptype_index].attr_list[pattr_index].attr_dtype;
-        if (yt_getGridInfo_ParticleCount(gid, ptype.c_str(), &(amr_1d_data.data_len)) != YT_SUCCESS) {
-            std::string error_msg = std::string("Failed to get particle count for (particle type, gid) = (") + ptype +
-                                    std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
-                                    std::to_string(ds_amr.mpi_rank_) + std::string(".\n");
+        DataStructureOutput ds_status =
+            ds_amr.GetFullHierarchyGridParticleCount(gid, ptype.c_str(), &amr_1d_data.data_len);
+        if (ds_status.status != DataStructureStatus::kDataStructureSuccess) {
+            error_str_ = ds_status.error;
+            error_str_ += std::string("Failed to get particle count for (particle type, gid) = (") + ptype +
+                          std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
+                          std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
             return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
         }
         if (amr_1d_data.data_len < 0) {
-            std::string error_msg = std::string("Particle count = ") + std::to_string(amr_1d_data.data_len) +
-                                    std::string(" < 0 for (particle type, gid) = (") + ptype + std::string(", ") +
-                                    std::to_string(gid) + std::string(") on MPI rank ") +
-                                    std::to_string(ds_amr.mpi_rank_) + std::string(".\n");
+            error_str_ = std::string("Particle count = ") + std::to_string(amr_1d_data.data_len) +
+                         std::string(" < 0 for (particle type, gid) = (") + ptype + std::string(", ") +
+                         std::to_string(gid) + std::string(") on MPI rank ") +
+                         std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
             return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
         } else if (amr_1d_data.data_len == 0) {
             amr_1d_data.data_ptr = nullptr;
@@ -190,7 +195,8 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
 
         // Get particle data, it first tries to read in libyt.particle_data, if not, it generates data in get_par_attr
         yt_data par_array;
-        if (GetLocalParticleDataFromPython(gid, ptype.c_str(), pattr.c_str(), &par_array) == YT_SUCCESS) {
+        ds_status = ds_amr.GetLocalParticleData(gid, ptype.c_str(), pattr.c_str(), &par_array);
+        if (ds_status.status == DataStructureStatus::kDataStructureSuccess) {
             // Read from libyt.particle_data
             amr_1d_data.data_ptr = par_array.data_ptr;
             is_new_allocation_list_.emplace_back(false);
@@ -200,20 +206,20 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
             void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*) =
                 particle_list[ptype_index].get_par_attr;
             if (get_par_attr == nullptr) {
-                std::string error_msg = std::string("Get particle function get_par_attr not set in particle type [ ") +
-                                        ptype + std::string(" ] on MPI rank ") + std::to_string(ds_amr.mpi_rank_) +
-                                        std::string(".\n");
+                error_str_ = std::string("Get particle function get_par_attr not set in particle type [ ") + ptype +
+                             std::string(" ] on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
+                             std::string(".\n");
                 return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
             }
 
             // Generate buffer
             if (get_dtype_allocation(amr_1d_data.data_dtype, amr_1d_data.data_len, &amr_1d_data.data_ptr) !=
                 YT_SUCCESS) {
-                std::string error_msg =
+                error_str_ =
                     std::string("Failed to allocate memory for (particle type, attribute, gid, data_len) = (") + ptype +
                     std::string(", ") + pattr + std::string(", ") + std::to_string(gid) + std::string(", ") +
                     std::to_string(amr_1d_data.data_len) + std::string(") on MPI rank ") +
-                    std::to_string(ds_amr.mpi_rank_) + std::string(".\n");
+                    std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
                 return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
             }
             int list_len = 1;
