@@ -75,21 +75,36 @@ void DataStructureAmr::SetPythonBindings(PyObject* py_hierarchy, PyObject* py_gr
 //                2. Particles and its type list are optional input. If num_par_types > 0, then par_type_list
 //                   is read.
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types,
-                             yt_par_type* par_type_list, int index_offset) {
-    // TODO: return error msg if < 0
+DataStructureOutput DataStructureAmr::SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types,
+                                            yt_par_type* par_type_list, int index_offset) {
+    if (num_grids < 0) {
+        return {DataStructureStatus::kDataStructureFailed, "Number of grids should not be negative."};
+    }
+    if (num_grids_local < 0) {
+        return {DataStructureStatus::kDataStructureFailed, "Number of local grids should not be negative."};
+    }
+    if (num_fields < 0) {
+        return {DataStructureStatus::kDataStructureFailed, "Number of fields should not be negative."};
+    }
+    if (num_par_types < 0) {
+        return {DataStructureStatus::kDataStructureFailed, "Number of particle types should not be negative."};
+    } else if (num_par_types > 0 && par_type_list == nullptr) {
+        return {DataStructureStatus::kDataStructureFailed, "Particle type list is not set."};
+    }
+
     num_grids_ = num_grids;
+    num_grids_local_ = num_grids_local;
     num_fields_ = num_fields;
     num_par_types_ = num_par_types;
-    num_grids_local_ = num_grids_local;
     index_offset_ = index_offset;
-
     has_particle_ = (num_par_types_ > 0);
 
     // Initialize the data structure
     AllocateFieldList();
     AllocateParticleList(par_type_list);
     AllocateGridsLocal();
+
+    return {DataStructureStatus::kDataStructureSuccess, std::string()};
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -184,8 +199,7 @@ void DataStructureAmr::AllocateGridsLocal() {
 // Private Method :  AllocateAllHierarchyStorageForPython
 //
 // Notes       :  1. Allocate hierarchy for Python bindings
-//                2. TODO: need to create another function to free it.
-//                3. TODO: acutally, I'm not sure if data structure contains python code is a good idea.
+//                2. TODO: I'm not sure if data structure contains python code is a good idea.
 //-------------------------------------------------------------------------------------------------------
 void DataStructureAmr::AllocateAllHierarchyStorageForPython() {
     // Allocate storage
@@ -494,11 +508,9 @@ DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(const yt_grid& 
 //
 // Notes       :  1. Wrap and build particle data to a dictionary in libyt.particle_data[gid][ptype][attr].
 //                2. The key (gid, ptype, attr) will only be inside the dictionary only if the data is not nullptr.
-//                3. TODO: Assume all particle data under same grid id is passed in and wrapped at once.
-//                         Maybe put building to a dictionary part at the end.
-//                4. TODO: Currently, the API forces this function to bind and build all the data
+//                3. TODO: Currently, the API forces this function to bind and build all the data
 //                         inside the grids_local_ array at once. Might change it in the future libyt v1.0.
-//                5. TODO: Future Api shouldn't make hierarchy and data to closely related, so that we can have
+//                4. TODO: Future Api shouldn't make hierarchy and data to closely related, so that we can have
 //                         more flexibility. Like Enzo contains particle data with tuple values.
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::BindLocalParticleDataToPython(const yt_grid& grid) const {

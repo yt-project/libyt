@@ -65,15 +65,22 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
     yt_param_yt& param_yt = LibytProcessControl::Get().param_yt_;
 
     // Set up DataStructureAmr
+    DataStructureOutput status;
     if (param_yt.num_par_types > 0) {
-        LibytProcessControl::Get().data_structure_amr_.SetUp(param_yt.num_grids, param_yt.num_grids_local,
-                                                             param_yt.num_fields, param_yt.num_par_types,
-                                                             param_yt.par_type_list, param_yt.index_offset);
+        status = LibytProcessControl::Get().data_structure_amr_.SetUp(param_yt.num_grids, param_yt.num_grids_local,
+                                                                      param_yt.num_fields, param_yt.num_par_types,
+                                                                      param_yt.par_type_list, param_yt.index_offset);
     } else {
-        LibytProcessControl::Get().data_structure_amr_.SetUp(param_yt.num_grids, param_yt.num_grids_local,
-                                                             param_yt.num_fields, 0, nullptr, param_yt.index_offset);
+        status = LibytProcessControl::Get().data_structure_amr_.SetUp(
+            param_yt.num_grids, param_yt.num_grids_local, param_yt.num_fields, 0, nullptr, param_yt.index_offset);
     }
-    log_debug("Allocate storage for amr data structure ... done\n");
+
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        log_error(status.error.c_str());
+        return YT_FAIL;
+    } else {
+        log_debug("Allocate storage for amr data structure ... done\n");
+    }
 
     // set the default figure base name if it's not set by users.
     // append LibytProcessControl::Get().param_libyt_.counter to prevent over-written
