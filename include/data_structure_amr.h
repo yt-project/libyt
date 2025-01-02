@@ -104,7 +104,15 @@ public:
     // TODO: Provide check data method
     // (1) check_sum_num_grids_local
 
-    // TODO: Provide look up method for yt_getGridInfo
+    DataStructureOutput GetFullHierarchyGridDimensions(long gid, int* dimensions) const;
+    DataStructureOutput GetFullHierarchyGridLeftEdge(long gid, double* left_edge) const;
+    DataStructureOutput GetFullHierarchyGridRightEdge(long gid, double* right_edge) const;
+    DataStructureOutput GetFullHierarchyGridParentId(long gid, long* parent_id) const;
+    DataStructureOutput GetFullHierarchyGridLevel(long gid, int* level) const;
+    DataStructureOutput GetFullHierarchyGridProcNum(long gid, int* proc_num) const;
+    DataStructureOutput GetFullHierarchyGridParticleCount(long gid, const char* ptype, long* par_count) const;
+    DataStructureOutput GetLocalFieldData(long gid, const char* field_name, yt_data* field_data) const;
+    DataStructureOutput GetLocalParticleData(long gid, const char* ptype, const char* attr, yt_data* par_data) const;
 };
 
 #endif  // LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_

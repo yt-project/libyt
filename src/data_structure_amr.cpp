@@ -711,4 +711,289 @@ void DataStructureAmr::CleanUp() {
     CleanUpGridsLocal();
     CleanUpAllHierarchyStorageForPython();
     CleanUpLocalDataPythonBindings();
+
+    has_particle_ = false;
+    num_grids_ = 0;
+    index_offset_ = 0;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  GetFullHierarchyGridDimensions
+//
+// Notes       :  1. Read the full hierarchy grid dimensions loaded in Python.
+//                2. Counterpart of BindAllHierarchyToPython().
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::GetFullHierarchyGridDimensions(long gid, int* dimensions) const {
+    if (grid_dimensions_ == nullptr) {
+        std::string error = "Full hierarchy is not initialized yet.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    if ((gid - index_offset_) >= num_grids_) {
+        std::string error = "(grid id) = " + std::to_string(gid) + " is out of range.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    for (int d = 0; d < 3; d++) {
+        dimensions[d] = grid_dimensions_[(gid - index_offset_) * 3 + d];
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, std::string()};
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  GetFullHierarchyGridLeftEdge
+//
+// Notes       :  1. Read the full hierarchy grid left edge loaded in Python.
+//                2. Counterpart of BindAllHierarchyToPython().
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::GetFullHierarchyGridLeftEdge(long gid, double* left_edge) const {
+    if (grid_left_edge_ == nullptr) {
+        std::string error = "Full hierarchy is not initialized yet.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    if ((gid - index_offset_) >= num_grids_) {
+        std::string error = "(grid id) = " + std::to_string(gid) + " is out of range.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    for (int d = 0; d < 3; d++) {
+        left_edge[d] = grid_left_edge_[(gid - index_offset_) * 3 + d];
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, std::string()};
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  GetFullHierarchyGridRightEdge
+//
+// Notes       :  1. Read the full hierarchy grid right edge loaded in Python.
+//                2. Counterpart of BindAllHierarchyToPython().
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::GetFullHierarchyGridRightEdge(long gid, double* right_edge) const {
+    if (grid_right_edge_ == nullptr) {
+        std::string error = "Full hierarchy is not initialized yet.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    if ((gid - index_offset_) >= num_grids_) {
+        std::string error = "(grid id) = " + std::to_string(gid) + " is out of range.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    for (int d = 0; d < 3; d++) {
+        right_edge[d] = grid_right_edge_[(gid - index_offset_) * 3 + d];
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, std::string()};
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  GetFullHierarchyGridParentId
+//
+// Notes       :  1. Read the full hierarchy grid parent id loaded in Python.
+//                2. Counterpart of BindAllHierarchyToPython().
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::GetFullHierarchyGridParentId(long gid, long* parent_id) const {
+    if (grid_parent_id_ == nullptr) {
+        std::string error = "Full hierarchy is not initialized yet.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    if ((gid - index_offset_) >= num_grids_) {
+        std::string error = "(grid id) = " + std::to_string(gid) + " is out of range.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    *parent_id = grid_parent_id_[gid - index_offset_];
+
+    return {DataStructureStatus::kDataStructureSuccess, std::string()};
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  GetFullHierarchyGridLevel
+//
+// Notes       :  1. Read the full hierarchy grid level loaded in Python.
+//                2. Counterpart of BindAllHierarchyToPython().
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::GetFullHierarchyGridLevel(long gid, int* level) const {
+    if (grid_levels_ == nullptr) {
+        std::string error = "Full hierarchy is not initialized yet.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    if ((gid - index_offset_) >= num_grids_) {
+        std::string error = "(grid id) = " + std::to_string(gid) + " is out of range.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    *level = grid_levels_[gid - index_offset_];
+
+    return {DataStructureStatus::kDataStructureSuccess, std::string()};
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  GetFullHierarchyGridProcNum
+//
+// Notes       :  1. Read the full hierarchy grid proc number (mpi rank) loaded in Python.
+//                2. Counterpart of BindAllHierarchyToPython().
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::GetFullHierarchyGridProcNum(long gid, int* proc_num) const {
+    if (proc_num_ == nullptr) {
+        std::string error = "Full hierarchy is not initialized yet.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    if ((gid - index_offset_) >= num_grids_) {
+        std::string error = "(grid id) = " + std::to_string(gid) + " is out of range.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    *proc_num = proc_num_[gid - index_offset_];
+
+    return {DataStructureStatus::kDataStructureSuccess, std::string()};
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  GetFullHierarchyGridParticleCount
+//
+// Notes       :  1. Read the full hierarchy grid particle count for a ptype loaded in Python.
+//                2. This method is only valid if the data structure contains particle data.
+//                3. Counterpart of BindAllHierarchyToPython().
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::GetFullHierarchyGridParticleCount(long gid, const char* ptype,
+                                                                        long* par_count) const {
+    if (!has_particle_) {
+        std::string error = "Doesn't contain particle data.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    if (par_count_list_ == nullptr) {
+        std::string error = "Full hierarchy is not initialized yet.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    if ((gid - index_offset_) >= num_grids_) {
+        std::string error = "(grid id) = " + std::to_string(gid) + " is out of range.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    // Find index of ptype
+    if (particle_list_ == nullptr) {
+        std::string error = "Particle list is not initialized yet.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    int label = -1;
+    for (int s = 0; s < num_par_types_; s++) {
+        if (strcmp(particle_list_[s].par_type, ptype) == 0) {
+            label = s;
+            break;
+        }
+    }
+    if (label == -1) {
+        std::string error = "Cannot find (particle type) = " + std::string(ptype) + " in particle_list.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    *par_count = par_count_list_[(gid - index_offset_) * num_par_types_ + label];
+
+    return {DataStructureStatus::kDataStructureSuccess, std::string()};
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  GetLocalFieldData
+//
+// Notes       :  1. Read the local field data bind to Python libyt.grid_data[gid][fname].
+//                2. Counterpart of BindLocalFieldDataToPython().
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::GetLocalFieldData(long gid, const char* field_name, yt_data* field_data) const {
+    // Get dictionary libyt.grid_data[gid][fname]
+    PyObject* py_grid_id = PyLong_FromLong(gid);
+    PyObject* py_field = PyUnicode_FromString(field_name);
+
+    if (PyDict_Contains(py_grid_data_, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(py_grid_data_, py_grid_id), py_field) != 1) {
+        std::string error = "Cannot find field data (grid id, field) = " + std::to_string(gid) + ", " + field_name +
+                            " on MPI rank " + std::to_string(mpi_rank_) + ".\n";
+        Py_DECREF(py_grid_id);
+        Py_DECREF(py_field);
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+    PyArrayObject* py_array_obj = (PyArrayObject*)PyDict_GetItem(PyDict_GetItem(py_grid_data_, py_grid_id), py_field);
+
+    Py_DECREF(py_grid_id);
+    Py_DECREF(py_field);
+
+    // Get NumPy array dimensions/data pointer/dtype
+    npy_intp* py_array_dims = PyArray_DIMS(py_array_obj);
+    for (int d = 0; d < 3; d++) {
+        (*field_data).data_dimensions[d] = (int)py_array_dims[d];
+    }
+    (*field_data).data_ptr = PyArray_DATA(py_array_obj);
+    PyArray_Descr* py_array_info = PyArray_DESCR(py_array_obj);
+    if (get_yt_dtype_from_npy(py_array_info->type_num, &(*field_data).data_dtype) != YT_SUCCESS) {
+        std::string error =
+            "No matching yt_dtype for NumPy data type num " + std::to_string(py_array_info->type_num) + ".\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, std::string()};
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  GetLocalParticleData
+//
+// Notes       :  1. Read the local field data bind to Python libyt.particle_data[gid][ptype][attr].
+//                2. Counterpart of BindLocalParticleDataToPython().
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::GetLocalParticleData(long gid, const char* ptype, const char* attr,
+                                                           yt_data* par_data) const {
+    // Get dictionary libyt.particle_data[gid][ptype]
+    PyObject* py_grid_id = PyLong_FromLong(gid);
+    PyObject* py_ptype = PyUnicode_FromString(ptype);
+    PyObject* py_attr = PyUnicode_FromString(attr);
+
+    if (PyDict_Contains(py_particle_data_, py_grid_id) != 1 ||
+        PyDict_Contains(PyDict_GetItem(py_particle_data_, py_grid_id), py_ptype) != 1 ||
+        PyDict_Contains(PyDict_GetItem(PyDict_GetItem(py_particle_data_, py_grid_id), py_ptype), py_attr) != 1) {
+        Py_DECREF(py_grid_id);
+        Py_DECREF(py_ptype);
+        Py_DECREF(py_attr);
+
+        std::string error = "Cannot find particle data (grid id, particle type, attribute) = " + std::to_string(gid) +
+                            ", " + ptype + ", " + attr + " on MPI rank " + std::to_string(mpi_rank_) + ".\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+    PyArrayObject* py_data = (PyArrayObject*)PyDict_GetItem(
+        PyDict_GetItem(PyDict_GetItem(py_particle_data_, py_grid_id), py_ptype), py_attr);
+
+    Py_DECREF(py_grid_id);
+    Py_DECREF(py_ptype);
+    Py_DECREF(py_attr);
+
+    // Get NumPy array dimensions/data pointer/dtype
+    npy_intp* py_data_dims = PyArray_DIMS(py_data);
+    (*par_data).data_dimensions[0] = (int)py_data_dims[0];
+    (*par_data).data_dimensions[1] = 0;
+    (*par_data).data_dimensions[2] = 0;
+    (*par_data).data_ptr = PyArray_DATA(py_data);
+    PyArray_Descr* py_data_info = PyArray_DESCR(py_data);
+    if (get_yt_dtype_from_npy(py_data_info->type_num, &(*par_data).data_dtype) != YT_SUCCESS) {
+        std::string error =
+            "No matching yt_dtype for NumPy data type num " + std::to_string(py_data_info->type_num) + ".\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, std::string()};
 }
