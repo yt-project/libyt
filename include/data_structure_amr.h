@@ -47,8 +47,8 @@ private:
     void AllocateGridsLocal();
     void AllocateAllHierarchyStorageForPython();
     void GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr, long*** full_particle_count_ptr);
-    DataStructureOutput BindLocalFieldDataToPython(const yt_grid& grid);
-    DataStructureOutput BindLocalParticleDataToPython(const yt_grid& grid);
+    DataStructureOutput BindLocalFieldDataToPython(const yt_grid& grid) const;
+    DataStructureOutput BindLocalParticleDataToPython(const yt_grid& grid) const;
     void CleanUpFieldList();
     void CleanUpParticleList();
     void CleanUpAllHierarchyStorageForPython();
@@ -96,6 +96,7 @@ public:
     DataStructureAmr();
     void SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types, yt_par_type* par_type_list,
                int index_offset);
+    void SetPythonBindings(PyObject* py_hierarchy, PyObject* py_grid_data, PyObject* py_particle_data);
     void BindAllHierarchyToPython(int mpi_root, bool check_data);
     void BindLocalDataToPython();
     void CleanUpGridsLocal();
