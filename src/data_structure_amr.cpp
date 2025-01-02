@@ -53,6 +53,18 @@ DataStructureAmr::DataStructureAmr()
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  DataStructureAmr
+// Public Method :  SetPythonBindings
+//
+// Notes       :  1. Set the PyObject* pointer for libyt.hierarchy, libyt.grid_data, libyt.particle_data
+//-------------------------------------------------------------------------------------------------------
+void DataStructureAmr::SetPythonBindings(PyObject* py_hierarchy, PyObject* py_grid_data, PyObject* py_particle_data) {
+    py_hierarchy_ = py_hierarchy;
+    py_grid_data_ = py_grid_data;
+    py_particle_data_ = py_particle_data;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  DataStructureAmr
 // Public Method :  SetUp
 //
 // Notes       :  1. Initialize the Amr structure storage.
@@ -396,7 +408,7 @@ void DataStructureAmr::BindAllHierarchyToPython(int mpi_root, bool check_data) {
 //                4. TODO: Currently, the API forces this function to bind and build all the data
 //                         inside the grids_local_ array at once. Might change it in the future libyt v1.0.
 //-------------------------------------------------------------------------------------------------------
-DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(const yt_grid& grid) {
+DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(const yt_grid& grid) const {
     PyObject *py_grid_id, *py_field_labels, *py_field_data;
     py_grid_id = PyLong_FromLong(grid.id);
     py_field_labels = PyDict_New();
@@ -489,7 +501,7 @@ DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(const yt_grid& 
 //                5. TODO: Future Api shouldn't make hierarchy and data to closely related, so that we can have
 //                         more flexibility. Like Enzo contains particle data with tuple values.
 //-------------------------------------------------------------------------------------------------------
-DataStructureOutput DataStructureAmr::BindLocalParticleDataToPython(const yt_grid& grid) {
+DataStructureOutput DataStructureAmr::BindLocalParticleDataToPython(const yt_grid& grid) const {
     PyObject *py_grid_id, *py_ptype_labels, *py_attributes, *py_data;
     py_grid_id = PyLong_FromLong(grid.id);
     py_ptype_labels = PyDict_New();

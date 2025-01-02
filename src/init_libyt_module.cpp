@@ -669,9 +669,10 @@ static PyObject* PyInit_libyt(void) {
     }
 
     // Add objects dictionary
-    LibytProcessControl::Get().data_structure_amr_.py_grid_data_ = PyDict_New();
-    LibytProcessControl::Get().data_structure_amr_.py_particle_data_ = PyDict_New();
-    LibytProcessControl::Get().data_structure_amr_.py_hierarchy_ = PyDict_New();
+    PyObject* py_grid_data = PyDict_New();
+    PyObject* py_particle_data = PyDict_New();
+    PyObject* py_hierarchy = PyDict_New();
+    LibytProcessControl::Get().data_structure_amr_.SetPythonBindings(py_hierarchy, py_grid_data, py_particle_data);
     LibytProcessControl::Get().py_param_yt_ = PyDict_New();
     LibytProcessControl::Get().py_param_user_ = PyDict_New();
     LibytProcessControl::Get().py_libyt_info_ = PyDict_New();
@@ -705,9 +706,9 @@ static PyObject* PyInit_libyt(void) {
 #endif
 
     // add dict object to libyt python module
-    PyModule_AddObject(libyt_module, "grid_data", LibytProcessControl::Get().data_structure_amr_.py_grid_data_);
-    PyModule_AddObject(libyt_module, "particle_data", LibytProcessControl::Get().data_structure_amr_.py_particle_data_);
-    PyModule_AddObject(libyt_module, "hierarchy", LibytProcessControl::Get().data_structure_amr_.py_hierarchy_);
+    PyModule_AddObject(libyt_module, "grid_data", py_grid_data);
+    PyModule_AddObject(libyt_module, "particle_data", py_particle_data);
+    PyModule_AddObject(libyt_module, "hierarchy", py_hierarchy);
     PyModule_AddObject(libyt_module, "param_yt", LibytProcessControl::Get().py_param_yt_);
     PyModule_AddObject(libyt_module, "param_user", LibytProcessControl::Get().py_param_user_);
     PyModule_AddObject(libyt_module, "libyt_info", LibytProcessControl::Get().py_libyt_info_);
@@ -768,9 +769,8 @@ int init_libyt_module() {
 
 #ifdef USE_PYBIND11
     pybind11::module_ libyt = pybind11::module_::import("libyt");
-    LibytProcessControl::Get().data_structure_amr_.py_grid_data_ = libyt.attr("grid_data").ptr();
-    LibytProcessControl::Get().data_structure_amr_.py_particle_data_ = libyt.attr("particle_data").ptr();
-    LibytProcessControl::Get().data_structure_amr_.py_hierarchy_ = libyt.attr("hierarchy").ptr();
+    LibytProcessControl::Get().data_structure_amr_.SetPythonBindings(
+        libyt.attr("hierarchy").ptr(), libyt.attr("grid_data").ptr(), libyt.attr("particle_data").ptr());
     LibytProcessControl::Get().py_param_yt_ = libyt.attr("param_yt").ptr();
     LibytProcessControl::Get().py_param_user_ = libyt.attr("param_user").ptr();
     LibytProcessControl::Get().py_libyt_info_ = libyt.attr("libyt_info").ptr();
