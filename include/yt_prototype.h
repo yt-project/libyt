@@ -62,9 +62,6 @@ int add_dict_vector_n(PyObject* dict, const char* key, const int len, const T* v
 int add_dict_string(PyObject* dict, const char* key, const char* string);
 int add_dict_field_list();
 int add_dict_particle_list();
-// TODO: Should move this function to Python when refactoring Python part.
-// This is a copy of the yt_getGridInfo_ParticleData, but doesn't print error msg.
-int GetLocalParticleDataFromPython(const long gid, const char* ptype, const char* attr, yt_data* par_data);
 #endif
 
 #endif  // #ifndef __YT_PROTOTYPE_H__
