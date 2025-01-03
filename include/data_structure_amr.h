@@ -41,18 +41,25 @@ struct DataStructureOutput {
 class DataStructureAmr {
 private:
     bool has_particle_;
+    bool check_data_;
 
+private:
     void AllocateFieldList();
     void AllocateParticleList(yt_par_type* par_type_list);
     void AllocateGridsLocal();
     void AllocateAllHierarchyStorageForPython();
-    void GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr, long*** full_particle_count_ptr);
+    void GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr, long*** full_particle_count_ptr) const;
     DataStructureOutput BindLocalFieldDataToPython(const yt_grid& grid) const;
     DataStructureOutput BindLocalParticleDataToPython(const yt_grid& grid) const;
+
+    // TODO: Provide check data method
+    // (1) check_sum_num_grids_local
+    // (2) check the hierarchy
+
     void CleanUpFieldList();
     void CleanUpParticleList();
     void CleanUpAllHierarchyStorageForPython();
-    void CleanUpLocalDataPythonBindings();
+    void CleanUpLocalDataPythonBindings() const;
 
 public:
     // MPI
@@ -80,31 +87,30 @@ public:
     yt_particle* particle_list_;
     yt_grid* grids_local_;
 
-    // Python bindings
-    PyObject* py_grid_data_;
-    PyObject* py_particle_data_;
-    PyObject* py_hierarchy_;
+    // Python Bindings
+    PyObject* py_hierarchy_;      // TODO: should be private
+    PyObject* py_grid_data_;      // TODO: should be private
+    PyObject* py_particle_data_;  // TODO: make it private after remove yt_rma_particle
 
 public:
+    // Initialize
     static void SetMpiInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
         mpi_size_ = mpi_size;
         mpi_root_ = mpi_root;
         mpi_rank_ = mpi_rank;
     }
-
-    // TODO: return status
     DataStructureAmr();
-    DataStructureOutput SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types,
-                              yt_par_type* par_type_list, int index_offset);
     void SetPythonBindings(PyObject* py_hierarchy, PyObject* py_grid_data, PyObject* py_particle_data);
-    void BindAllHierarchyToPython(int mpi_root, bool check_data);
-    void BindLocalDataToPython();
+
+    // Process of setting up the data structure
+    DataStructureOutput SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types,
+                              yt_par_type* par_type_list, int index_offset, bool check_data);
+    void BindAllHierarchyToPython(int mpi_root);
+    void BindLocalDataToPython() const;
     void CleanUpGridsLocal();
     void CleanUp();
 
-    // TODO: Provide check data method
-    // (1) check_sum_num_grids_local
-
+    // Look up methods
     DataStructureOutput GetFullHierarchyGridDimensions(long gid, int* dimensions) const;
     DataStructureOutput GetFullHierarchyGridLeftEdge(long gid, double* left_edge) const;
     DataStructureOutput GetFullHierarchyGridRightEdge(long gid, double* right_edge) const;
