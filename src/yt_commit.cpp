@@ -101,8 +101,7 @@ int yt_commit() {
 
     int root_rank = 0;
 
-    LibytProcessControl::Get().data_structure_amr_.BindAllHierarchyToPython(
-        root_rank, LibytProcessControl::Get().param_libyt_.check_data);
+    LibytProcessControl::Get().data_structure_amr_.BindAllHierarchyToPython(root_rank);
     log_debug("Loading full hierarchy to libyt ... done!\n");
 
     LibytProcessControl::Get().data_structure_amr_.BindLocalDataToPython();

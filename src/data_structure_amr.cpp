@@ -37,6 +37,8 @@ DataStructureAmr::DataStructureAmr()
       num_par_types_(0),
       num_grids_local_(0),
       index_offset_(0),
+      has_particle_(false),
+      check_data_(false),
       grid_left_edge_(nullptr),
       grid_right_edge_(nullptr),
       grid_dimensions_(nullptr),
@@ -76,7 +78,7 @@ void DataStructureAmr::SetPythonBindings(PyObject* py_hierarchy, PyObject* py_gr
 //                   is read.
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types,
-                                            yt_par_type* par_type_list, int index_offset) {
+                                            yt_par_type* par_type_list, int index_offset, bool check_data) {
     if (num_grids < 0) {
         return {DataStructureStatus::kDataStructureFailed, "Number of grids should not be negative."};
     }
@@ -98,6 +100,7 @@ DataStructureOutput DataStructureAmr::SetUp(long num_grids, int num_grids_local,
     num_par_types_ = num_par_types;
     index_offset_ = index_offset;
     has_particle_ = (num_par_types_ > 0);
+    check_data_ = check_data;
 
     // Initialize the data structure
     AllocateFieldList();
@@ -282,7 +285,7 @@ void DataStructureAmr::AllocateAllHierarchyStorageForPython() {
 //                   it's done.
 //-------------------------------------------------------------------------------------------------------
 void DataStructureAmr::GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr,
-                                          long*** full_particle_count_ptr) {
+                                          long*** full_particle_count_ptr) const {
 #ifndef SERIAL_MODE
     // Get num_grids_local in different ranks
     int* all_num_grids_local = new int[mpi_size_];
@@ -353,12 +356,12 @@ void DataStructureAmr::GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hier
 //                4. TODO: Do I need to move data twice, which is gathering data, and then move it to Python
 //                         storage?
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::BindAllHierarchyToPython(int mpi_root, bool check_data) {
+void DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
 #ifndef SERIAL_MODE
     // Gather hierarchy from different ranks to root rank.
     yt_hierarchy* hierarchy_full = nullptr;
     long** particle_count_list_full = nullptr;
-    GatherAllHierarchy(mpi_root, &hierarchy_full, &particle_count_list_full);  // TODO: check the hierarchy
+    GatherAllHierarchy(mpi_root, &hierarchy_full, &particle_count_list_full);
 #endif
 
     // Allocate memory for full hierarchy and bind it to Python
@@ -581,7 +584,7 @@ DataStructureOutput DataStructureAmr::BindLocalParticleDataToPython(const yt_gri
 //                2. TODO: Currently, the API forces this function to bind and build all the data
 //                         inside the grids_local_ array at once. Might change it in the future libyt v1.0.
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::BindLocalDataToPython() {
+void DataStructureAmr::BindLocalDataToPython() const {
     for (int i = 0; i < num_grids_local_; i++) {
         if (num_fields_ > 0) {
             BindLocalFieldDataToPython(grids_local_[i]);
@@ -705,7 +708,7 @@ void DataStructureAmr::CleanUpAllHierarchyStorageForPython() {
 // Notes       :  1. Clean local data Python bindings
 //                2. Counterpart for BindLocalDataToPython().
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::CleanUpLocalDataPythonBindings() {
+void DataStructureAmr::CleanUpLocalDataPythonBindings() const {
 #ifndef USE_PYBIND11
     // Reset data in libyt module
     PyDict_Clear(py_grid_data_);
