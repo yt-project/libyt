@@ -21,13 +21,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
     ClearCache();
 
     yt_field* field_list = ds_amr.field_list_;
-    int field_id = -1;
-    for (int v = 0; v < ds_amr.num_fields_; v++) {
-        if (field_name == field_list[v].field_name) {
-            field_id = v;
-            break;
-        }
-    }
+    int field_id = ds_amr.GetFieldIndex(field_name.c_str());
     if (field_id == -1) {
         error_str_ = std::string("Cannot find field_name [ ") + field_name +
                      std::string(" ] in field_list on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
@@ -145,19 +139,8 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
     ClearCache();
 
     yt_particle* particle_list = ds_amr.particle_list_;
-    int ptype_index = -1, pattr_index = -1;
-    for (int v = 0; v < ds_amr.num_par_types_; v++) {
-        if (ptype == particle_list[v].par_type) {
-            ptype_index = v;
-            for (int a = 0; a < particle_list[v].num_attr; a++) {
-                if (pattr == particle_list[v].attr_list[a].attr_name) {
-                    pattr_index = a;
-                    break;
-                }
-            }
-            break;
-        }
-    }
+    int ptype_index = ds_amr.GetParticleIndex(ptype.c_str());
+    int pattr_index = ds_amr.GetParticleAttributeIndex(ptype_index, pattr.c_str());
     if (ptype_index == -1 || pattr_index == -1) {
         error_str_ = std::string("Cannot find (particle type, attribute) = (") + ptype + std::string(", ") + pattr +
                      std::string(") in particle_list on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +

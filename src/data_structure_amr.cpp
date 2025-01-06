@@ -746,6 +746,65 @@ void DataStructureAmr::CleanUp() {
 
 //-------------------------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr
+// Public Method  :  GetFieldIndex
+//
+// Notes       :  1. Get the field index in the field_list_ based on field_name.
+//                2. Return -1 if the field_name is not found.
+//-------------------------------------------------------------------------------------------------------
+int DataStructureAmr::GetFieldIndex(const char* field_name) const {
+    int field_id = -1;
+    for (int v = 0; v < num_fields_; v++) {
+        if (strcmp(field_name, field_list_[v].field_name) == 0) {
+            field_id = v;
+            break;
+        }
+    }
+    return field_id;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  GetParticleIndex
+//
+// Notes       :  1. Get the particle index in the particle_list_ based on particle_type.
+//                2. Return -1 if the particle_type is not found.
+//-------------------------------------------------------------------------------------------------------
+int DataStructureAmr::GetParticleIndex(const char* particle_type) const {
+    int ptype_index = -1;
+    for (int v = 0; v < num_par_types_; v++) {
+        if (strcmp(particle_type, particle_list_[v].par_type) == 0) {
+            ptype_index = v;
+            break;
+        }
+    }
+    return ptype_index;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  GetParticleAttributeIndex
+//
+// Notes       :  1. Get the particle attribute index in the particle_list_ based on particle index and
+//                   attribute name.
+//                2. Return -1 if the particle_type or attribute name is not found.
+//-------------------------------------------------------------------------------------------------------
+int DataStructureAmr::GetParticleAttributeIndex(int particle_type_index, const char* attr_name) const {
+    int pattr_index = -1;
+    if (particle_type_index < 0 || particle_type_index >= num_par_types_) {
+        return pattr_index;
+    }
+
+    for (int a = 0; a < particle_list_[particle_type_index].num_attr; a++) {
+        if (strcmp(attr_name, particle_list_[particle_type_index].attr_list[a].attr_name) == 0) {
+            pattr_index = a;
+            break;
+        }
+    }
+    return pattr_index;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
 // Public Method  :  GetFullHierarchyGridDimensions
 //
 // Notes       :  1. Read the full hierarchy grid dimensions loaded in Python.
