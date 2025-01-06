@@ -43,6 +43,21 @@ private:
     bool has_particle_;
     bool check_data_;
 
+    // Hierarchy
+    long num_grids_;
+    int num_fields_;
+    int num_par_types_;
+    int num_grids_local_;
+    int index_offset_;
+
+    double* grid_left_edge_;
+    double* grid_right_edge_;
+    int* grid_dimensions_;
+    long* grid_parent_id_;
+    int* grid_levels_;
+    int* proc_num_;
+    long* par_count_list_;
+
 private:
     void AllocateFieldList();
     void AllocateParticleList(yt_par_type* par_type_list);
@@ -66,21 +81,6 @@ public:
     static int mpi_size_;
     static int mpi_root_;
     static int mpi_rank_;
-
-    // Hierarchy -- set by yt_param_yt passed in
-    long num_grids_;
-    int num_fields_;
-    int num_par_types_;
-    int num_grids_local_;
-    int index_offset_;
-
-    double* grid_left_edge_;
-    double* grid_right_edge_;
-    int* grid_dimensions_;
-    long* grid_parent_id_;
-    int* grid_levels_;
-    int* proc_num_;
-    long* par_count_list_;
 
     // AMR data structure to data
     yt_field* field_list_;
@@ -110,7 +110,12 @@ public:
     void CleanUpGridsLocal();
     void CleanUp();
 
-    // Look up methods
+    // Look up field/particle info method.
+    int GetFieldIndex(const char* field_name) const;
+    int GetParticleIndex(const char* particle_type) const;
+    int GetParticleAttributeIndex(int particle_type_index, const char* attr_name) const;
+
+    // Look up full hierarchy methods
     DataStructureOutput GetFullHierarchyGridDimensions(long gid, int* dimensions) const;
     DataStructureOutput GetFullHierarchyGridLeftEdge(long gid, double* left_edge) const;
     DataStructureOutput GetFullHierarchyGridRightEdge(long gid, double* right_edge) const;
@@ -118,6 +123,8 @@ public:
     DataStructureOutput GetFullHierarchyGridLevel(long gid, int* level) const;
     DataStructureOutput GetFullHierarchyGridProcNum(long gid, int* proc_num) const;
     DataStructureOutput GetFullHierarchyGridParticleCount(long gid, const char* ptype, long* par_count) const;
+
+    // Look up data methods
     DataStructureOutput GetLocalFieldData(long gid, const char* field_name, yt_data* field_data) const;
     DataStructureOutput GetLocalParticleData(long gid, const char* ptype, const char* attr, yt_data* par_data) const;
 };
