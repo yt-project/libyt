@@ -82,6 +82,7 @@ void DataStructureAmr::SetPythonBindings(PyObject* py_hierarchy, PyObject* py_gr
 //                   (4) Hierarchy bindings at C-side
 //                2. Particles and its type list are optional input. If num_par_types > 0, then par_type_list
 //                   is read.
+//                3. Make sure it is cleaned up before calling this.
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::AllocateStorage(long num_grids, int num_grids_local, int num_fields,
                                                       int num_par_types, yt_par_type* par_type_list, int index_offset,
@@ -100,6 +101,10 @@ DataStructureOutput DataStructureAmr::AllocateStorage(long num_grids, int num_gr
     } else if (num_par_types > 0 && par_type_list == nullptr) {
         return {DataStructureStatus::kDataStructureFailed, "Particle type list is not set."};
     }
+
+    // Make sure the old allocation is cleaned before new allocation,
+    // num_grids/num_grids_local_/num_fields_/num_par_types represents the array length of each current allocation.
+    CleanUp();
 
     num_grids_ = num_grids;
     num_grids_local_ = num_grids_local;
@@ -211,7 +216,7 @@ void DataStructureAmr::AllocateGridsLocal() {
 // Notes       :  1. Allocate full hierarchy storage for Python bindings.
 //                2. Make sure it is empty before creating a new allocation.
 //                   If it is not empty, over-write the existing one.
-//                2. TODO: I'm not sure if data structure contains python code is a good idea.
+//                3. TODO: I'm not sure if data structure contains python code is a good idea.
 //-------------------------------------------------------------------------------------------------------
 void DataStructureAmr::AllocateFullHierarchyStorageForPython() {
     // Allocate storage
