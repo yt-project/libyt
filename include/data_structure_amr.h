@@ -103,11 +103,11 @@ public:
     void SetPythonBindings(PyObject* py_hierarchy, PyObject* py_grid_data, PyObject* py_particle_data);
 
     // Process of setting up the data structure
-    DataStructureOutput SetUp(long num_grids, int num_grids_local, int num_fields, int num_par_types,
-                              yt_par_type* par_type_list, int index_offset, bool check_data);
+    DataStructureOutput AllocateStorage(long num_grids, int num_grids_local, int num_fields, int num_par_types,
+                                        yt_par_type* par_type_list, int index_offset, bool check_data);
     void BindAllHierarchyToPython(int mpi_root);
     void BindLocalDataToPython() const;
-    void CleanUpGridsLocal();
+    void CleanUpGridsLocal();  // This method is public due to bad API design :(
     void CleanUp();
 
     // Look up field/particle info method.
@@ -116,17 +116,19 @@ public:
     int GetParticleAttributeIndex(int particle_type_index, const char* attr_name) const;
 
     // Look up full hierarchy methods
-    DataStructureOutput GetFullHierarchyGridDimensions(long gid, int* dimensions) const;
-    DataStructureOutput GetFullHierarchyGridLeftEdge(long gid, double* left_edge) const;
-    DataStructureOutput GetFullHierarchyGridRightEdge(long gid, double* right_edge) const;
-    DataStructureOutput GetFullHierarchyGridParentId(long gid, long* parent_id) const;
-    DataStructureOutput GetFullHierarchyGridLevel(long gid, int* level) const;
-    DataStructureOutput GetFullHierarchyGridProcNum(long gid, int* proc_num) const;
-    DataStructureOutput GetFullHierarchyGridParticleCount(long gid, const char* ptype, long* par_count) const;
+    DataStructureOutput GetPythonBoundFullHierarchyGridDimensions(long gid, int* dimensions) const;
+    DataStructureOutput GetPythonBoundFullHierarchyGridLeftEdge(long gid, double* left_edge) const;
+    DataStructureOutput GetPythonBoundFullHierarchyGridRightEdge(long gid, double* right_edge) const;
+    DataStructureOutput GetPythonBoundFullHierarchyGridParentId(long gid, long* parent_id) const;
+    DataStructureOutput GetPythonBoundFullHierarchyGridLevel(long gid, int* level) const;
+    DataStructureOutput GetPythonBoundFullHierarchyGridProcNum(long gid, int* proc_num) const;
+    DataStructureOutput GetPythonBoundFullHierarchyGridParticleCount(long gid, const char* ptype,
+                                                                     long* par_count) const;
 
     // Look up data methods
-    DataStructureOutput GetLocalFieldData(long gid, const char* field_name, yt_data* field_data) const;
-    DataStructureOutput GetLocalParticleData(long gid, const char* ptype, const char* attr, yt_data* par_data) const;
+    DataStructureOutput GetPythonBoundLocalFieldData(long gid, const char* field_name, yt_data* field_data) const;
+    DataStructureOutput GetPythonBoundLocalParticleData(long gid, const char* ptype, const char* attr,
+                                                        yt_data* par_data) const;
 };
 
 #endif  // LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_

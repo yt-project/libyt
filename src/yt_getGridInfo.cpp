@@ -31,7 +31,8 @@ int yt_getGridInfo_Dimensions(const long gid, int (*dimensions)[3]) {
     }
 
     DataStructureOutput status =
-        LibytProcessControl::Get().data_structure_amr_.GetFullHierarchyGridDimensions(gid, &(*dimensions)[0]);
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridDimensions(gid,
+                                                                                                 &(*dimensions)[0]);
 
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
@@ -50,7 +51,7 @@ int yt_getGridInfo_LeftEdge(const long gid, double (*left_edge)[3]) {
     }
 
     DataStructureOutput status =
-        LibytProcessControl::Get().data_structure_amr_.GetFullHierarchyGridLeftEdge(gid, &(*left_edge)[0]);
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridLeftEdge(gid, &(*left_edge)[0]);
 
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
@@ -69,7 +70,7 @@ int yt_getGridInfo_RightEdge(const long gid, double (*right_edge)[3]) {
     }
 
     DataStructureOutput status =
-        LibytProcessControl::Get().data_structure_amr_.GetFullHierarchyGridRightEdge(gid, &(*right_edge)[0]);
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridRightEdge(gid, &(*right_edge)[0]);
 
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
@@ -88,7 +89,7 @@ int yt_getGridInfo_ParentId(const long gid, long* parent_id) {
     }
 
     DataStructureOutput status =
-        LibytProcessControl::Get().data_structure_amr_.GetFullHierarchyGridParentId(gid, parent_id);
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridParentId(gid, parent_id);
 
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
@@ -106,7 +107,8 @@ int yt_getGridInfo_Level(const long gid, int* level) {
                  __FUNCTION__);
     }
 
-    DataStructureOutput status = LibytProcessControl::Get().data_structure_amr_.GetFullHierarchyGridLevel(gid, level);
+    DataStructureOutput status =
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridLevel(gid, level);
 
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
@@ -125,7 +127,7 @@ int yt_getGridInfo_ProcNum(const long gid, int* proc_num) {
     }
 
     DataStructureOutput status =
-        LibytProcessControl::Get().data_structure_amr_.GetFullHierarchyGridProcNum(gid, proc_num);
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridProcNum(gid, proc_num);
 
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
@@ -155,7 +157,8 @@ int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_co
     }
 
     DataStructureOutput status =
-        LibytProcessControl::Get().data_structure_amr_.GetFullHierarchyGridParticleCount(gid, ptype, par_count);
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridParticleCount(gid, ptype,
+                                                                                                    par_count);
 
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
@@ -190,7 +193,7 @@ int yt_getGridInfo_FieldData(const long gid, const char* field_name, yt_data* fi
     }
 
     DataStructureOutput status =
-        LibytProcessControl::Get().data_structure_amr_.GetLocalFieldData(gid, field_name, field_data);
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundLocalFieldData(gid, field_name, field_data);
 
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
@@ -221,7 +224,7 @@ int yt_getGridInfo_ParticleData(const long gid, const char* ptype, const char* a
     }
 
     DataStructureOutput status =
-        LibytProcessControl::Get().data_structure_amr_.GetLocalParticleData(gid, ptype, attr, par_data);
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundLocalParticleData(gid, ptype, attr, par_data);
 
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;

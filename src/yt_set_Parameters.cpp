@@ -67,11 +67,11 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
     // Set up DataStructureAmr
     DataStructureOutput status;
     if (param_yt.num_par_types > 0) {
-        status = LibytProcessControl::Get().data_structure_amr_.SetUp(
+        status = LibytProcessControl::Get().data_structure_amr_.AllocateStorage(
             param_yt.num_grids, param_yt.num_grids_local, param_yt.num_fields, param_yt.num_par_types,
             param_yt.par_type_list, param_yt.index_offset, LibytProcessControl::Get().param_libyt_.check_data);
     } else {
-        status = LibytProcessControl::Get().data_structure_amr_.SetUp(
+        status = LibytProcessControl::Get().data_structure_amr_.AllocateStorage(
             param_yt.num_grids, param_yt.num_grids_local, param_yt.num_fields, 0, nullptr, param_yt.index_offset,
             LibytProcessControl::Get().param_libyt_.check_data);
     }

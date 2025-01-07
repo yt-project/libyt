@@ -35,7 +35,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
 
             // Get amr grid info
             int grid_dim[3];
-            DataStructureOutput status = ds_amr.GetFullHierarchyGridDimensions(gid, &grid_dim[0]);
+            DataStructureOutput status = ds_amr.GetPythonBoundFullHierarchyGridDimensions(gid, &grid_dim[0]);
             if (status.status != DataStructureStatus::kDataStructureSuccess) {
                 error_str_ = status.error;
                 error_str_ += std::string("Failed to get grid dim for (field_name, gid) = (") + field_name +
@@ -90,7 +90,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
                strcmp(field_list[field_id].field_type, "face-centered") == 0) {
         for (const long& gid : grid_id_list) {
             yt_data field_data;
-            DataStructureOutput status = ds_amr.GetLocalFieldData(gid, field_name.c_str(), &field_data);
+            DataStructureOutput status = ds_amr.GetPythonBoundLocalFieldData(gid, field_name.c_str(), &field_data);
             if (status.status != DataStructureStatus::kDataStructureSuccess) {
                 error_str_ = status.error;
                 error_str_ += std::string("Failed to get data (field_name, gid) = (") + field_name + std::string(", ") +
@@ -155,7 +155,7 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
         amr_1d_data.id = gid;
         amr_1d_data.data_dtype = particle_list[ptype_index].attr_list[pattr_index].attr_dtype;
         DataStructureOutput ds_status =
-            ds_amr.GetFullHierarchyGridParticleCount(gid, ptype.c_str(), &amr_1d_data.data_len);
+            ds_amr.GetPythonBoundFullHierarchyGridParticleCount(gid, ptype.c_str(), &amr_1d_data.data_len);
         if (ds_status.status != DataStructureStatus::kDataStructureSuccess) {
             error_str_ = ds_status.error;
             error_str_ += std::string("Failed to get particle count for (particle type, gid) = (") + ptype +
@@ -178,7 +178,7 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
 
         // Get particle data, it first tries to read in libyt.particle_data, if not, it generates data in get_par_attr
         yt_data par_array;
-        ds_status = ds_amr.GetLocalParticleData(gid, ptype.c_str(), pattr.c_str(), &par_array);
+        ds_status = ds_amr.GetPythonBoundLocalParticleData(gid, ptype.c_str(), pattr.c_str(), &par_array);
         if (ds_status.status == DataStructureStatus::kDataStructureSuccess) {
             // Read from libyt.particle_data
             amr_1d_data.data_ptr = par_array.data_ptr;
