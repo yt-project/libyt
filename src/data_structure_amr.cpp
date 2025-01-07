@@ -826,7 +826,7 @@ DataStructureOutput DataStructureAmr::GetPythonBoundFullHierarchyGridDimensions(
         return {DataStructureStatus::kDataStructureFailed, error};
     }
 
-    if ((gid - index_offset_) >= num_grids_) {
+    if ((gid - index_offset_) < 0 || (gid - index_offset_) >= num_grids_) {
         std::string error = "(grid id) = " + std::to_string(gid) + " is out of range.\n";
         return {DataStructureStatus::kDataStructureFailed, error};
     }
@@ -851,7 +851,7 @@ DataStructureOutput DataStructureAmr::GetPythonBoundFullHierarchyGridLeftEdge(lo
         return {DataStructureStatus::kDataStructureFailed, error};
     }
 
-    if ((gid - index_offset_) >= num_grids_) {
+    if ((gid - index_offset_) < 0 || (gid - index_offset_) >= num_grids_) {
         std::string error = "(grid id) = " + std::to_string(gid) + " is out of range.\n";
         return {DataStructureStatus::kDataStructureFailed, error};
     }
@@ -876,7 +876,7 @@ DataStructureOutput DataStructureAmr::GetPythonBoundFullHierarchyGridRightEdge(l
         return {DataStructureStatus::kDataStructureFailed, error};
     }
 
-    if ((gid - index_offset_) >= num_grids_) {
+    if ((gid - index_offset_) < 0 || (gid - index_offset_) >= num_grids_) {
         std::string error = "(grid id) = " + std::to_string(gid) + " is out of range.\n";
         return {DataStructureStatus::kDataStructureFailed, error};
     }
@@ -901,7 +901,7 @@ DataStructureOutput DataStructureAmr::GetPythonBoundFullHierarchyGridParentId(lo
         return {DataStructureStatus::kDataStructureFailed, error};
     }
 
-    if ((gid - index_offset_) >= num_grids_) {
+    if ((gid - index_offset_) < 0 || (gid - index_offset_) >= num_grids_) {
         std::string error = "(grid id) = " + std::to_string(gid) + " is out of range.\n";
         return {DataStructureStatus::kDataStructureFailed, error};
     }
@@ -924,7 +924,7 @@ DataStructureOutput DataStructureAmr::GetPythonBoundFullHierarchyGridLevel(long 
         return {DataStructureStatus::kDataStructureFailed, error};
     }
 
-    if ((gid - index_offset_) >= num_grids_) {
+    if ((gid - index_offset_) < 0 || (gid - index_offset_) >= num_grids_) {
         std::string error = "(grid id) = " + std::to_string(gid) + " is out of range.\n";
         return {DataStructureStatus::kDataStructureFailed, error};
     }
@@ -947,7 +947,7 @@ DataStructureOutput DataStructureAmr::GetPythonBoundFullHierarchyGridProcNum(lon
         return {DataStructureStatus::kDataStructureFailed, error};
     }
 
-    if ((gid - index_offset_) >= num_grids_) {
+    if ((gid - index_offset_) < 0 || (gid - index_offset_) >= num_grids_) {
         std::string error = "(grid id) = " + std::to_string(gid) + " is out of range.\n";
         return {DataStructureStatus::kDataStructureFailed, error};
     }
@@ -977,7 +977,7 @@ DataStructureOutput DataStructureAmr::GetPythonBoundFullHierarchyGridParticleCou
         return {DataStructureStatus::kDataStructureFailed, error};
     }
 
-    if ((gid - index_offset_) >= num_grids_) {
+    if ((gid - index_offset_) < 0 || (gid - index_offset_) >= num_grids_) {
         std::string error = "(grid id) = " + std::to_string(gid) + " is out of range.\n";
         return {DataStructureStatus::kDataStructureFailed, error};
     }
