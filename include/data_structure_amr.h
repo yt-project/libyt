@@ -62,7 +62,7 @@ private:
     void AllocateFieldList();
     void AllocateParticleList(yt_par_type* par_type_list);
     void AllocateGridsLocal();
-    void AllocateAllHierarchyStorageForPython();
+    void AllocateFullHierarchyStorageForPython();
     void GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr, long*** full_particle_count_ptr) const;
     DataStructureOutput BindLocalFieldDataToPython(const yt_grid& grid) const;
     DataStructureOutput BindLocalParticleDataToPython(const yt_grid& grid) const;
@@ -73,7 +73,7 @@ private:
 
     void CleanUpFieldList();
     void CleanUpParticleList();
-    void CleanUpAllHierarchyStorageForPython();
+    void CleanUpFullHierarchyStorageForPython();
     void CleanUpLocalDataPythonBindings() const;
 
 public:
@@ -98,6 +98,7 @@ public:
         mpi_size_ = mpi_size;
         mpi_root_ = mpi_root;
         mpi_rank_ = mpi_rank;
+        // TODO: maybe move MPI custom type here
     }
     DataStructureAmr();
     void SetPythonBindings(PyObject* py_hierarchy, PyObject* py_grid_data, PyObject* py_particle_data);
@@ -105,6 +106,7 @@ public:
     // Process of setting up the data structure
     DataStructureOutput AllocateStorage(long num_grids, int num_grids_local, int num_fields, int num_par_types,
                                         yt_par_type* par_type_list, int index_offset, bool check_data);
+    void BindInfoToPython();
     void BindAllHierarchyToPython(int mpi_root);
     void BindLocalDataToPython() const;
     void CleanUpGridsLocal();  // This method is public due to bad API design :(

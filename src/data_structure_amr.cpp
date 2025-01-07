@@ -206,12 +206,14 @@ void DataStructureAmr::AllocateGridsLocal() {
 
 //-------------------------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr
-// Private Method :  AllocateAllHierarchyStorageForPython
+// Private Method :  AllocateFullHierarchyStorageForPython
 //
-// Notes       :  1. Allocate hierarchy for Python bindings
+// Notes       :  1. Allocate full hierarchy storage for Python bindings.
+//                2. Make sure it is empty before creating a new allocation.
+//                   If it is not empty, over-write the existing one.
 //                2. TODO: I'm not sure if data structure contains python code is a good idea.
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::AllocateAllHierarchyStorageForPython() {
+void DataStructureAmr::AllocateFullHierarchyStorageForPython() {
     // Allocate storage
     grid_left_edge_ = new double[num_grids_ * 3];
     grid_right_edge_ = new double[num_grids_ * 3];
@@ -372,7 +374,7 @@ void DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
 #endif
 
     // Allocate memory for full hierarchy and bind it to Python
-    AllocateAllHierarchyStorageForPython();
+    AllocateFullHierarchyStorageForPython();
 
     // Bind hierarchy to Python
 #ifndef SERIAL_MODE
@@ -673,12 +675,12 @@ void DataStructureAmr::CleanUpGridsLocal() {
 
 //-------------------------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr
-// Private Method :  CleanUpGridsLocal
+// Private Method :  CleanUpFullHierarchyStorageForPython
 //
-// Notes       :  1. Clean all hierarchy Python bindings
+// Notes       :  1. Clean full hierarchy Python bindings, and reset hierarchy pointer to nullptr and num_grids_ = 0.
 //                2. Counterpart for AllocateAllHierarchyStorageForPython().
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::CleanUpAllHierarchyStorageForPython() {
+void DataStructureAmr::CleanUpFullHierarchyStorageForPython() {
     // C storage
     delete[] grid_left_edge_;
     delete[] grid_right_edge_;
@@ -696,6 +698,8 @@ void DataStructureAmr::CleanUpAllHierarchyStorageForPython() {
     grid_levels_ = nullptr;
     proc_num_ = nullptr;
     par_count_list_ = nullptr;
+
+    num_grids_ = 0;
 
     // Python bindings
 #ifndef USE_PYBIND11
@@ -743,11 +747,10 @@ void DataStructureAmr::CleanUp() {
     CleanUpFieldList();
     CleanUpParticleList();
     CleanUpGridsLocal();
-    CleanUpAllHierarchyStorageForPython();
+    CleanUpFullHierarchyStorageForPython();
     CleanUpLocalDataPythonBindings();
 
     has_particle_ = false;
-    num_grids_ = 0;
     index_offset_ = 0;
 }
 
