@@ -94,6 +94,7 @@ DataStructureOutput DataStructureAmr::AllocateStorage(long num_grids, int num_gr
     status = AllocateFieldList(num_fields);  // TODO: early return when failed.
     status = AllocateParticleList(num_par_types, par_type_list);
     status = AllocateGridsLocal(num_grids_local, num_fields, num_par_types, par_type_list);
+    status = AllocateFullHierarchyStorageForPython(num_grids, num_par_types);
 
     index_offset_ = index_offset;
     check_data_ = check_data;
@@ -414,6 +415,19 @@ void DataStructureAmr::GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hier
 //                3. TODO: Need to check if py_hierarchy contains data, not sure if I should put it here or
 //                         in AllocateAllHierarchyStorageForPython. (Do this when checking Public API)
 //                4. TODO: Do I need to move data twice, which is gathering data, and then move it to Python
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  BindAllHierarchyToPython
+//
+// Notes       :  1. Check data if check_data is true.
+//                2. If it is under Mpi mode, we need to gather hierarchy from different ranks to all ranks.
+//                3. The allocation of full hierarchy is putted here instead at AllocateStorage,
+//                   because gathering full hierarchy occupies some memory and I want to try to make the
+//                   maximum consumption minimum.
+//                   (This probably will change when I make this gathering and binding more efficient.)
+//                4. TODO: Need to check if py_hierarchy contains data, not sure if I should put it here or
+//                         in AllocateAllHierarchyStorageForPython. (Do this when checking Public API)
+//                5. TODO: Do I need to move data twice, which is gathering data, and then move it to Python
 //                         storage?
 //-------------------------------------------------------------------------------------------------------
 void DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
@@ -422,13 +436,8 @@ void DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
     yt_hierarchy* hierarchy_full = nullptr;
     long** particle_count_list_full = nullptr;
     GatherAllHierarchy(mpi_root, &hierarchy_full, &particle_count_list_full);
-#endif
-
-    // Allocate memory for full hierarchy and bind it to Python
-    AllocateFullHierarchyStorageForPython(num_grids_, num_par_types_);
 
     // Bind hierarchy to Python
-#ifndef SERIAL_MODE
     for (long i = 0; i < num_grids_; i++) {
         long index = hierarchy_full[i].id - index_offset_;
         for (int d = 0; d < 3; d++) {
