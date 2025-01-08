@@ -38,12 +38,14 @@ static PyObject* WrapToNumPyArray(int dim, npy_intp* npy_dim, yt_dtype data_dtyp
 // Notes       :  1. Doesn't contain necessary information to initialize the data structure.
 //-------------------------------------------------------------------------------------------------------
 DataStructureAmr::DataStructureAmr()
-    : has_particle_(false),
-      check_data_(false),
+    : check_data_(false),
       num_grids_(0),
       num_fields_(0),
       num_par_types_(0),
       num_grids_local_(0),
+      num_grids_local_field_data_(0),
+      num_grids_local_par_data_(0),
+      has_particle_(false),
       index_offset_(0),
       grid_left_edge_(nullptr),
       grid_right_edge_(nullptr),
@@ -87,37 +89,14 @@ void DataStructureAmr::SetPythonBindings(PyObject* py_hierarchy, PyObject* py_gr
 DataStructureOutput DataStructureAmr::AllocateStorage(long num_grids, int num_grids_local, int num_fields,
                                                       int num_par_types, yt_par_type* par_type_list, int index_offset,
                                                       bool check_data) {
-    if (num_grids < 0) {
-        return {DataStructureStatus::kDataStructureFailed, "Number of grids should not be negative."};
-    }
-    if (num_grids_local < 0) {
-        return {DataStructureStatus::kDataStructureFailed, "Number of local grids should not be negative."};
-    }
-    if (num_fields < 0) {
-        return {DataStructureStatus::kDataStructureFailed, "Number of fields should not be negative."};
-    }
-    if (num_par_types < 0) {
-        return {DataStructureStatus::kDataStructureFailed, "Number of particle types should not be negative."};
-    } else if (num_par_types > 0 && par_type_list == nullptr) {
-        return {DataStructureStatus::kDataStructureFailed, "Particle type list is not set."};
-    }
-
-    // Make sure the old allocation is cleaned before new allocation,
-    // num_grids/num_grids_local_/num_fields_/num_par_types represents the array length of each current allocation.
-    CleanUp();
-
-    num_grids_ = num_grids;
-    num_grids_local_ = num_grids_local;
-    num_fields_ = num_fields;
-    num_par_types_ = num_par_types;
-    index_offset_ = index_offset;
-    has_particle_ = (num_par_types_ > 0);
-    check_data_ = check_data;
-
     // Initialize the data structure
-    AllocateFieldList();
-    AllocateParticleList(par_type_list);
-    AllocateGridsLocal();
+    DataStructureOutput status;
+    status = AllocateFieldList(num_fields);  // TODO: early return when failed.
+    status = AllocateParticleList(num_par_types, par_type_list);
+    status = AllocateGridsLocal(num_grids_local, num_fields, num_par_types, par_type_list);
+
+    index_offset_ = index_offset;
+    check_data_ = check_data;
 
     return {DataStructureStatus::kDataStructureSuccess, std::string()};
 }
@@ -127,13 +106,24 @@ DataStructureOutput DataStructureAmr::AllocateStorage(long num_grids, int num_gr
 // Private Method :  AllocateFieldList
 //
 // Notes       :  1. Allocate and initialize storage for field list.
+//                2. num_fields_ tracks the array length of field_list_.
+//                3. Make sure field_list_ is properly freed before new allocation.
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::AllocateFieldList() {
-    if (num_fields_ > 0) {
-        field_list_ = new yt_field[num_fields_];
-    } else {
-        field_list_ = nullptr;
+DataStructureOutput DataStructureAmr::AllocateFieldList(int num_fields) {
+    if (num_fields < 0) {
+        return {DataStructureStatus::kDataStructureFailed, "Number of fields should not be negative."};
     }
+
+    if (field_list_ != nullptr) {
+        CleanUpFieldList();
+    }
+
+    if (num_fields > 0) {
+        field_list_ = new yt_field[num_fields];
+        num_fields_ = num_fields;
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -142,20 +132,32 @@ void DataStructureAmr::AllocateFieldList() {
 //
 // Notes       :  1. Allocate and initialize storage for particle list.
 //                2. Since we need particle type and its number of attributes, we need to pass in the
-//                   particle type list.
-//                   (TODO: this part can be better, when designing libyt-v1.0)
+//                   particle type list. And num_par_types_ tracks the array length of particle_list_.
+//                3. Make sure particle_list_ is properly freed before new allocation.
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::AllocateParticleList(yt_par_type* par_type_list) {
-    if (num_par_types_ > 0) {
-        particle_list_ = new yt_particle[num_par_types_];
-        for (int s = 0; s < num_par_types_; s++) {
+DataStructureOutput DataStructureAmr::AllocateParticleList(int num_par_types, yt_par_type* par_type_list) {
+    if (num_par_types < 0) {
+        return {DataStructureStatus::kDataStructureFailed, "Number of particle types should not be negative."};
+    }
+    if (num_par_types > 0 && par_type_list == nullptr) {
+        return {DataStructureStatus::kDataStructureFailed, "Particle type list is not set."};
+    }
+
+    if (particle_list_ != nullptr) {
+        CleanUpParticleList();
+    }
+
+    if (num_par_types > 0) {
+        particle_list_ = new yt_particle[num_par_types];
+        for (int s = 0; s < num_par_types; s++) {
             particle_list_[s].par_type = par_type_list[s].par_type;
             particle_list_[s].num_attr = par_type_list[s].num_attr;
-            particle_list_[s].attr_list = new yt_attribute[particle_list_[s].num_attr];
+            particle_list_[s].attr_list = new yt_attribute[par_type_list[s].num_attr];
         }
-    } else {
-        particle_list_ = nullptr;
+        num_par_types_ = num_par_types;
     }
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -172,31 +174,52 @@ void DataStructureAmr::AllocateParticleList(yt_par_type* par_type_list) {
 //                3. This is only for user to pass in hierarchy and data fields to wrap,
 //                   should be removed in the future.
 //                   (TODO: this part can be better, when designing libyt-v1.0)
+//                4. num_grids_locals_/num_grids_local_field_data_/num_grids_local_par_data_ tracks the array length
+//                   of grids_local. (TODO: bad Api design)
+//                   Make sure grids_local_ is properly freed before new allocation.
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::AllocateGridsLocal() {
-    if (num_grids_local_ > 0) {
-        grids_local_ = new yt_grid[num_grids_local_];
+DataStructureOutput DataStructureAmr::AllocateGridsLocal(int num_grids_local, int num_fields, int num_par_types,
+                                                         yt_par_type* par_type_list) {
+    if (num_grids_local < 0) {
+        return {DataStructureStatus::kDataStructureFailed, "Number of local grids should not be negative."};
+    }
+    if (num_fields < 0) {
+        return {DataStructureStatus::kDataStructureFailed, "Number of fields should not be negative."};
+    }
+    if (num_par_types < 0) {
+        return {DataStructureStatus::kDataStructureFailed, "Number of particle types should not be negative."};
+    }
+    if (num_par_types > 0 && par_type_list == nullptr) {
+        return {DataStructureStatus::kDataStructureFailed, "Particle type list is not set."};
+    }
 
-        for (int lid = 0; lid < num_grids_local_; lid++) {
+    if (grids_local_ != nullptr) {
+        CleanUpGridsLocal();
+    }
+
+    if (num_grids_local > 0) {
+        grids_local_ = new yt_grid[num_grids_local];
+
+        for (int lid = 0; lid < num_grids_local; lid++) {
             grids_local_[lid].proc_num = mpi_rank_;
 
             // Array for storing pointers for fields in a grid
-            if (num_fields_ > 0) {
-                grids_local_[lid].field_data = new yt_data[num_fields_];
+            if (num_fields > 0) {
+                grids_local_[lid].field_data = new yt_data[num_fields];
             } else {
                 grids_local_[lid].field_data = nullptr;
             }
 
             // Array for storing pointers for different particle data attributes in a grid.
             // Ex: particle_data[0][1] represents particle_list[0].attr_list[1] data
-            if (num_par_types_ > 0) {
-                grids_local_[lid].particle_data = new yt_data*[num_par_types_];
-                for (int p = 0; p < num_par_types_; p++) {
-                    grids_local_[lid].particle_data[p] = new yt_data[particle_list_[p].num_attr];
+            if (num_par_types > 0) {
+                grids_local_[lid].particle_data = new yt_data*[num_par_types];
+                for (int p = 0; p < num_par_types; p++) {
+                    grids_local_[lid].particle_data[p] = new yt_data[par_type_list[p].num_attr];
                 }
 
-                grids_local_[lid].par_count_list = new long[num_par_types_];
-                for (int s = 0; s < num_par_types_; s++) {
+                grids_local_[lid].par_count_list = new long[num_par_types];
+                for (int s = 0; s < num_par_types; s++) {
                     grids_local_[lid].par_count_list[s] = 0;
                 }
             } else {
@@ -204,9 +227,13 @@ void DataStructureAmr::AllocateGridsLocal() {
                 grids_local_[lid].par_count_list = nullptr;
             }
         }
-    } else {
-        grids_local_ = nullptr;
+
+        num_grids_local_ = num_grids_local;
+        num_grids_local_field_data_ = num_fields;
+        num_grids_local_par_data_ = num_par_types;
     }
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -216,25 +243,39 @@ void DataStructureAmr::AllocateGridsLocal() {
 // Notes       :  1. Allocate full hierarchy storage for Python bindings.
 //                2. Make sure it is empty before creating a new allocation.
 //                   If it is not empty, over-write the existing one.
+//                3. num_grids_/has_particle_ are used to track the allocation status of the hierarchy.
+//                   has_particle_ is set through num_par_types.
+//                   Make sure hierarchy is properly freed before new allocation.
 //                3. TODO: I'm not sure if data structure contains python code is a good idea.
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::AllocateFullHierarchyStorageForPython() {
+DataStructureOutput DataStructureAmr::AllocateFullHierarchyStorageForPython(long num_grids, int num_par_types) {
+    if (num_grids < 0) {
+        return {DataStructureStatus::kDataStructureFailed, "Number of grids should not be negative."};
+    }
+    if (num_par_types < 0) {
+        return {DataStructureStatus::kDataStructureFailed, "Number of particle types should not be negative."};
+    }
+
+    if (grid_left_edge_ != nullptr) {
+        CleanUpFullHierarchyStorageForPython();
+    }
+
     // Allocate storage
-    grid_left_edge_ = new double[num_grids_ * 3];
-    grid_right_edge_ = new double[num_grids_ * 3];
-    grid_dimensions_ = new int[num_grids_ * 3];
-    grid_parent_id_ = new long[num_grids_];
-    grid_levels_ = new int[num_grids_];
-    proc_num_ = new int[num_grids_];
-    if (num_par_types_ > 0) {
-        par_count_list_ = new long[num_grids_ * num_par_types_];
+    grid_left_edge_ = new double[num_grids * 3];
+    grid_right_edge_ = new double[num_grids * 3];
+    grid_dimensions_ = new int[num_grids * 3];
+    grid_parent_id_ = new long[num_grids];
+    grid_levels_ = new int[num_grids];
+    proc_num_ = new int[num_grids];
+    if (num_par_types > 0) {
+        par_count_list_ = new long[num_grids * num_par_types];
     } else {
         par_count_list_ = nullptr;
     }
 
     // Bind to Python
     npy_intp np_dim[2];
-    np_dim[0] = num_grids_;
+    np_dim[0] = num_grids;
 
     np_dim[1] = 3;
     PyObject* py_grid_left_edge = WrapToNumPyArray(2, np_dim, YT_DOUBLE, grid_left_edge_, false);
@@ -246,8 +287,8 @@ void DataStructureAmr::AllocateFullHierarchyStorageForPython() {
     PyObject* py_grid_levels = WrapToNumPyArray(2, np_dim, YT_INT, grid_levels_, false);
     PyObject* py_proc_num = WrapToNumPyArray(2, np_dim, YT_INT, proc_num_, false);
     PyObject* py_par_count_list;
-    if (num_par_types_ > 0) {
-        np_dim[1] = num_par_types_;
+    if (num_par_types > 0) {
+        np_dim[1] = num_par_types;
         py_par_count_list = WrapToNumPyArray(2, np_dim, YT_LONG, par_count_list_, false);
     }
 
@@ -260,7 +301,7 @@ void DataStructureAmr::AllocateFullHierarchyStorageForPython() {
     PyDict_SetItemString(py_hierarchy_, "grid_parent_id", py_grid_parent_id);
     PyDict_SetItemString(py_hierarchy_, "grid_levels", py_grid_levels);
     PyDict_SetItemString(py_hierarchy_, "proc_num", py_proc_num);
-    if (num_par_types_ > 0) {
+    if (num_par_types > 0) {
         PyDict_SetItemString(py_hierarchy_, "par_count_list", py_par_count_list);
     }
 #else   // #ifndef USE_PYBIND11
@@ -273,7 +314,7 @@ void DataStructureAmr::AllocateFullHierarchyStorageForPython() {
     py_hierarchy["grid_parent_id"] = py_grid_parent_id;
     py_hierarchy["grid_levels"] = py_grid_levels;
     py_hierarchy["proc_num"] = py_proc_num;
-    if (num_par_types_ > 0) {
+    if (num_par_types > 0) {
         py_hierarchy["par_count_list"] = py_par_count_list;
     }
 #endif  // #ifndef USE_PYBIND11
@@ -285,9 +326,14 @@ void DataStructureAmr::AllocateFullHierarchyStorageForPython() {
     Py_DECREF(py_grid_parent_id);
     Py_DECREF(py_grid_levels);
     Py_DECREF(py_proc_num);
-    if (num_par_types_ > 0) {
+    if (num_par_types > 0) {
         Py_DECREF(py_par_count_list);
     }
+
+    num_grids_ = num_grids;
+    has_particle_ = (num_par_types > 0);
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -379,7 +425,7 @@ void DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
 #endif
 
     // Allocate memory for full hierarchy and bind it to Python
-    AllocateFullHierarchyStorageForPython();
+    AllocateFullHierarchyStorageForPython(num_grids_, num_par_types_);
 
     // Bind hierarchy to Python
 #ifndef SERIAL_MODE
@@ -651,7 +697,8 @@ void DataStructureAmr::CleanUpParticleList() {
 // Public Method  :  CleanUpGridsLocal
 //
 // Notes       :  1. Clean up grids_local_, since it's only for user to pass in hierarchy and data.
-//                2. Reset num_grids_local_ = 0 and grids_local_ = nullptr.
+//                2. Reset num_grids_local_/num_grids_local_field_data_/num_grids_local_par_data_ = 0 and
+//                   grids_local_ = nullptr.
 //                3. Counterpart of AllocateGridsLocal().
 //                4. This method is separate from the rest of the clean up methods is because it cleans up
 //                   the data for holding user input, which is not needed after committing everything.
@@ -660,12 +707,12 @@ void DataStructureAmr::CleanUpParticleList() {
 void DataStructureAmr::CleanUpGridsLocal() {
     if (num_grids_local_ > 0) {
         for (int i = 0; i < num_grids_local_; i = i + 1) {
-            if (num_fields_ > 0) {
+            if (num_grids_local_field_data_ > 0) {
                 delete[] grids_local_[i].field_data;
             }
-            if (num_par_types_ > 0) {
+            if (num_grids_local_par_data_ > 0) {
                 delete[] grids_local_[i].par_count_list;
-                for (int p = 0; p < num_par_types_; p++) {
+                for (int p = 0; p < num_grids_local_par_data_; p++) {
                     delete[] grids_local_[i].particle_data[p];
                 }
                 delete[] grids_local_[i].particle_data;
@@ -675,6 +722,8 @@ void DataStructureAmr::CleanUpGridsLocal() {
     }
 
     num_grids_local_ = 0;
+    num_grids_local_field_data_ = 0;
+    num_grids_local_par_data_ = 0;
     grids_local_ = nullptr;
 }
 
@@ -705,6 +754,7 @@ void DataStructureAmr::CleanUpFullHierarchyStorageForPython() {
     par_count_list_ = nullptr;
 
     num_grids_ = 0;
+    has_particle_ = false;
 
     // Python bindings
 #ifndef USE_PYBIND11
@@ -755,7 +805,6 @@ void DataStructureAmr::CleanUp() {
     CleanUpFullHierarchyStorageForPython();
     CleanUpLocalDataPythonBindings();
 
-    has_particle_ = false;
     index_offset_ = 0;
 }
 
