@@ -40,7 +40,6 @@ struct DataStructureOutput {
 
 class DataStructureAmr {
 private:
-    bool has_particle_;
     bool check_data_;
 
     // Hierarchy
@@ -48,6 +47,9 @@ private:
     int num_fields_;
     int num_par_types_;
     int num_grids_local_;
+    int num_grids_local_field_data_;  // This is for tracking field data in grids_local, we need it due to bad Api
+    int num_grids_local_par_data_;    // This is for tracking particle data in grids_local, we need it due to bad Api
+    bool has_particle_;               // This is for tracking particle count column num in hierarchy Python binding.
     int index_offset_;
 
     double* grid_left_edge_;
@@ -59,10 +61,11 @@ private:
     long* par_count_list_;
 
 private:
-    void AllocateFieldList();
-    void AllocateParticleList(yt_par_type* par_type_list);
-    void AllocateGridsLocal();
-    void AllocateFullHierarchyStorageForPython();
+    DataStructureOutput AllocateFieldList(int num_fields);
+    DataStructureOutput AllocateParticleList(int num_par_types, yt_par_type* par_type_list);
+    DataStructureOutput AllocateGridsLocal(int num_grids_local, int num_fields, int num_par_types,
+                                           yt_par_type* par_type_list);
+    DataStructureOutput AllocateFullHierarchyStorageForPython(long num_grids, int num_par_types);
     void GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr, long*** full_particle_count_ptr) const;
     DataStructureOutput BindLocalFieldDataToPython(const yt_grid& grid) const;
     DataStructureOutput BindLocalParticleDataToPython(const yt_grid& grid) const;
