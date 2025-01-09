@@ -662,21 +662,19 @@ DataStructureOutput DataStructureAmr::BindFieldListToPython(PyObject* py_dict, c
 //                              "label": <index in particle_list>}
 //               }
 //-------------------------------------------------------------------------------------------------------
-DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict) const {
+DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict,
+                                                               const std::string& py_dict_name) const {
 #ifndef USE_PYBIND11
     PyObject* particle_list_dict = PyDict_New();
     PyObject *key, *val;
-
-    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.particle_list_;
-
-    for (int s = 0; s < LibytProcessControl::Get().param_yt_.num_par_types; s++) {
+    for (int s = 0; s < num_par_types_; s++) {
         PyObject* species_dict = PyDict_New();
 
         // Insert a series of attr_list to attr_dict with key <attr_name>
         PyObject* attr_dict = PyDict_New();
-        for (int a = 0; a < particle_list[s].num_attr; a++) {
+        for (int a = 0; a < particle_list_[s].num_attr; a++) {
             PyObject* attr_list = PyList_New(0);
-            yt_attribute attr = particle_list[s].attr_list[a];
+            yt_attribute attr = particle_list_[s].attr_list[a];
 
             // Append attr_unit to attr_list
             val = PyUnicode_FromString(attr.attr_unit);
@@ -686,8 +684,9 @@ DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict
                 Py_DECREF(attr_dict);
                 Py_DECREF(attr_list);
                 Py_XDECREF(val);
-                YT_ABORT("In par_type == %s, attr_unit == %s, failed to append %s to list.\n",
-                         particle_list[s].par_type, attr.attr_unit, "attr_unit");
+                std::string error = "(par_type, attr_unit) = (" + std::string(particle_list_[s].par_type) + ", " +
+                                    std::string(attr.attr_unit) + "), failed to append attr_unit to list!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
             Py_DECREF(val);
 
@@ -702,9 +701,11 @@ DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict
                     Py_DECREF(attr_list);
                     Py_DECREF(name_alias_list);
                     Py_XDECREF(val);
-                    YT_ABORT(
-                        "In par_type == %s, attr_name == %s, attr_name_alias == %s, failed to append %s to list.\n",
-                        particle_list[s].par_type, attr.attr_name, attr.attr_name_alias[i], "attr_name_alias");
+                    std::string error = "(par_type, attr_name, attr_name_alias) = (" +
+                                        std::string(particle_list_[s].par_type) + ", " + std::string(attr.attr_name) +
+                                        ", " + std::string(attr.attr_name_alias[i]) +
+                                        "), failed to append attr_name_alias to list!\n";
+                    return {DataStructureStatus::kDataStructureFailed, error};
                 }
                 Py_DECREF(val);
             }
@@ -714,8 +715,9 @@ DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict
                 Py_DECREF(attr_dict);
                 Py_DECREF(attr_list);
                 Py_DECREF(name_alias_list);
-                YT_ABORT("In par_type == %s, attr_name == %s, failed to append %s to list.\n",
-                         particle_list[s].par_type, attr.attr_name, "name_alias_list");
+                std::string error = "(par_type, attr_name) = (" + std::string(particle_list_[s].par_type) + ", " +
+                                    std::string(attr.attr_name) + "), failed to append name_alias_list to list!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
             Py_DECREF(name_alias_list);
 
@@ -726,9 +728,10 @@ DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict
                     Py_DECREF(species_dict);
                     Py_DECREF(attr_dict);
                     Py_DECREF(attr_list);
-                    YT_ABORT(
-                        "In par_type == %s, attr_name == %s, attr_display_name == NULL, failed to append %s to list.\n",
-                        particle_list[s].par_type, attr.attr_name, "Py_None");
+                    std::string error = "(par_type, attr_name, attr_display_name) = (" +
+                                        std::string(particle_list_[s].par_type) + ", " + std::string(attr.attr_name) +
+                                        ", nullptr), failed to append Py_None to list!\n";
+                    return {DataStructureStatus::kDataStructureFailed, error};
                 }
             } else {
                 val = PyUnicode_FromString(attr.attr_display_name);
@@ -738,14 +741,16 @@ DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict
                     Py_DECREF(attr_dict);
                     Py_DECREF(attr_list);
                     Py_XDECREF(val);
-                    YT_ABORT(
-                        "In par_type == %s, attr_name == %s, attr_display_name == %s, failed to append %s to list.\n",
-                        particle_list[s].par_type, attr.attr_name, attr.attr_display_name, "attr_display_name");
+                    std::string error = "(par_type, attr_name, attr_display_name) = (" +
+                                        std::string(particle_list_[s].par_type) + ", " + std::string(attr.attr_name) +
+                                        ", " + std::string(attr.attr_display_name) +
+                                        "), failed to append attr_display_name to list!\n";
+                    return {DataStructureStatus::kDataStructureFailed, error};
                 }
                 Py_DECREF(val);
             }
 
-            // Isert attr_list to attr_dict with key = <attr_name>
+            // Insert attr_list to attr_dict with key = <attr_name>
             key = PyUnicode_FromString(attr.attr_name);
             if (PyDict_SetItem(attr_dict, key, attr_list) != 0) {
                 Py_DECREF(particle_list_dict);
@@ -753,8 +758,9 @@ DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict
                 Py_DECREF(attr_dict);
                 Py_DECREF(attr_list);
                 Py_XDECREF(key);
-                YT_ABORT("In par_type == %s, attr_name == %s, failed to append %s to %s.\n", particle_list[s].par_type,
-                         attr.attr_name, "attr_list", "attr_dict");
+                std::string error = "(par_type, attr_name) = (" + std::string(particle_list_[s].par_type) + ", " +
+                                    std::string(attr.attr_name) + "), failed to append attribute list to dict!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
             Py_DECREF(key);
 
@@ -766,73 +772,80 @@ DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict
             Py_DECREF(particle_list_dict);
             Py_DECREF(species_dict);
             Py_DECREF(attr_dict);
-            YT_ABORT("In par_type == %s, failed to insert key-value pair attribute:attr_dict to species_dict.\n",
-                     particle_list[s].par_type);
+            std::string error = "(par_type) = (" + std::string(particle_list_[s].par_type) +
+                                "), failed to add key-value pair 'attribute' and attribute dict!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
         }
         Py_DECREF(attr_dict);
 
         // Create coor_list and insert it to species_dict with key = "particle_coor_label"
         PyObject* coor_list = PyList_New(0);
 
-        if (particle_list[s].coor_x == nullptr) {
+        if (particle_list_[s].coor_x == nullptr) {
             if (PyList_Append(coor_list, Py_None) != 0) {
                 Py_DECREF(particle_list_dict);
                 Py_DECREF(species_dict);
                 Py_DECREF(coor_list);
-                YT_ABORT("In par_type == %s, coor_x == NULL, failed to append %s to coor_list.\n",
-                         particle_list[s].par_type, "Py_None");
+                std::string error = "(par_type, coor_x) = (" + std::string(particle_list_[s].par_type) +
+                                    ", nullptr), failed to append Py_None to list!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
         } else {
-            val = PyUnicode_FromString(particle_list[s].coor_x);
+            val = PyUnicode_FromString(particle_list_[s].coor_x);
             if (PyList_Append(coor_list, val) != 0) {
                 Py_DECREF(particle_list_dict);
                 Py_DECREF(species_dict);
                 Py_DECREF(coor_list);
                 Py_XDECREF(val);
-                YT_ABORT("In par_type == %s, coor_x == %s, failed to append %s to list.\n", particle_list[s].par_type,
-                         particle_list[s].coor_x, "coor_x");
+                std::string error = "(par_type, coor_x) = (" + std::string(particle_list_[s].par_type) + ", " +
+                                    std::string(particle_list_[s].coor_x) + "), failed to append coor_x to list!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
             Py_DECREF(val);
         }
 
-        if (particle_list[s].coor_y == nullptr) {
+        if (particle_list_[s].coor_y == nullptr) {
             if (PyList_Append(coor_list, Py_None) != 0) {
                 Py_DECREF(particle_list_dict);
                 Py_DECREF(species_dict);
                 Py_DECREF(coor_list);
-                YT_ABORT("In par_type == %s, coor_y == NULL, failed to append %s to coor_list.\n",
-                         particle_list[s].par_type, "Py_None");
+                std::string error = "(par_type, coor_y) = (" + std::string(particle_list_[s].par_type) +
+                                    ", nullptr), failed to append Py_None to list!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
         } else {
-            val = PyUnicode_FromString(particle_list[s].coor_y);
+            val = PyUnicode_FromString(particle_list_[s].coor_y);
             if (PyList_Append(coor_list, val) != 0) {
                 Py_DECREF(particle_list_dict);
                 Py_DECREF(species_dict);
                 Py_DECREF(coor_list);
                 Py_XDECREF(val);
-                YT_ABORT("In par_type == %s, coor_y == %s, failed to append %s to list.\n", particle_list[s].par_type,
-                         particle_list[s].coor_y, "coor_y");
+                std::string error = "(par_type, coor_y) = (" + std::string(particle_list_[s].par_type) + ", " +
+                                    std::string(particle_list_[s].coor_y) + "), failed to append coor_y to list!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
             Py_DECREF(val);
         }
 
-        if (particle_list[s].coor_z == nullptr) {
+        if (particle_list_[s].coor_z == nullptr) {
             if (PyList_Append(coor_list, Py_None) != 0) {
                 Py_DECREF(particle_list_dict);
                 Py_DECREF(species_dict);
                 Py_DECREF(coor_list);
-                YT_ABORT("In par_type == %s, coor_z == NULL, failed to append %s to coor_list.\n",
-                         particle_list[s].par_type, "Py_None");
+                std::string error = "(par_type, coor_z) = (" + std::string(particle_list_[s].par_type) +
+                                    ", nullptr), failed to append Py_None to list!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
         } else {
-            val = PyUnicode_FromString(particle_list[s].coor_z);
+            val = PyUnicode_FromString(particle_list_[s].coor_z);
             if (PyList_Append(coor_list, val) != 0) {
                 Py_DECREF(particle_list_dict);
                 Py_DECREF(species_dict);
                 Py_DECREF(coor_list);
                 Py_XDECREF(val);
-                YT_ABORT("In par_type == %s, coor_z == %s, failed to append %s to list.\n", particle_list[s].par_type,
-                         particle_list[s].coor_z, "coor_z");
+                std::string error = "(par_type, coor_z) = (" + std::string(particle_list_[s].par_type) + ", " +
+                                    std::string(particle_list_[s].coor_z) + "), failed to append coor_z to list!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
             Py_DECREF(val);
         }
@@ -842,9 +855,9 @@ DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict
             Py_DECREF(particle_list_dict);
             Py_DECREF(species_dict);
             Py_DECREF(coor_list);
-            YT_ABORT(
-                "In par_type == %s, failed to insert key-value pair particle_coor_label:coor_list to species_dict.\n",
-                particle_list[s].par_type);
+            std::string error = "(par_type) = (" + std::string(particle_list_[s].par_type) +
+                                "), failed to add key-value pair 'particle_coor_label' and coordinate list!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
         }
         Py_DECREF(coor_list);
 
@@ -854,19 +867,21 @@ DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict
             Py_DECREF(particle_list_dict);
             Py_DECREF(species_dict);
             Py_XDECREF(key);
-            YT_ABORT("In par_type == %s, failed to insert key-value pair label:%d to species_dict.\n",
-                     particle_list[s].par_type, s);
+            std::string error = "(par_type) = (" + std::string(particle_list_[s].par_type) +
+                                "), failed to add key-value pair 'label' and " + std::to_string(s) + "\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
         }
         Py_DECREF(key);
 
         // Insert species_dict to particle_list_dict with key = <par_type>
-        key = PyUnicode_FromString(particle_list[s].par_type);
+        key = PyUnicode_FromString(particle_list_[s].par_type);
         if (PyDict_SetItem(particle_list_dict, key, species_dict) != 0) {
             Py_DECREF(particle_list_dict);
             Py_DECREF(species_dict);
             Py_XDECREF(key);
-            YT_ABORT("In par_type == %s, failed to insert key-value pair %s:species_dict to particle_list_dict.\n",
-                     particle_list[s].par_type, particle_list[s].par_type);
+            std::string error = "(par_type) = (" + std::string(particle_list_[s].par_type) +
+                                "), failed to attach dictionary under key!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
         }
         Py_DECREF(key);
 
@@ -874,38 +889,36 @@ DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict
     }
 
     // Insert particle_list_dict to libyt.param_yt["particle_list"]
-    if (PyDict_SetItemString(LibytProcessControl::Get().py_param_yt_, "particle_list", particle_list_dict) != 0) {
+    if (PyDict_SetItemString(py_dict, "particle_list", particle_list_dict) != 0) {
         Py_DECREF(particle_list_dict);
-        YT_ABORT("Inserting dictionary [particle_list] item to libyt ... failed!\n");
+        std::string error = "Inserting dictionary 'particle_list' to '" + py_dict_name + "' failed!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
     }
     Py_DECREF(particle_list_dict);
 #else
-    pybind11::module_ libyt = pybind11::module_::import("libyt");
-    pybind11::dict py_param_yt = libyt.attr("param_yt");
+    pybind11::dict py_param_yt = pybind11::cast<pybind11::dict>(py_dict);
     pybind11::dict py_particle_list = pybind11::dict();
     py_param_yt["particle_list"] = py_particle_list;
 
-    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.particle_list_;
-
-    for (int i = 0; i < LibytProcessControl::Get().param_yt_.num_par_types; i++) {
-        py_particle_list[particle_list[i].par_type] = pybind11::dict();
+    for (int i = 0; i < num_par_types_; i++) {
+        py_particle_list[particle_list_[i].par_type] = pybind11::dict();
 
         pybind11::dict py_attr_dict = pybind11::dict();
-        py_particle_list[particle_list[i].par_type]["attribute"] = py_attr_dict;
-        for (int v = 0; v < particle_list[i].num_attr; v++) {
-            pybind11::tuple py_name_alias = pybind11::tuple(particle_list[i].attr_list[v].num_attr_name_alias);
-            for (int a = 0; a < particle_list[i].attr_list[v].num_attr_name_alias; a++) {
-                py_name_alias[a] = particle_list[i].attr_list[v].attr_name_alias[a];
+        py_particle_list[particle_list_[i].par_type]["attribute"] = py_attr_dict;
+        for (int v = 0; v < particle_list_[i].num_attr; v++) {
+            pybind11::tuple py_name_alias = pybind11::tuple(particle_list_[i].attr_list[v].num_attr_name_alias);
+            for (int a = 0; a < particle_list_[i].attr_list[v].num_attr_name_alias; a++) {
+                py_name_alias[a] = particle_list_[i].attr_list[v].attr_name_alias[a];
             }
 
-            py_attr_dict[particle_list[i].attr_list[v].attr_name] =
-                pybind11::make_tuple(particle_list[i].attr_list[v].attr_unit, py_name_alias,
-                                     particle_list[i].attr_list[v].attr_display_name);
+            py_attr_dict[particle_list_[i].attr_list[v].attr_name] =
+                pybind11::make_tuple(particle_list_[i].attr_list[v].attr_unit, py_name_alias,
+                                     particle_list_[i].attr_list[v].attr_display_name);
         }
 
-        py_particle_list[particle_list[i].par_type]["particle_coor_label"] =
-            pybind11::make_tuple(particle_list[i].coor_x, particle_list[i].coor_y, particle_list[i].coor_z);
-        py_particle_list[particle_list[i].par_type]["label"] = i;
+        py_particle_list[particle_list_[i].par_type]["particle_coor_label"] =
+            pybind11::make_tuple(particle_list_[i].coor_x, particle_list_[i].coor_y, particle_list_[i].coor_z);
+        py_particle_list[particle_list_[i].par_type]["label"] = i;
     }
 #endif  // #ifndef USE_PYBIND11
 
@@ -917,13 +930,14 @@ DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict
 // Public Method  :  BindInfoToPython
 //
 // Notes       :  1. Bind field_list_ and particle_list_ info to Python dictionary.
+//                2. The current structure will not know if the data is set or not.
 //-------------------------------------------------------------------------------------------------------
 void DataStructureAmr::BindInfoToPython(PyObject* py_dict, const std::string& py_dict_name) {
     if (num_fields_ > 0) {
         BindFieldListToPython(py_dict, py_dict_name);
     }
     if (num_par_types_ > 0) {
-        BindParticleListToPython(py_dict);
+        BindParticleListToPython(py_dict, py_dict_name);
     }
 }
 
@@ -934,7 +948,8 @@ void DataStructureAmr::BindInfoToPython(PyObject* py_dict, const std::string& py
 // Notes       :  1. Check data if check_data is true.
 //                2. If it is under Mpi mode, we need to gather hierarchy from different ranks to all ranks.
 //                3. The allocation of full hierarchy is done at AllocateStorage.
-//                4. TODO: Do I need to move data twice, which is gathering data, and then move it to Python
+//                4. The current structure will not know if the data is set or not.
+//                5. TODO: Do I need to move data twice, which is gathering data, and then move it to Python
 //                         storage?
 //-------------------------------------------------------------------------------------------------------
 void DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
@@ -1157,7 +1172,8 @@ DataStructureOutput DataStructureAmr::BindLocalParticleDataToPython(const yt_gri
 // Public Method  :  BindLocalDataToPython
 //
 // Notes       :  1. Wrap local data and build it to a dictionary.
-//                2. TODO: Currently, the API forces this function to bind and build all the data
+//                2. The current structure will not know if the data is set or not.
+//                3. TODO: Currently, the API forces this function to bind and build all the data
 //                         inside the grids_local_ array at once. Might change it in the future libyt v1.0.
 //-------------------------------------------------------------------------------------------------------
 void DataStructureAmr::BindLocalDataToPython() const {

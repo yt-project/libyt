@@ -88,14 +88,7 @@ int yt_commit() {
     // Add field_list to libyt.param_yt['field_list'] dictionary
     int root_rank = 0;
     LibytProcessControl::Get().data_structure_amr_.BindInfoToPython(LibytProcessControl::Get().py_param_yt_,
-                                                                    "field_list");
-
-    // Add particle_list to libyt.param_yt['particle_list'] dictionary
-    if (param_yt.num_par_types > 0) {
-        if (add_dict_particle_list() != YT_SUCCESS) {
-            YT_ABORT("Inserting dictionary libyt.param_yt['particle_list'] failed!\n");
-        }
-    }
+                                                                    "libyt.param_yt");
 
     LibytProcessControl::Get().data_structure_amr_.BindAllHierarchyToPython(root_rank);
     log_debug("Loading full hierarchy to libyt ... done!\n");
