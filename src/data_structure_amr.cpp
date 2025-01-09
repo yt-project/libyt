@@ -442,41 +442,42 @@ void DataStructureAmr::GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hier
 //                                                          beginning of 2-dim, ending of 2-dim  ) },
 //                   }
 //-------------------------------------------------------------------------------------------------------
-DataStructureOutput DataStructureAmr::BindFieldListToPython(PyObject* py_dict) const {
+DataStructureOutput DataStructureAmr::BindFieldListToPython(PyObject* py_dict, const std::string& py_dict_name) const {
 #ifndef USE_PYBIND11
     PyObject* field_list_dict = PyDict_New();
     PyObject *key, *val;
 
-    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.field_list_;
-
-    for (int i = 0; i < LibytProcessControl::Get().param_yt_.num_fields; i++) {
+    for (int i = 0; i < num_fields_; i++) {
         PyObject* field_info_dict = PyDict_New();
         PyObject* info_list = PyList_New(0);
 
         // Append "field_unit" to "info_list"
-        val = PyUnicode_FromString((field_list)[i].field_unit);
+        val = PyUnicode_FromString((field_list_)[i].field_unit);
         if (PyList_Append(info_list, val) != 0) {
             Py_DECREF(field_list_dict);
             Py_DECREF(field_info_dict);
             Py_DECREF(info_list);
             Py_XDECREF(val);
-            YT_ABORT("In field_name == %s, field_unit == %s, failed to append %s to list!\n",
-                     (field_list)[i].field_name, (field_list)[i].field_unit, "field_unit");
+            std::string error = "(field, field_unit) = (" + std::string((field_list_)[i].field_name) + ", " +
+                                std::string((field_list_)[i].field_unit) + "), failed to append field_unit to list!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
         }
         Py_DECREF(val);
 
         // Create "name_alias_list" and append to "info_list"
         PyObject* name_alias_list = PyList_New(0);
-        for (int j = 0; j < (field_list)[i].num_field_name_alias; j++) {
-            val = PyUnicode_FromString((field_list)[i].field_name_alias[j]);
+        for (int j = 0; j < (field_list_)[i].num_field_name_alias; j++) {
+            val = PyUnicode_FromString((field_list_)[i].field_name_alias[j]);
             if (PyList_Append(name_alias_list, val) != 0) {
                 Py_DECREF(field_list_dict);
                 Py_DECREF(field_info_dict);
                 Py_DECREF(info_list);
                 Py_DECREF(name_alias_list);
                 Py_XDECREF(val);
-                YT_ABORT("In field_name == %s, field_name_alias == %s, failed to append %s to list!\n",
-                         (field_list)[i].field_name, (field_list)[i].field_name_alias[j], "field_name_alias");
+                std::string error = "(field, field_name_alias) = (" + std::string((field_list_)[i].field_name) + ", " +
+                                    std::string((field_list_)[i].field_name_alias[j]) +
+                                    "), failed to append alias name to field_name_alias list!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
             Py_DECREF(val);
         }
@@ -485,29 +486,34 @@ DataStructureOutput DataStructureAmr::BindFieldListToPython(PyObject* py_dict) c
             Py_DECREF(field_info_dict);
             Py_DECREF(info_list);
             Py_DECREF(name_alias_list);
-            YT_ABORT("In field_name == %s, failed to append name_alias_list to list!\n", (field_list)[i].field_name);
+            std::string error = "(field) = (" + std::string((field_list_)[i].field_name) +
+                                "), failed to append field_name_alias to list!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
         }
         Py_DECREF(name_alias_list);
 
         // Load "field_display_name" to "info_list"
         // If field_display_name == NULL, load Py_None.
-        if ((field_list)[i].field_display_name == nullptr) {
+        if ((field_list_)[i].field_display_name == nullptr) {
             if (PyList_Append(info_list, Py_None) != 0) {
                 Py_DECREF(field_list_dict);
                 Py_DECREF(field_info_dict);
                 Py_DECREF(info_list);
-                YT_ABORT("In field_name == %s, field_display_name == NULL, failed to append Py_None to list!\n",
-                         (field_list)[i].field_name);
+                std::string error = "(field, field_display_name) = (" + std::string((field_list_)[i].field_name) +
+                                    ", nullptr), failed to append Py_None to list!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
         } else {
-            val = PyUnicode_FromString((field_list)[i].field_display_name);
+            val = PyUnicode_FromString((field_list_)[i].field_display_name);
             if (PyList_Append(info_list, val) != 0) {
                 Py_DECREF(field_list_dict);
                 Py_DECREF(field_info_dict);
                 Py_DECREF(info_list);
                 Py_XDECREF(val);
-                YT_ABORT("In field_name == %s, field_display_name == %s, failed to append %s to list!\n",
-                         (field_list)[i].field_name, (field_list)[i].field_display_name, "field_display_name");
+                std::string error = "(field, field_display_name) = (" + std::string((field_list_)[i].field_name) +
+                                    ", " + std::string((field_list_)[i].field_display_name) +
+                                    "), failed to append field_display_name to list!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
             Py_DECREF(val);
         }
@@ -517,54 +523,59 @@ DataStructureOutput DataStructureAmr::BindFieldListToPython(PyObject* py_dict) c
             Py_DECREF(field_list_dict);
             Py_DECREF(field_info_dict);
             Py_DECREF(info_list);
-            YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair "
-                     "['attribute']-[info_list] failed!\n",
-                     (field_list)[i].field_name);
+            std::string error =
+                "(field) = (" + std::string((field_list_)[i].field_name) +
+                "), failed to add key-value pair 'attribute' and info list (alias name, display name)!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
         }
         Py_DECREF(info_list);
 
         // Load "field_type" to "field_info_dict".
-        val = PyUnicode_FromString((field_list)[i].field_type);
+        val = PyUnicode_FromString((field_list_)[i].field_type);
         if (PyDict_SetItemString(field_info_dict, "field_type", val) != 0) {
             Py_DECREF(field_list_dict);
             Py_DECREF(field_info_dict);
             Py_XDECREF(val);
-            YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[%s] failed!\n",
-                     (field_list)[i].field_name, "field_type", (field_list)[i].field_type);
+            std::string error = "(field, field_type) = (" + std::string((field_list_)[i].field_name) + ", " +
+                                std::string((field_list_)[i].field_type) +
+                                "), failed to add key-value pair 'field_type'!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
         }
         Py_DECREF(val);
 
         // Load "contiguous_in_x" to "field_info_dict".
-        if ((field_list)[i].contiguous_in_x) {
+        if ((field_list_)[i].contiguous_in_x) {
             if (PyDict_SetItemString(field_info_dict, "contiguous_in_x", Py_True) != 0) {
                 Py_DECREF(field_list_dict);
                 Py_DECREF(field_info_dict);
-                YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ true ] "
-                         "failed!\n",
-                         (field_list)[i].field_name, "contiguous_in_x");
+                std::string contiguous_in_x_str = ((field_list_)[i].contiguous_in_x) ? "true" : "false";
+                std::string error = "(field, contiguous_in_x) = (" + std::string((field_list_)[i].field_name) + ", " +
+                                    contiguous_in_x_str + "), failed to add key-value pair 'contiguous_in_x'!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
         } else {
             if (PyDict_SetItemString(field_info_dict, "contiguous_in_x", Py_False) != 0) {
                 Py_DECREF(field_list_dict);
                 Py_DECREF(field_info_dict);
-                YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ false ] "
-                         "failed!\n",
-                         (field_list)[i].field_name, "contiguous_in_x");
+                std::string contiguous_in_x_str = ((field_list_)[i].contiguous_in_x) ? "true" : "false";
+                std::string error = "(field, contiguous_in_x) = (" + std::string((field_list_)[i].field_name) + ", " +
+                                    contiguous_in_x_str + "), failed to add key-value pair 'contiguous_in_x'!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
         }
 
         // Load "ghost_cell" to "field_info_dict"
         PyObject* ghost_cell_list = PyList_New(0);
         for (int d = 0; d < 6; d++) {
-            val = PyLong_FromLong((long)(field_list)[i].field_ghost_cell[d]);
+            val = PyLong_FromLong((long)(field_list_)[i].field_ghost_cell[d]);
             if (PyList_Append(ghost_cell_list, val) != 0) {
                 Py_DECREF(field_list_dict);
                 Py_DECREF(field_info_dict);
                 Py_DECREF(ghost_cell_list);
                 Py_XDECREF(val);
-                YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], failed to append ghost cell to "
-                         "list!\n",
-                         (field_list)[i].field_name);
+                std::string error = "(field) = (" + std::string((field_list_)[i].field_name) +
+                                    "), failed to append ghost cell to list!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
             }
             Py_DECREF(val);
         }
@@ -572,54 +583,53 @@ DataStructureOutput DataStructureAmr::BindFieldListToPython(PyObject* py_dict) c
             Py_DECREF(field_list_dict);
             Py_DECREF(field_info_dict);
             Py_DECREF(ghost_cell_list);
-            YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s], key-value pair [%s]-[ list obj ] "
-                     "failed!\n",
-                     (field_list)[i].field_name, "ghost_cell");
+            std::string error = "(field) = (" + std::string((field_list_)[i].field_name) +
+                                "), failed to add key-value pair 'ghost_cell'!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
         }
         Py_DECREF(ghost_cell_list);
 
         // Load "field_info_dict" to "field_list_dict", with key = field_name
-        key = PyUnicode_FromString((field_list)[i].field_name);
+        key = PyUnicode_FromString((field_list_)[i].field_name);
         if (PyDict_SetItem(field_list_dict, key, field_info_dict) != 0) {
             Py_DECREF(field_list_dict);
             Py_DECREF(field_info_dict);
             Py_XDECREF(key);
-            YT_ABORT("On setting dictionary [field_list] in libyt, field_name [%s] failed to add dictionary!\n",
-                     (field_list)[i].field_name);
+            std::string error = "(field) = (" + std::string((field_list_)[i].field_name) +
+                                "), failed to attach dictionary under key!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
         }
         Py_DECREF(key);
 
         Py_DECREF(field_info_dict);
     }
 
-    if (PyDict_SetItemString(LibytProcessControl::Get().py_param_yt_, "field_list", field_list_dict) != 0) {
+    if (PyDict_SetItemString(py_dict, "field_list", field_list_dict) != 0) {
         Py_DECREF(field_list_dict);
-        YT_ABORT("Inserting dictionary [field_list] to libyt.param_yt ... failed!\n");
+        std::string error = "Inserting dictionary 'field_list' to '" + py_dict_name + "' failed!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
     }
 
     Py_DECREF(field_list_dict);
 #else
-    pybind11::module_ libyt = pybind11::module_::import("libyt");
-    pybind11::dict py_param_yt = libyt.attr("param_yt");
+    pybind11::dict py_param_yt = pybind11::cast<pybind11::dict>(py_dict);
     pybind11::dict py_field_list = pybind11::dict();
     py_param_yt["field_list"] = py_field_list;
 
-    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.field_list_;
+    for (int i = 0; i < num_fields_; i++) {
+        py_field_list[field_list_[i].field_name] = pybind11::dict();
 
-    for (int i = 0; i < LibytProcessControl::Get().param_yt_.num_fields; i++) {
-        py_field_list[field_list[i].field_name] = pybind11::dict();
-
-        pybind11::tuple py_name_alias = pybind11::tuple(field_list[i].num_field_name_alias);
-        for (int a = 0; a < field_list[i].num_field_name_alias; a++) {
-            py_name_alias[a] = field_list[i].field_name_alias[a];
+        pybind11::tuple py_name_alias = pybind11::tuple(field_list_[i].num_field_name_alias);
+        for (int a = 0; a < field_list_[i].num_field_name_alias; a++) {
+            py_name_alias[a] = field_list_[i].field_name_alias[a];
         }
-        py_field_list[field_list[i].field_name]["attribute"] =
-            pybind11::make_tuple(field_list[i].field_unit, py_name_alias, field_list[i].field_display_name);
-        py_field_list[field_list[i].field_name]["field_type"] = field_list[i].field_type;
-        py_field_list[field_list[i].field_name]["contiguous_in_x"] = pybind11::bool_(field_list[i].contiguous_in_x);
-        py_field_list[field_list[i].field_name]["ghost_cell"] = pybind11::make_tuple(
-            field_list[i].field_ghost_cell[0], field_list[i].field_ghost_cell[1], field_list[i].field_ghost_cell[2],
-            field_list[i].field_ghost_cell[3], field_list[i].field_ghost_cell[4], field_list[i].field_ghost_cell[5]);
+        py_field_list[field_list_[i].field_name]["attribute"] =
+            pybind11::make_tuple(field_list_[i].field_unit, py_name_alias, field_list_[i].field_display_name);
+        py_field_list[field_list_[i].field_name]["field_type"] = field_list_[i].field_type;
+        py_field_list[field_list_[i].field_name]["contiguous_in_x"] = pybind11::bool_(field_list_[i].contiguous_in_x);
+        py_field_list[field_list_[i].field_name]["ghost_cell"] = pybind11::make_tuple(
+            field_list_[i].field_ghost_cell[0], field_list_[i].field_ghost_cell[1], field_list_[i].field_ghost_cell[2],
+            field_list_[i].field_ghost_cell[3], field_list_[i].field_ghost_cell[4], field_list_[i].field_ghost_cell[5]);
     }
 #endif  // #ifndef USE_PYBIND11
 
@@ -645,9 +655,13 @@ DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict
 //
 // Notes       :  1. Bind field_list_ and particle_list_ info to Python dictionary.
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::BindInfoToPython(PyObject* py_dict) {
-    BindFieldListToPython(py_dict);
-    BindParticleListToPython(py_dict);
+void DataStructureAmr::BindInfoToPython(PyObject* py_dict, const std::string& py_dict_name) {
+    if (num_fields_ > 0) {
+        BindFieldListToPython(py_dict, py_dict_name);
+    }
+    if (num_par_types_ > 0) {
+        BindParticleListToPython(py_dict);
+    }
 }
 
 //-------------------------------------------------------------------------------------------------------
