@@ -82,19 +82,33 @@ void DataStructureAmr::SetPythonBindings(PyObject* py_hierarchy, PyObject* py_gr
 //                   (2) Particle list
 //                   (3) Local grid list
 //                   (4) Hierarchy bindings at C-side
-//                2. Particles and its type list are optional input. If num_par_types > 0, then par_type_list
-//                   is read.
-//                3. Make sure it is cleaned up before calling this.
+//                2. Make sure it is cleaned up before calling this.
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::AllocateStorage(long num_grids, int num_grids_local, int num_fields,
                                                       int num_par_types, yt_par_type* par_type_list, int index_offset,
                                                       bool check_data) {
     // Initialize the data structure
     DataStructureOutput status;
-    status = AllocateFieldList(num_fields);  // TODO: early return when failed.
+
+    status = AllocateFieldList(num_fields);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        return {DataStructureStatus::kDataStructureFailed, status.error};
+    }
+
     status = AllocateParticleList(num_par_types, par_type_list);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        return {DataStructureStatus::kDataStructureFailed, status.error};
+    }
+
     status = AllocateGridsLocal(num_grids_local, num_fields, num_par_types, par_type_list);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        return {DataStructureStatus::kDataStructureFailed, status.error};
+    }
+
     status = AllocateFullHierarchyStorageForPython(num_grids, num_par_types);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        return {DataStructureStatus::kDataStructureFailed, status.error};
+    }
 
     index_offset_ = index_offset;
     check_data_ = check_data;
@@ -247,7 +261,7 @@ DataStructureOutput DataStructureAmr::AllocateGridsLocal(int num_grids_local, in
 //                3. num_grids_/has_particle_ are used to track the allocation status of the hierarchy.
 //                   has_particle_ is set through num_par_types.
 //                   Make sure hierarchy is properly freed before new allocation.
-//                3. TODO: I'm not sure if data structure contains python code is a good idea.
+//                4. I'm not sure if data structure contains python code is a good idea.
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::AllocateFullHierarchyStorageForPython(long num_grids, int num_par_types) {
     if (num_grids < 0) {
@@ -408,26 +422,20 @@ void DataStructureAmr::GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hier
 
 //-------------------------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr
-// Public Method  :  BindAllHierarchyToPython
+// Public Method  :  BindInfoToPython
 //
-// Notes       :  1. Check data if check_data is true.
-//                2. If it is under Mpi mode, we need to gather hierarchy from different ranks to all ranks.
-//                3. TODO: Need to check if py_hierarchy contains data, not sure if I should put it here or
-//                         in AllocateAllHierarchyStorageForPython. (Do this when checking Public API)
-//                4. TODO: Do I need to move data twice, which is gathering data, and then move it to Python
+// Notes       :  1. Bind field_list_ and particle_list_ info to Python.
+//-------------------------------------------------------------------------------------------------------
+void DataStructureAmr::BindInfoToPython() {}
+
 //-------------------------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr
 // Public Method  :  BindAllHierarchyToPython
 //
 // Notes       :  1. Check data if check_data is true.
 //                2. If it is under Mpi mode, we need to gather hierarchy from different ranks to all ranks.
-//                3. The allocation of full hierarchy is putted here instead at AllocateStorage,
-//                   because gathering full hierarchy occupies some memory and I want to try to make the
-//                   maximum consumption minimum.
-//                   (This probably will change when I make this gathering and binding more efficient.)
-//                4. TODO: Need to check if py_hierarchy contains data, not sure if I should put it here or
-//                         in AllocateAllHierarchyStorageForPython. (Do this when checking Public API)
-//                5. TODO: Do I need to move data twice, which is gathering data, and then move it to Python
+//                3. The allocation of full hierarchy is done at AllocateStorage.
+//                4. TODO: Do I need to move data twice, which is gathering data, and then move it to Python
 //                         storage?
 //-------------------------------------------------------------------------------------------------------
 void DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
