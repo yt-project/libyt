@@ -68,7 +68,7 @@ private:
     DataStructureOutput AllocateFullHierarchyStorageForPython(long num_grids, int num_par_types);
     void GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr, long*** full_particle_count_ptr) const;
     DataStructureOutput BindFieldListToPython(PyObject* py_dict, const std::string& py_dict_name) const;
-    DataStructureOutput BindParticleListToPython(PyObject* py_dict) const;
+    DataStructureOutput BindParticleListToPython(PyObject* py_dict, const std::string& py_dict_name) const;
     DataStructureOutput BindLocalFieldDataToPython(const yt_grid& grid) const;
     DataStructureOutput BindLocalParticleDataToPython(const yt_grid& grid) const;
 
