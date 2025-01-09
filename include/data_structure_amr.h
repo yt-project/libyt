@@ -67,7 +67,7 @@ private:
                                            yt_par_type* par_type_list);
     DataStructureOutput AllocateFullHierarchyStorageForPython(long num_grids, int num_par_types);
     void GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr, long*** full_particle_count_ptr) const;
-    DataStructureOutput BindFieldListToPython(PyObject* py_dict) const;
+    DataStructureOutput BindFieldListToPython(PyObject* py_dict, const std::string& py_dict_name) const;
     DataStructureOutput BindParticleListToPython(PyObject* py_dict) const;
     DataStructureOutput BindLocalFieldDataToPython(const yt_grid& grid) const;
     DataStructureOutput BindLocalParticleDataToPython(const yt_grid& grid) const;
@@ -110,9 +110,10 @@ public:
     void SetPythonBindings(PyObject* py_hierarchy, PyObject* py_grid_data, PyObject* py_particle_data);
 
     // Process of setting up the data structure
+    // TODO: return DataStructureOutput
     DataStructureOutput AllocateStorage(long num_grids, int num_grids_local, int num_fields, int num_par_types,
                                         yt_par_type* par_type_list, int index_offset, bool check_data);
-    void BindInfoToPython(PyObject* py_dict);
+    void BindInfoToPython(PyObject* py_dict, const std::string& py_dict_name);
     void BindAllHierarchyToPython(int mpi_root);
     void BindLocalDataToPython() const;
     void CleanUpGridsLocal();  // This method is public due to bad API design :(
