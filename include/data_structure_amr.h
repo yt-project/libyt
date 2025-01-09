@@ -67,6 +67,8 @@ private:
                                            yt_par_type* par_type_list);
     DataStructureOutput AllocateFullHierarchyStorageForPython(long num_grids, int num_par_types);
     void GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr, long*** full_particle_count_ptr) const;
+    DataStructureOutput BindFieldListToPython(PyObject* py_dict) const;
+    DataStructureOutput BindParticleListToPython(PyObject* py_dict) const;
     DataStructureOutput BindLocalFieldDataToPython(const yt_grid& grid) const;
     DataStructureOutput BindLocalParticleDataToPython(const yt_grid& grid) const;
 
@@ -86,6 +88,7 @@ public:
     static int mpi_rank_;
 
     // AMR data structure to data
+    // TODO: should be made private
     yt_field* field_list_;
     yt_particle* particle_list_;
     yt_grid* grids_local_;
@@ -109,7 +112,7 @@ public:
     // Process of setting up the data structure
     DataStructureOutput AllocateStorage(long num_grids, int num_grids_local, int num_fields, int num_par_types,
                                         yt_par_type* par_type_list, int index_offset, bool check_data);
-    void BindInfoToPython();
+    void BindInfoToPython(PyObject* py_dict);
     void BindAllHierarchyToPython(int mpi_root);
     void BindLocalDataToPython() const;
     void CleanUpGridsLocal();  // This method is public due to bad API design :(
