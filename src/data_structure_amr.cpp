@@ -931,14 +931,22 @@ DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict
 //
 // Notes       :  1. Bind field_list_ and particle_list_ info to Python dictionary.
 //                2. The current structure will not know if the data is set or not.
+//                3. The method fails fast if there is error.
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::BindInfoToPython(PyObject* py_dict, const std::string& py_dict_name) {
+DataStructureOutput DataStructureAmr::BindInfoToPython(const std::string& py_dict_name, PyObject* py_dict) {
     if (num_fields_ > 0) {
-        BindFieldListToPython(py_dict, py_dict_name);
+        DataStructureOutput status = BindFieldListToPython(py_dict, py_dict_name);
+        if (status.status != DataStructureStatus::kDataStructureSuccess) {
+            return {DataStructureStatus::kDataStructureFailed, status.error};
+        }
     }
     if (num_par_types_ > 0) {
-        BindParticleListToPython(py_dict, py_dict_name);
+        DataStructureOutput status = BindParticleListToPython(py_dict, py_dict_name);
+        if (status.status != DataStructureStatus::kDataStructureSuccess) {
+            return {DataStructureStatus::kDataStructureFailed, status.error};
+        }
     }
+    return {DataStructureStatus::kDataStructureSuccess, ""};
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -952,7 +960,7 @@ void DataStructureAmr::BindInfoToPython(PyObject* py_dict, const std::string& py
 //                5. TODO: Do I need to move data twice, which is gathering data, and then move it to Python
 //                         storage?
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
+DataStructureOutput DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
 #ifndef SERIAL_MODE
     // Gather hierarchy from different ranks to root rank.
     yt_hierarchy* hierarchy_full = nullptr;
@@ -1003,6 +1011,8 @@ void DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
     }
     delete[] particle_count_list_full;
 #endif
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -1176,15 +1186,22 @@ DataStructureOutput DataStructureAmr::BindLocalParticleDataToPython(const yt_gri
 //                3. TODO: Currently, the API forces this function to bind and build all the data
 //                         inside the grids_local_ array at once. Might change it in the future libyt v1.0.
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::BindLocalDataToPython() const {
+DataStructureOutput DataStructureAmr::BindLocalDataToPython() const {
     for (int i = 0; i < num_grids_local_; i++) {
         if (num_fields_ > 0) {
-            BindLocalFieldDataToPython(grids_local_[i]);
+            DataStructureOutput status = BindLocalFieldDataToPython(grids_local_[i]);
+            if (status.status != DataStructureStatus::kDataStructureSuccess) {
+                return {DataStructureStatus::kDataStructureFailed, status.error};
+            }
         }
         if (num_par_types_ > 0) {
-            BindLocalParticleDataToPython(grids_local_[i]);
+            DataStructureOutput status = BindLocalParticleDataToPython(grids_local_[i]);
+            if (status.status != DataStructureStatus::kDataStructureSuccess) {
+                return {DataStructureStatus::kDataStructureFailed, status.error};
+            }
         }
     }
+    return {DataStructureStatus::kDataStructureSuccess, ""};
 }
 
 //-------------------------------------------------------------------------------------------------------

@@ -110,12 +110,11 @@ public:
     void SetPythonBindings(PyObject* py_hierarchy, PyObject* py_grid_data, PyObject* py_particle_data);
 
     // Process of setting up the data structure
-    // TODO: return DataStructureOutput
     DataStructureOutput AllocateStorage(long num_grids, int num_grids_local, int num_fields, int num_par_types,
                                         yt_par_type* par_type_list, int index_offset, bool check_data);
-    void BindInfoToPython(PyObject* py_dict, const std::string& py_dict_name);
-    void BindAllHierarchyToPython(int mpi_root);
-    void BindLocalDataToPython() const;
+    DataStructureOutput BindInfoToPython(const std::string& py_dict_name, PyObject* py_dict);
+    DataStructureOutput BindAllHierarchyToPython(int mpi_root);
+    DataStructureOutput BindLocalDataToPython() const;
     void CleanUpGridsLocal();  // This method is public due to bad API design :(
     void CleanUp();
 

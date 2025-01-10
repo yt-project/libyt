@@ -86,15 +86,32 @@ int yt_commit() {
     }
 
     // Add field_list to libyt.param_yt['field_list'] dictionary
+    DataStructureOutput status;
+    status = LibytProcessControl::Get().data_structure_amr_.BindInfoToPython("libyt.param_yt",
+                                                                             LibytProcessControl::Get().py_param_yt_);
+    if (status.status == DataStructureStatus::kDataStructureSuccess) {
+        log_debug("Loading field/particle info to libyt ... done!\n");
+    } else {
+        log_error(status.error.c_str());
+        YT_ABORT("Loading field/particle info to libyt ... failed!\n");
+    }
+
     int root_rank = 0;
-    LibytProcessControl::Get().data_structure_amr_.BindInfoToPython(LibytProcessControl::Get().py_param_yt_,
-                                                                    "libyt.param_yt");
+    status = LibytProcessControl::Get().data_structure_amr_.BindAllHierarchyToPython(root_rank);
+    if (status.status == DataStructureStatus::kDataStructureSuccess) {
+        log_debug("Loading full hierarchy to libyt ... done!\n");
+    } else {
+        log_error(status.error.c_str());
+        YT_ABORT("Loading full hierarchy to libyt ... failed!\n");
+    }
 
-    LibytProcessControl::Get().data_structure_amr_.BindAllHierarchyToPython(root_rank);
-    log_debug("Loading full hierarchy to libyt ... done!\n");
-
-    LibytProcessControl::Get().data_structure_amr_.BindLocalDataToPython();
-    log_debug("Loading local data to libyt ... done!\n");
+    status = LibytProcessControl::Get().data_structure_amr_.BindLocalDataToPython();
+    if (status.status == DataStructureStatus::kDataStructureSuccess) {
+        log_debug("Loading local data to libyt ... done!\n");
+    } else {
+        log_error(status.error.c_str());
+        YT_ABORT("Loading local data to libyt ... failed!\n");
+    }
 
     // Free grids_local
     LibytProcessControl::Get().data_structure_amr_.CleanUpGridsLocal();
