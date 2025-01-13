@@ -91,10 +91,10 @@ private:
     DataStructureOutput CheckFieldList() const;
     DataStructureOutput CheckField(const yt_field& field) const;
     DataStructureOutput CheckParticleList() const;
+    DataStructureOutput CheckParticle(yt_particle& particle) const;
+    DataStructureOutput CheckParticleAttribute(yt_attribute& attr) const;
     DataStructureOutput CheckGridsLocal() const;
     DataStructureOutput CheckGrid() const;
-    DataStructureOutput CheckParticle() const;
-    DataStructureOutput CheckParticleAttribute() const;
 
 public:
     // MPI

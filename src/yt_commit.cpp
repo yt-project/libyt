@@ -63,13 +63,6 @@ int yt_commit() {
 
     yt_param_yt& param_yt = LibytProcessControl::Get().param_yt_;
 
-    // Check yt_particle* particle_list
-    if (LibytProcessControl::Get().param_libyt_.check_data && param_yt.num_par_types > 0) {
-        if (check_particle_list() != YT_SUCCESS) {
-            YT_ABORT("Check particle_list failed in %s!\n", __FUNCTION__);
-        }
-    }
-
     // Check yt_grid* grids_local
     if (LibytProcessControl::Get().param_libyt_.check_data && param_yt.num_grids_local > 0) {
         if (check_grid() != YT_SUCCESS) {
