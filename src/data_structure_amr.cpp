@@ -682,6 +682,13 @@ DataStructureOutput DataStructureAmr::BindFieldListToPython(PyObject* py_dict, c
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::BindParticleListToPython(PyObject* py_dict,
                                                                const std::string& py_dict_name) const {
+    if (check_data_) {
+        DataStructureOutput status = CheckParticleList();
+        if (status.status != DataStructureStatus::kDataStructureSuccess) {
+            return status;
+        }
+    }
+
 #ifndef USE_PYBIND11
     PyObject* particle_list_dict = PyDict_New();
     PyObject *key, *val;
@@ -1879,6 +1886,7 @@ DataStructureOutput DataStructureAmr::CheckFieldList() const {
 //                2. The fact that I'm defining how to check field here is weird, maybe should put it in
 //                   field class or something. Since yt_field is meant to be a struct only, I'm keeping this.
 //                3. Called by CheckFieldList().
+//                4. TODO: checking dtype can single out to a function.
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::CheckField(const yt_field& field) const {
     // field name is set.
@@ -1937,8 +1945,157 @@ DataStructureOutput DataStructureAmr::CheckField(const yt_field& field) const {
     return {DataStructureStatus::kDataStructureSuccess, ""};
 }
 
-DataStructureOutput DataStructureAmr::CheckParticleList() const { return DataStructureOutput(); }
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Private Method :  CheckParticleList
+//
+// Notes       :  1. Check particle_list:
+//                   (1) Validate each yt_particle element in particle_list.
+//                   (2) Species name (or ptype in YT-term) cannot be the same as frontend. (NOT CHECK)
+//                   (3) Species names (or ptype in YT-term) are all unique.
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::CheckParticleList() const {
+    // Validate each yt_particle element in particle_list.
+    for (int p = 0; p < num_par_types_; p++) {
+        yt_particle& particle = particle_list_[p];
+        DataStructureOutput status = CheckParticle(particle);
+        if (status.status != DataStructureStatus::kDataStructureSuccess) {
+            status.error += "(particle type) = (" + std::string(particle.par_type) + ") is not valid!\n";
+            return status;
+        }
+    }
+
+    // Particle type name (or ptype in YT-term) are all unique.
+    for (int p1 = 0; p1 < num_par_types_; p1++) {
+        for (int p2 = p1 + 1; p2 < num_par_types_; p2++) {
+            if (strcmp(particle_list_[p1].par_type, particle_list_[p2].par_type) == 0) {
+                std::string error = "par_type in particle_list[" + std::to_string(p1) + "] and particle_list[" +
+                                    std::to_string(p2) + "] are the same, par_type should be unique!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
+            }
+        }
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Private Method :  CheckParticleList
+//
+// Notes       :  1. Check particle:
+//                   (1) par_type is set != NULL
+//                   (2) attr_list is set != NULL
+//                   (3) num_attr should > 0
+//                   (4) attr_name in attr_list should be unique
+//                   (5) call yt_attribute validate for each attr_list elements.
+//                   (6) raise error if coor_x, coor_y, coor_z is not set.
+//                   (7) raise error if get_par_attr not set.
+//                2. The fact that I'm defining how to check particle here is weird, maybe should put it in
+//                   particle class or something. Since yt_particle is meant to be a particle only, I'm keeping this.
+//                3. Called by CheckParticleList().
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::CheckParticle(yt_particle& particle) const {
+    // par_type should be set
+    if (particle.par_type == nullptr) {
+        std::string error = "par_type is not set!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    // attr_list != NULL
+    if (particle.attr_list == nullptr) {
+        std::string error = "(particle type) = (" + std::string(particle.par_type) + "), attr_list not set!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    // num_attr should > 0
+    if (particle.num_attr < 0) {
+        std::string error =
+            "(particle type) = (" + std::string(particle.par_type) + "), num_attr < 0, not set properly!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    // call yt_attribute validate for each attr_list elements.
+    for (int i = 0; i < particle.num_attr; i++) {
+        DataStructureOutput status = CheckParticleAttribute(particle.attr_list[i]);
+        if (status.status != DataStructureStatus::kDataStructureSuccess) {
+            status.error += "(particle type) = (" + std::string(particle.par_type) + "), attr_list element [" +
+                            std::to_string(i) + "] is not valid!\n";
+            return status;
+        }
+    }
+
+    // attr_name in attr_list should be unique
+    for (int i = 0; i < particle.num_attr; i++) {
+        for (int j = i + 1; j < particle.num_attr; j++) {
+            if (strcmp(particle.attr_list[i].attr_name, particle.attr_list[j].attr_name) == 0) {
+                std::string error = "(particle type) = (" + std::string(particle.par_type) + "), attr_list element [" +
+                                    std::to_string(i) + "] and [" + std::to_string(j) +
+                                    "] have same attr_name, expect them to be unique!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
+            }
+        }
+    }
+
+    // if didn't input coor_x/y/z, yt cannot function properly for this particle.
+    if (particle.coor_x == nullptr) {
+        std::string error = "(particle type) = (" + std::string(particle.par_type) + "), coor_x not set!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+    if (particle.coor_y == nullptr) {
+        std::string error = "(particle type) = (" + std::string(particle.par_type) + "), coor_y not set!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+    if (particle.coor_z == nullptr) {
+        std::string error = "(particle type) = (" + std::string(particle.par_type) + "), coor_z not set!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    // if didn't input get_par_attr, yt cannot function properly for this particle.
+    if (particle.get_par_attr == nullptr) {
+        std::string error = "(particle type) = (" + std::string(particle.par_type) +
+                            "), get particle attribute function get_par_attr not set!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Private Method :  CheckParticleAttribute
+//
+// Notes       :  1. Check particle attribute yt_attribute:
+//                   (1) attr_name is set, and != nullptr.
+//                   (2) attr_dtype is one of yt_dtype.
+//                2. The fact that I'm defining how to check particle attribute here is weird, maybe should put it in
+//                   particle class or something. Since yt_attribute is meant to be for particle only, I'm keeping this.
+//                3. Called by CheckParticle().
+//                4. TODO: checking dtype can single out to a function.
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::CheckParticleAttribute(yt_attribute& attr) const {
+    // attr_name is set
+    if (attr.attr_name == nullptr) {
+        std::string error = "attr_name is not set!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    // attr_dtype is one of yt_dtype
+    bool valid = false;
+    for (int yt_dtype_int = YT_FLOAT; yt_dtype_int < YT_DTYPE_UNKNOWN; yt_dtype_int++) {
+        yt_dtype dtype = static_cast<yt_dtype>(yt_dtype_int);
+        if (attr.attr_dtype == dtype) {
+            valid = true;
+            break;
+        }
+    }
+    if (!valid) {
+        std::string error = "(attr_name) = (" + std::string(attr.attr_name) + "), unknown attr_dtype!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
+}
+
 DataStructureOutput DataStructureAmr::CheckGridsLocal() const { return DataStructureOutput(); }
 DataStructureOutput DataStructureAmr::CheckGrid() const { return DataStructureOutput(); }
-DataStructureOutput DataStructureAmr::CheckParticle() const { return DataStructureOutput(); }
-DataStructureOutput DataStructureAmr::CheckParticleAttribute() const { return DataStructureOutput(); }
