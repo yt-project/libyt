@@ -967,37 +967,52 @@ DataStructureOutput DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
     long** particle_count_list_full = nullptr;
     GatherAllHierarchy(mpi_root, &hierarchy_full, &particle_count_list_full);
 
-    // Bind hierarchy to Python
-    for (long i = 0; i < num_grids_; i++) {
-        long index = hierarchy_full[i].id - index_offset_;
-        for (int d = 0; d < 3; d++) {
-            grid_left_edge_[index * 3 + d] = hierarchy_full[i].left_edge[d];
-            grid_right_edge_[index * 3 + d] = hierarchy_full[i].right_edge[d];
-            grid_dimensions_[index * 3 + d] = hierarchy_full[i].dimensions[d];
-        }
-        grid_parent_id_[index] = hierarchy_full[i].parent_id;
-        grid_levels_[index] = hierarchy_full[i].level;
-        proc_num_[index] = hierarchy_full[i].proc_num;
-        if (num_par_types_ > 0) {
-            for (int p = 0; p < num_par_types_; p++) {
-                par_count_list_[index * num_par_types_ + p] = particle_count_list_full[p][i];
+    // Check data
+    DataStructureOutput status = {DataStructureStatus::kDataStructureSuccess, ""};
+    if (check_data_) {
+        status = CheckHierarchyIsValid(hierarchy_full);
+    }
+
+    if (status.status == DataStructureStatus::kDataStructureSuccess) {
+        // Bind hierarchy to Python
+        for (long i = 0; i < num_grids_; i++) {
+            long index = hierarchy_full[i].id - index_offset_;
+            for (int d = 0; d < 3; d++) {
+                grid_left_edge_[index * 3 + d] = hierarchy_full[i].left_edge[d];
+                grid_right_edge_[index * 3 + d] = hierarchy_full[i].right_edge[d];
+                grid_dimensions_[index * 3 + d] = hierarchy_full[i].dimensions[d];
+            }
+            grid_parent_id_[index] = hierarchy_full[i].parent_id;
+            grid_levels_[index] = hierarchy_full[i].level;
+            proc_num_[index] = hierarchy_full[i].proc_num;
+            if (num_par_types_ > 0) {
+                for (int p = 0; p < num_par_types_; p++) {
+                    par_count_list_[index * num_par_types_ + p] = particle_count_list_full[p][i];
+                }
             }
         }
     }
 #else
-    for (long i = 0; i < num_grids_local_; i++) {
-        long index = grids_local_[i].id - index_offset_;
-        for (int d = 0; d < 3; d++) {
-            grid_left_edge_[index * 3 + d] = grids_local_[i].left_edge[d];
-            grid_right_edge_[index * 3 + d] = grids_local_[i].right_edge[d];
-            grid_dimensions_[index * 3 + d] = grids_local_[i].grid_dimensions[d];
-        }
-        grid_parent_id_[index] = grids_local_[i].parent_id;
-        grid_levels_[index] = grids_local_[i].level;
-        proc_num_[index] = grids_local_[i].proc_num;
-        if (num_par_types_ > 0) {
-            for (int p = 0; p < num_par_types_; p++) {
-                par_count_list_[index * num_par_types_ + p] = grids_local_[i].par_count_list[p];
+    DataStructureOutput status = {DataStructureStatus::kDataStructureSuccess, ""};
+    if (check_data_) {
+        status = CheckHierarchyIsValid(grids_local_);
+    }
+
+    if (status.status == DataStructureStatus::kDataStructureSuccess) {
+        for (long i = 0; i < num_grids_local_; i++) {
+            long index = grids_local_[i].id - index_offset_;
+            for (int d = 0; d < 3; d++) {
+                grid_left_edge_[index * 3 + d] = grids_local_[i].left_edge[d];
+                grid_right_edge_[index * 3 + d] = grids_local_[i].right_edge[d];
+                grid_dimensions_[index * 3 + d] = grids_local_[i].grid_dimensions[d];
+            }
+            grid_parent_id_[index] = grids_local_[i].parent_id;
+            grid_levels_[index] = grids_local_[i].level;
+            proc_num_[index] = grids_local_[i].proc_num;
+            if (num_par_types_ > 0) {
+                for (int p = 0; p < num_par_types_; p++) {
+                    par_count_list_[index * num_par_types_ + p] = grids_local_[i].par_count_list[p];
+                }
             }
         }
     }
@@ -1012,7 +1027,7 @@ DataStructureOutput DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
     delete[] particle_count_list_full;
 #endif
 
-    return {DataStructureStatus::kDataStructureSuccess, ""};
+    return status;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -1707,8 +1722,15 @@ DataStructureOutput DataStructureAmr::GetPythonBoundLocalParticleData(long gid, 
 //                   (2) Check if all grids with level > 0, have a good parent id.
 //                   (3) Check if children grids' edge fall between parent's.
 //                   (4) Check parent's level = children level - 1.
+//                2. Note that the method's signature has different input parameters for Mpi and SERIAL_MODE:
+//                   yt_hierarchy* (for MPI) and yt_grid* (for SERIAL_MODE).
+//                   TODO: we can merge them when updating the API libyt-v1.0
 //-------------------------------------------------------------------------------------------------------
-DataStructureOutput DataStructureAmr::CheckHierarchyIsValid() const {
+#ifndef SERIAL_MODE
+DataStructureOutput DataStructureAmr::CheckHierarchyIsValid(yt_hierarchy* hierarchy) const {
+#else
+DataStructureOutput DataStructureAmr::CheckHierarchyIsValid(yt_grid* hierarchy) const {
+#endif
     // Create a search table for matching gid to hierarchy array index
     long* order = new long[num_grids_];
     for (long i = 0; i < num_grids_; i++) {
@@ -1722,41 +1744,53 @@ DataStructureOutput DataStructureAmr::CheckHierarchyIsValid() const {
         } else {
             int other_proc_num = hierarchy[order[hierarchy[i].id - index_offset_]].proc_num;
             delete[] order;
-            YT_ABORT("Grid ID [ %ld ] are not unique, both MPI rank %d and %d are using this grid id!\n",
-                     hierarchy[i].id, hierarchy[i].proc_num, other_proc_num);
+            std::string error = "(grid id) = " + std::to_string(hierarchy[i].id) + " are not unique, both MPI rank " +
+                                std::to_string(hierarchy[i].proc_num) + " and " + std::to_string(other_proc_num) +
+                                " have this grid id!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
         }
     }
 
     // Check if all level > 0 have good parent id, and that children's edges don't exceed parent's
-    for (long i = 0; i < LibytProcessControl::Get().param_yt_.num_grids; i = i + 1) {
+    std::string error;
+    for (long i = 0; i < num_grids_; i++) {
         if (hierarchy[i].level > 0) {
             // Check parent id
-            if ((hierarchy[i].parent_id - index_offset_ < 0) ||
-                hierarchy[i].parent_id - index_offset_ >= LibytProcessControl::Get().param_yt_.num_grids) {
-                YT_ABORT(
-                    "Grid ID [%ld], Level %d, Parent ID [%ld], ID is out of range, expect to be between %d ~ %ld.\n",
-                    hierarchy[i].id, hierarchy[i].level, hierarchy[i].parent_id, index_offset_,
-                    LibytProcessControl::Get().param_yt_.num_grids + index_offset_ - 1);
+            if ((hierarchy[i].parent_id - index_offset_ < 0) || hierarchy[i].parent_id - index_offset_ >= num_grids_) {
+                error = "(grid id, level, parent id) = (" + std::to_string(hierarchy[i].id) + ", " +
+                        std::to_string(hierarchy[i].level) + ", " + std::to_string(hierarchy[i].parent_id) +
+                        "), parent id is out of range, expect to be between " + std::to_string(index_offset_) + " ~ " +
+                        std::to_string(num_grids_ + index_offset_ - 1) + ".\n";
+                break;
             } else {
                 // Check children's edges fall between parent's
                 double* parent_left_edge = hierarchy[order[hierarchy[i].parent_id - index_offset_]].left_edge;
                 double* parent_right_edge = hierarchy[order[hierarchy[i].parent_id - index_offset_]].right_edge;
-                for (int d = 0; d < 3; d = d + 1) {
-                    if (!(parent_left_edge[d] <= hierarchy[i].left_edge[d])) {
-                        YT_ABORT("Grid ID [%ld], Parent ID [%ld], grid_left_edge[%d] < parent_left_edge[%d].\n",
-                                 hierarchy[i].id, hierarchy[i].parent_id, d, d);
+                for (int d = 0; d < 3; d++) {
+                    if (parent_left_edge[d] > hierarchy[i].left_edge[d]) {
+                        error = "(grid id, parent id) = (" + std::to_string(hierarchy[i].id) + ", " +
+                                std::to_string(hierarchy[i].parent_id) + "), " +
+                                "), grid_left_edge < parent_left_edge in dim " + std::to_string(d) + ".\n";
+                        break;
                     }
-                    if (!(hierarchy[i].right_edge[d] <= parent_right_edge[d])) {
-                        YT_ABORT("Grid ID [%ld], Parent ID [%ld], parent_right_edge[%d] < grid_right_edge[%d].\n",
-                                 hierarchy[i].id, hierarchy[i].parent_id, d, d);
+                    if (hierarchy[i].right_edge[d] > parent_right_edge[d]) {
+                        error = "(grid id, parent id) = (" + std::to_string(hierarchy[i].id) + ", " +
+                                std::to_string(hierarchy[i].parent_id) + "), " +
+                                "), grid_right_edge > parent_right_edge in dim " + std::to_string(d) + ".\n";
+                        break;
                     }
+                }
+                if (!error.empty()) {
+                    break;
                 }
 
                 // Check parent's level = children level - 1
                 int parent_level = hierarchy[order[hierarchy[i].parent_id - index_offset_]].level;
-                if (!(parent_level == hierarchy[i].level - 1)) {
-                    YT_ABORT("Grid ID [%ld], Parent ID [%ld], parent level %d != children level %d - 1.\n",
-                             hierarchy[i].id, hierarchy[i].parent_id, parent_level, hierarchy[i].level);
+                if (parent_level != hierarchy[i].level - 1) {
+                    error = "(grid id, parent id) = (" + std::to_string(hierarchy[i].id) + ", " +
+                            std::to_string(hierarchy[i].parent_id) + "), parent level " + std::to_string(parent_level) +
+                            " != children level " + std::to_string(hierarchy[i].level) + " - 1.\n";
+                    break;
                 }
             }
         }
@@ -1764,6 +1798,12 @@ DataStructureOutput DataStructureAmr::CheckHierarchyIsValid() const {
 
     // Free resource
     delete[] order;
+
+    if (error.empty()) {
+        return {DataStructureStatus::kDataStructureSuccess, ""};
+    } else {
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
 }
 
 DataStructureOutput DataStructureAmr::CheckSumOfNumGridsLocalEqualsNumGrids() const { return DataStructureOutput(); }

@@ -82,7 +82,11 @@ private:
     DataStructureOutput BindLocalParticleDataToPython(const yt_grid& grid) const;
 
     // Check data method
-    DataStructureOutput CheckHierarchyIsValid() const;
+#ifndef SERIAL_MODE
+    DataStructureOutput CheckHierarchyIsValid(yt_hierarchy* hierarchy) const;
+#else
+    DataStructureOutput CheckHierarchyIsValid(yt_grid* hierarchy) const;
+#endif
     DataStructureOutput CheckSumOfNumGridsLocalEqualsNumGrids() const;
     DataStructureOutput CheckFieldList() const;
     DataStructureOutput CheckParticleList() const;
