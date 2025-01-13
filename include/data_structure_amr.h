@@ -89,10 +89,10 @@ private:
     DataStructureOutput CheckHierarchyIsValid(yt_grid* hierarchy) const;
 #endif
     DataStructureOutput CheckFieldList() const;
+    DataStructureOutput CheckField(const yt_field& field) const;
     DataStructureOutput CheckParticleList() const;
     DataStructureOutput CheckGridsLocal() const;
     DataStructureOutput CheckGrid() const;
-    DataStructureOutput CheckField() const;
     DataStructureOutput CheckParticle() const;
     DataStructureOutput CheckParticleAttribute() const;
 
