@@ -359,12 +359,21 @@ DataStructureOutput DataStructureAmr::AllocateFullHierarchyStorageForPython(long
 //                2. It stores the output in pointer passed in by the client, and it needs to be freed once
 //                   it's done.
 //-------------------------------------------------------------------------------------------------------
-void DataStructureAmr::GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr,
-                                          long*** full_particle_count_ptr) const {
+DataStructureOutput DataStructureAmr::GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr,
+                                                         long*** full_particle_count_ptr) const {
 #ifndef SERIAL_MODE
     // Get num_grids_local in different ranks
     int* all_num_grids_local = new int[mpi_size_];
-    CommMpi::SetAllNumGridsLocal(all_num_grids_local, num_grids_local_);  // TODO: call check sum of all_num_grids_local
+    CommMpi::SetAllNumGridsLocal(all_num_grids_local, num_grids_local_);
+    long num_grids = 0;
+    for (int r = 0; r < mpi_size_; r++) {
+        num_grids += all_num_grids_local[r];
+    }
+    if (num_grids != num_grids_) {
+        delete[] all_num_grids_local;
+        std::string error = "Sum of number of local grids in all ranks is not equal to the total number of grids.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
 
     // Prepare storage for Mpi
     yt_hierarchy* hierarchy_full = new yt_hierarchy[num_grids_];
@@ -418,6 +427,8 @@ void DataStructureAmr::GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hier
     }
     delete[] particle_count_list_local;
 #endif
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -965,15 +976,23 @@ DataStructureOutput DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
     // Gather hierarchy from different ranks to root rank.
     yt_hierarchy* hierarchy_full = nullptr;
     long** particle_count_list_full = nullptr;
-    GatherAllHierarchy(mpi_root, &hierarchy_full, &particle_count_list_full);
+    DataStructureOutput status;
 
-    // Check data
-    DataStructureOutput status = {DataStructureStatus::kDataStructureSuccess, ""};
-    if (check_data_) {
-        status = CheckHierarchyIsValid(hierarchy_full);
-    }
+    while (true) {
+        // Gather hierarchy
+        status = GatherAllHierarchy(mpi_root, &hierarchy_full, &particle_count_list_full);
+        if (status.status != DataStructureStatus::kDataStructureSuccess) {
+            break;
+        }
 
-    if (status.status == DataStructureStatus::kDataStructureSuccess) {
+        // Check data
+        if (check_data_) {
+            status = CheckHierarchyIsValid(hierarchy_full);
+            if (status.status != DataStructureStatus::kDataStructureSuccess) {
+                break;
+            }
+        }
+
         // Bind hierarchy to Python
         for (long i = 0; i < num_grids_; i++) {
             long index = hierarchy_full[i].id - index_offset_;
@@ -991,6 +1010,7 @@ DataStructureOutput DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
                 }
             }
         }
+        break;
     }
 #else
     DataStructureOutput status = {DataStructureStatus::kDataStructureSuccess, ""};
@@ -1806,7 +1826,6 @@ DataStructureOutput DataStructureAmr::CheckHierarchyIsValid(yt_grid* hierarchy) 
     }
 }
 
-DataStructureOutput DataStructureAmr::CheckSumOfNumGridsLocalEqualsNumGrids() const { return DataStructureOutput(); }
 DataStructureOutput DataStructureAmr::CheckFieldList() const { return DataStructureOutput(); }
 DataStructureOutput DataStructureAmr::CheckParticleList() const { return DataStructureOutput(); }
 DataStructureOutput DataStructureAmr::CheckGridsLocal() const { return DataStructureOutput(); }

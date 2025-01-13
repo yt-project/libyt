@@ -75,7 +75,8 @@ private:
     void CleanUpLocalDataPythonBindings() const;
 
     // Sub operations
-    void GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr, long*** full_particle_count_ptr) const;
+    DataStructureOutput GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr,
+                                           long*** full_particle_count_ptr) const;
     DataStructureOutput BindFieldListToPython(PyObject* py_dict, const std::string& py_dict_name) const;
     DataStructureOutput BindParticleListToPython(PyObject* py_dict, const std::string& py_dict_name) const;
     DataStructureOutput BindLocalFieldDataToPython(const yt_grid& grid) const;
@@ -87,7 +88,6 @@ private:
 #else
     DataStructureOutput CheckHierarchyIsValid(yt_grid* hierarchy) const;
 #endif
-    DataStructureOutput CheckSumOfNumGridsLocalEqualsNumGrids() const;
     DataStructureOutput CheckFieldList() const;
     DataStructureOutput CheckParticleList() const;
     DataStructureOutput CheckGridsLocal() const;
