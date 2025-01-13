@@ -61,25 +61,36 @@ private:
     long* par_count_list_;
 
 private:
+    // Allocate storage
     DataStructureOutput AllocateFieldList(int num_fields);
     DataStructureOutput AllocateParticleList(int num_par_types, yt_par_type* par_type_list);
     DataStructureOutput AllocateGridsLocal(int num_grids_local, int num_fields, int num_par_types,
                                            yt_par_type* par_type_list);
     DataStructureOutput AllocateFullHierarchyStorageForPython(long num_grids, int num_par_types);
+
+    // Clean up
+    void CleanUpFieldList();
+    void CleanUpParticleList();
+    void CleanUpFullHierarchyStorageForPython();
+    void CleanUpLocalDataPythonBindings() const;
+
+    // Sub operations
     void GatherAllHierarchy(int mpi_root, yt_hierarchy** full_hierarchy_ptr, long*** full_particle_count_ptr) const;
     DataStructureOutput BindFieldListToPython(PyObject* py_dict, const std::string& py_dict_name) const;
     DataStructureOutput BindParticleListToPython(PyObject* py_dict, const std::string& py_dict_name) const;
     DataStructureOutput BindLocalFieldDataToPython(const yt_grid& grid) const;
     DataStructureOutput BindLocalParticleDataToPython(const yt_grid& grid) const;
 
-    // TODO: Provide check data method
-    // (1) check_sum_num_grids_local
-    // (2) check the hierarchy
-
-    void CleanUpFieldList();
-    void CleanUpParticleList();
-    void CleanUpFullHierarchyStorageForPython();
-    void CleanUpLocalDataPythonBindings() const;
+    // Check data method
+    DataStructureOutput CheckHierarchyIsValid() const;
+    DataStructureOutput CheckSumOfNumGridsLocalEqualsNumGrids() const;
+    DataStructureOutput CheckFieldList() const;
+    DataStructureOutput CheckParticleList() const;
+    DataStructureOutput CheckGridsLocal() const;
+    DataStructureOutput CheckGrid() const;
+    DataStructureOutput CheckField() const;
+    DataStructureOutput CheckParticle() const;
+    DataStructureOutput CheckParticleAttribute() const;
 
 public:
     // MPI
