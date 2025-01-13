@@ -71,4 +71,22 @@ target_link_libraries(TestPythonShell PUBLIC
 )
 endif ()
 endif ()
+
+## Test Data Structure Amr
+if (NOT SERIAL_MODE)
+add_executable(TestDataStructureAmrWithCommMpi test_data_structure_amr.cpp)
+target_include_directories(TestDataStructureAmrWithCommMpi PUBLIC
+    ${MPI_INCLUDE_PATH}
+    ${Python_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/include
+)
+target_link_libraries(TestDataStructureAmrWithCommMpi PUBLIC
+    gtest_main
+    MPI::MPI_CXX
+    ${Python_LIBRARIES}
+    yt
+)
+else()
+endif()
+
 endif () # if (LIBYT_RUN_TEST)
