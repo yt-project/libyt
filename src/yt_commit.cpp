@@ -61,15 +61,6 @@ int yt_commit() {
 
     log_info("Loading full hierarchy and local data to libyt ...\n");
 
-    yt_param_yt& param_yt = LibytProcessControl::Get().param_yt_;
-
-    // Check yt_grid* grids_local
-    if (LibytProcessControl::Get().param_libyt_.check_data && param_yt.num_grids_local > 0) {
-        if (check_grid() != YT_SUCCESS) {
-            YT_ABORT("Check grids_local failed in %s!\n", __FUNCTION__);
-        }
-    }
-
     // Add field_list to libyt.param_yt['field_list'] dictionary
     DataStructureOutput status;
     status = LibytProcessControl::Get().data_structure_amr_.BindInfoToPython("libyt.param_yt",
