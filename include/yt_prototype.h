@@ -40,12 +40,10 @@ pybind11::array get_pybind11_allocate_array_dtype(yt_dtype data_type, const std:
                                                   const std::vector<long>& stride);
 #endif
 
-int check_field_list();
 int check_particle_list();
 int check_grid();
 int check_yt_param_yt(const yt_param_yt& param_yt);
 int check_yt_grid(const yt_grid& grid);
-int check_yt_field(const yt_field& field);
 int check_yt_attribute(const yt_attribute& attr);
 int check_yt_particle(const yt_particle& particle);
 int print_yt_param_yt(const yt_param_yt& param_yt);

@@ -455,6 +455,13 @@ DataStructureOutput DataStructureAmr::GatherAllHierarchy(int mpi_root, yt_hierar
 //                   }
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::BindFieldListToPython(PyObject* py_dict, const std::string& py_dict_name) const {
+    if (check_data_) {
+        DataStructureOutput status = CheckFieldList();
+        if (status.status != DataStructureStatus::kDataStructureSuccess) {
+            return status;
+        }
+    }
+
 #ifndef USE_PYBIND11
     PyObject* field_list_dict = PyDict_New();
     PyObject *key, *val;
@@ -1826,10 +1833,112 @@ DataStructureOutput DataStructureAmr::CheckHierarchyIsValid(yt_grid* hierarchy) 
     }
 }
 
-DataStructureOutput DataStructureAmr::CheckFieldList() const { return DataStructureOutput(); }
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Private Method :  CheckFieldList
+//
+// Notes       :  1. Check field_list:
+//                   (1) Validate each yt_field element in field_list.
+//                   (2) Name of each field are unique.
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::CheckFieldList() const {
+    // Validate each yt_field element in field_list.
+    for (int v = 0; v < num_fields_; v++) {
+        yt_field& field = field_list_[v];
+        DataStructureOutput status = CheckField(field);
+        if (status.status != DataStructureStatus::kDataStructureSuccess) {
+            status.error += "(field_name) = " + std::string(field.field_name) + " is not valid.\n";
+            return status;
+        }
+    }
+
+    // Name of each field are unique.
+    for (int v1 = 0; v1 < num_fields_; v1++) {
+        for (int v2 = v1 + 1; v2 < num_fields_; v2++) {
+            if (strcmp(field_list_[v1].field_name, field_list_[v2].field_name) == 0) {
+                std::string error = "field_name in field_list[" + std::to_string(v1) + "] and field_list[" +
+                                    std::to_string(v2) + "] are not unique!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
+            }
+        }
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Private Method :  CheckField
+//
+// Notes       :  1. Check yt_field:
+//                   (1) field_name is set != NULL.
+//                   (2) field_type can only be : "cell-centered", "face-centered", "derived_func".
+//                   (3) Check if field_dtype is set.
+//                   (4) Raise warning if derived_func == NULL and field_type is set to "derived_func".
+//                   (5) field_ghost_cell cannot be smaller than 0.
+//                2. The fact that I'm defining how to check field here is weird, maybe should put it in
+//                   field class or something. Since yt_field is meant to be a struct only, I'm keeping this.
+//                3. Called by CheckFieldList().
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::CheckField(const yt_field& field) const {
+    // field name is set.
+    if (field.field_name == nullptr) {
+        std::string error = "field_name is not set!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    // field_type can only be : "cell-centered", "face-centered", "derived_func".
+    bool check1 = false;
+    int num_type = 3;
+    const char* type[3] = {"cell-centered", "face-centered", "derived_func"};
+    for (int i = 0; i < num_type; i++) {
+        if (strcmp(field.field_type, type[i]) == 0) {
+            check1 = true;
+            break;
+        }
+    }
+    if (!check1) {
+        std::string error = "(field_name, field_type) = (" + std::string(field.field_name) + ", " +
+                            std::string(field.field_type) + "), unknown field_type.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    // if field_dtype is set.
+    bool check2 = false;
+    for (int yt_dtype_int = YT_FLOAT; yt_dtype_int < YT_DTYPE_UNKNOWN; yt_dtype_int++) {
+        yt_dtype dtype = static_cast<yt_dtype>(yt_dtype_int);
+        if (field.field_dtype == dtype) {
+            check2 = true;
+            break;
+        }
+    }
+    if (!check2) {
+        std::string error = "(field_name) = " + std::string(field.field_name) + ", field_dtype is not set.\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    // Raise warning if derived_func == NULL and field_type is set to "derived_func".
+    if (strcmp(field.field_type, "derived_func") == 0 && field.derived_func == nullptr) {
+        std::string error = "(field_name, field_type) = (" + std::string(field.field_name) + ", " +
+                            std::string(field.field_type) + "), derived_func not set!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    // field_ghost_cell cannot be smaller than 0.
+    for (int d = 0; d < 6; d++) {
+        if (field.field_ghost_cell[d] < 0) {
+            std::string error = "(field_name) = (" + std::string(field.field_name) + "), field_ghost_cell[" +
+                                std::to_string(d) +
+                                "] < 0. This parameter means number of cells to ignore and should be >= 0!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
+        }
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
+}
+
 DataStructureOutput DataStructureAmr::CheckParticleList() const { return DataStructureOutput(); }
 DataStructureOutput DataStructureAmr::CheckGridsLocal() const { return DataStructureOutput(); }
 DataStructureOutput DataStructureAmr::CheckGrid() const { return DataStructureOutput(); }
-DataStructureOutput DataStructureAmr::CheckField() const { return DataStructureOutput(); }
 DataStructureOutput DataStructureAmr::CheckParticle() const { return DataStructureOutput(); }
 DataStructureOutput DataStructureAmr::CheckParticleAttribute() const { return DataStructureOutput(); }
