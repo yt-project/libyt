@@ -986,6 +986,13 @@ DataStructureOutput DataStructureAmr::BindInfoToPython(const std::string& py_dic
 //                         storage?
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
+    if (check_data_) {
+        DataStructureOutput status = CheckGridsLocal();
+        if (status.status != DataStructureStatus::kDataStructureSuccess) {
+            return status;
+        }
+    }
+
 #ifndef SERIAL_MODE
     // Gather hierarchy from different ranks to root rank.
     yt_hierarchy* hierarchy_full = nullptr;
@@ -2097,5 +2104,180 @@ DataStructureOutput DataStructureAmr::CheckParticleAttribute(yt_attribute& attr)
     return {DataStructureStatus::kDataStructureSuccess, ""};
 }
 
-DataStructureOutput DataStructureAmr::CheckGridsLocal() const { return DataStructureOutput(); }
-DataStructureOutput DataStructureAmr::CheckGrid() const { return DataStructureOutput(); }
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Private Method :  CheckGridsLocal
+//
+// Notes       :  1. Check grids_local:
+//                   (1) Validate each yt_grid element in grids_local.
+//                   (2) parent ID is inside range if there is one (level > 0).
+//                   (3) Root level starts at 0. So if level == 0, then parent ID < 0.
+//                   (4) domain left edge <= grid left edge. (NOT CHECK)
+//                   (5) grid right edge <= domain right edge. (NOT CHECK)
+//                   (6) grid left edge <= grid right edge. (Not sure if this still holds for periodic condition.)
+//                   (7) Abort if field_type = "cell-centered", and data_ptr == NULL.
+//                   (8) Abort if field_type = "face-centered", and data_ptr == NULL.
+//                   (9) If data_ptr != NULL, then data_dimensions > 0
+//                2. Needs field_list and the fact this is checking (7), (8), (9) is
+//                   due to bad api design. (TODO: bad api design)
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::CheckGridsLocal() const {
+    // check each grids individually
+    for (int i = 0; i < num_grids_local_; i++) {
+        yt_grid& grid = grids_local_[i];
+
+        // (1) Validate each yt_grid element in grids_local.
+        DataStructureOutput status = CheckGrid(grid);
+        if (status.status != DataStructureStatus::kDataStructureSuccess) {
+            status.error += "(grid id) = (" + std::to_string(grid.id) + ") is not valid!\n";
+            return status;
+        }
+
+        // (2) parent ID is inside range if there is one (level > 0).
+        if ((grid.level > 0) && (grid.parent_id - index_offset_ >= num_grids_ || grid.parent_id - index_offset_ < 0)) {
+            std::string error = "(grid id, level, parent id) = (" + std::to_string(grid.id) + ", " +
+                                std::to_string(grid.level) + ", " + std::to_string(grid.parent_id) +
+                                "), parent id is out of range!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
+        }
+
+        // (3) Root level starts at 0. So if level == 0, which has no parent, then parent ID >= 0 is error.
+        if (grid.level < 0) {
+            std::string error = "(grid id, level) = (" + std::to_string(grid.id) + ", " + std::to_string(grid.level) +
+                                "), level < 0 is not valid!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
+        }
+        if ((grid.level == 0) && (grid.parent_id - index_offset_ >= 0)) {
+            std::string error = "(grid id, level, parent id) = (" + std::to_string(grid.id) + ", " +
+                                std::to_string(grid.level) + ", " + std::to_string(grid.parent_id) +
+                                "), level 0 should not have parent grid!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
+        }
+
+        // edge
+        for (int d = 0; d < 3; d = d + 1) {
+            // (6) grid left edge <= grid right edge.
+            if (grid.right_edge[d] < grid.left_edge[d]) {
+                std::string error = "(grid id) = (" + std::to_string(grid.id) + "), dim " + std::to_string(d) +
+                                    " has right edge < left edge!\n";
+                return {DataStructureStatus::kDataStructureFailed, error};
+            }
+        }
+
+        // check field_data in each individual grid
+        for (int v = 0; v < num_fields_; v = v + 1) {
+            if (strcmp(field_list_[v].field_type, "cell-centered") == 0) {
+                // (7) Raise error if field_type = "cell-centered", and data_ptr is not set == NULL.
+                if (grid.field_data[v].data_ptr == nullptr) {
+                    std::string error = "(grid id, field_name, field_type) = (" + std::to_string(grid.id) + ", " +
+                                        std::string(field_list_[v].field_name) + ", " +
+                                        std::string(field_list_[v].field_type) + "), data is nullptr!\n";
+                    return {DataStructureStatus::kDataStructureFailed, error};
+                }
+            } else if (strcmp(field_list_[v].field_type, "face-centered") == 0) {
+                // (8) Raise error if field_type = "face-centered", and data_ptr is not set == NULL.
+                if (grid.field_data[v].data_ptr == nullptr) {
+                    std::string error = "(grid id, field_name, field_type) = (" + std::to_string(grid.id) + ", " +
+                                        std::string(field_list_[v].field_name) + ", " +
+                                        std::string(field_list_[v].field_type) + "), data is nullptr!\n";
+                    return {DataStructureStatus::kDataStructureFailed, error};
+                } else {
+                    // (9) If data_ptr != NULL, then data_dimensions > 0
+                    for (int d = 0; d < 3; d++) {
+                        if (grid.field_data[v].data_dimensions[d] <= 0) {
+                            std::string error = "(grid id, field_name, field_type) = (" + std::to_string(grid.id) +
+                                                ", " + std::string(field_list_[v].field_name) + ", " +
+                                                std::string(field_list_[v].field_type) +
+                                                "), data has data_dimensions[" + std::to_string(d) + "] <= 0!\n";
+                            return {DataStructureStatus::kDataStructureFailed, error};
+                        }
+                    }
+                }
+            }
+
+            // If field_type == "derived_func"
+            if (strcmp(field_list_[v].field_type, "derived_func") == 0) {
+                // (10) If data_ptr != NULL, then data_dimensions > 0
+                if (grid.field_data[v].data_ptr != nullptr) {
+                    for (int d = 0; d < 3; d++) {
+                        if (grid.field_data[v].data_dimensions[d] <= 0) {
+                            std::string error = "(grid id, field_name, field_type) = (" + std::to_string(grid.id) +
+                                                ", " + std::string(field_list_[v].field_name) + ", " +
+                                                std::string(field_list_[v].field_type) +
+                                                "), data has data_dimensions[" + std::to_string(d) + "] <= 0!\n";
+                            return {DataStructureStatus::kDataStructureFailed, error};
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Private Method :  CheckGrid
+//
+// Notes       :  1. Check yt_grid:
+//                   (1) left_edge and right_edge are set != DBL_UNDEFINED.
+//                   (2) grid dimensions are larger than 0.
+//                   (3) grid id is within range
+//                   (4) parent id is set != LNG_UNDEFINED.
+//                   (5) Level should be larger or equal to 0.
+//                   (6) Proc num should be in 0 ~ mpi_size_ - 1.
+//                2. The fact that I'm defining how to check grid here is weird, maybe should put it in
+//                   grid class or something. Since yt_grid is meant to be struct only, I'm keeping this.
+//                3. Called by CheckGridsLocal().
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::CheckGrid(yt_grid& grid) const {
+    // left_edge and right_edge are set
+    for (int d = 0; d < 3; d++) {
+        if (grid.left_edge[d] == DBL_UNDEFINED) {
+            std::string error =
+                "(grid id) = (" + std::to_string(grid.id) + "), left_edge[" + std::to_string(d) + "] is not set!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
+        }
+        if (grid.right_edge[d] == DBL_UNDEFINED) {
+            std::string error =
+                "(grid id) = (" + std::to_string(grid.id) + "), right_edge[" + std::to_string(d) + "] is not set!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
+        }
+    }
+
+    // Grid dimensions should be larger than 0
+    for (int d = 0; d < 3; d++) {
+        if (grid.grid_dimensions[d] <= 0) {
+            std::string error = "(grid id) = (" + std::to_string(grid.id) + "), grid_dimensions[" + std::to_string(d) +
+                                "] should be larger than 0!\n";
+            return {DataStructureStatus::kDataStructureFailed, error};
+        }
+    }
+
+    // ID should be within range
+    if (grid.id - index_offset_ >= num_grids_ || grid.id - index_offset_ < 0) {
+        std::string error = "(grid id) = (" + std::to_string(grid.id) + "), grid id is out of range!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    // Parent id should be set
+    if (grid.parent_id == LNG_UNDEFINED) {
+        std::string error = "(grid id) = (" + std::to_string(grid.id) + "), parent id is not set!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    // Level should be larger or equal to 0
+    if (grid.level < 0) {
+        std::string error = "(grid id) = (" + std::to_string(grid.id) + "), level should be larger or equal to 0!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    // Proc num should be in 0 ~ mpi_size_ - 1
+    if (grid.proc_num < 0 || grid.proc_num >= mpi_size_) {
+        std::string error = "(grid id) = (" + std::to_string(grid.id) + "), proc_num (MPI rank) is out of range!\n";
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
+}

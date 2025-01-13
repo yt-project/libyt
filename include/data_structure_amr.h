@@ -94,7 +94,7 @@ private:
     DataStructureOutput CheckParticle(yt_particle& particle) const;
     DataStructureOutput CheckParticleAttribute(yt_attribute& attr) const;
     DataStructureOutput CheckGridsLocal() const;
-    DataStructureOutput CheckGrid() const;
+    DataStructureOutput CheckGrid(yt_grid& grid) const;
 
 public:
     // MPI
