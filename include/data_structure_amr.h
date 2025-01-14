@@ -134,6 +134,8 @@ public:
     void CleanUp();
 
     // Look up field/particle info method.
+    yt_field* GetFieldList() const { return field_list_; }
+    yt_particle* GetParticleList() const { return particle_list_; }
     int GetFieldIndex(const char* field_name) const;
     int GetParticleIndex(const char* particle_type) const;
     int GetParticleAttributeIndex(int particle_type_index, const char* attr_name) const;
