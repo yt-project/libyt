@@ -37,7 +37,7 @@ int yt_get_FieldsPtr(yt_field** field_list) {
 
     log_info("Getting pointer to field list information ...\n");
 
-    *field_list = LibytProcessControl::Get().data_structure_amr_.field_list_;
+    *field_list = LibytProcessControl::Get().data_structure_amr_.GetFieldList();
 
     LibytProcessControl::Get().get_fieldsPtr = true;
     log_info("Getting pointer to field list information  ... done.\n");

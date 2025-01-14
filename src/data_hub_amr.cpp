@@ -20,7 +20,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
     // Free cache before doing new query
     ClearCache();
 
-    yt_field* field_list = ds_amr.field_list_;
+    yt_field* field_list = ds_amr.GetFieldList();
     int field_id = ds_amr.GetFieldIndex(field_name.c_str());
     if (field_id == -1) {
         error_str_ = std::string("Cannot find field_name [ ") + field_name +
@@ -138,7 +138,7 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
     // Free cache before doing new query
     ClearCache();
 
-    yt_particle* particle_list = ds_amr.particle_list_;
+    yt_particle* particle_list = ds_amr.GetParticleList();
     int ptype_index = ds_amr.GetParticleIndex(ptype.c_str());
     int pattr_index = ds_amr.GetParticleAttributeIndex(ptype_index, pattr.c_str());
     if (ptype_index == -1 || pattr_index == -1) {
