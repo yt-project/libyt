@@ -134,6 +134,7 @@ public:
     void CleanUp();
 
     // Look up field/particle info method.
+    yt_grid* GetGridsLocal() const { return grids_local_; }
     yt_field* GetFieldList() const { return field_list_; }
     yt_particle* GetParticleList() const { return particle_list_; }
     int GetFieldIndex(const char* field_name) const;
