@@ -2,6 +2,8 @@
 #ifndef SERIAL_MODE
 #include "comm_mpi.h"
 #endif
+#include <Python.h>
+#include <numpy/arrayobject.h>
 
 #include "data_structure_amr.h"
 
@@ -56,6 +58,28 @@ protected:
     PyObject* GetPyHierarchy() const { return py_hierarchy_; }
     PyObject* GetPyGridData() const { return py_grid_data_; }
     PyObject* GetPyParticleData() const { return py_particle_data_; }
+    void GenerateLocalHierarchy(long num_grids, int index_offset, yt_grid* grids_local, int num_grids_local) {
+        // Calculate range based on mpi rank
+        long start_i = GetMpiRank() * (num_grids / GetMpiSize());
+
+        // Domain dimensions
+        int grid_dim[3] = {10, 1, 1};
+        double dx_grid = 1.0;
+        double domain_left_edge[3] = {0.0, 0.0, 0.0};
+        double domain_right_edge[3] = {dx_grid * (double)num_grids, 1.0, 1.0};
+
+        for (int i = 0; i < num_grids_local; i++) {
+            long gid = start_i + i + index_offset;
+            grids_local[i].id = gid;
+            grids_local[i].parent_id = -1;
+            grids_local[i].level = 0;
+            for (int d = 0; d < 3; d++) {
+                grids_local[i].grid_dimensions[d] = grid_dim[d];
+                grids_local[i].left_edge[d] = domain_left_edge[d] + dx_grid * (double)(start_i + i);
+                grids_local[i].right_edge[d] = domain_left_edge[d] + dx_grid;
+            }
+        }
+    }
 };
 
 class TestDataStructureAmr : public PythonFixture {};
@@ -64,6 +88,26 @@ TEST_F(TestDataStructureAmr, Can_gather_local_hierarchy_and_bind_all_hierarchy_t
     std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
 
     // Arrange
+    DataStructureAmr ds_amr;
+    ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
+
+    int mpi_root = 0;
+    int index_offset = 0;
+    bool check_data = false;
+    long num_grids = 2400;
+    int num_grids_local = (int)num_grids / GetMpiSize();
+    //    ds_amr.AllocateStorage(num_grids, num_grids_local, 0, 0, nullptr, index_offset, check_data);
+    //    GenerateLocalHierarchy(num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local);
+
+    // Act
+    //    DataStructureOutput status = ds_amr.BindAllHierarchyToPython(mpi_root);
+
+    // Assert
+    //    EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess);
+    // TODO: check the hierarchy (maybe use Get method in ds_amr)
+
+    // Clean up
+    ds_amr.CleanUp();
 }
 
 int main(int argc, char** argv) {
@@ -81,6 +125,12 @@ int main(int argc, char** argv) {
     }
     Py_SetProgramName(program);
     Py_Initialize();
+    int numpy_result = _import_array();
+    if (numpy_result < 0) {
+        PyErr_Print();
+        fprintf(stderr, "numpy import error\n");
+        exit(1);
+    }
 
     result = RUN_ALL_TESTS();
 

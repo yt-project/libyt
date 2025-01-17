@@ -84,6 +84,7 @@ target_link_libraries(TestDataStructureAmrWithCommMpi PUBLIC
     gtest_main
     MPI::MPI_CXX
     ${Python_LIBRARIES}
+    Python::NumPy
     yt
 )
 else()
