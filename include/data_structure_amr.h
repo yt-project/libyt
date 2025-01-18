@@ -121,6 +121,7 @@ public:
         mpi_rank_ = mpi_rank;
         // TODO: maybe move MPI custom type here
     }
+    static int InitializeNumPy();
     DataStructureAmr();
     void SetPythonBindings(PyObject* py_hierarchy, PyObject* py_grid_data, PyObject* py_particle_data);
 

@@ -3,7 +3,6 @@
 #include "comm_mpi.h"
 #endif
 #include <Python.h>
-#include <numpy/arrayobject.h>
 
 #include "data_structure_amr.h"
 
@@ -24,13 +23,15 @@ private:
         CommMpi::InitializeInfo(0);
 #endif
         DataStructureAmr::SetMpiInfo(mpi_size_, 0, mpi_rank_);
+        DataStructureAmr::InitializeNumPy();
+        CommMpi::InitializeYtHierarchyMpiDataType();
 
         // Initialize
-        std::cout << "Initialize Python dictionary hierarchy, grid_data, particle_data ... done" << std::endl;
         InitializeTemplateDictStorage();
         py_hierarchy_ = CreateTemplateDictStorage("hierarchy");
         py_grid_data_ = CreateTemplateDictStorage("grid_data");
         py_particle_data_ = CreateTemplateDictStorage("particle_data");
+        std::cout << "Initialize Python dictionary hierarchy, grid_data, particle_data ... done" << std::endl;
     }
 
     void TearDown() override { PyRun_SimpleString("del sys"); }
@@ -96,14 +97,14 @@ TEST_F(TestDataStructureAmr, Can_gather_local_hierarchy_and_bind_all_hierarchy_t
     bool check_data = false;
     long num_grids = 2400;
     int num_grids_local = (int)num_grids / GetMpiSize();
-    //    ds_amr.AllocateStorage(num_grids, num_grids_local, 0, 0, nullptr, index_offset, check_data);
-    //    GenerateLocalHierarchy(num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local);
+    ds_amr.AllocateStorage(num_grids, num_grids_local, 0, 0, nullptr, index_offset, check_data);
+    GenerateLocalHierarchy(num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local);
 
     // Act
-    //    DataStructureOutput status = ds_amr.BindAllHierarchyToPython(mpi_root);
+    DataStructureOutput status = ds_amr.BindAllHierarchyToPython(mpi_root);
 
     // Assert
-    //    EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess);
+    EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
     // TODO: check the hierarchy (maybe use Get method in ds_amr)
 
     // Clean up
@@ -125,12 +126,6 @@ int main(int argc, char** argv) {
     }
     Py_SetProgramName(program);
     Py_Initialize();
-    int numpy_result = _import_array();
-    if (numpy_result < 0) {
-        PyErr_Print();
-        fprintf(stderr, "numpy import error\n");
-        exit(1);
-    }
 
     result = RUN_ALL_TESTS();
 
