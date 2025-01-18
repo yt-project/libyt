@@ -76,9 +76,11 @@ protected:
             grids_local[i].level = 0;
             for (int d = 0; d < 3; d++) {
                 grids_local[i].grid_dimensions[d] = grid_dim[d];
-                grids_local[i].left_edge[d] = domain_left_edge[d] + dx_grid * (double)(start_i + i);
-                grids_local[i].right_edge[d] = domain_left_edge[d] + dx_grid;
+                grids_local[i].left_edge[d] = domain_left_edge[d];
+                grids_local[i].right_edge[d] = domain_right_edge[d];
             }
+            grids_local[i].left_edge[0] = domain_left_edge[0] + dx_grid * (double)(start_i + i);
+            grids_local[i].right_edge[0] = domain_left_edge[0] + dx_grid * (double)(start_i + i + 1);
         }
     }
 };
