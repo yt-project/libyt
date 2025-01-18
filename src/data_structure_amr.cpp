@@ -4,6 +4,8 @@
 #include "comm_mpi.h"
 #endif
 
+#include <numpy/arrayobject.h>
+
 #include "yt_combo.h"
 #ifdef USE_PYBIND11
 #include "pybind11/embed.h"
@@ -71,6 +73,23 @@ void DataStructureAmr::SetPythonBindings(PyObject* py_hierarchy, PyObject* py_gr
     py_hierarchy_ = py_hierarchy;
     py_grid_data_ = py_grid_data;
     py_particle_data_ = py_particle_data;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  DataStructureAmr
+// Public Method :  InitializeNumPy
+//
+// Notes       :  1. Currently, this method is only for unit test.
+//                   This is because NumPy API initialization only imports the api within a translation unit.
+//                   Since we compile it to a libyt library and make unit test link to it,
+//                   it is in separate translation unit, we need to have a public API to initialize NumPy API
+//                   within libyt library itself.
+//-------------------------------------------------------------------------------------------------------
+int DataStructureAmr::InitializeNumPy() {
+    if (PyArray_API == nullptr) {
+        import_array1(-1);
+    }
+    return 0;
 }
 
 //-------------------------------------------------------------------------------------------------------
