@@ -67,7 +67,8 @@ protected:
         int grid_dim[3] = {10, 1, 1};
         double dx_grid = 1.0;
         double domain_left_edge[3] = {0.0, 0.0, 0.0};
-        double domain_right_edge[3] = {dx_grid * (double)num_grids, 1.0, 1.0};
+        double domain_right_edge[3] = {dx_grid * (double)num_grids, dx_grid * (double)num_grids,
+                                       dx_grid * (double)num_grids};
 
         for (int i = 0; i < num_grids_local; i++) {
             long gid = start_i + i + index_offset;
@@ -76,11 +77,9 @@ protected:
             grids_local[i].level = 0;
             for (int d = 0; d < 3; d++) {
                 grids_local[i].grid_dimensions[d] = grid_dim[d];
-                grids_local[i].left_edge[d] = domain_left_edge[d];
-                grids_local[i].right_edge[d] = domain_right_edge[d];
+                grids_local[i].left_edge[d] = domain_left_edge[d] + dx_grid * (double)(start_i + i);
+                grids_local[i].right_edge[d] = domain_left_edge[d] + dx_grid * (double)(start_i + i + 1);
             }
-            grids_local[i].left_edge[0] = domain_left_edge[0] + dx_grid * (double)(start_i + i);
-            grids_local[i].right_edge[0] = domain_left_edge[0] + dx_grid * (double)(start_i + i + 1);
         }
     }
 };
@@ -95,19 +94,60 @@ TEST_F(TestDataStructureAmr, Can_gather_local_hierarchy_and_bind_all_hierarchy_t
     ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
 
     int mpi_root = 0;
-    int index_offset = 0;
+    int index_offset = 1;  // TODO: parameterize this to 0, 1
     bool check_data = false;
     long num_grids = 2400;
     int num_grids_local = (int)num_grids / GetMpiSize();
+    if (GetMpiRank() == GetMpiSize() - 1) {
+        num_grids_local = (int)num_grids - num_grids_local * (GetMpiSize() - 1);
+    }
     ds_amr.AllocateStorage(num_grids, num_grids_local, 0, 0, nullptr, index_offset, check_data);
     GenerateLocalHierarchy(num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local);
 
     // Act
     DataStructureOutput status = ds_amr.BindAllHierarchyToPython(mpi_root);
 
-    // Assert
+    // Assert it gets full hierarchy
     EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
-    // TODO: check the hierarchy (maybe use Get method in ds_amr)
+    for (int gid = index_offset; gid < num_grids + index_offset; gid++) {
+        int grid_dims[3];
+        status = ds_amr.GetPythonBoundFullHierarchyGridDimensions(gid, grid_dims);
+        EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+        EXPECT_EQ(grid_dims[0], 10);
+        EXPECT_EQ(grid_dims[1], 1);
+        EXPECT_EQ(grid_dims[2], 1);
+
+        double grid_left_edge[3], grid_right_edge[3];
+        status = ds_amr.GetPythonBoundFullHierarchyGridLeftEdge(gid, grid_left_edge);
+        EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+        for (int d = 0; d < 3; d++) {
+            EXPECT_EQ(grid_left_edge[d], (double)gid - index_offset);
+        }
+        status = ds_amr.GetPythonBoundFullHierarchyGridRightEdge(gid, grid_right_edge);
+        EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+        for (int d = 0; d < 3; d++) {
+            EXPECT_EQ(grid_right_edge[d], (double)gid - index_offset + 1.0);
+        }
+
+        long parent_id = -2;
+        status = ds_amr.GetPythonBoundFullHierarchyGridParentId(gid, &parent_id);
+        EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+        EXPECT_EQ(parent_id, -1);
+
+        int level = -2;
+        status = ds_amr.GetPythonBoundFullHierarchyGridLevel(gid, &level);
+        EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+        EXPECT_EQ(level, 0);
+
+        int proc_num = -2;
+        status = ds_amr.GetPythonBoundFullHierarchyGridProcNum(gid, &proc_num);
+        EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+        int ans_proc_num = ((int)gid - index_offset) / (num_grids / GetMpiSize());
+        if (ans_proc_num == GetMpiSize()) {
+            ans_proc_num = GetMpiSize() - 1;
+        }
+        EXPECT_EQ(proc_num, ans_proc_num);
+    }
 
     // Clean up
     ds_amr.CleanUp();
