@@ -84,9 +84,9 @@ protected:
     }
 };
 
-class TestDataStructureAmr : public PythonFixture {};
+class TestDataStructureAmrHierarchy : public PythonFixture, public testing::WithParamInterface<int> {};
 
-TEST_F(TestDataStructureAmr, Can_gather_local_hierarchy_and_bind_all_hierarchy_to_Python) {
+TEST_P(TestDataStructureAmrHierarchy, Can_gather_local_hierarchy_and_bind_all_hierarchy_to_Python) {
     std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
 
     // Arrange
@@ -94,13 +94,15 @@ TEST_F(TestDataStructureAmr, Can_gather_local_hierarchy_and_bind_all_hierarchy_t
     ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
 
     int mpi_root = 0;
-    int index_offset = 1;  // TODO: parameterize this to 0, 1
+    int index_offset = GetParam();
     bool check_data = false;
     long num_grids = 2400;
     int num_grids_local = (int)num_grids / GetMpiSize();
     if (GetMpiRank() == GetMpiSize() - 1) {
         num_grids_local = (int)num_grids - num_grids_local * (GetMpiSize() - 1);
     }
+    std::cout << "(mpi_root, index_offset, num_grids, num_grids_local, check_data) = (" << mpi_root << ", "
+              << index_offset << ", " << num_grids << ", " << num_grids_local << ", " << check_data << ")" << std::endl;
     ds_amr.AllocateStorage(num_grids, num_grids_local, 0, 0, nullptr, index_offset, check_data);
     GenerateLocalHierarchy(num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local);
 
@@ -152,6 +154,9 @@ TEST_F(TestDataStructureAmr, Can_gather_local_hierarchy_and_bind_all_hierarchy_t
     // Clean up
     ds_amr.CleanUp();
 }
+
+INSTANTIATE_TEST_SUITE_P(TestDataStructureAmrHierarchyInstantiation, TestDataStructureAmrHierarchy,
+                         testing::Values(0, 1));
 
 int main(int argc, char** argv) {
     int result = 0;
