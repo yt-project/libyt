@@ -21,6 +21,7 @@ private:
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
         CommMpi::InitializeInfo(0);
+        CommMpi::InitializeYtLongMpiDataType();
         CommMpi::InitializeYtHierarchyMpiDataType();
 #endif
         DataStructureAmr::SetMpiInfo(mpi_size_, 0, mpi_rank_);
@@ -80,6 +81,9 @@ protected:
                 grids_local[i].left_edge[d] = domain_left_edge[d] + dx_grid * (double)(start_i + i);
                 grids_local[i].right_edge[d] = domain_left_edge[d] + dx_grid * (double)(start_i + i + 1);
             }
+            for (int p = 0; p < 2; p++) {
+                grids_local[i].par_count_list[p] = gid;
+            }
         }
     }
 };
@@ -98,12 +102,18 @@ TEST_P(TestDataStructureAmrHierarchy, Can_gather_local_hierarchy_and_bind_all_hi
     bool check_data = false;
     long num_grids = 2400;
     int num_grids_local = (int)num_grids / GetMpiSize();
+    int num_par_types = 2;
+    yt_par_type par_type_list[2];
+    par_type_list[0].par_type = "dark_matter";
+    par_type_list[1].par_type = "star";
+    par_type_list[0].num_attr = 2;
+    par_type_list[1].num_attr = 2;
     if (GetMpiRank() == GetMpiSize() - 1) {
         num_grids_local = (int)num_grids - num_grids_local * (GetMpiSize() - 1);
     }
     std::cout << "(mpi_root, index_offset, num_grids, num_grids_local, check_data) = (" << mpi_root << ", "
               << index_offset << ", " << num_grids << ", " << num_grids_local << ", " << check_data << ")" << std::endl;
-    ds_amr.AllocateStorage(num_grids, num_grids_local, 0, 0, nullptr, index_offset, check_data);
+    ds_amr.AllocateStorage(num_grids, num_grids_local, 0, num_par_types, par_type_list, index_offset, check_data);
     GenerateLocalHierarchy(num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local);
 
     // Act
@@ -149,6 +159,14 @@ TEST_P(TestDataStructureAmrHierarchy, Can_gather_local_hierarchy_and_bind_all_hi
             ans_proc_num = GetMpiSize() - 1;
         }
         EXPECT_EQ(proc_num, ans_proc_num);
+
+        long par_count = -2;
+        status = ds_amr.GetPythonBoundFullHierarchyGridParticleCount(gid, "dark_matter", &par_count);
+        EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+        EXPECT_EQ(par_count, gid);
+        status = ds_amr.GetPythonBoundFullHierarchyGridParticleCount(gid, "star", &par_count);
+        EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+        EXPECT_EQ(par_count, gid);
     }
 
     // Clean up
