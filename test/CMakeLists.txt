@@ -84,10 +84,19 @@ target_link_libraries(TestDataStructureAmrWithCommMpi PUBLIC
     gtest_main
     MPI::MPI_CXX
     ${Python_LIBRARIES}
-    Python::NumPy
     yt
 )
 else()
+add_executable(TestDataStructureAmr test_data_structure_amr.cpp)
+target_include_directories(TestDataStructureAmr PUBLIC
+        ${Python_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}/include
+)
+target_link_libraries(TestDataStructureAmr PUBLIC
+        gtest_main
+        ${Python_LIBRARIES}
+        yt
+)
 endif()
 
 endif () # if (LIBYT_RUN_TEST)
