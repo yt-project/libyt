@@ -109,8 +109,9 @@ protected:
     }
 };
 
-class TestDataStructureAmr : public PythonFixture, public testing::WithParamInterface<int> {};
 class TestDataStructureAmrBindFieldParticleInfo : public PythonFixture {};
+class TestDataStructureAmrBindHierarchy : public PythonFixture, public testing::WithParamInterface<int> {};
+class TestDataStructureAmrBindLocalData : public PythonFixture, public testing::WithParamInterface<int> {};
 
 TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_field_info_to_Python) {
     std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
@@ -215,7 +216,7 @@ TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_particle_info_to_Pyth
     ds_amr.CleanUp();
 }
 
-TEST_P(TestDataStructureAmr, Can_gather_local_hierarchy_and_bind_all_hierarchy_to_Python) {
+TEST_P(TestDataStructureAmrBindHierarchy, Can_gather_local_hierarchy_and_bind_all_hierarchy_to_Python) {
     std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
 
     // Arrange
@@ -303,7 +304,13 @@ TEST_P(TestDataStructureAmr, Can_gather_local_hierarchy_and_bind_all_hierarchy_t
     ds_amr.CleanUp();
 }
 
-INSTANTIATE_TEST_SUITE_P(TestDataStructureAmrHierarchyInstantiation, TestDataStructureAmr, testing::Values(0, 1));
+TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_field_data_to_Python) {}
+
+TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_particle_data_to_Python) {}
+
+INSTANTIATE_TEST_SUITE_P(DifferentIndexOffset, TestDataStructureAmrBindHierarchy, testing::Values(0, 1));
+
+INSTANTIATE_TEST_SUITE_P(DifferentIndexOffset, TestDataStructureAmrBindLocalData, testing::Values(0, 1));
 
 int main(int argc, char** argv) {
     int result = 0;
