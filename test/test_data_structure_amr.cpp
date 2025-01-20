@@ -57,6 +57,7 @@ private:
 protected:
     int GetMpiRank() const { return mpi_rank_; }
     int GetMpiSize() const { return mpi_size_; }
+    PyObject* GetPyTemplateDictStorage() const { return py_template_dict_storage_; }
     PyObject* GetPyHierarchy() const { return py_hierarchy_; }
     PyObject* GetPyGridData() const { return py_grid_data_; }
     PyObject* GetPyParticleData() const { return py_particle_data_; }
@@ -108,9 +109,56 @@ protected:
     }
 };
 
-class TestDataStructureAmrHierarchy : public PythonFixture, public testing::WithParamInterface<int> {};
+class TestDataStructureAmr : public PythonFixture, public testing::WithParamInterface<int> {};
+class TestDataStructureAmrBindFieldParticleInfo : public PythonFixture {};
 
-TEST_P(TestDataStructureAmrHierarchy, Can_gather_local_hierarchy_and_bind_all_hierarchy_to_Python) {
+TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_field_info_to_Python) {
+    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
+
+    // Arrange
+    DataStructureAmr ds_amr;
+    ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
+
+    int index_offset = 0;
+    bool check_data = false;
+    long num_grids = 2400;
+    int num_grids_local = (int)num_grids / GetMpiSize();
+    int num_fields = 2;
+    if (GetMpiRank() == GetMpiSize() - 1) {
+        num_grids_local = (int)num_grids - num_grids_local * (GetMpiSize() - 1);
+    }
+    std::cout << "(num_fields) = (" << num_fields << ")" << std::endl;
+    ds_amr.AllocateStorage(num_grids, num_grids_local, num_fields, 0, nullptr, index_offset, check_data);
+
+    yt_field* field_list = ds_amr.GetFieldList();
+    field_list[0].field_name = "Field1";
+    field_list[0].field_dtype = YT_DOUBLE;
+    field_list[1].field_name = "Field2";
+    field_list[1].field_dtype = YT_FLOAT;
+    field_list[1].field_unit = "g/cm^3";
+    field_list[1].num_field_name_alias = 2;
+    const char* field2_alias[2] = {"Field2_alias1", "Field2_alias2"};
+    field_list[1].field_name_alias = field2_alias;
+    field_list[1].field_display_name = "Field2_display_name";
+
+    // Act
+    DataStructureOutput status = ds_amr.BindInfoToPython("sys.TEMPLATE_DICT_STORAGE", GetPyTemplateDictStorage());
+
+    // Assert it can get field info in Python and lookup index method works
+    EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+
+    // Print field_list in Python
+    // (Field list in Python is printed here instead of checking its value in Python is because it takes lots of effort
+    //  to retrieve, so I just print it for simplicity. Maybe can add a check later if necessary.)
+    PyRun_SimpleString("import pprint;pprint.pprint(sys.TEMPLATE_DICT_STORAGE['field_list'])");
+
+    // Clean up
+    ds_amr.CleanUp();
+}
+
+TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_particle_info_to_Python) {}
+
+TEST_P(TestDataStructureAmr, Can_gather_local_hierarchy_and_bind_all_hierarchy_to_Python) {
     std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
 
     // Arrange
@@ -139,7 +187,7 @@ TEST_P(TestDataStructureAmrHierarchy, Can_gather_local_hierarchy_and_bind_all_hi
     // Act
     DataStructureOutput status = ds_amr.BindAllHierarchyToPython(mpi_root);
 
-    // Assert it gets full hierarchy
+    // Assert it can look up full hierarchy
     EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
     for (int gid = index_offset; gid < num_grids + index_offset; gid++) {
         // Get grid hierarchy
@@ -198,8 +246,7 @@ TEST_P(TestDataStructureAmrHierarchy, Can_gather_local_hierarchy_and_bind_all_hi
     ds_amr.CleanUp();
 }
 
-INSTANTIATE_TEST_SUITE_P(TestDataStructureAmrHierarchyInstantiation, TestDataStructureAmrHierarchy,
-                         testing::Values(0, 1));
+INSTANTIATE_TEST_SUITE_P(TestDataStructureAmrHierarchyInstantiation, TestDataStructureAmr, testing::Values(0, 1));
 
 int main(int argc, char** argv) {
     int result = 0;
