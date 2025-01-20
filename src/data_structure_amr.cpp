@@ -1096,9 +1096,10 @@ DataStructureOutput DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
 //
 // Notes       :  1. Wrap and build field data to a dictionary in libyt.grid_data[gid][fname].
 //                2. The key (gid, fname) will only be inside the dictionary only if the data is not nullptr.
-//                3. TODO: Assume all field data under same grid id is passed in and wrapped at once.
+//                3. Require field_list_ to be set before calling this function. (Bad Api)
+//                4. TODO: Assume all field data under same grid id is passed in and wrapped at once.
 //                         Maybe put building to a dictionary part at the end.
-//                4. TODO: Currently, the API forces this function to bind and build all the data
+//                5. TODO: Currently, the API forces this function to bind and build all the data
 //                         inside the grids_local_ array at once. Might change it in the future libyt v1.0.
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(const yt_grid& grid) const {
@@ -1187,9 +1188,10 @@ DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(const yt_grid& 
 //
 // Notes       :  1. Wrap and build particle data to a dictionary in libyt.particle_data[gid][ptype][attr].
 //                2. The key (gid, ptype, attr) will only be inside the dictionary only if the data is not nullptr.
-//                3. TODO: Currently, the API forces this function to bind and build all the data
+//                3. Require particle_list_ to be set before calling this function. (Bad Api)
+//                4. TODO: Currently, the API forces this function to bind and build all the data
 //                         inside the grids_local_ array at once. Might change it in the future libyt v1.0.
-//                4. TODO: Future Api shouldn't make hierarchy and data to closely related, so that we can have
+//                5. TODO: Future Api shouldn't make hierarchy and data to closely related, so that we can have
 //                         more flexibility. Like Enzo contains particle data with tuple values.
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::BindLocalParticleDataToPython(const yt_grid& grid) const {

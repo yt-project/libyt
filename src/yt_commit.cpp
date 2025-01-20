@@ -21,8 +21,6 @@
 //                in.
 //                9. TODO: this can be more memory efficient when gathering hierarchy.
 //
-// Parameter   :
-//
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 int yt_commit() {
