@@ -144,7 +144,7 @@ TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_field_info_to_Python)
     // Act
     DataStructureOutput status = ds_amr.BindInfoToPython("sys.TEMPLATE_DICT_STORAGE", GetPyTemplateDictStorage());
 
-    // Assert it can get field info in Python and lookup index method works
+    // Assert
     EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
 
     // Print field_list in Python
@@ -156,7 +156,64 @@ TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_field_info_to_Python)
     ds_amr.CleanUp();
 }
 
-TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_particle_info_to_Python) {}
+TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_particle_info_to_Python) {
+    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
+
+    // Arrange
+    DataStructureAmr ds_amr;
+    ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
+
+    int index_offset = 0;
+    bool check_data = false;
+    long num_grids = 2400;
+    int num_grids_local = (int)num_grids / GetMpiSize();
+    int num_par_types = 2;
+    yt_par_type par_type_list[2];
+    par_type_list[0].par_type = "Par1";
+    par_type_list[1].par_type = "Par2";
+    par_type_list[0].num_attr = 4;
+    par_type_list[1].num_attr = 4;
+    if (GetMpiRank() == GetMpiSize() - 1) {
+        num_grids_local = (int)num_grids - num_grids_local * (GetMpiSize() - 1);
+    }
+    std::cout << "(num_par_types) = (" << num_par_types << ")" << std::endl;
+    ds_amr.AllocateStorage(num_grids, num_grids_local, 0, num_par_types, par_type_list, index_offset, check_data);
+
+    yt_particle* particle_list = ds_amr.GetParticleList();
+    const char* attr_name_list[4] = {"PosX", "PosY", "PosZ", "Attr"};
+    const char* attr3_alias[2] = {"Attr_alias1", "Attr_alias2"};
+    for (int p = 0; p < num_par_types; p++) {
+        for (int a = 0; a < particle_list[0].num_attr - 1; a++) {
+            particle_list[p].attr_list[a].attr_name = attr_name_list[a];
+            particle_list[p].attr_list[a].attr_dtype = YT_DOUBLE;
+            particle_list[p].attr_list[a].attr_unit = "kpc";
+        }
+        particle_list[p].attr_list[3].attr_name = attr_name_list[3];
+        particle_list[p].attr_list[3].attr_dtype = YT_INT;
+        particle_list[p].attr_list[3].attr_unit = "unit";
+        particle_list[p].attr_list[3].num_attr_name_alias = 2;
+        particle_list[p].attr_list[3].attr_name_alias = attr3_alias;
+        particle_list[p].attr_list[3].attr_display_name = "Attr_display_name";
+
+        particle_list[p].coor_x = "PosX";
+        particle_list[p].coor_y = "PosY";
+        particle_list[p].coor_z = "PosZ";
+    }
+
+    // Act
+    DataStructureOutput status = ds_amr.BindInfoToPython("sys.TEMPLATE_DICT_STORAGE", GetPyTemplateDictStorage());
+
+    // Assert
+    EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+
+    // Print particle_list in Python
+    // (Particle list in Python is printed here instead of checking its value in Python is because it takes
+    //  lots of effort to retrieve, so I just print it for simplicity. Maybe can add a check later if necessary.)
+    PyRun_SimpleString("import pprint;pprint.pprint(sys.TEMPLATE_DICT_STORAGE['particle_list'])");
+
+    // Clean up
+    ds_amr.CleanUp();
+}
 
 TEST_P(TestDataStructureAmr, Can_gather_local_hierarchy_and_bind_all_hierarchy_to_Python) {
     std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
