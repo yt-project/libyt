@@ -9,6 +9,7 @@
 // Note        :  1. User should call this function after yt_set_Parameters(), because the Amr structure
 //                   is initialized there.
 //                   (This also shows a bad design of API, should fix it in libyt-v1.0.)
+//                2. Probably should make setting of field info field-by-field, same for particles.
 //
 // Parameter   :  yt_field **field_list  : Initialize and store the field list array under this pointer
 //                                         points to.
