@@ -304,7 +304,76 @@ TEST_P(TestDataStructureAmrBindHierarchy, Can_gather_local_hierarchy_and_bind_al
     ds_amr.CleanUp();
 }
 
-TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_field_data_to_Python) {}
+TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_field_data_to_Python) {
+    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
+
+    // Arrange
+    DataStructureAmr ds_amr;
+    ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
+
+    int index_offset = GetParam();
+    bool check_data = false;
+    int num_grids_local = 2;
+    long num_grids = num_grids_local * GetMpiSize();
+    int num_fields = 2;
+    std::cout << "(index_offset, num_fields) = (" << index_offset << ", " << num_fields << ")" << std::endl;
+    ds_amr.AllocateStorage(num_grids, num_grids_local, num_fields, 0, nullptr, index_offset, check_data);
+    GenerateLocalHierarchy(num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local, 0);
+
+    // Set field info, default is cell-centered and no ghost cell
+    yt_field* field_list = ds_amr.GetFieldList();
+    field_list[0].field_name = "Field1";
+    field_list[0].field_dtype = YT_DOUBLE;
+    field_list[0].contiguous_in_x = false;
+    field_list[1].field_name = "Field2";
+    field_list[1].field_dtype = YT_INT;
+    field_list[1].contiguous_in_x = false;
+
+    // Set local field data and hierarchy
+    yt_grid* grids_local = ds_amr.GetGridsLocal();
+    long length =
+        grids_local[0].grid_dimensions[0] * grids_local[0].grid_dimensions[1] * grids_local[0].grid_dimensions[2];
+    std::vector<void*> field_data;
+    double* field1_data = new double[length];
+    int* field2_data = new int[length];
+    for (long i = 0; i < length; i++) {
+        field1_data[i] = 1.0;
+        field2_data[i] = 2;
+    }
+    field_data.push_back(field1_data);
+    field_data.push_back(field2_data);
+    for (int lid = 0; lid < num_grids_local; lid++) {
+        for (int v = 0; v < num_fields; v++) {
+            grids_local[lid].field_data[v].data_ptr = field_data[v];
+        }
+    }
+
+    // Act
+    DataStructureOutput status = ds_amr.BindLocalDataToPython();
+
+    // Assert
+    EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+    yt_data query_data;
+    for (int i = 0; i < num_grids_local; i++) {
+        long gid = num_grids_local * GetMpiRank() + i + index_offset;
+        for (int v = 0; v < num_fields; v++) {
+            status = ds_amr.GetPythonBoundLocalFieldData(gid, field_list[v].field_name, &query_data);
+            EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+            EXPECT_EQ(query_data.data_dtype, field_list[v].field_dtype);
+            EXPECT_EQ(query_data.data_ptr, field_data[v]);
+            for (int d = 0; d < 3; d++) {
+                EXPECT_EQ(query_data.data_dimensions[d], grids_local[i].grid_dimensions[d]);
+            }
+        }
+    }
+    PyRun_SimpleString("import pprint;pprint.pprint(sys.TEMPLATE_DICT_STORAGE['grid_data'])");
+
+    // Clean up
+    ds_amr.CleanUp();
+    for (auto& data : field_data) {
+        free(data);
+    }
+}
 
 TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_particle_data_to_Python) {}
 
