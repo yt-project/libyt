@@ -35,7 +35,7 @@ int yt_get_GridsPtr(yt_grid** grids_local) {
 
     log_info("Getting pointer to local grids information ...\n");
 
-    *grids_local = LibytProcessControl::Get().data_structure_amr_.grids_local_;
+    *grids_local = LibytProcessControl::Get().data_structure_amr_.GetGridsLocal();
 
     LibytProcessControl::Get().get_gridsPtr = true;
     log_info("Getting pointer to local grids information  ... done.\n");
