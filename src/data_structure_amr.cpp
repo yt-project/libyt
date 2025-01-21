@@ -22,6 +22,7 @@ int DataStructureAmr::mpi_rank_;
 //                    2. If it is read-only, then we need to clear the NPY_ARRAY_WRITEABLE flag.
 //-------------------------------------------------------------------------------------------------------
 static PyObject* WrapToNumPyArray(int dim, npy_intp* npy_dim, yt_dtype data_dtype, void* data_ptr, bool readonly) {
+    DataStructureAmr::InitializeNumPy();
     int npy_dtype;
     get_npy_dtype(data_dtype, &npy_dtype);
     PyObject* py_data = PyArray_SimpleNewFromData(dim, npy_dim, npy_dtype, data_ptr);
