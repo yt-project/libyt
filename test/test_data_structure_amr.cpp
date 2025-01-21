@@ -96,7 +96,7 @@ protected:
 
         if (par_count_list != nullptr) {
             for (int p = 0; p < num_par_types; p++) {
-                par_count_list[p] = gid;
+                par_count_list[p] = 10;
             }
         }
 
@@ -329,10 +329,12 @@ TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_field_data_to_Python) {
     field_list[1].field_dtype = YT_INT;
     field_list[1].contiguous_in_x = false;
 
-    // Set local field data and hierarchy
+    // Set local field data
     yt_grid* grids_local = ds_amr.GetGridsLocal();
     long length =
         grids_local[0].grid_dimensions[0] * grids_local[0].grid_dimensions[1] * grids_local[0].grid_dimensions[2];
+    int grid_dims[3] = {grids_local[0].grid_dimensions[0], grids_local[0].grid_dimensions[1],
+                        grids_local[0].grid_dimensions[2]};
     std::vector<void*> field_data;
     double* field1_data = new double[length];
     int* field2_data = new int[length];
@@ -343,9 +345,8 @@ TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_field_data_to_Python) {
     field_data.push_back(field1_data);
     field_data.push_back(field2_data);
     for (int lid = 0; lid < num_grids_local; lid++) {
-        for (int v = 0; v < num_fields; v++) {
-            grids_local[lid].field_data[v].data_ptr = field_data[v];
-        }
+        grids_local[lid].field_data[0].data_ptr = field1_data;
+        grids_local[lid].field_data[1].data_ptr = field2_data;
     }
 
     // Act
@@ -362,7 +363,7 @@ TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_field_data_to_Python) {
             EXPECT_EQ(query_data.data_dtype, field_list[v].field_dtype);
             EXPECT_EQ(query_data.data_ptr, field_data[v]);
             for (int d = 0; d < 3; d++) {
-                EXPECT_EQ(query_data.data_dimensions[d], grids_local[i].grid_dimensions[d]);
+                EXPECT_EQ(query_data.data_dimensions[d], grid_dims[d]);
             }
         }
     }
@@ -370,12 +371,96 @@ TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_field_data_to_Python) {
 
     // Clean up
     ds_amr.CleanUp();
-    for (auto& data : field_data) {
+    for (auto data : field_data) {
         free(data);
     }
 }
 
-TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_particle_data_to_Python) {}
+TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_particle_data_to_Python) {
+    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
+
+    // Arrange
+    DataStructureAmr ds_amr;
+    ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
+
+    int index_offset = GetParam();
+    bool check_data = false;
+    int num_grids_local = 2;
+    long num_grids = num_grids_local * GetMpiSize();
+    int num_par_types = 2;
+    yt_par_type par_type_list[2];
+    par_type_list[0].par_type = "Par1";
+    par_type_list[1].par_type = "Par2";
+    par_type_list[0].num_attr = 4;
+    par_type_list[1].num_attr = 4;
+    std::cout << "(index_offset, num_par_types) = (" << index_offset << ", " << num_par_types << ")" << std::endl;
+    ds_amr.AllocateStorage(num_grids, num_grids_local, 0, num_par_types, par_type_list, index_offset, check_data);
+    GenerateLocalHierarchy(num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local, num_par_types);
+
+    // Set particle info
+    yt_particle* particle_list = ds_amr.GetParticleList();
+    const char* attr_name_list[4] = {"PosX", "PosY", "PosZ", "Attr"};
+    for (int p = 0; p < num_par_types; p++) {
+        for (int a = 0; a < particle_list[0].num_attr - 1; a++) {
+            particle_list[p].attr_list[a].attr_name = attr_name_list[a];
+            particle_list[p].attr_list[a].attr_dtype = YT_DOUBLE;
+        }
+        particle_list[p].attr_list[3].attr_name = attr_name_list[3];
+        particle_list[p].attr_list[3].attr_dtype = YT_INT;
+    }
+
+    // Set local particle data
+    yt_grid* grids_local = ds_amr.GetGridsLocal();
+    std::vector<void*> particle_data;
+    long length = grids_local[0].par_count_list[0];
+    double* dummy_double = new double[length];
+    int* dummy_int = new int[length];
+    for (int i = 0; i < length; i++) {
+        dummy_double[i] = 1.0;
+        dummy_int[i] = 2;
+    }
+    particle_data.push_back(dummy_double);
+    particle_data.push_back(dummy_int);
+    for (int lid = 0; lid < num_grids_local; lid++) {
+        for (int p = 0; p < num_par_types; p++) {
+            grids_local[lid].particle_data[p][0].data_ptr = dummy_double;
+            grids_local[lid].particle_data[p][1].data_ptr = dummy_double;
+            grids_local[lid].particle_data[p][2].data_ptr = dummy_double;
+            grids_local[lid].particle_data[p][3].data_ptr = dummy_int;
+        }
+    }
+
+    // Act
+    DataStructureOutput status = ds_amr.BindLocalDataToPython();
+
+    // Assert
+    EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+    yt_data query_data;
+    for (int i = 0; i < num_grids_local; i++) {
+        long gid = num_grids_local * GetMpiRank() + i + index_offset;
+        for (int p = 0; p < num_par_types; p++) {
+            for (int a = 0; a < particle_list[0].num_attr; a++) {
+                status = ds_amr.GetPythonBoundLocalParticleData(gid, particle_list[p].par_type,
+                                                                particle_list[p].attr_list[a].attr_name, &query_data);
+                EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+                EXPECT_EQ(query_data.data_dtype, particle_list[p].attr_list[a].attr_dtype);
+                EXPECT_EQ(query_data.data_dimensions[0], length);
+                if (a == 3) {
+                    EXPECT_EQ(query_data.data_ptr, dummy_int);
+                } else {
+                    EXPECT_EQ(query_data.data_ptr, dummy_double);
+                }
+            }
+        }
+    }
+    PyRun_SimpleString("import pprint;pprint.pprint(sys.TEMPLATE_DICT_STORAGE['particle_data'])");
+
+    // Clean up
+    ds_amr.CleanUp();
+    for (auto data : particle_data) {
+        free(data);
+    }
+}
 
 INSTANTIATE_TEST_SUITE_P(DifferentIndexOffset, TestDataStructureAmrBindHierarchy, testing::Values(0, 1));
 
