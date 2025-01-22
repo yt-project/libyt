@@ -2,7 +2,7 @@
 #include "libyt_process_control.h"
 #include "yt_combo.h"
 
-static void print_libyt_info();
+static void PrintLibytInfo();
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_initialize
@@ -42,7 +42,7 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
 
     log_info("******libyt version******\n");
     log_info("         %d.%d.%d\n", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION, LIBYT_MICRO_VERSION);
-    print_libyt_info();
+    PrintLibytInfo();
     log_info("*************************\n");
 
     log_info("Initializing libyt ...\n");
@@ -79,7 +79,7 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
 
 }  // FUNCTION : yt_initialize
 
-static void print_libyt_info() {
+static void PrintLibytInfo() {
 #ifdef SERIAL_MODE
     log_info("  SERIAL_MODE: ON\n");
 #else
