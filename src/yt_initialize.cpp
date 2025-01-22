@@ -1,12 +1,6 @@
-// define DEFINE_GLOBAL since this file **defines** all global variables
-#define DEFINE_GLOBAL
-
-#include "yt_combo.h"
-
-#undef DEFINE_GLOBAL
-
 #include "libyt.h"
 #include "libyt_process_control.h"
+#include "yt_combo.h"
 
 static void print_libyt_info();
 
