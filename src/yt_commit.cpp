@@ -36,26 +36,20 @@ int yt_commit() {
         YT_ABORT("Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__);
     }
 
-    // TODO: get_fieldsPtr is used here (need to have a new mechanism to make sure the amr structure
-    //       is properly set before calling commit.
-    // check if user sets field_list
-    //    if (!LibytProcessControl::Get().get_fieldsPtr) {
-    //        YT_ABORT("num_fields == %d, please invoke yt_get_FieldsPtr() before calling %s()!\n",
-    //                 LibytProcessControl::Get().param_yt_.num_fields, __FUNCTION__);
-    //    }
+    // Make sure data is set by user, which is to check if api is called.
+    if (LibytProcessControl::Get().param_yt_.num_fields > 0 && !LibytProcessControl::Get().get_fields_ptr_) {
+        YT_ABORT("num_fields == %d, please invoke yt_get_FieldsPtr() before calling %s()!\n",
+                 LibytProcessControl::Get().param_yt_.num_fields, __FUNCTION__);
+    }
 
-    // TODO: Same reason as above
-    // check if user sets particle_list
-    //    if (!LibytProcessControl::Get().get_particlesPtr) {
-    //        YT_ABORT("num_par_types == %d, please invoke yt_get_ParticlesPtr() before calling %s()!\n",
-    //                 LibytProcessControl::Get().param_yt_.num_par_types, __FUNCTION__);
-    //    }
+    if (LibytProcessControl::Get().param_yt_.num_par_types > 0 && !LibytProcessControl::Get().get_particles_ptr_) {
+        YT_ABORT("num_par_types == %d, please invoke yt_get_ParticlesPtr() before calling %s()!\n",
+                 LibytProcessControl::Get().param_yt_.num_par_types, __FUNCTION__);
+    }
 
-    // TODO: same reason as above
-    // check if user has call yt_get_GridsPtr()
-    //    if (!LibytProcessControl::Get().get_gridsPtr) {
-    //        YT_ABORT("Please invoke yt_get_GridsPtr() before calling %s()!\n", __FUNCTION__);
-    //    }
+    if (LibytProcessControl::Get().param_yt_.num_grids_local > 0 && !LibytProcessControl::Get().get_grids_ptr_) {
+        YT_ABORT("Please invoke yt_get_GridsPtr() before calling %s()!\n", __FUNCTION__);
+    }
 
     log_info("Loading full hierarchy and local data to libyt ...\n");
 
@@ -92,7 +86,6 @@ int yt_commit() {
 
     // Above all works like charm
     LibytProcessControl::Get().commit_grids_ = true;
-    LibytProcessControl::Get().get_grids_ptr_ = false;
     log_info("Loading full hierarchy and local data ... done.\n");
 
     return YT_SUCCESS;
