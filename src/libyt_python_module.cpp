@@ -408,7 +408,8 @@ pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind1
             std::vector<long> prepare_id_list;
             for (auto& py_gid : py_to_prepare) {
                 long count;
-                yt_getGridInfo_ParticleCount(py_gid.cast<long>(), ptype.c_str(), &count);
+                LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridParticleCount(
+                    py_gid.cast<long>(), ptype.c_str(), &count);
                 if (count > 0) {
                     prepare_id_list.emplace_back(py_gid.cast<long>());
                 }
@@ -436,7 +437,8 @@ pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind1
             std::vector<long> fetch_particle_count0_list;
             for (int i = 0; i < len_nonlocal; i++) {
                 long count;
-                yt_getGridInfo_ParticleCount(py_nonlocal_id[i].cast<long>(), ptype.c_str(), &count);
+                LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridParticleCount(
+                    py_nonlocal_id[i].cast<long>(), ptype.c_str(), &count);
                 if (count > 0) {
                     fetch_data_list.emplace_back(
                         CommMpiRmaQueryInfo{py_nonlocal_rank[i].cast<int>(), py_nonlocal_id[i].cast<long>()});
