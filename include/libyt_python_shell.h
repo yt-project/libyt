@@ -42,7 +42,7 @@ private:
 
 public:
     LibytPythonShell() : history_count_(0){};
-    static void SetMPIInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
+    static void SetMpiInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
         mpi_size_ = mpi_size;
         mpi_root_ = mpi_root;
         mpi_rank_ = mpi_rank;
