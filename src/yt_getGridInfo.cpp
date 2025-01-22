@@ -25,7 +25,7 @@
 int yt_getGridInfo_Dimensions(const long gid, int (*dimensions)[3]) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    if (!LibytProcessControl::Get().commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids_) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }
@@ -45,7 +45,7 @@ int yt_getGridInfo_Dimensions(const long gid, int (*dimensions)[3]) {
 int yt_getGridInfo_LeftEdge(const long gid, double (*left_edge)[3]) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    if (!LibytProcessControl::Get().commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids_) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }
@@ -64,7 +64,7 @@ int yt_getGridInfo_LeftEdge(const long gid, double (*left_edge)[3]) {
 int yt_getGridInfo_RightEdge(const long gid, double (*right_edge)[3]) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    if (!LibytProcessControl::Get().commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids_) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }
@@ -83,7 +83,7 @@ int yt_getGridInfo_RightEdge(const long gid, double (*right_edge)[3]) {
 int yt_getGridInfo_ParentId(const long gid, long* parent_id) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    if (!LibytProcessControl::Get().commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids_) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }
@@ -102,7 +102,7 @@ int yt_getGridInfo_ParentId(const long gid, long* parent_id) {
 int yt_getGridInfo_Level(const long gid, int* level) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    if (!LibytProcessControl::Get().commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids_) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }
@@ -121,7 +121,7 @@ int yt_getGridInfo_Level(const long gid, int* level) {
 int yt_getGridInfo_ProcNum(const long gid, int* proc_num) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    if (!LibytProcessControl::Get().commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids_) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }
@@ -151,7 +151,7 @@ int yt_getGridInfo_ProcNum(const long gid, int* proc_num) {
 int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_count) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    if (!LibytProcessControl::Get().commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids_) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }
@@ -187,7 +187,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_co
 int yt_getGridInfo_FieldData(const long gid, const char* field_name, yt_data* field_data) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    if (!LibytProcessControl::Get().commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids_) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }
@@ -218,7 +218,7 @@ int yt_getGridInfo_FieldData(const long gid, const char* field_name, yt_data* fi
 int yt_getGridInfo_ParticleData(const long gid, const char* ptype, const char* attr, yt_data* par_data) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    if (!LibytProcessControl::Get().commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids_) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }

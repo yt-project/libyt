@@ -9,7 +9,7 @@
 // Data member :  Static private LibytProcessControl instance.
 // Description :  Singleton instance.
 //-------------------------------------------------------------------------------------------------------
-LibytProcessControl LibytProcessControl::s_Instance;
+LibytProcessControl LibytProcessControl::instance_;
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytProcessControl
@@ -34,13 +34,13 @@ LibytProcessControl::LibytProcessControl() {
     mpi_root_ = 0;
 
     // Check points for libyt process
-    libyt_initialized = false;
-    param_yt_set = false;
-    get_fieldsPtr = false;
-    get_particlesPtr = false;
-    get_gridsPtr = false;
-    commit_grids = false;
-    free_gridsPtr = true;
+    libyt_initialized_ = false;
+    param_yt_set_ = false;
+    get_fields_ptr_ = false;
+    get_particles_ptr_ = false;
+    get_grids_ptr_ = false;
+    commit_grids_ = false;
+    free_grids_ptr_ = true;
 
     py_param_yt_ = nullptr;
     py_param_user_ = nullptr;
@@ -95,4 +95,4 @@ void LibytProcessControl::Initialize() {
 //
 // Notes       :  1. Return the reference of LibytProcessControl instance.
 //-------------------------------------------------------------------------------------------------------
-LibytProcessControl& LibytProcessControl::Get() { return s_Instance; }
+LibytProcessControl& LibytProcessControl::Get() { return instance_; }

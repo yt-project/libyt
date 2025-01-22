@@ -18,12 +18,12 @@ int yt_get_GridsPtr(yt_grid** grids_local) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized) {
+    if (!LibytProcessControl::Get().libyt_initialized_) {
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 
     // check if yt_set_Parameters() have been called
-    if (!LibytProcessControl::Get().param_yt_set) {
+    if (!LibytProcessControl::Get().param_yt_set_) {
         YT_ABORT("Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__);
     }
 
@@ -37,7 +37,7 @@ int yt_get_GridsPtr(yt_grid** grids_local) {
 
     *grids_local = LibytProcessControl::Get().data_structure_amr_.GetGridsLocal();
 
-    LibytProcessControl::Get().get_gridsPtr = true;
+    LibytProcessControl::Get().get_grids_ptr_ = true;
     log_info("Getting pointer to local grids information  ... done.\n");
 
     return YT_SUCCESS;

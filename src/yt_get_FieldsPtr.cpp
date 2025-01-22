@@ -21,12 +21,12 @@ int yt_get_FieldsPtr(yt_field** field_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized) {
+    if (!LibytProcessControl::Get().libyt_initialized_) {
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 
     // check if yt_set_Parameters() have been called
-    if (!LibytProcessControl::Get().param_yt_set) {
+    if (!LibytProcessControl::Get().param_yt_set_) {
         YT_ABORT("Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__);
     }
 
@@ -40,7 +40,7 @@ int yt_get_FieldsPtr(yt_field** field_list) {
 
     *field_list = LibytProcessControl::Get().data_structure_amr_.GetFieldList();
 
-    LibytProcessControl::Get().get_fieldsPtr = true;
+    LibytProcessControl::Get().get_fields_ptr_ = true;
     log_info("Getting pointer to field list information  ... done.\n");
 
     return YT_SUCCESS;

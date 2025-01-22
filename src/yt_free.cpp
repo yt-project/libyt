@@ -24,12 +24,12 @@ int yt_free() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized) {
+    if (!LibytProcessControl::Get().libyt_initialized_) {
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 
     // check if user has run through all the routine.
-    if (!LibytProcessControl::Get().commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids_) {
         log_warning("You are going to free every libyt initialized and allocated array, "
                     "even though the inline-analysis procedure has not finished yet!\n");
     }
@@ -72,12 +72,12 @@ int yt_free() {
     LibytProcessControl::Get().function_info_list_.ResetEveryFunctionStatus();
 #endif
     // Reset check points
-    LibytProcessControl::Get().param_yt_set = false;
-    LibytProcessControl::Get().get_fieldsPtr = false;
-    LibytProcessControl::Get().get_particlesPtr = false;
-    LibytProcessControl::Get().get_gridsPtr = false;
-    LibytProcessControl::Get().commit_grids = false;
-    LibytProcessControl::Get().free_gridsPtr = true;
+    LibytProcessControl::Get().param_yt_set_ = false;
+    LibytProcessControl::Get().get_fields_ptr_ = false;
+    LibytProcessControl::Get().get_particles_ptr_ = false;
+    LibytProcessControl::Get().get_grids_ptr_ = false;
+    LibytProcessControl::Get().commit_grids_ = false;
+    LibytProcessControl::Get().free_grids_ptr_ = true;
     LibytProcessControl::Get().param_libyt_.counter++;
 
     return YT_SUCCESS;

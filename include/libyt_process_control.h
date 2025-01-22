@@ -48,13 +48,13 @@ public:
 #endif
 
     // Process control check point and data management for libyt
-    bool libyt_initialized;
-    bool param_yt_set;
-    bool get_fieldsPtr;
-    bool get_particlesPtr;
-    bool get_gridsPtr;
-    bool commit_grids;
-    bool free_gridsPtr;
+    bool libyt_initialized_;
+    bool param_yt_set_;
+    bool get_fields_ptr_;
+    bool get_particles_ptr_;
+    bool get_grids_ptr_;
+    bool commit_grids_;
+    bool free_grids_ptr_;
 
     // libyt parameters
     yt_param_libyt param_libyt_;
@@ -76,7 +76,7 @@ public:
 
 private:
     LibytProcessControl();
-    static LibytProcessControl s_Instance;
+    static LibytProcessControl instance_;
 };
 
 #endif  // LIBYT_PROJECT_INCLUDE_LIBYT_PROCESS_CONTROL_H_

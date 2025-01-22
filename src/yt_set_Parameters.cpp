@@ -30,12 +30,12 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized) {
+    if (!LibytProcessControl::Get().libyt_initialized_) {
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 
     // check if libyt has free all the resource in previous inline-analysis
-    if (!LibytProcessControl::Get().free_gridsPtr) {
+    if (!LibytProcessControl::Get().free_grids_ptr_) {
         log_warning("Please invoke yt_free() before calling %s() for next iteration!\n", __FUNCTION__);
         YT_ABORT("Overwrite existing parameters may leads to memory leak, please called yt_free() first!\n");
     }
@@ -169,8 +169,8 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
     log_debug("Inserting YT parameters to libyt.param_yt ... done\n");
 
     // If the above all works like charm.
-    LibytProcessControl::Get().param_yt_set = true;
-    LibytProcessControl::Get().free_gridsPtr = false;
+    LibytProcessControl::Get().param_yt_set_ = true;
+    LibytProcessControl::Get().free_grids_ptr_ = false;
     log_info("Setting YT parameters ... done.\n");
 
     return YT_SUCCESS;
