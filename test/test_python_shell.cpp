@@ -21,7 +21,7 @@ private:
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
         CommMpi::InitializeInfo(0);
 #endif
-        LibytPythonShell::SetMPIInfo(mpi_size_, 0, mpi_rank_);
+        LibytPythonShell::SetMpiInfo(mpi_size_, 0, mpi_rank_);
 
         // Initialize not-done-yet error msg
         LibytPythonShell::InitializeNotDoneErrMsg();
