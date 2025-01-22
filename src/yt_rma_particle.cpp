@@ -427,7 +427,7 @@ int yt_rma_particle::get_fetched_data(long* gid, const char** ptype, const char*
 static int get_particle_data(const long gid, const char* ptype, const char* attr, yt_data* par_data) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    if (!LibytProcessControl::Get().commit_grids) {
+    if (!LibytProcessControl::Get().commit_grids_) {
         YT_ABORT("Please follow the libyt procedure, forgot to invoke yt_commit() before calling %s()!\n",
                  __FUNCTION__);
     }

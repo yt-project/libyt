@@ -27,12 +27,12 @@ int yt_commit() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized) {
+    if (!LibytProcessControl::Get().libyt_initialized_) {
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 
     // check if YT parameters have been set
-    if (!LibytProcessControl::Get().param_yt_set) {
+    if (!LibytProcessControl::Get().param_yt_set_) {
         YT_ABORT("Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__);
     }
 
@@ -91,8 +91,8 @@ int yt_commit() {
     LibytProcessControl::Get().data_structure_amr_.CleanUpGridsLocal();
 
     // Above all works like charm
-    LibytProcessControl::Get().commit_grids = true;
-    LibytProcessControl::Get().get_gridsPtr = false;
+    LibytProcessControl::Get().commit_grids_ = true;
+    LibytProcessControl::Get().get_grids_ptr_ = false;
     log_info("Loading full hierarchy and local data ... done.\n");
 
     return YT_SUCCESS;

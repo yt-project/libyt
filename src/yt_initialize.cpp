@@ -29,7 +29,7 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
     init_count++;
 
     // still need to check "init_count" since yt_finalize() will set check point libyt_initialized = false"
-    if (LibytProcessControl::Get().libyt_initialized || init_count >= 2)
+    if (LibytProcessControl::Get().libyt_initialized_ || init_count >= 2)
         YT_ABORT("yt_initialize() should not be called more than once!\n");
 
     // store user-provided parameters to a libyt internal variable
@@ -73,7 +73,7 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
     if (LibytPythonShell::SetFunctionBodyDict(function_body_dict) != YT_SUCCESS) return YT_FAIL;
 #endif
 
-    LibytProcessControl::Get().libyt_initialized = true;
+    LibytProcessControl::Get().libyt_initialized_ = true;
 
     return YT_SUCCESS;
 

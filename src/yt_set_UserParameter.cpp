@@ -53,7 +53,7 @@ int yt_set_UserParameterInt(const char* key, const int n, const int* input) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -67,7 +67,7 @@ int yt_set_UserParameterLong(const char* key, const int n, const long* input) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -81,7 +81,7 @@ int yt_set_UserParameterLongLong(const char* key, const int n, const long long* 
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -95,7 +95,7 @@ int yt_set_UserParameterUint(const char* key, const int n, const unsigned int* i
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -109,7 +109,7 @@ int yt_set_UserParameterUlong(const char* key, const int n, const unsigned long*
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -123,7 +123,7 @@ int yt_set_UserParameterFloat(const char* key, const int n, const float* input) 
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -137,7 +137,7 @@ int yt_set_UserParameterDouble(const char* key, const int n, const double* input
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -151,7 +151,7 @@ int yt_set_UserParameterString(const char* key, const char* input) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11

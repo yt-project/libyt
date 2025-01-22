@@ -43,7 +43,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
     return YT_FAIL;
 #else
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized) {
+    if (!LibytProcessControl::Get().libyt_initialized_) {
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 

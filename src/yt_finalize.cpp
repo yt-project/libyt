@@ -24,10 +24,11 @@ int yt_finalize() {
     log_info("Exiting libyt ...\n");
 
     // check whether libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized) YT_ABORT("Calling yt_finalize() before yt_initialize()!\n");
+    if (!LibytProcessControl::Get().libyt_initialized_) YT_ABORT("Calling yt_finalize() before yt_initialize()!\n");
 
     // check if all the libyt allocated resource are freed
-    if (!LibytProcessControl::Get().free_gridsPtr) YT_ABORT("Please invoke yt_free() before calling yt_finalize().\n");
+    if (!LibytProcessControl::Get().free_grids_ptr_)
+        YT_ABORT("Please invoke yt_free() before calling yt_finalize().\n");
 
 #ifndef USE_PYBIND11
     // free all libyt resources
@@ -36,7 +37,7 @@ int yt_finalize() {
     pybind11::finalize_interpreter();
 #endif
 
-    LibytProcessControl::Get().libyt_initialized = false;
+    LibytProcessControl::Get().libyt_initialized_ = false;
 
     return YT_SUCCESS;
 
