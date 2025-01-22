@@ -77,7 +77,7 @@ int yt_free() {
     LibytProcessControl::Get().get_particles_ptr_ = false;
     LibytProcessControl::Get().get_grids_ptr_ = false;
     LibytProcessControl::Get().commit_grids_ = false;
-    LibytProcessControl::Get().free_grids_ptr_ = true;
+    LibytProcessControl::Get().need_free_ = false;
     LibytProcessControl::Get().param_libyt_.counter++;
 
     return YT_SUCCESS;

@@ -54,7 +54,7 @@ public:
     bool get_particles_ptr_;
     bool get_grids_ptr_;
     bool commit_grids_;
-    bool free_grids_ptr_;
+    bool need_free_;
 
     // libyt parameters
     yt_param_libyt param_libyt_;

@@ -40,7 +40,7 @@ LibytProcessControl::LibytProcessControl() {
     get_particles_ptr_ = false;
     get_grids_ptr_ = false;
     commit_grids_ = false;
-    free_grids_ptr_ = true;
+    need_free_ = false;
 
     py_param_yt_ = nullptr;
     py_param_user_ = nullptr;
