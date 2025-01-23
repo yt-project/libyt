@@ -4,11 +4,12 @@
 #include <fstream>
 #include <string>
 
+#include "comm_mpi_rma.h"
+#include "data_hub_amr.h"
 #include "function_info.h"
 #include "libyt.h"
 #include "libyt_process_control.h"
 #include "yt_combo.h"
-#include "yt_rma_field.h"
 #include "yt_rma_particle.h"
 #include "yt_type_array.h"
 
@@ -310,8 +311,17 @@ static PyObject* libyt_particle_get_particle(PyObject* self, PyObject* args) {
 // Note        :  1. Support only grid dimension = 3 for now.
 //                2. We return in dictionary objects.
 //                3. We assume that the fname_list passed in has the same fname order in each rank.
-//                4. This function will get all the desired fields and grids.
+//                4. This function will get all the fields and grids in combination.
+//                   So the total returned data get is len(fname_list) * len(nonlocal_id).
 //                5. Directly return None if it is in SERIAL_MODE.
+//                6. In Python, it is called like:
+//                   libyt.get_field_remote( fname_list,
+//                                           len(fname_list),
+//                                           to_prepare,
+//                                           len(to_prepare),
+//                                           nonlocal_id,
+//                                           nonlocal_rank,
+//                                           len(nonlocal_id))
 //
 // Parameter   :  list obj : fname_list   : list of field name to get.
 //                list obj : to_prepare   : list of grid ids you need to prepare.
@@ -349,94 +359,93 @@ static PyObject* libyt_field_get_field_remote(PyObject* self, PyObject* args) {
         return NULL;
     }
 
+    // Create prepare data id list
+    std::vector<long> prepare_id_list;
+    prepare_id_list.reserve(len_prepare);
+    for (int i = 0; i < len_prepare; i++) {
+        PyObject* py_prepare_grid_id = PyList_GetItem(py_prepare_grid_id_list, i);
+        prepare_id_list.push_back(PyLong_AsLong(py_prepare_grid_id));
+    }
+
+    // Create fetch data list
+    std::vector<CommMpiRmaQueryInfo> fetch_data_list;
+    fetch_data_list.reserve(len_get_grid);
+    for (int i = 0; i < len_get_grid; i++) {
+        PyObject* py_get_grid_id = PyList_GetItem(py_get_grid_id_list, i);
+        PyObject* py_get_grid_rank = PyList_GetItem(py_get_grid_rank_list, i);
+        fetch_data_list.push_back(
+            CommMpiRmaQueryInfo{static_cast<int>(PyLong_AsLong(py_get_grid_rank)), PyLong_AsLong(py_get_grid_id)});
+    }
+
     // Create Python dictionary for storing remote data.
-    // py_output for returning back to python, the others are used temporary inside this method.
     PyObject* py_output = PyDict_New();
-    PyObject *py_grid_id, *py_field_label, *py_field_data;
 
     // Get all remote grid id in field name fname, get one field at a time.
     PyObject* py_fname;
-    PyObject* py_prepare_grid_id;
-    PyObject* py_get_grid_id;
-    PyObject* py_get_grid_rank;
-    int root = 0;
     while ((py_fname = PyIter_Next(fname_list))) {
-        // Get fname, and create yt_rma_field class.
+        // Prepare local data
         char* fname = PyBytes_AsString(py_fname);
-        yt_rma_field RMAOperation = yt_rma_field(fname, len_prepare, len_get_grid);
-
-        // Prepare grid with field fname and id = gid.
-        // TODO: Hybrid OpenMP/OpenMPI, we might want to prepare a list of gid at one call
-        //       if it is a derived field.
-        for (int i = 0; i < len_prepare; i++) {
-            py_prepare_grid_id = PyList_GetItem(py_prepare_grid_id_list, i);
-            long gid = PyLong_AsLong(py_prepare_grid_id);
-            if (RMAOperation.prepare_data(gid) != YT_SUCCESS) {
-                PyErr_SetString(PyExc_RuntimeError, "Something went wrong in yt_rma_field when preparing data.\n");
-                return NULL;
+        DataHubAmr local_amr_data;
+        DataHubReturn<AmrDataArray3D> prepared_data =
+            local_amr_data.GetLocalFieldData(LibytProcessControl::Get().data_structure_amr_, fname, prepare_id_list);
+        DataHubStatus all_status = static_cast<DataHubStatus>(CommMpi::CheckAllStates(
+            static_cast<int>(prepared_data.status), static_cast<int>(DataHubStatus::kDataHubSuccess),
+            static_cast<int>(DataHubStatus::kDataHubSuccess), static_cast<int>(DataHubStatus::kDataHubFailed)));
+        if (all_status != DataHubStatus::kDataHubSuccess) {
+            if (prepared_data.status == DataHubStatus::kDataHubFailed) {
+                PyErr_SetString(PyExc_RuntimeError, local_amr_data.GetErrorStr().c_str());
+            } else {
+                PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
             }
-        }
-        RMAOperation.gather_all_prepare_data(root);
-
-        // Fetch remote data.
-        for (long i = 0; i < len_get_grid; i++) {
-            py_get_grid_id = PyList_GetItem(py_get_grid_id_list, i);
-            py_get_grid_rank = PyList_GetItem(py_get_grid_rank_list, i);
-            long get_gid = PyLong_AsLong(py_get_grid_id);
-            int get_rank = (int)PyLong_AsLong(py_get_grid_rank);
-            if (RMAOperation.fetch_remote_data(get_gid, get_rank) != YT_SUCCESS) {
-                PyErr_SetString(PyExc_RuntimeError,
-                                "Something went wrong in yt_rma_field when fetching remote data.\n");
-                return NULL;
-            }
+            return NULL;
         }
 
-        // Clean up prepared data.
-        RMAOperation.clean_up();
-
-        // Get those fetched data and wrap it to NumPy array
-        long get_gid;
-        const char* get_fname;
-        yt_dtype get_data_dtype;
-        int get_data_dim[3];
-        void* get_data_ptr;
-        long num_to_get = len_get_grid;
-        while (num_to_get > 0) {
-            // Step1: Fetched data.
-            if (RMAOperation.get_fetched_data(&get_gid, &get_fname, &get_data_dtype, &get_data_dim, &get_data_ptr) !=
-                YT_SUCCESS) {
-                // It means we have reached the end of the fetched data container.
-                // This if clause is just a safety check.
-                break;
+        // Call Mpi RMA operation
+        CommMpiRmaAmrDataArray3D comm_mpi_rma(fname, "amr_grid");
+        CommMpiRmaReturn<AmrDataArray3D> rma_return =
+            comm_mpi_rma.GetRemoteData(prepared_data.data_list, fetch_data_list);
+        if (rma_return.all_status != CommMpiRmaStatus::kMpiSuccess) {
+            if (rma_return.status != CommMpiRmaStatus::kMpiSuccess) {
+                PyErr_SetString(PyExc_RuntimeError, comm_mpi_rma.GetErrorStr().c_str());
+            } else {
+                PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
             }
-            num_to_get -= 1;
+            return NULL;
+        }
 
-            // Step2: Get Python dictionary to append.
-            // Check if grid id key exist in py_output, if not create one.
-            py_grid_id = PyLong_FromLong(get_gid);
+        // Wrap to Python dictionary
+        for (const AmrDataArray3D& fetched_data : rma_return.data_list) {
+            // Create dictionary output[grid id][field_name]
+            PyObject* py_grid_id = PyLong_FromLong(fetched_data.id);
+            PyObject* py_field_label;
             if (PyDict_Contains(py_output, py_grid_id) == 0) {
                 py_field_label = PyDict_New();
                 PyDict_SetItem(py_output, py_grid_id, py_field_label);
                 Py_DECREF(py_field_label);
             }
-            // Get the Python dictionary under key: grid id, and stored in py_field_label.
-            // PyDict_GetItem returns a borrowed reference.
             py_field_label = PyDict_GetItem(py_output, py_grid_id);
 
-            // Step3: Wrap the data to NumPy array and append to dictionary.
-            npy_intp npy_dim[3] = {get_data_dim[0], get_data_dim[1], get_data_dim[2]};
+            // Wrap the data to NumPy array
+            npy_intp npy_dim[3];
+            if (fetched_data.contiguous_in_x) {
+                npy_dim[0] = fetched_data.data_dim[2];
+                npy_dim[1] = fetched_data.data_dim[1];
+                npy_dim[2] = fetched_data.data_dim[0];
+            } else {
+                npy_dim[0] = fetched_data.data_dim[0];
+                npy_dim[1] = fetched_data.data_dim[1];
+                npy_dim[2] = fetched_data.data_dim[2];
+            }
             int npy_dtype;
-            get_npy_dtype(get_data_dtype, &npy_dtype);
-            py_field_data = PyArray_SimpleNewFromData(3, npy_dim, npy_dtype, get_data_ptr);
+            get_npy_dtype(fetched_data.data_dtype, &npy_dtype);
+            PyObject* py_field_data = PyArray_SimpleNewFromData(3, npy_dim, npy_dtype, fetched_data.data_ptr);
             PyArray_ENABLEFLAGS((PyArrayObject*)py_field_data, NPY_ARRAY_OWNDATA);
-            PyDict_SetItemString(py_field_label, get_fname, py_field_data);
+            PyDict_SetItemString(py_field_label, fname, py_field_data);
 
             // Dereference
             Py_DECREF(py_grid_id);
             Py_DECREF(py_field_data);
         }
-
-        // Done with this py_fname, dereference it.
         Py_DECREF(py_fname);
     }
 
