@@ -10,7 +10,6 @@
 #include "libyt.h"
 #include "libyt_process_control.h"
 #include "yt_combo.h"
-#include "yt_rma_particle.h"
 #include "yt_type_array.h"
 
 #ifdef USE_PYBIND11
@@ -466,11 +465,14 @@ static PyObject* libyt_field_get_field_remote(PyObject* self, PyObject* args) {
 // Note        :  1. We return in dictionary objects.
 //                2. We assume that the list of to-get attribute has the same ptype and attr order in each
 //                   rank.
-//                3. If there are no particles in one grid, then we write Py_None to it.
-//                4. Directly return None if it is in SERIAL_MODE
+//                3. We first filter out data len <= 0 in prepared data and fetched data. So that we don't
+//                   pass nullptr around in rma. (TODO: there must be a better way, ex: a better Api)
+//                4. If there are no particles in one grid, then we write Py_None to it.
+//                5. Directly return None if it is in SERIAL_MODE
 //
 // Parameter   :  dict obj : ptf          : {<ptype>: [<attr1>, <attr2>, ...]} particle type and attributes
 //                                          to read.
+//                iterable obj : ptf_keys : list of ptype keys.
 //                list obj : to_prepare   : list of grid ids you need to prepare.
 //                list obj : nonlocal_id  : nonlocal grid id that you want to get.
 //                list obj : nonlocal_rank: where to get those nonlocal grid.
@@ -507,117 +509,145 @@ static PyObject* libyt_particle_get_particle_remote(PyObject* self, PyObject* ar
 
     // Variables for creating output.
     PyObject* py_output = PyDict_New();
-    PyObject *py_grid_id, *py_ptype_dict, *py_ptype_key, *py_attribute_dict, *py_par_data;
 
     // Run through all the py_ptf_dict and its value.
     PyObject* py_ptype;
-    PyObject* py_value;
-    PyObject *py_attribute, *py_attr_iter;
-    PyObject *py_prepare_id, *py_get_id, *py_get_rank;
-    int root = 0;
     while ((py_ptype = PyIter_Next(py_ptf_keys))) {
         char* ptype = PyBytes_AsString(py_ptype);
 
         // Get attribute list inside key ptype in py_ptf_dict.
-        // PyDict_GetItemWithError returns a borrowed reference.
-        py_value = PyDict_GetItemWithError(py_ptf_dict, py_ptype);
-        if (py_value == NULL) {
-            PyErr_Format(PyExc_KeyError, "py_ptf_dict has no key [ %s ].\n", ptype);
-            return NULL;
-        }
-        py_attr_iter = PyObject_GetIter(py_value);
+        PyObject* py_value = PyDict_GetItem(py_ptf_dict, py_ptype);
+        PyObject* py_attr_iter = PyObject_GetIter(py_value);
 
         // Iterate through attribute list, and perform RMA operation.
+        PyObject* py_attribute;
         while ((py_attribute = PyIter_Next(py_attr_iter))) {
-            // Initialize RMA operation
             char* attr = PyBytes_AsString(py_attribute);
-            yt_rma_particle RMAOperation = yt_rma_particle(ptype, attr, len_prepare, len_to_get);
 
-            // Prepare particle data in grid gid.
+            // Prepare data for particle count > 0
+            std::vector<long> prepare_id_list;
+            prepare_id_list.reserve(len_prepare);
             for (int i = 0; i < len_prepare; i++) {
-                py_prepare_id = PyList_GetItem(py_prepare_list, i);
+                PyObject* py_prepare_id = PyList_GetItem(py_prepare_list, i);
                 long gid = PyLong_AsLong(py_prepare_id);
-                if (RMAOperation.prepare_data(gid) != YT_SUCCESS) {
-                    PyErr_SetString(PyExc_RuntimeError,
-                                    "Something went wrong in yt_rma_particle when preparing data.\n");
-                    return NULL;
+                long count;
+                LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridParticleCount(gid, ptype,
+                                                                                                            &count);
+                if (count > 0) {
+                    prepare_id_list.push_back(gid);
                 }
             }
-            RMAOperation.gather_all_prepare_data(root);
+            DataHubAmr local_particle_data;
+            DataHubReturn<AmrDataArray1D> prepared_data = local_particle_data.GetLocalParticleData(
+                LibytProcessControl::Get().data_structure_amr_, ptype, attr, prepare_id_list);
+            DataHubStatus all_status = static_cast<DataHubStatus>(CommMpi::CheckAllStates(
+                static_cast<int>(prepared_data.status), static_cast<int>(DataHubStatus::kDataHubSuccess),
+                static_cast<int>(DataHubStatus::kDataHubSuccess), static_cast<int>(DataHubStatus::kDataHubFailed)));
+            if (all_status != DataHubStatus::kDataHubSuccess) {
+                if (prepared_data.status == DataHubStatus::kDataHubFailed) {
+                    PyErr_SetString(PyExc_RuntimeError, local_particle_data.GetErrorStr().c_str());
+                } else {
+                    PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
+                }
+                return NULL;  // TODO: memory leak here.
+            }
 
-            // Fetch remote data.
-            for (long i = 0; i < len_to_get; i++) {
-                py_get_id = PyList_GetItem(py_to_get_list, i);
-                py_get_rank = PyList_GetItem(py_get_rank_list, i);
+            // Create fetch data list and separate particle count > 0
+            std::vector<CommMpiRmaQueryInfo> fetch_data_list;
+            std::vector<long> fetch_particle_count0_list;
+            for (int i = 0; i < len_to_get; i++) {
+                PyObject* py_get_id = PyList_GetItem(py_to_get_list, i);
+                PyObject* py_get_rank = PyList_GetItem(py_get_rank_list, i);
                 long get_gid = PyLong_AsLong(py_get_id);
                 int get_rank = (int)PyLong_AsLong(py_get_rank);
-                if (RMAOperation.fetch_remote_data(get_gid, get_rank) != YT_SUCCESS) {
-                    PyErr_SetString(PyExc_RuntimeError,
-                                    "Something went wrong in yt_rma_particle when fetching remote data.\n");
-                    return NULL;
+                long count;
+                LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridParticleCount(
+                    get_gid, ptype, &count);
+                if (count > 0) {
+                    fetch_data_list.emplace_back(CommMpiRmaQueryInfo{get_rank, get_gid});
+                } else {
+                    fetch_particle_count0_list.emplace_back(get_gid);
                 }
             }
 
-            // Clean up.
-            RMAOperation.clean_up();
-
-            // Get fetched data, and wrap up to NumPy Array, then store inside py_output.
-            long get_gid;
-            const char* get_ptype;
-            const char* get_attr;
-            yt_dtype get_data_dtype;
-            long get_data_len;
-            void* get_data_ptr;
-            long num_to_get = len_to_get;
-            while (num_to_get > 0) {
-                // Step1: Fetch data.
-                if (RMAOperation.get_fetched_data(&get_gid, &get_ptype, &get_attr, &get_data_dtype, &get_data_len,
-                                                  &get_data_ptr) != YT_SUCCESS) {
-                    break;
+            // Call Mpi RMA operation
+            std::string rma_name = std::string(ptype) + "-" + std::string(attr);
+            CommMpiRmaAmrDataArray1D comm_mpi_rma(rma_name, "amr_particle");
+            CommMpiRmaReturn<AmrDataArray1D> rma_return =
+                comm_mpi_rma.GetRemoteData(prepared_data.data_list, fetch_data_list);
+            if (rma_return.all_status != CommMpiRmaStatus::kMpiSuccess) {
+                if (rma_return.status != CommMpiRmaStatus::kMpiSuccess) {
+                    PyErr_SetString(PyExc_RuntimeError, comm_mpi_rma.GetErrorStr().c_str());
+                } else {
+                    PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
                 }
-                num_to_get -= 1;
+                return NULL;  // TODO: memory leak here
+            }
 
-                // Step2: Get python dictionary to append data to.
-                // Check if the grid id key exist in py_output, if not create one.
-                py_grid_id = PyLong_FromLong(get_gid);
+            // Wrap data to a Python dictionary
+            for (const AmrDataArray1D& fetched_data : rma_return.data_list) {
+                // Create dictionary data[grid id][ptype][attribute]
+                long gid = fetched_data.id;
+                PyObject* py_grid_id = PyLong_FromLong(gid);
+                PyObject* py_ptype_dict;
                 if (PyDict_Contains(py_output, py_grid_id) == 0) {
                     py_ptype_dict = PyDict_New();
                     PyDict_SetItem(py_output, py_grid_id, py_ptype_dict);
                     Py_DECREF(py_ptype_dict);
                 }
-                // Get python dictionary under key: py_grid_id. Stored in py_ptype_dict.
                 py_ptype_dict = PyDict_GetItem(py_output, py_grid_id);
                 Py_DECREF(py_grid_id);
 
-                // Check if py_ptype_key exist in py_ptype_dict, if not create one.
-                py_ptype_key = PyUnicode_FromString(get_ptype);
+                PyObject* py_ptype_key = PyUnicode_FromString(ptype);
+                PyObject* py_attribute_dict;
                 if (PyDict_Contains(py_ptype_dict, py_ptype_key) == 0) {
                     py_attribute_dict = PyDict_New();
                     PyDict_SetItem(py_ptype_dict, py_ptype_key, py_attribute_dict);
                     Py_DECREF(py_attribute_dict);
                 }
-                // Get python dictionary under key: py_ptype_key. Stored in py_attribute_dict.
                 py_attribute_dict = PyDict_GetItem(py_ptype_dict, py_ptype_key);
                 Py_DECREF(py_ptype_key);
 
-                // Step3: Wrap the data to NumPy array if ptr is not NULL and append to dictionary.
-                //        Or else append None to dictionary.
-                if (get_data_len == 0) {
-                    PyDict_SetItemString(py_attribute_dict, get_attr, Py_None);
-                } else if (get_data_len > 0 && get_data_ptr != nullptr) {
-                    int nd = 1;
-                    int npy_type;
-                    npy_intp dims[1] = {get_data_len};
-                    get_npy_dtype(get_data_dtype, &npy_type);
-                    py_par_data = PyArray_SimpleNewFromData(nd, dims, npy_type, get_data_ptr);
-                    PyArray_ENABLEFLAGS((PyArrayObject*)py_par_data, NPY_ARRAY_OWNDATA);
-                    PyDict_SetItemString(py_attribute_dict, get_attr, py_par_data);
-                    Py_DECREF(py_par_data);
+                // Wrap and bind to py_attribute_dict
+                if (fetched_data.data_len > 0) {
+                    PyObject* py_data;
+                    npy_intp npy_dim[1] = {fetched_data.data_len};
+                    int npy_dtype;
+                    get_npy_dtype(fetched_data.data_dtype, &npy_dtype);
+                    py_data = PyArray_SimpleNewFromData(1, npy_dim, npy_dtype, fetched_data.data_ptr);
+                    PyArray_ENABLEFLAGS((PyArrayObject*)py_data, NPY_ARRAY_OWNDATA);
+                    PyDict_SetItem(py_attribute_dict, py_attribute, py_data);
+                    Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.
                 } else {
-                    PyErr_SetString(PyExc_RuntimeError,
-                                    "Something went wrong in yt_rma_particle when fetching remote data.\n");
-                    return NULL;
+                    PyDict_SetItem(py_attribute_dict, py_attribute, Py_None);
                 }
+            }
+
+            // Wrap particle count = 0 to a Python dictionary
+            for (const long& gid : fetch_particle_count0_list) {
+                // Create dictionary data[grid id][ptype][attribute]
+                PyObject* py_grid_id = PyLong_FromLong(gid);
+                PyObject* py_ptype_dict;
+                if (PyDict_Contains(py_output, py_grid_id) == 0) {
+                    py_ptype_dict = PyDict_New();
+                    PyDict_SetItem(py_output, py_grid_id, py_ptype_dict);
+                    Py_DECREF(py_ptype_dict);
+                }
+                py_ptype_dict = PyDict_GetItem(py_output, py_grid_id);
+                Py_DECREF(py_grid_id);
+
+                PyObject* py_ptype_key = PyUnicode_FromString(ptype);
+                PyObject* py_attribute_dict;
+                if (PyDict_Contains(py_ptype_dict, py_ptype_key) == 0) {
+                    py_attribute_dict = PyDict_New();
+                    PyDict_SetItem(py_ptype_dict, py_ptype_key, py_attribute_dict);
+                    Py_DECREF(py_attribute_dict);
+                }
+                py_attribute_dict = PyDict_GetItem(py_ptype_dict, py_ptype_key);
+                Py_DECREF(py_ptype_key);
+
+                // set data[grid id][ptype][attribute] = None
+                PyDict_SetItem(py_attribute_dict, py_attribute, Py_None);
             }
 
             // Free unused resource
