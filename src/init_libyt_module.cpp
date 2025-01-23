@@ -5,12 +5,10 @@
 #include <string>
 
 #include "comm_mpi_rma.h"
-#include "data_hub_amr.h"
 #include "function_info.h"
 #include "libyt.h"
 #include "libyt_process_control.h"
 #include "yt_combo.h"
-#include "yt_type_array.h"
 
 #ifdef USE_PYBIND11
 #include "pybind11/embed.h"
@@ -50,7 +48,7 @@
 //
 // Return      :  numpy.3darray
 //-------------------------------------------------------------------------------------------------------
-static PyObject* libyt_field_derived_func(PyObject* self, PyObject* args) {
+static PyObject* LibytFieldDerivedFunc(PyObject* self, PyObject* args) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Parse the input arguments input by python.
@@ -188,7 +186,7 @@ static PyObject* libyt_field_derived_func(PyObject* self, PyObject* args) {
 //
 // Return      :  numpy.1darray
 //-------------------------------------------------------------------------------------------------------
-static PyObject* libyt_particle_get_particle(PyObject* self, PyObject* args) {
+static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Parse the input arguments input by python.
@@ -329,7 +327,7 @@ static PyObject* libyt_particle_get_particle(PyObject* self, PyObject* args) {
 //
 // Return      :  dict obj data[grid id][field_name][:,:,:]
 //-------------------------------------------------------------------------------------------------------
-static PyObject* libyt_field_get_field_remote(PyObject* self, PyObject* args) {
+static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef SERIAL_MODE
@@ -479,7 +477,7 @@ static PyObject* libyt_field_get_field_remote(PyObject* self, PyObject* args) {
 //
 // Return      :  dict obj data[grid id][ptype][attribute]
 //-------------------------------------------------------------------------------------------------------
-static PyObject* libyt_particle_get_particle_remote(PyObject* self, PyObject* args) {
+static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef SERIAL_MODE
@@ -684,10 +682,10 @@ static PyObject* libyt_particle_get_particle_remote(PyObject* self, PyObject* ar
 // Define functions in module, list all libyt module methods here
 static PyMethodDef libyt_method_list[] = {
     // { "method_name", c_function_name, METH_VARARGS, "Description"},
-    {"derived_func", libyt_field_derived_func, METH_VARARGS, "Get local derived field data."},
-    {"get_particle", libyt_particle_get_particle, METH_VARARGS, "Get local particle attribute data."},
-    {"get_field_remote", libyt_field_get_field_remote, METH_VARARGS, "Get remote field data."},
-    {"get_particle_remote", libyt_particle_get_particle_remote, METH_VARARGS, "Get remote particle attribute data."},
+    {"derived_func", LibytFieldDerivedFunc, METH_VARARGS, "Get local derived field data."},
+    {"get_particle", LibytParticleGetParticle, METH_VARARGS, "Get local particle attribute data."},
+    {"get_field_remote", LibytFieldGetFieldRemote, METH_VARARGS, "Get remote field data."},
+    {"get_particle_remote", LibytParticleGetParticleRemote, METH_VARARGS, "Get remote particle attribute data."},
     {NULL, NULL, 0, NULL}  // sentinel
 };
 
@@ -696,7 +694,7 @@ static struct PyModuleDef libyt_module_definition = {PyModuleDef_HEAD_INIT, "lib
                                                      libyt_method_list};
 
 // Create libyt python module
-static PyObject* PyInit_libyt(void) {
+static PyObject* PyInitLibyt(void) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Create libyt module
@@ -774,7 +772,7 @@ static PyObject* PyInit_libyt(void) {
 int create_libyt_module() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    PyImport_AppendInittab("libyt", &PyInit_libyt);
+    PyImport_AppendInittab("libyt", &PyInitLibyt);
 
     return YT_SUCCESS;
 }
