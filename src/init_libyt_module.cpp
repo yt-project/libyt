@@ -614,10 +614,10 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
                     get_npy_dtype(fetched_data.data_dtype, &npy_dtype);
                     py_data = PyArray_SimpleNewFromData(1, npy_dim, npy_dtype, fetched_data.data_ptr);
                     PyArray_ENABLEFLAGS((PyArrayObject*)py_data, NPY_ARRAY_OWNDATA);
-                    PyDict_SetItem(py_attribute_dict, py_attribute, py_data);
+                    PyDict_SetItemString(py_attribute_dict, attr, py_data);
                     Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.
                 } else {
-                    PyDict_SetItem(py_attribute_dict, py_attribute, Py_None);
+                    PyDict_SetItemString(py_attribute_dict, attr, Py_None);
                 }
             }
 
@@ -645,7 +645,7 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
                 Py_DECREF(py_ptype_key);
 
                 // set data[grid id][ptype][attribute] = None
-                PyDict_SetItem(py_attribute_dict, py_attribute, Py_None);
+                PyDict_SetItemString(py_attribute_dict, attr, Py_None);
             }
 
             // Free unused resource
