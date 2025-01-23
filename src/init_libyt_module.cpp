@@ -483,7 +483,7 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
 #ifndef SERIAL_MODE
     // Parse the input list arguments by Python
     PyObject* py_ptf_dict;
-    PyObject *arg2, *py_ptf_keys;
+    PyObject* arg2;
     PyObject* py_prepare_list;
     PyObject* py_to_get_list;
     PyObject* py_get_rank_list;
@@ -499,27 +499,31 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
         return NULL;
     }
 
-    py_ptf_keys = PyObject_GetIter(arg2);
+    PyObject* py_ptf_keys = PyObject_GetIter(arg2);
     if (py_ptf_keys == NULL) {
         PyErr_SetString(PyExc_TypeError, "py_ptf_keys is not an iterable object!\n");
         return NULL;
     }
 
-    // Variables for creating output.
-    PyObject* py_output = PyDict_New();
+    PyObject* py_output = PyDict_New();    // Variables for creating output.
+    std::vector<PyObject*> py_deref_list;  // Dereference these PyObjects for early return when error occurs.
+    py_deref_list.push_back(py_ptf_keys);
 
     // Run through all the py_ptf_dict and its value.
     PyObject* py_ptype;
     while ((py_ptype = PyIter_Next(py_ptf_keys))) {
+        py_deref_list.push_back(py_ptype);
         char* ptype = PyBytes_AsString(py_ptype);
 
         // Get attribute list inside key ptype in py_ptf_dict.
         PyObject* py_value = PyDict_GetItem(py_ptf_dict, py_ptype);
         PyObject* py_attr_iter = PyObject_GetIter(py_value);
+        py_deref_list.push_back(py_attr_iter);
 
         // Iterate through attribute list, and perform RMA operation.
         PyObject* py_attribute;
         while ((py_attribute = PyIter_Next(py_attr_iter))) {
+            py_deref_list.push_back(py_attribute);
             char* attr = PyBytes_AsString(py_attribute);
 
             // Prepare data for particle count > 0
@@ -547,7 +551,10 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
                 } else {
                     PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
                 }
-                return NULL;  // TODO: memory leak here.
+                for (auto& item : py_deref_list) {
+                    Py_DECREF(item);
+                }
+                return NULL;
             }
 
             // Create fetch data list and separate particle count > 0
@@ -579,7 +586,10 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
                 } else {
                     PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
                 }
-                return NULL;  // TODO: memory leak here
+                for (auto& item : py_deref_list) {
+                    Py_DECREF(item);
+                }
+                return NULL;
             }
 
             // Wrap data to a Python dictionary
@@ -608,11 +618,10 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
 
                 // Wrap and bind to py_attribute_dict
                 if (fetched_data.data_len > 0) {
-                    PyObject* py_data;
                     npy_intp npy_dim[1] = {fetched_data.data_len};
                     int npy_dtype;
                     get_npy_dtype(fetched_data.data_dtype, &npy_dtype);
-                    py_data = PyArray_SimpleNewFromData(1, npy_dim, npy_dtype, fetched_data.data_ptr);
+                    PyObject* py_data = PyArray_SimpleNewFromData(1, npy_dim, npy_dtype, fetched_data.data_ptr);
                     PyArray_ENABLEFLAGS((PyArrayObject*)py_data, NPY_ARRAY_OWNDATA);
                     PyDict_SetItemString(py_attribute_dict, attr, py_data);
                     Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.
@@ -650,15 +659,19 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
 
             // Free unused resource
             Py_DECREF(py_attribute);
+            py_deref_list.pop_back();
         }
 
         // Free unused resource.
         Py_DECREF(py_attr_iter);
         Py_DECREF(py_ptype);
+        py_deref_list.pop_back();
+        py_deref_list.pop_back();
     }
 
     // Free unneeded resource.
     Py_DECREF(py_ptf_keys);
+    py_deref_list.pop_back();
 
     // Return.
     return py_output;
