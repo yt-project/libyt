@@ -350,11 +350,14 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
     }
 
     // Make these input lists iterators.
-    PyObject* fname_list = PyObject_GetIter(arg1);
-    if (fname_list == NULL) {
+    PyObject* py_fname_list = PyObject_GetIter(arg1);
+    if (py_fname_list == NULL) {
         PyErr_SetString(PyExc_TypeError, "fname_list is not an iterable object!\n");
         return NULL;
     }
+
+    std::vector<PyObject*> py_deref_list;  // Dereference these PyObjects for early return when error occurs.
+    py_deref_list.push_back(py_fname_list);
 
     // Create prepare data id list
     std::vector<long> prepare_id_list;
@@ -379,8 +382,9 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
 
     // Get all remote grid id in field name fname, get one field at a time.
     PyObject* py_fname;
-    while ((py_fname = PyIter_Next(fname_list))) {
+    while ((py_fname = PyIter_Next(py_fname_list))) {
         // Prepare local data
+        py_deref_list.push_back(py_fname);
         char* fname = PyBytes_AsString(py_fname);
         DataHubAmr local_amr_data;
         DataHubReturn<AmrDataArray3D> prepared_data =
@@ -394,6 +398,9 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
             } else {
                 PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
             }
+            for (auto& py_item : py_deref_list) {
+                Py_DECREF(py_item);
+            }
             return NULL;
         }
 
@@ -406,6 +413,9 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
                 PyErr_SetString(PyExc_RuntimeError, comm_mpi_rma.GetErrorStr().c_str());
             } else {
                 PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
+            }
+            for (auto& py_item : py_deref_list) {
+                Py_DECREF(py_item);
             }
             return NULL;
         }
@@ -421,6 +431,7 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
                 Py_DECREF(py_field_label);
             }
             py_field_label = PyDict_GetItem(py_output, py_grid_id);
+            Py_DECREF(py_grid_id);
 
             // Wrap the data to NumPy array
             npy_intp npy_dim[3];
@@ -438,16 +449,15 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
             PyObject* py_field_data = PyArray_SimpleNewFromData(3, npy_dim, npy_dtype, fetched_data.data_ptr);
             PyArray_ENABLEFLAGS((PyArrayObject*)py_field_data, NPY_ARRAY_OWNDATA);
             PyDict_SetItemString(py_field_label, fname, py_field_data);
-
-            // Dereference
-            Py_DECREF(py_grid_id);
             Py_DECREF(py_field_data);
         }
         Py_DECREF(py_fname);
+        py_deref_list.pop_back();
     }
 
     // Dereference Python objects
-    Py_DECREF(fname_list);
+    Py_DECREF(py_fname_list);
+    py_deref_list.pop_back();
 
     // Return to Python
     return py_output;
