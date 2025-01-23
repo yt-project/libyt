@@ -15,8 +15,6 @@ MPI_Datatype CommMpi::yt_hierarchy_mpi_type_;
 MPI_Datatype CommMpi::mpi_rma_address_mpi_type_;
 MPI_Datatype CommMpi::amr_data_array_3d_mpi_type_;
 MPI_Datatype CommMpi::amr_data_array_1d_mpi_type_;
-MPI_Datatype CommMpi::yt_rma_grid_info_mpi_type_;
-MPI_Datatype CommMpi::yt_rma_particle_info_mpi_type_;
 
 void CommMpi::InitializeInfo(int mpi_root) {
     SET_TIMER(__PRETTY_FUNCTION__);
@@ -100,31 +98,6 @@ void CommMpi::InitializeAmrDataArray1DMpiDataType() {
     MPI_Type_commit(&amr_data_array_1d_mpi_type_);
 
     mpi_custom_type_map_["amr_particle"] = &amr_data_array_1d_mpi_type_;
-}
-
-void CommMpi::InitializeYtRmaGridInfoMpiDataType() {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
-    // TODO: this part will be removed after refactoring RMA
-    int lengths[5] = {1, 1, 1, 1, 3};
-    const MPI_Aint displacements[5] = {0, 1 * sizeof(long), 1 * sizeof(long) + 1 * sizeof(MPI_Aint),
-                                       1 * sizeof(long) + 1 * sizeof(MPI_Aint) + 1 * sizeof(int),
-                                       1 * sizeof(long) + 1 * sizeof(MPI_Aint) + 2 * sizeof(int)};
-    MPI_Datatype types[5] = {MPI_LONG, MPI_AINT, MPI_INT, MPI_INT, MPI_INT};
-    MPI_Type_create_struct(5, lengths, displacements, types, &yt_rma_grid_info_mpi_type_);
-    MPI_Type_commit(&yt_rma_grid_info_mpi_type_);
-}
-
-void CommMpi::InitializeYtRmaParticleInfoMpiDataType() {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
-    // TODO: this part will be removed after refactoring RMA
-    int lengths[4] = {1, 1, 1, 1};
-    const MPI_Aint displacements[4] = {0, 1 * sizeof(long), 1 * sizeof(long) + 1 * sizeof(MPI_Aint),
-                                       2 * sizeof(long) + 1 * sizeof(MPI_Aint)};
-    MPI_Datatype types[4] = {MPI_LONG, MPI_AINT, MPI_LONG, MPI_INT};
-    MPI_Type_create_struct(4, lengths, displacements, types, &yt_rma_particle_info_mpi_type_);
-    MPI_Type_commit(&yt_rma_particle_info_mpi_type_);
 }
 
 void CommMpi::SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local) {
