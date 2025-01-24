@@ -6,6 +6,9 @@
 #include "timer.h"
 #include "yt_prototype.h"
 
+template<typename DataClass>
+MPI_Datatype CommMpiRma<DataClass>::mpi_rma_data_type_ = nullptr;
+
 //-------------------------------------------------------------------------------------------------------
 // Class         :  CommMpiRma<DataClass>
 // Public Method :  Constructor
@@ -17,6 +20,21 @@ template<typename DataClass>
 CommMpiRma<DataClass>::CommMpiRma(const std::string& data_group_name, const std::string& data_format)
     : data_group_name_(data_group_name), data_format_(data_format) {
     SET_TIMER(__PRETTY_FUNCTION__);
+    InitializeMpiAddressDataType();
+}
+
+template<typename DataClass>
+void CommMpiRma<DataClass>::InitializeMpiAddressDataType() {
+    if (mpi_rma_data_type_ != nullptr) {
+        return;
+    }
+    int lengths[2] = {1, 1};
+    MPI_Aint displacements[2];
+    displacements[0] = offsetof(MpiRmaAddress, mpi_address);
+    displacements[1] = offsetof(MpiRmaAddress, mpi_rank);
+    MPI_Datatype types[2] = {MPI_AINT, MPI_INT};
+    MPI_Type_create_struct(2, lengths, displacements, types, &mpi_rma_data_type_);
+    MPI_Type_commit(&mpi_rma_data_type_);
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -222,10 +240,10 @@ CommMpiRmaStatus CommMpiRma<DataClass>::GatherAllPreparedData(const std::vector<
     big_MPI_Gatherv<DataClass>(CommMpi::mpi_root_, all_send_counts, prepared_data_list.data(), &GetMpiDataType(),
                                all_prepared_data_list_);
     big_MPI_Gatherv<MpiRmaAddress>(CommMpi::mpi_root_, all_send_counts, mpi_prepared_data_address_list_.data(),
-                                   &CommMpi::mpi_rma_address_mpi_type_, all_prepared_data_address_list_);
+                                   &CommMpiRma::mpi_rma_data_type_, all_prepared_data_address_list_);
     big_MPI_Bcast<DataClass>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_list_, &GetMpiDataType());
     big_MPI_Bcast<MpiRmaAddress>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_address_list_,
-                                 &CommMpi::mpi_rma_address_mpi_type_);
+                                 &CommMpiRma::mpi_rma_data_type_);
 
     // Clean up
     delete[] all_send_counts;

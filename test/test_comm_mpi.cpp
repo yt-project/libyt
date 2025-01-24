@@ -24,7 +24,6 @@ private:
         CommMpi::InitializeInfo(0);
         CommMpi::InitializeYtLongMpiDataType();
         CommMpi::InitializeYtHierarchyMpiDataType();
-        CommMpi::InitializeMpiRmaAddressMpiDataType();
     }
 };
 
@@ -242,7 +241,8 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_MpiRmaAddress) {
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
     std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMpi::mpi_rma_address_mpi_type_;
+    CommMpiRmaAmrDataArray3D rma("test", "test");
+    MPI_Datatype mpi_datatype = rma.GetMpiAddressDataType();
 
     int* send_count_in_each_rank = new int[mpi_size];
     long total_send_counts = 1000;  // TODO: make this a test parameter
@@ -439,7 +439,8 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_MpiRmaAddress) {
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
     std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMpi::mpi_rma_address_mpi_type_;
+    CommMpiRmaAmrDataArray3D rma("test", "test");
+    MPI_Datatype mpi_datatype = rma.GetMpiAddressDataType();
 
     const long total_send_counts = 1000;  // TODO: make this a test parameter
     MpiRmaAddress* send_buffer = new MpiRmaAddress[total_send_counts];
