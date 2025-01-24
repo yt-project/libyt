@@ -10,7 +10,6 @@ int CommMpi::mpi_size_ = 1;
 int CommMpi::mpi_root_ = 0;
 
 MPI_Datatype CommMpi::yt_long_mpi_type_;
-MPI_Datatype CommMpi::yt_hierarchy_mpi_type_;
 
 void CommMpi::InitializeInfo(int mpi_root) {
     SET_TIMER(__PRETTY_FUNCTION__);
@@ -28,23 +27,6 @@ void CommMpi::InitializeYtLongMpiDataType() {
     MPI_Datatype types[1] = {MPI_LONG};
     MPI_Type_create_struct(1, length, displacements, types, &yt_long_mpi_type_);
     MPI_Type_commit(&yt_long_mpi_type_);
-}
-
-void CommMpi::InitializeYtHierarchyMpiDataType() {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
-    int lengths[7] = {3, 3, 1, 1, 3, 1, 1};
-    MPI_Aint displacements[7];
-    displacements[0] = offsetof(yt_hierarchy, left_edge);
-    displacements[1] = offsetof(yt_hierarchy, right_edge);
-    displacements[2] = offsetof(yt_hierarchy, id);
-    displacements[3] = offsetof(yt_hierarchy, parent_id);
-    displacements[4] = offsetof(yt_hierarchy, dimensions);
-    displacements[5] = offsetof(yt_hierarchy, level);
-    displacements[6] = offsetof(yt_hierarchy, proc_num);
-    MPI_Datatype types[7] = {MPI_DOUBLE, MPI_DOUBLE, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT};
-    MPI_Type_create_struct(7, lengths, displacements, types, &yt_hierarchy_mpi_type_);
-    MPI_Type_commit(&yt_hierarchy_mpi_type_);
 }
 
 void CommMpi::SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local) {

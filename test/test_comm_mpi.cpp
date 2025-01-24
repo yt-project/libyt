@@ -5,6 +5,7 @@
 #include "big_mpi.h"
 #include "comm_mpi.h"
 #include "comm_mpi_rma.h"
+#include "data_structure_amr.h"
 
 class CommMpiFixture : public testing::Test {
 protected:
@@ -23,7 +24,6 @@ private:
     void SetUp() override {
         CommMpi::InitializeInfo(0);
         CommMpi::InitializeYtLongMpiDataType();
-        CommMpi::InitializeYtHierarchyMpiDataType();
     }
 };
 
@@ -78,7 +78,9 @@ TEST_F(TestBigMpi, Big_MPI_Gatherv_with_yt_hierarchy) {
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
     std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMpi::yt_hierarchy_mpi_type_;
+    DataStructureAmr ds_amr;
+    DataStructureAmr::SetMpiInfo(mpi_size, mpi_root, mpi_rank);
+    MPI_Datatype mpi_datatype = ds_amr.GetMpiHierarchyDataType();
 
     int* send_count_in_each_rank = new int[mpi_size];
     long total_send_counts = 1000;  // TODO: make this a test parameter
@@ -314,7 +316,9 @@ TEST_F(TestBigMpi, Big_MPI_Bcast_with_yt_hierarchy) {
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
     std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMpi::yt_hierarchy_mpi_type_;
+    DataStructureAmr ds_amr;
+    DataStructureAmr::SetMpiInfo(mpi_size, mpi_root, mpi_rank);
+    MPI_Datatype mpi_datatype = ds_amr.GetMpiHierarchyDataType();
 
     const long total_send_counts = 1000;  // TODO: make this a test parameter
     yt_hierarchy* send_buffer = new yt_hierarchy[total_send_counts];

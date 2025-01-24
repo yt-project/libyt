@@ -2,6 +2,7 @@
 #define LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_
 
 #include <Python.h>
+#include <mpi.h>
 
 #include <string>
 
@@ -40,6 +41,8 @@ struct DataStructureOutput {
 
 class DataStructureAmr {
 private:
+    static MPI_Datatype mpi_hierarchy_data_type_;
+
     bool check_data_;
 
     // Hierarchy
@@ -61,6 +64,9 @@ private:
     long* par_count_list_;
 
 private:
+    // Initializations
+    static void InitializeMpiHierarchyDataType();
+
     // Allocate storage
     DataStructureOutput AllocateFieldList(int num_fields);
     DataStructureOutput AllocateParticleList(int num_par_types, yt_par_type* par_type_list);
@@ -115,15 +121,11 @@ public:
 
 public:
     // Initialize
-    static void SetMpiInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
-        mpi_size_ = mpi_size;
-        mpi_root_ = mpi_root;
-        mpi_rank_ = mpi_rank;
-        // TODO: maybe move MPI custom type here
-    }
-    static int InitializeNumPy();
     DataStructureAmr();
+    static void SetMpiInfo(int mpi_size, int mpi_root, int mpi_rank);
+    static int InitializeNumPy();
     void SetPythonBindings(PyObject* py_hierarchy, PyObject* py_grid_data, PyObject* py_particle_data);
+    MPI_Datatype& GetMpiHierarchyDataType() { return mpi_hierarchy_data_type_; }
 
     // Process of setting up the data structure
     DataStructureOutput AllocateStorage(long num_grids, int num_grids_local, int num_fields, int num_par_types,
