@@ -61,26 +61,31 @@ public:
     CommMpiRmaReturn<DataClass> GetRemoteData(const std::vector<DataClass>& prepared_data_list,
                                               const std::vector<CommMpiRmaQueryInfo>& fetch_id_list);
     const std::string& GetErrorStr() const { return error_str_; }
+    virtual MPI_Datatype& GetMpiDataType() = 0;
 };
 
 class CommMpiRmaAmrDataArray3D : public CommMpiRma<AmrDataArray3D> {
 private:
+    static MPI_Datatype mpi_data_type_;
     long GetDataSize(const AmrDataArray3D& data) override;
     long GetDataLen(const AmrDataArray3D& data) override;
+    static void InitializeMpiDataType();
 
 public:
-    CommMpiRmaAmrDataArray3D(const std::string& data_group_name, const std::string& data_format)
-        : CommMpiRma<AmrDataArray3D>(data_group_name, data_format) {}
+    CommMpiRmaAmrDataArray3D(const std::string& data_group_name, const std::string& data_format);
+    MPI_Datatype& GetMpiDataType() override { return CommMpiRmaAmrDataArray3D::mpi_data_type_; }
 };
 
 class CommMpiRmaAmrDataArray1D : public CommMpiRma<AmrDataArray1D> {
 private:
+    static MPI_Datatype mpi_data_type_;
     long GetDataSize(const AmrDataArray1D& data) override;
     long GetDataLen(const AmrDataArray1D& data) override;
+    static void InitializeMpiDataType();
 
 public:
-    CommMpiRmaAmrDataArray1D(const std::string& data_group_name, const std::string& data_format)
-        : CommMpiRma<AmrDataArray1D>(data_group_name, data_format) {}
+    CommMpiRmaAmrDataArray1D(const std::string& data_group_name, const std::string& data_format);
+    MPI_Datatype& GetMpiDataType() override { return CommMpiRmaAmrDataArray1D::mpi_data_type_; }
 };
 
 #endif  // #ifndef SERIAL_MODE

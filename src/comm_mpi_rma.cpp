@@ -216,15 +216,14 @@ CommMpiRmaStatus CommMpiRma<DataClass>::GatherAllPreparedData(const std::vector<
     }
     total_send_counts = search_range_[CommMpi::mpi_size_];
 
-    // Get all prepared data
+    // Get all prepared data (TODO: why didn't I use AllGatherv?)
     all_prepared_data_list_ = new DataClass[total_send_counts];
     all_prepared_data_address_list_ = new MpiRmaAddress[total_send_counts];
-    big_MPI_Gatherv<DataClass>(CommMpi::mpi_root_, all_send_counts, prepared_data_list.data(),
-                               CommMpi::mpi_custom_type_map_[data_format_], all_prepared_data_list_);
+    big_MPI_Gatherv<DataClass>(CommMpi::mpi_root_, all_send_counts, prepared_data_list.data(), &GetMpiDataType(),
+                               all_prepared_data_list_);
     big_MPI_Gatherv<MpiRmaAddress>(CommMpi::mpi_root_, all_send_counts, mpi_prepared_data_address_list_.data(),
                                    &CommMpi::mpi_rma_address_mpi_type_, all_prepared_data_address_list_);
-    big_MPI_Bcast<DataClass>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_list_,
-                             CommMpi::mpi_custom_type_map_[data_format_]);
+    big_MPI_Bcast<DataClass>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_list_, &GetMpiDataType());
     big_MPI_Bcast<MpiRmaAddress>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_address_list_,
                                  &CommMpi::mpi_rma_address_mpi_type_);
 
@@ -369,6 +368,8 @@ CommMpiRmaStatus CommMpiRma<DataClass>::CleanUp(const std::vector<DataClass>& pr
 
 template class CommMpiRma<AmrDataArray3D>;
 template class CommMpiRma<AmrDataArray1D>;
+MPI_Datatype CommMpiRmaAmrDataArray3D::mpi_data_type_ = nullptr;
+MPI_Datatype CommMpiRmaAmrDataArray1D::mpi_data_type_ = nullptr;
 
 //-------------------------------------------------------------------------------------------------------
 // Class          :  CommMpiRmaAmrDataArray3D
@@ -409,6 +410,40 @@ long CommMpiRmaAmrDataArray3D::GetDataLen(const AmrDataArray3D& data) {
 }
 
 //-------------------------------------------------------------------------------------------------------
+// Class          :  CommMpiRmaAmrDataArray3D
+// Public Method  :  Constructor
+//
+// Notes          :  1. Also initialize custom mpi data type.
+//-------------------------------------------------------------------------------------------------------
+CommMpiRmaAmrDataArray3D::CommMpiRmaAmrDataArray3D(const std::string& data_group_name, const std::string& data_format)
+    : CommMpiRma<AmrDataArray3D>(data_group_name, data_format) {
+    InitializeMpiDataType();
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class                 :  CommMpiRmaAmrDataArray3D
+// Private Static Method :  InitializeMpiDataType
+//
+// Notes          :  1. Initialize custom mpi data type for AmrDataArray3D.
+//-------------------------------------------------------------------------------------------------------
+void CommMpiRmaAmrDataArray3D::InitializeMpiDataType() {
+    if (mpi_data_type_ != nullptr) {
+        return;
+    }
+
+    int lengths[5] = {1, 1, 3, 1, 1};
+    MPI_Aint displacements[5];
+    displacements[0] = offsetof(AmrDataArray3D, id);
+    displacements[1] = offsetof(AmrDataArray3D, data_dtype);
+    displacements[2] = offsetof(AmrDataArray3D, data_dim);
+    displacements[3] = offsetof(AmrDataArray3D, data_ptr);
+    displacements[4] = offsetof(AmrDataArray3D, contiguous_in_x);
+    MPI_Datatype types[5] = {MPI_LONG, MPI_INT, MPI_INT, MPI_AINT, MPI_CXX_BOOL};
+    MPI_Type_create_struct(5, lengths, displacements, types, &mpi_data_type_);
+    MPI_Type_commit(&mpi_data_type_);
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Class          :  CommMpiRmaAmrDataArray1D
 // Private Method :  GetDataSize
 //
@@ -437,6 +472,39 @@ long CommMpiRmaAmrDataArray1D::GetDataLen(const AmrDataArray1D& data) {
         return -1;
     }
     return data.data_len;
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  CommMpiRmaAmrDataArray1D
+// Public Method  :  Constructor
+//
+// Notes          :  1. Also initialize custom mpi data type.
+//-------------------------------------------------------------------------------------------------------
+CommMpiRmaAmrDataArray1D::CommMpiRmaAmrDataArray1D(const std::string& data_group_name, const std::string& data_format)
+    : CommMpiRma<AmrDataArray1D>(data_group_name, data_format) {
+    InitializeMpiDataType();
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class                 :  CommMpiRmaAmrDataArray1D
+// Private Static Method :  InitializeMpiDataType
+//
+// Notes          :  1. Initialize custom mpi data type for AmrDataArray1D.
+//-------------------------------------------------------------------------------------------------------
+void CommMpiRmaAmrDataArray1D::InitializeMpiDataType() {
+    if (mpi_data_type_ != nullptr) {
+        return;
+    }
+
+    int lengths[4] = {1, 1, 1, 1};
+    MPI_Aint displacements[4];
+    displacements[0] = offsetof(AmrDataArray1D, id);
+    displacements[1] = offsetof(AmrDataArray1D, data_dtype);
+    displacements[2] = offsetof(AmrDataArray1D, data_ptr);
+    displacements[3] = offsetof(AmrDataArray1D, data_len);
+    MPI_Datatype types[4] = {MPI_LONG, MPI_INT, MPI_AINT, MPI_LONG};
+    MPI_Type_create_struct(4, lengths, displacements, types, &mpi_data_type_);
+    MPI_Type_commit(&mpi_data_type_);
 }
 
 #endif
