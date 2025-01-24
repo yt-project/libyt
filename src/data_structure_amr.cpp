@@ -14,7 +14,9 @@
 int DataStructureAmr::mpi_size_;
 int DataStructureAmr::mpi_root_;
 int DataStructureAmr::mpi_rank_;
+#ifndef SERIAL_MODE
 MPI_Datatype DataStructureAmr::mpi_hierarchy_data_type_ = nullptr;
+#endif
 
 //-------------------------------------------------------------------------------------------------------
 // Helper Function : WrapToNumPyArray
@@ -94,6 +96,7 @@ int DataStructureAmr::InitializeNumPy() {
 }
 
 void DataStructureAmr::InitializeMpiHierarchyDataType() {
+#ifndef SERIAL_MODE
     if (DataStructureAmr::mpi_hierarchy_data_type_ != nullptr) {
         return;
     }
@@ -110,6 +113,7 @@ void DataStructureAmr::InitializeMpiHierarchyDataType() {
     MPI_Datatype types[7] = {MPI_DOUBLE, MPI_DOUBLE, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT};
     MPI_Type_create_struct(7, lengths, displacements, types, &DataStructureAmr::mpi_hierarchy_data_type_);
     MPI_Type_commit(&DataStructureAmr::mpi_hierarchy_data_type_);
+#endif
 }
 
 void DataStructureAmr::SetMpiInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
