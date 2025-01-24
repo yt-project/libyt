@@ -32,6 +32,7 @@ struct CommMpiRmaReturn {
 template<typename DataClass>
 class CommMpiRma {
 private:
+    static MPI_Datatype mpi_rma_data_type_;
     MPI_Win mpi_window_{};
     DataClass* all_prepared_data_list_;
     std::vector<MpiRmaAddress> mpi_prepared_data_address_list_;
@@ -44,6 +45,10 @@ private:
     std::string data_format_;
     std::string error_str_;
 
+    // Initializations
+    static void InitializeMpiAddressDataType();
+
+    // Rma operations
     CommMpiRmaStatus InitializeMpiWindow();
     CommMpiRmaStatus PrepareData(const std::vector<DataClass>& prepared_data_list);
     CommMpiRmaStatus GatherAllPreparedData(const std::vector<DataClass>& prepared_data_list);
@@ -52,6 +57,7 @@ private:
     CommMpiRmaStatus DetachBuffer(const std::vector<DataClass>& prepared_data_list);
     CommMpiRmaStatus CleanUp(const std::vector<DataClass>& prepared_data_list);
 
+    // Custom implementations for derived classes
     virtual long GetDataSize(const DataClass& data) = 0;
     virtual long GetDataLen(const DataClass& data) = 0;
     // TODO: create virtual function to select the data (ex: id)
@@ -61,6 +67,9 @@ public:
     CommMpiRmaReturn<DataClass> GetRemoteData(const std::vector<DataClass>& prepared_data_list,
                                               const std::vector<CommMpiRmaQueryInfo>& fetch_id_list);
     const std::string& GetErrorStr() const { return error_str_; }
+    MPI_Datatype& GetMpiAddressDataType() { return mpi_rma_data_type_; }
+
+    // Custom implementations for derived classes
     virtual MPI_Datatype& GetMpiDataType() = 0;
 };
 
