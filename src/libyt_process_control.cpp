@@ -68,10 +68,6 @@ void LibytProcessControl::Initialize() {
     CommMpi::InitializeYtLongMpiDataType();
     CommMpi::InitializeYtHierarchyMpiDataType();
     CommMpi::InitializeMpiRmaAddressMpiDataType();
-    CommMpi::InitializeAmrDataArray3DMpiDataType();
-    CommMpi::InitializeAmrDataArray1DMpiDataType();
-    CommMpi::InitializeYtRmaGridInfoMpiDataType();
-    CommMpi::InitializeYtRmaParticleInfoMpiDataType();
 #endif
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)

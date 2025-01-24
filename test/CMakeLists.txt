@@ -32,11 +32,13 @@ if (NOT SERIAL_MODE)
 add_executable(TestCommMPI test_comm_mpi.cpp)
 target_include_directories(TestCommMPI PUBLIC
     ${MPI_INCLUDE_PATH}
+    ${Python_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/include
 )
 target_link_libraries(TestCommMPI PUBLIC
     gtest_main
     MPI::MPI_CXX
+    ${Python_LIBRARIES}
     yt
 )
 gtest_discover_tests(TestCommMPI)

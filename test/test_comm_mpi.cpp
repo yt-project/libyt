@@ -25,10 +25,6 @@ private:
         CommMpi::InitializeYtLongMpiDataType();
         CommMpi::InitializeYtHierarchyMpiDataType();
         CommMpi::InitializeMpiRmaAddressMpiDataType();
-        CommMpi::InitializeAmrDataArray3DMpiDataType();
-        CommMpi::InitializeAmrDataArray1DMpiDataType();
-        CommMpi::InitializeYtRmaGridInfoMpiDataType();
-        CommMpi::InitializeYtRmaParticleInfoMpiDataType();
     }
 };
 
@@ -140,7 +136,8 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray3D) {
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
     std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMpi::amr_data_array_3d_mpi_type_;
+    CommMpiRmaAmrDataArray3D rma("test", "test");
+    MPI_Datatype mpi_datatype = rma.GetMpiDataType();
 
     int* send_count_in_each_rank = new int[mpi_size];
     long total_send_counts = 1000;  // TODO: make this a test parameter
@@ -194,7 +191,8 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray1D) {
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
     std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMpi::amr_data_array_1d_mpi_type_;
+    CommMpiRmaAmrDataArray1D rma("test", "test");
+    MPI_Datatype mpi_datatype = rma.GetMpiDataType();
 
     int* send_count_in_each_rank = new int[mpi_size];
     long total_send_counts = 1000;  // TODO: make this a test parameter
@@ -361,7 +359,8 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray3D) {
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
     std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMpi::amr_data_array_3d_mpi_type_;
+    CommMpiRmaAmrDataArray3D rma("test", "test");
+    MPI_Datatype mpi_datatype = rma.GetMpiDataType();
 
     const long total_send_counts = 1000;  // TODO: make this a test parameter
     AmrDataArray3D* buffer = new AmrDataArray3D[total_send_counts];
@@ -403,7 +402,8 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray1D) {
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
     std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMpi::amr_data_array_1d_mpi_type_;
+    CommMpiRmaAmrDataArray1D rma("test", "test");
+    MPI_Datatype mpi_datatype = rma.GetMpiDataType();
 
     const long total_send_counts = 1000;  // TODO: make this a test parameter
     AmrDataArray1D* buffer = new AmrDataArray1D[total_send_counts];
