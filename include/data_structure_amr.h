@@ -1,8 +1,11 @@
 #ifndef LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_
 #define LIBYT_PROJECT_INCLUDE_DATA_STRUCTURE_AMR_H_
 
-#include <Python.h>
+#ifndef SERIAL_MODE
 #include <mpi.h>
+#endif
+
+#include <Python.h>
 
 #include <string>
 
@@ -41,7 +44,9 @@ struct DataStructureOutput {
 
 class DataStructureAmr {
 private:
+#ifndef SERIAL_MODE
     static MPI_Datatype mpi_hierarchy_data_type_;
+#endif
 
     bool check_data_;
 
@@ -125,7 +130,9 @@ public:
     static void SetMpiInfo(int mpi_size, int mpi_root, int mpi_rank);
     static int InitializeNumPy();
     void SetPythonBindings(PyObject* py_hierarchy, PyObject* py_grid_data, PyObject* py_particle_data);
+#ifndef SERIAL_MODE
     MPI_Datatype& GetMpiHierarchyDataType() { return mpi_hierarchy_data_type_; }
+#endif
 
     // Process of setting up the data structure
     DataStructureOutput AllocateStorage(long num_grids, int num_grids_local, int num_fields, int num_par_types,
