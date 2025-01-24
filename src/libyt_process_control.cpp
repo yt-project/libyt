@@ -66,7 +66,6 @@ void LibytProcessControl::Initialize() {
 
     CommMpi::InitializeInfo(0);
     CommMpi::InitializeYtLongMpiDataType();
-    CommMpi::InitializeYtHierarchyMpiDataType();
 #endif
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)

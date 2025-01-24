@@ -14,6 +14,7 @@
 int DataStructureAmr::mpi_size_;
 int DataStructureAmr::mpi_root_;
 int DataStructureAmr::mpi_rank_;
+MPI_Datatype DataStructureAmr::mpi_hierarchy_data_type_ = nullptr;
 
 //-------------------------------------------------------------------------------------------------------
 // Helper Function : WrapToNumPyArray
@@ -90,6 +91,32 @@ int DataStructureAmr::InitializeNumPy() {
         import_array1(-1);
     }
     return 0;
+}
+
+void DataStructureAmr::InitializeMpiHierarchyDataType() {
+    if (DataStructureAmr::mpi_hierarchy_data_type_ != nullptr) {
+        return;
+    }
+
+    int lengths[7] = {3, 3, 1, 1, 3, 1, 1};
+    MPI_Aint displacements[7];
+    displacements[0] = offsetof(yt_hierarchy, left_edge);
+    displacements[1] = offsetof(yt_hierarchy, right_edge);
+    displacements[2] = offsetof(yt_hierarchy, id);
+    displacements[3] = offsetof(yt_hierarchy, parent_id);
+    displacements[4] = offsetof(yt_hierarchy, dimensions);
+    displacements[5] = offsetof(yt_hierarchy, level);
+    displacements[6] = offsetof(yt_hierarchy, proc_num);
+    MPI_Datatype types[7] = {MPI_DOUBLE, MPI_DOUBLE, MPI_LONG, MPI_LONG, MPI_INT, MPI_INT, MPI_INT};
+    MPI_Type_create_struct(7, lengths, displacements, types, &DataStructureAmr::mpi_hierarchy_data_type_);
+    MPI_Type_commit(&DataStructureAmr::mpi_hierarchy_data_type_);
+}
+
+void DataStructureAmr::SetMpiInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
+    mpi_size_ = mpi_size;
+    mpi_root_ = mpi_root;
+    mpi_rank_ = mpi_rank;
+    InitializeMpiHierarchyDataType();
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -430,13 +457,14 @@ DataStructureOutput DataStructureAmr::GatherAllHierarchy(int mpi_root, yt_hierar
 
     // TODO: create big_MPI_AllGatherv, since we are going to check data in every rank
     big_MPI_Gatherv<yt_hierarchy>(mpi_root, all_num_grids_local, (void*)hierarchy_local,
-                                  &CommMpi::yt_hierarchy_mpi_type_, (void*)hierarchy_full);
+                                  &DataStructureAmr::mpi_hierarchy_data_type_, (void*)hierarchy_full);
     for (int s = 0; s < num_par_types_; s++) {
         big_MPI_Gatherv<long>(mpi_root, all_num_grids_local, (void*)particle_count_list_local[s],
                               &CommMpi::yt_long_mpi_type_, (void*)particle_count_list_full[s]);
     }
     // broadcast hierarchy_full, particle_count_list_full to each rank as well.
-    big_MPI_Bcast<yt_hierarchy>(mpi_root, num_grids_, (void*)hierarchy_full, &CommMpi::yt_hierarchy_mpi_type_);
+    big_MPI_Bcast<yt_hierarchy>(mpi_root, num_grids_, (void*)hierarchy_full,
+                                &DataStructureAmr::mpi_hierarchy_data_type_);
     for (int s = 0; s < num_par_types_; s++) {
         big_MPI_Bcast<long>(mpi_root, num_grids_, (void*)particle_count_list_full[s], &CommMpi::yt_long_mpi_type_);
     }
