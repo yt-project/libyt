@@ -460,11 +460,11 @@ DataStructureOutput DataStructureAmr::GatherAllHierarchy(int mpi_root, yt_hierar
     }
 
     // TODO: create big_MPI_AllGatherv, since we are going to check data in every rank
-    big_MPI_Gatherv<yt_hierarchy>(mpi_root, all_num_grids_local, (void*)hierarchy_local,
-                                  &DataStructureAmr::mpi_hierarchy_data_type_, (void*)hierarchy_full);
+    BigMpiGatherv<yt_hierarchy>(mpi_root, all_num_grids_local, (void*)hierarchy_local,
+                                &DataStructureAmr::mpi_hierarchy_data_type_, (void*)hierarchy_full);
     for (int s = 0; s < num_par_types_; s++) {
-        big_MPI_Gatherv<long>(mpi_root, all_num_grids_local, (void*)particle_count_list_local[s],
-                              &CommMpi::yt_long_mpi_type_, (void*)particle_count_list_full[s]);
+        BigMpiGatherv<long>(mpi_root, all_num_grids_local, (void*)particle_count_list_local[s],
+                            &CommMpi::yt_long_mpi_type_, (void*)particle_count_list_full[s]);
     }
     // broadcast hierarchy_full, particle_count_list_full to each rank as well.
     big_MPI_Bcast<yt_hierarchy>(mpi_root, num_grids_, (void*)hierarchy_full,

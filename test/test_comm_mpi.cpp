@@ -55,11 +55,11 @@ TEST_F(TestBigMpi, Big_MPI_Gatherv_with_yt_long) {
     }
 
     // Act
-    const int result =
-        big_MPI_Gatherv<long>(mpi_root, send_count_in_each_rank, (void*)send_buffer, &mpi_datatype, (void*)recv_buffer);
+    BigMpiStatus result =
+        BigMpiGatherv<long>(mpi_root, send_count_in_each_rank, (void*)send_buffer, &mpi_datatype, (void*)recv_buffer);
 
     // Assert
-    EXPECT_EQ(result, YT_SUCCESS);
+    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
     if (mpi_rank == mpi_root) {
         for (long i = 0; i < total_send_counts; i++) {
             EXPECT_EQ(recv_buffer[i], i);
@@ -106,11 +106,11 @@ TEST_F(TestBigMpi, Big_MPI_Gatherv_with_yt_hierarchy) {
     }
 
     // Act
-    const int result = big_MPI_Gatherv<yt_hierarchy>(mpi_root, send_count_in_each_rank, (void*)send_buffer,
-                                                     &mpi_datatype, (void*)recv_buffer);
+    BigMpiStatus result = BigMpiGatherv<yt_hierarchy>(mpi_root, send_count_in_each_rank, (void*)send_buffer,
+                                                      &mpi_datatype, (void*)recv_buffer);
 
     // Assert
-    EXPECT_EQ(result, YT_SUCCESS);
+    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
     if (mpi_rank == mpi_root) {
         for (long i = 0; i < total_send_counts; i++) {
             EXPECT_EQ(recv_buffer[i].id, i);
@@ -163,11 +163,11 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray3D) {
     }
 
     // Act
-    const int result = big_MPI_Gatherv<AmrDataArray3D>(mpi_root, send_count_in_each_rank, (void*)send_buffer,
-                                                       &mpi_datatype, (void*)recv_buffer);
+    BigMpiStatus result = BigMpiGatherv<AmrDataArray3D>(mpi_root, send_count_in_each_rank, (void*)send_buffer,
+                                                        &mpi_datatype, (void*)recv_buffer);
 
     // Assert
-    EXPECT_EQ(result, YT_SUCCESS);
+    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
     if (mpi_rank == mpi_root) {
         for (long i = 0; i < total_send_counts; i++) {
             EXPECT_EQ(recv_buffer[i].id, i);
@@ -217,11 +217,11 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray1D) {
     }
 
     // Act
-    const int result = big_MPI_Gatherv<AmrDataArray1D>(mpi_root, send_count_in_each_rank, (void*)send_buffer,
-                                                       &mpi_datatype, (void*)recv_buffer);
+    BigMpiStatus result = BigMpiGatherv<AmrDataArray1D>(mpi_root, send_count_in_each_rank, (void*)send_buffer,
+                                                        &mpi_datatype, (void*)recv_buffer);
 
     // Assert
-    EXPECT_EQ(result, YT_SUCCESS);
+    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
     if (mpi_rank == mpi_root) {
         for (long i = 0; i < total_send_counts; i++) {
             EXPECT_EQ(recv_buffer[i].id, i);
@@ -263,11 +263,11 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_MpiRmaAddress) {
     }
 
     // Act
-    const int result = big_MPI_Gatherv<MpiRmaAddress>(mpi_root, send_count_in_each_rank, (void*)send_buffer,
-                                                      &mpi_datatype, (void*)recv_buffer);
+    BigMpiStatus result = BigMpiGatherv<MpiRmaAddress>(mpi_root, send_count_in_each_rank, (void*)send_buffer,
+                                                       &mpi_datatype, (void*)recv_buffer);
 
     // Assert
-    EXPECT_EQ(result, YT_SUCCESS);
+    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
     if (mpi_rank == mpi_root) {
         for (long i = 0; i < total_send_counts; i++) {
             EXPECT_EQ(recv_buffer[i].mpi_rank, i);
