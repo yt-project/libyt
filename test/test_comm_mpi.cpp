@@ -298,10 +298,10 @@ TEST_F(TestBigMpi, Big_MPI_Bcast_with_yt_long) {
     }
 
     // Act
-    const int result = big_MPI_Bcast<long>(mpi_root, total_send_counts, (void*)send_buffer, &mpi_datatype);
+    BigMpiStatus result = BigMpiBcast<long>(mpi_root, total_send_counts, (void*)send_buffer, &mpi_datatype);
 
     // Assert
-    EXPECT_EQ(result, YT_SUCCESS);
+    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
     for (long i = 0; i < total_send_counts; i++) {
         EXPECT_EQ(send_buffer[i], i);
     }
@@ -337,10 +337,10 @@ TEST_F(TestBigMpi, Big_MPI_Bcast_with_yt_hierarchy) {
     }
 
     // Act
-    const int result = big_MPI_Bcast<yt_hierarchy>(mpi_root, total_send_counts, (void*)send_buffer, &mpi_datatype);
+    BigMpiStatus result = BigMpiBcast<yt_hierarchy>(mpi_root, total_send_counts, (void*)send_buffer, &mpi_datatype);
 
     // Assert
-    EXPECT_EQ(result, YT_SUCCESS);
+    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
     for (int i = 0; i < total_send_counts; i++) {
         EXPECT_EQ(send_buffer[i].id, i);
         EXPECT_EQ(send_buffer[i].parent_id, i);
@@ -382,10 +382,10 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray3D) {
     }
 
     // Act
-    const int result = big_MPI_Bcast<AmrDataArray3D>(mpi_root, total_send_counts, (void*)buffer, &mpi_datatype);
+    BigMpiStatus result = BigMpiBcast<AmrDataArray3D>(mpi_root, total_send_counts, (void*)buffer, &mpi_datatype);
 
     // Assert
-    EXPECT_EQ(result, YT_SUCCESS);
+    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
     for (int i = 0; i < total_send_counts; i++) {
         EXPECT_EQ(buffer[i].id, i);
         EXPECT_EQ(buffer[i].data_dtype, YT_INT);
@@ -422,10 +422,10 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray1D) {
     }
 
     // Act
-    const int result = big_MPI_Bcast<AmrDataArray1D>(mpi_root, total_send_counts, (void*)buffer, &mpi_datatype);
+    BigMpiStatus result = BigMpiBcast<AmrDataArray1D>(mpi_root, total_send_counts, (void*)buffer, &mpi_datatype);
 
     // Assert
-    EXPECT_EQ(result, YT_SUCCESS);
+    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
     for (int i = 0; i < total_send_counts; i++) {
         EXPECT_EQ(buffer[i].id, i);
         EXPECT_EQ(buffer[i].data_dtype, YT_INT);
@@ -456,10 +456,10 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_MpiRmaAddress) {
     }
 
     // Act
-    const int result = big_MPI_Bcast<MpiRmaAddress>(mpi_root, total_send_counts, (void*)send_buffer, &mpi_datatype);
+    BigMpiStatus result = BigMpiBcast<MpiRmaAddress>(mpi_root, total_send_counts, (void*)send_buffer, &mpi_datatype);
 
     // Assert
-    EXPECT_EQ(result, YT_SUCCESS);
+    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
     for (int i = 0; i < total_send_counts; i++) {
         EXPECT_EQ(send_buffer[i].mpi_rank, i);
         EXPECT_EQ(send_buffer[i].mpi_address, i + total_send_counts);

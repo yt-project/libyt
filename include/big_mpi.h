@@ -12,7 +12,7 @@
 enum class BigMpiStatus : int { kBigMpiFailed = 0, kBigMpiExceedCounts = 1, kBigMpiSuccess = 2 };
 
 //-------------------------------------------------------------------------------------------------------
-// Template    :  big_MPI_Gatherv
+// Template    :  BigMpiGatherv
 // Description :  This is a workaround method for passing big send count of MPI_Gatherv.
 //-------------------------------------------------------------------------------------------------------
 template<typename T>
@@ -101,36 +101,27 @@ BigMpiStatus BigMpiGatherv(int root_rank, int* send_counts, const void* send_buf
 //-------------------------------------------------------------------------------------------------------
 // Function    :  big_MPI_Bcast
 // Description :  This is a workaround method for passing big send count of MPI_Bcast.
-//
-// Note        :  1. Use inside yt_commit(), yt_rma_field, yt_rma_particle.
-//
-// Parameter   :  int            RootRank     : Root rank.
-//                long           sendcount    : Send count.
-//                void          *buffer       : Buffer to broadcast.
-//                MPI_Datatype  *mpi_datatype : MPI datatype, can be user defined or MPI defined one.
-//
-// Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 template<typename T>
-int big_MPI_Bcast(int RootRank, long sendcount, void* buffer, MPI_Datatype* mpi_datatype) {
+BigMpiStatus BigMpiBcast(int root_rank, long send_count, void* buffer, MPI_Datatype* mpi_datatype) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    // The maximum MPI_Bcast sendcount is INT_MAX.
+    // The maximum MPI_Bcast send count is INT_MAX.
     // If num_grids > INT_MAX chop it to chunks, then broadcast.
     long stride = INT_MAX;
-    int part = (int)(sendcount / stride) + 1;
-    int remain = (int)(sendcount % stride);
+    int part = (int)(send_count / stride) + 1;
+    int remain = (int)(send_count % stride);
     long index;
     for (int i = 0; i < part; i++) {
         index = i * stride;
         if (i == part - 1) {
-            MPI_Bcast(&(((T*)buffer)[index]), remain, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+            MPI_Bcast(&(((T*)buffer)[index]), remain, *mpi_datatype, root_rank, MPI_COMM_WORLD);
         } else {
-            MPI_Bcast(&(((T*)buffer)[index]), (int)stride, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+            MPI_Bcast(&(((T*)buffer)[index]), (int)stride, *mpi_datatype, root_rank, MPI_COMM_WORLD);
         }
     }
 
-    return YT_SUCCESS;
+    return BigMpiStatus::kBigMpiSuccess;
 }
 
 //-------------------------------------------------------------------------------------------------------

@@ -467,10 +467,9 @@ DataStructureOutput DataStructureAmr::GatherAllHierarchy(int mpi_root, yt_hierar
                             &CommMpi::yt_long_mpi_type_, (void*)particle_count_list_full[s]);
     }
     // broadcast hierarchy_full, particle_count_list_full to each rank as well.
-    big_MPI_Bcast<yt_hierarchy>(mpi_root, num_grids_, (void*)hierarchy_full,
-                                &DataStructureAmr::mpi_hierarchy_data_type_);
+    BigMpiBcast<yt_hierarchy>(mpi_root, num_grids_, (void*)hierarchy_full, &DataStructureAmr::mpi_hierarchy_data_type_);
     for (int s = 0; s < num_par_types_; s++) {
-        big_MPI_Bcast<long>(mpi_root, num_grids_, (void*)particle_count_list_full[s], &CommMpi::yt_long_mpi_type_);
+        BigMpiBcast<long>(mpi_root, num_grids_, (void*)particle_count_list_full[s], &CommMpi::yt_long_mpi_type_);
     }
 
     // Return the full hierarchy and particle count list

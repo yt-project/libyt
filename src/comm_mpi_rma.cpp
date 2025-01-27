@@ -241,9 +241,9 @@ CommMpiRmaStatus CommMpiRma<DataClass>::GatherAllPreparedData(const std::vector<
                              all_prepared_data_list_);
     BigMpiGatherv<MpiRmaAddress>(CommMpi::mpi_root_, all_send_counts, mpi_prepared_data_address_list_.data(),
                                  &CommMpiRma::mpi_rma_data_type_, all_prepared_data_address_list_);
-    big_MPI_Bcast<DataClass>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_list_, &GetMpiDataType());
-    big_MPI_Bcast<MpiRmaAddress>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_address_list_,
-                                 &CommMpiRma::mpi_rma_data_type_);
+    BigMpiBcast<DataClass>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_list_, &GetMpiDataType());
+    BigMpiBcast<MpiRmaAddress>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_address_list_,
+                               &CommMpiRma::mpi_rma_data_type_);
 
     // Clean up
     delete[] all_send_counts;
