@@ -237,10 +237,10 @@ CommMpiRmaStatus CommMpiRma<DataClass>::GatherAllPreparedData(const std::vector<
     // Get all prepared data (TODO: why didn't I use AllGatherv?)
     all_prepared_data_list_ = new DataClass[total_send_counts];
     all_prepared_data_address_list_ = new MpiRmaAddress[total_send_counts];
-    big_MPI_Gatherv<DataClass>(CommMpi::mpi_root_, all_send_counts, prepared_data_list.data(), &GetMpiDataType(),
-                               all_prepared_data_list_);
-    big_MPI_Gatherv<MpiRmaAddress>(CommMpi::mpi_root_, all_send_counts, mpi_prepared_data_address_list_.data(),
-                                   &CommMpiRma::mpi_rma_data_type_, all_prepared_data_address_list_);
+    BigMpiGatherv<DataClass>(CommMpi::mpi_root_, all_send_counts, prepared_data_list.data(), &GetMpiDataType(),
+                             all_prepared_data_list_);
+    BigMpiGatherv<MpiRmaAddress>(CommMpi::mpi_root_, all_send_counts, mpi_prepared_data_address_list_.data(),
+                                 &CommMpiRma::mpi_rma_data_type_, all_prepared_data_address_list_);
     big_MPI_Bcast<DataClass>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_list_, &GetMpiDataType());
     big_MPI_Bcast<MpiRmaAddress>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_address_list_,
                                  &CommMpiRma::mpi_rma_data_type_);

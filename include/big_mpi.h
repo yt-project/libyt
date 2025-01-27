@@ -1,30 +1,23 @@
-#ifndef __BIG_MPI_H__
-#define __BIG_MPI_H__
+#ifndef LIBYT_PROJECT_INCLUDE_BIG_MPI_H_
+#define LIBYT_PROJECT_INCLUDE_BIG_MPI_H_
 
 #ifndef SERIAL_MODE
 
+#include <limits.h>
 #include <mpi.h>
 
 #include "timer.h"
 #include "yt_macro.h"
 
+enum class BigMpiStatus : int { kBigMpiFailed = 0, kBigMpiExceedCounts = 1, kBigMpiSuccess = 2 };
+
 //-------------------------------------------------------------------------------------------------------
 // Template    :  big_MPI_Gatherv
 // Description :  This is a workaround method for passing big send count of MPI_Gatherv.
-//
-// Note        :  1. Use inside yt_commit(), yt_rma_field, yt_rma_particle.
-//
-// Parameter   :  int            RootRank     : Root rank.
-//                int           *sendcounts   : Send counts in each rank.
-//                void          *sendbuffer   : Buffer to send.
-//                MPI_Datatype  *mpi_datatype : MPI datatype, can be user defined or MPI defined one.
-//                void          *recvbuffer   : Store the received buffer.
-//
-// Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 template<typename T>
-int big_MPI_Gatherv(int RootRank, int* sendcounts, const void* sendbuffer, MPI_Datatype* mpi_datatype,
-                    void* recvbuffer) {
+BigMpiStatus BigMpiGatherv(int root_rank, int* send_counts, const void* send_buffer, MPI_Datatype* mpi_datatype,
+                           void* recv_buffer) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int mpi_size, mpi_rank;
@@ -38,20 +31,20 @@ int big_MPI_Gatherv(int RootRank, int* sendcounts, const void* sendbuffer, MPI_D
     long index_start = 0;
     long accumulate = 0;
 
-    // Workaround method for passing big sendcount.
+    // Workaround method for passing big send count.
     for (int i = 0; i < mpi_size; i++) {
         offsets[i] = 0;
         accumulate = 0;
         for (int j = mpi_start; j < i; j++) {
-            offsets[i] += sendcounts[j];
-            accumulate += sendcounts[j];
+            offsets[i] += send_counts[j];
+            accumulate += send_counts[j];
         }
         // exceeding INT_MAX, start MPI_Gatherv
         if (accumulate > INT_MAX) {
             // Set recv_counts and offsets.
             for (int k = 0; k < mpi_size; k++) {
                 if (mpi_start <= k && k < i) {
-                    recv_counts[k] = sendcounts[k];
+                    recv_counts[k] = send_counts[k];
                 } else {
                     offsets[k] = 0;
                     recv_counts[k] = 0;
@@ -59,11 +52,11 @@ int big_MPI_Gatherv(int RootRank, int* sendcounts, const void* sendbuffer, MPI_D
             }
             // MPI_Gatherv
             if (mpi_start <= mpi_rank && mpi_rank < i) {
-                MPI_Gatherv(sendbuffer, sendcounts[mpi_rank], *mpi_datatype, &(((T*)recvbuffer)[index_start]),
-                            recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+                MPI_Gatherv(send_buffer, send_counts[mpi_rank], *mpi_datatype, &(((T*)recv_buffer)[index_start]),
+                            recv_counts, offsets, *mpi_datatype, root_rank, MPI_COMM_WORLD);
             } else {
-                MPI_Gatherv(sendbuffer, 0, *mpi_datatype, &(((T*)recvbuffer)[index_start]), recv_counts, offsets,
-                            *mpi_datatype, RootRank, MPI_COMM_WORLD);
+                MPI_Gatherv(send_buffer, 0, *mpi_datatype, &(((T*)recv_buffer)[index_start]), recv_counts, offsets,
+                            *mpi_datatype, root_rank, MPI_COMM_WORLD);
             }
 
             // New start point.
@@ -71,7 +64,7 @@ int big_MPI_Gatherv(int RootRank, int* sendcounts, const void* sendbuffer, MPI_D
             offsets[mpi_start] = 0;
             index_start = 0;
             for (int k = 0; k < i; k++) {
-                index_start += sendcounts[k];
+                index_start += send_counts[k];
             }
         }
         // Reach last mpi rank, MPI_Gatherv
@@ -81,7 +74,7 @@ int big_MPI_Gatherv(int RootRank, int* sendcounts, const void* sendbuffer, MPI_D
             // Set recv_counts and offsets.
             for (int k = 0; k < mpi_size; k++) {
                 if (mpi_start <= k && k <= i) {
-                    recv_counts[k] = sendcounts[k];
+                    recv_counts[k] = send_counts[k];
                 } else {
                     offsets[k] = 0;
                     recv_counts[k] = 0;
@@ -89,11 +82,11 @@ int big_MPI_Gatherv(int RootRank, int* sendcounts, const void* sendbuffer, MPI_D
             }
             // MPI_Gatherv
             if (mpi_start <= mpi_rank && mpi_rank <= i) {
-                MPI_Gatherv(sendbuffer, sendcounts[mpi_rank], *mpi_datatype, &(((T*)recvbuffer)[index_start]),
-                            recv_counts, offsets, *mpi_datatype, RootRank, MPI_COMM_WORLD);
+                MPI_Gatherv(send_buffer, send_counts[mpi_rank], *mpi_datatype, &(((T*)recv_buffer)[index_start]),
+                            recv_counts, offsets, *mpi_datatype, root_rank, MPI_COMM_WORLD);
             } else {
-                MPI_Gatherv(sendbuffer, 0, *mpi_datatype, &(((T*)recvbuffer)[index_start]), recv_counts, offsets,
-                            *mpi_datatype, RootRank, MPI_COMM_WORLD);
+                MPI_Gatherv(send_buffer, 0, *mpi_datatype, &(((T*)recv_buffer)[index_start]), recv_counts, offsets,
+                            *mpi_datatype, root_rank, MPI_COMM_WORLD);
             }
         }
     }
@@ -102,7 +95,7 @@ int big_MPI_Gatherv(int RootRank, int* sendcounts, const void* sendbuffer, MPI_D
     delete[] recv_counts;
     delete[] offsets;
 
-    return YT_SUCCESS;
+    return BigMpiStatus::kBigMpiSuccess;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -186,4 +179,4 @@ int big_MPI_Get(void* recv_buff, long data_len, MPI_Datatype* mpi_dtype, int get
 
 #endif  // #ifndef SERIAL_MODE
 
-#endif  // __BIG_MPI_H__
+#endif  // LIBYT_PROJECT_INCLUDE_BIG_MPI_H_
