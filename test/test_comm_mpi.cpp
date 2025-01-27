@@ -31,6 +31,60 @@ class TestBigMpi : public CommMpiFixture {};
 class TestRma : public CommMpiFixture {};
 class TestUtility : public CommMpiFixture {};
 
+TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_yt_hierarchy) {
+    // Arrange
+    int mpi_size = CommMpi::mpi_size_;
+    int mpi_rank = CommMpi::mpi_rank_;
+    int mpi_root = CommMpi::mpi_root_;
+    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
+    DataStructureAmr ds_amr;
+    DataStructureAmr::SetMpiInfo(mpi_size, mpi_root, mpi_rank);
+    MPI_Datatype mpi_datatype = ds_amr.GetMpiHierarchyDataType();
+
+    int* send_count_in_each_rank = new int[mpi_size];
+    long total_send_counts = 1000;  // TODO: make this a test parameter
+    int displacement = 0;
+    SplitArray(total_send_counts, mpi_size, mpi_rank, send_count_in_each_rank, &displacement);
+
+    yt_hierarchy* send_buffer = new yt_hierarchy[send_count_in_each_rank[mpi_rank]];
+    for (int i = 0; i < send_count_in_each_rank[mpi_rank]; i++) {
+        send_buffer[i].id = displacement + i;
+        send_buffer[i].parent_id = displacement + i;
+        send_buffer[i].level = displacement + i;
+        send_buffer[i].proc_num = displacement + i;
+        for (int d = 0; d < 3; d++) {
+            send_buffer[i].left_edge[d] = d;
+            send_buffer[i].right_edge[d] = d;
+            send_buffer[i].dimensions[d] = d;
+        }
+    }
+
+    yt_hierarchy* recv_buffer = new yt_hierarchy[total_send_counts];
+
+    // Act
+    BigMpiStatus result = BigMpiAllgatherv<yt_hierarchy>(mpi_root, send_count_in_each_rank, (void*)send_buffer,
+                                                         mpi_datatype, (void*)recv_buffer);
+
+    // Assert
+    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
+    for (long i = 0; i < total_send_counts; i++) {
+        EXPECT_EQ(recv_buffer[i].id, i);
+        EXPECT_EQ(recv_buffer[i].parent_id, i);
+        EXPECT_EQ(recv_buffer[i].level, i);
+        EXPECT_EQ(recv_buffer[i].proc_num, i);
+        for (int d = 0; d < 3; d++) {
+            EXPECT_EQ(recv_buffer[i].left_edge[d], d);
+            EXPECT_EQ(recv_buffer[i].right_edge[d], d);
+            EXPECT_EQ(recv_buffer[i].dimensions[d], d);
+        }
+    }
+
+    // Clean up
+    delete[] send_count_in_each_rank;
+    delete[] send_buffer;
+    delete[] recv_buffer;
+}
+
 TEST_F(TestBigMpi, Big_MPI_Gatherv_with_yt_long) {
     // Arrange
     int mpi_size = CommMpi::mpi_size_;

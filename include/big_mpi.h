@@ -16,7 +16,7 @@ enum class BigMpiStatus : int { kBigMpiFailed = 0, kBigMpiExceedCounts = 1, kBig
 // Description :  This is a workaround method for passing big send count of MPI_Allgatherv.
 //-------------------------------------------------------------------------------------------------------
 template<typename T>
-BigMpiStatus BigMpiAllgatherv(int root_rank, int* send_counts, const void* send_buffer, MPI_Datatype* mpi_datatype,
+BigMpiStatus BigMpiAllgatherv(int root_rank, int* send_counts, const void* send_buffer, MPI_Datatype mpi_datatype,
                               void* recv_buffer) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -52,11 +52,11 @@ BigMpiStatus BigMpiAllgatherv(int root_rank, int* send_counts, const void* send_
             }
             // MPI_Gatherv
             if (mpi_start <= mpi_rank && mpi_rank < i) {
-                MPI_Allgatherv(send_buffer, send_counts[mpi_rank], *mpi_datatype, &(((T*)recv_buffer)[index_start]),
-                               recv_counts, offsets, *mpi_datatype, root_rank, MPI_COMM_WORLD);
+                MPI_Allgatherv(send_buffer, send_counts[mpi_rank], mpi_datatype, &(((T*)recv_buffer)[index_start]),
+                               recv_counts, offsets, mpi_datatype, MPI_COMM_WORLD);
             } else {
-                MPI_Allgatherv(send_buffer, 0, *mpi_datatype, &(((T*)recv_buffer)[index_start]), recv_counts, offsets,
-                               *mpi_datatype, root_rank, MPI_COMM_WORLD);
+                MPI_Allgatherv(send_buffer, 0, mpi_datatype, &(((T*)recv_buffer)[index_start]), recv_counts, offsets,
+                               mpi_datatype, MPI_COMM_WORLD);
             }
 
             // New start point.
@@ -82,11 +82,11 @@ BigMpiStatus BigMpiAllgatherv(int root_rank, int* send_counts, const void* send_
             }
             // MPI_Gatherv
             if (mpi_start <= mpi_rank && mpi_rank <= i) {
-                MPI_Allgatherv(send_buffer, send_counts[mpi_rank], *mpi_datatype, &(((T*)recv_buffer)[index_start]),
-                               recv_counts, offsets, *mpi_datatype, root_rank, MPI_COMM_WORLD);
+                MPI_Allgatherv(send_buffer, send_counts[mpi_rank], mpi_datatype, &(((T*)recv_buffer)[index_start]),
+                               recv_counts, offsets, mpi_datatype, MPI_COMM_WORLD);
             } else {
-                MPI_Allgatherv(send_buffer, 0, *mpi_datatype, &(((T*)recv_buffer)[index_start]), recv_counts, offsets,
-                               *mpi_datatype, root_rank, MPI_COMM_WORLD);
+                MPI_Allgatherv(send_buffer, 0, mpi_datatype, &(((T*)recv_buffer)[index_start]), recv_counts, offsets,
+                               mpi_datatype, MPI_COMM_WORLD);
             }
         }
     }
