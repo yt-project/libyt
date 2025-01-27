@@ -12,6 +12,93 @@
 enum class BigMpiStatus : int { kBigMpiFailed = 0, kBigMpiExceedCounts = 1, kBigMpiSuccess = 2 };
 
 //-------------------------------------------------------------------------------------------------------
+// Template    :  BigMpiAllgatherv
+// Description :  This is a workaround method for passing big send count of MPI_Allgatherv.
+//-------------------------------------------------------------------------------------------------------
+template<typename T>
+BigMpiStatus BigMpiAllgatherv(int root_rank, int* send_counts, const void* send_buffer, MPI_Datatype* mpi_datatype,
+                              void* recv_buffer) {
+    SET_TIMER(__PRETTY_FUNCTION__);
+
+    int mpi_size, mpi_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+    // Count recv_counts, offsets, and split the buffer, if too large.
+    int* recv_counts = new int[mpi_size];
+    int* offsets = new int[mpi_size];
+    int mpi_start = 0;
+    long index_start = 0;
+    long accumulate = 0;
+
+    // Workaround method for passing big send count.
+    for (int i = 0; i < mpi_size; i++) {
+        offsets[i] = 0;
+        accumulate = 0;
+        for (int j = mpi_start; j < i; j++) {
+            offsets[i] += send_counts[j];
+            accumulate += send_counts[j];
+        }
+        // exceeding INT_MAX, start MPI_Gatherv
+        if (accumulate > INT_MAX) {
+            // Set recv_counts and offsets.
+            for (int k = 0; k < mpi_size; k++) {
+                if (mpi_start <= k && k < i) {
+                    recv_counts[k] = send_counts[k];
+                } else {
+                    offsets[k] = 0;
+                    recv_counts[k] = 0;
+                }
+            }
+            // MPI_Gatherv
+            if (mpi_start <= mpi_rank && mpi_rank < i) {
+                MPI_Allgatherv(send_buffer, send_counts[mpi_rank], *mpi_datatype, &(((T*)recv_buffer)[index_start]),
+                               recv_counts, offsets, *mpi_datatype, root_rank, MPI_COMM_WORLD);
+            } else {
+                MPI_Allgatherv(send_buffer, 0, *mpi_datatype, &(((T*)recv_buffer)[index_start]), recv_counts, offsets,
+                               *mpi_datatype, root_rank, MPI_COMM_WORLD);
+            }
+
+            // New start point.
+            mpi_start = i;
+            offsets[mpi_start] = 0;
+            index_start = 0;
+            for (int k = 0; k < i; k++) {
+                index_start += send_counts[k];
+            }
+        }
+        // Reach last mpi rank, MPI_Gatherv
+        // We can ignore the case when there is only one rank left and its offsets exceeds INT_MAX simultaneously.
+        // Because one is type int, the other is type long.
+        else if (i == mpi_size - 1) {
+            // Set recv_counts and offsets.
+            for (int k = 0; k < mpi_size; k++) {
+                if (mpi_start <= k && k <= i) {
+                    recv_counts[k] = send_counts[k];
+                } else {
+                    offsets[k] = 0;
+                    recv_counts[k] = 0;
+                }
+            }
+            // MPI_Gatherv
+            if (mpi_start <= mpi_rank && mpi_rank <= i) {
+                MPI_Allgatherv(send_buffer, send_counts[mpi_rank], *mpi_datatype, &(((T*)recv_buffer)[index_start]),
+                               recv_counts, offsets, *mpi_datatype, root_rank, MPI_COMM_WORLD);
+            } else {
+                MPI_Allgatherv(send_buffer, 0, *mpi_datatype, &(((T*)recv_buffer)[index_start]), recv_counts, offsets,
+                               *mpi_datatype, root_rank, MPI_COMM_WORLD);
+            }
+        }
+    }
+
+    // Free resource
+    delete[] recv_counts;
+    delete[] offsets;
+
+    return BigMpiStatus::kBigMpiSuccess;
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Template    :  BigMpiGatherv
 // Description :  This is a workaround method for passing big send count of MPI_Gatherv.
 //-------------------------------------------------------------------------------------------------------
@@ -99,7 +186,7 @@ BigMpiStatus BigMpiGatherv(int root_rank, int* send_counts, const void* send_buf
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  big_MPI_Bcast
+// Function    :  BigMpiBcast
 // Description :  This is a workaround method for passing big send count of MPI_Bcast.
 //-------------------------------------------------------------------------------------------------------
 template<typename T>
