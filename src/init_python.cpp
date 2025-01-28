@@ -3,12 +3,12 @@
 #include "yt_combo.h"
 #undef CALL_IMPORT_ARRAY
 
+#include "numpy_controller.h"
+
 #ifdef USE_PYBIND11
 #include "pybind11/embed.h"
 #include "pybind11/numpy.h"
 #endif
-
-static int import_numpy();
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  init_python
@@ -36,30 +36,16 @@ int init_python(int argc, char* argv[]) {
     else {
         YT_ABORT("Initializing Python interpreter ... failed!\n");
     }
-
-    // import numpy
-    if (import_numpy())
-        log_debug("Importing NumPy ... done\n");
-    else {
-        //    call _import_array and PyErr_PrintEx(0) to print out traceback error messages to stderr
-        _import_array();
-        PyErr_PrintEx(0);
-        YT_ABORT("Importing NumPy ... failed!\n");
-    }
 #else
     pybind11::initialize_interpreter();
+#endif  // #ifndef USE_PYBIND11
 
-    // TODO: I don't know why I need to do this manually, it should be done in pybind11.
     // import numpy
-    if (import_numpy())
+    if (NumPyController::InitializeNumPy() == NumPyStatus::kNumPySuccess) {
         log_debug("Importing NumPy ... done\n");
-    else {
-        // call _import_array and PyErr_PrintEx(0) to print out traceback error messages to stderr
-        _import_array();
-        PyErr_PrintEx(0);
+    } else {
         YT_ABORT("Importing NumPy ... failed!\n");
     }
-#endif  // #ifndef USE_PYBIND11
 
     // add the current location to the module search path
     if (PyRun_SimpleString("import sys; sys.path.insert(0, '.')") == 0) {
@@ -104,22 +90,3 @@ int init_python(int argc, char* argv[]) {
     return YT_SUCCESS;
 
 }  // FUNCTION : init_python
-
-//-------------------------------------------------------------------------------------------------------
-// Function    :  import_numpy
-// Description :  Import NumPy
-//
-// Note        :  1. Static function called by init_python
-//
-// Parameter   :  None
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
-int import_numpy() {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
-    // import_array1() is a macro which calls _import_array() and returns the given value (YT_FAIL here) on error
-    import_array1(YT_FAIL);
-
-    return YT_SUCCESS;
-}  // FUNCTION : import_numpy
