@@ -459,7 +459,6 @@ DataStructureOutput DataStructureAmr::GatherAllHierarchy(int mpi_root, yt_hierar
         hierarchy_local[i].proc_num = grid.proc_num;
     }
 
-    // TODO: create big_MPI_AllGatherv, since we are going to check data in every rank
     BigMpiAllgatherv<yt_hierarchy>(all_num_grids_local, (void*)hierarchy_local,
                                    DataStructureAmr::mpi_hierarchy_data_type_, (void*)hierarchy_full);
     for (int s = 0; s < num_par_types_; s++) {

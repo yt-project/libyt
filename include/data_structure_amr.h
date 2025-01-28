@@ -50,6 +50,16 @@ private:
 
     bool check_data_;
 
+    // AMR data structure to data
+    yt_field* field_list_;
+    yt_particle* particle_list_;
+    yt_grid* grids_local_;
+
+    // Python Bindings
+    PyObject* py_hierarchy_;
+    PyObject* py_grid_data_;
+    PyObject* py_particle_data_;
+
     // Hierarchy
     long num_grids_;
     int num_fields_;
@@ -112,17 +122,6 @@ public:
     static int mpi_size_;
     static int mpi_root_;
     static int mpi_rank_;
-
-    // AMR data structure to data
-    // TODO: should be made private
-    yt_field* field_list_;
-    yt_particle* particle_list_;
-    yt_grid* grids_local_;
-
-    // Python Bindings
-    PyObject* py_hierarchy_;      // TODO: should be private
-    PyObject* py_grid_data_;      // TODO: should be private
-    PyObject* py_particle_data_;  // TODO: make it private after remove yt_rma_particle
 
 public:
     // Initialize
