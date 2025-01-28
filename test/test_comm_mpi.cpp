@@ -175,7 +175,43 @@ TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_AmrDataArray1D) {
     delete[] recv_buffer;
 }
 
-TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_MpiRmaAddress) {}
+TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_MpiRmaAddress) {
+    // Arrange
+    int mpi_size = CommMpi::mpi_size_;
+    int mpi_rank = CommMpi::mpi_rank_;
+    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
+    CommMpiRmaAmrDataArray3D rma("test", "test");
+    MPI_Datatype mpi_datatype = rma.GetMpiAddressDataType();
+
+    int* send_count_in_each_rank = new int[mpi_size];
+    long total_send_counts = 1000;  // TODO: make this a test parameter
+    int displacement = 0;
+    SplitArray(total_send_counts, mpi_size, mpi_rank, send_count_in_each_rank, &displacement);
+
+    MpiRmaAddress* send_buffer = new MpiRmaAddress[send_count_in_each_rank[mpi_rank]];
+    for (int i = 0; i < send_count_in_each_rank[mpi_rank]; i++) {
+        send_buffer[i].mpi_rank = displacement + i;
+        send_buffer[i].mpi_address = displacement + i + total_send_counts;
+    }
+
+    MpiRmaAddress* recv_buffer = new MpiRmaAddress[total_send_counts];
+
+    // Act
+    BigMpiStatus result =
+        BigMpiAllgatherv<MpiRmaAddress>(send_count_in_each_rank, (void*)send_buffer, mpi_datatype, (void*)recv_buffer);
+
+    // Assert
+    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
+    for (long i = 0; i < total_send_counts; i++) {
+        EXPECT_EQ(recv_buffer[i].mpi_rank, i);
+        EXPECT_EQ(recv_buffer[i].mpi_address, i + total_send_counts);
+    }
+
+    // Clean up
+    delete[] send_count_in_each_rank;
+    delete[] send_buffer;
+    delete[] recv_buffer;
+}
 
 TEST_F(TestBigMpi, Big_MPI_Gatherv_with_yt_hierarchy) {
     // Arrange
