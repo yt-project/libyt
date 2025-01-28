@@ -8,6 +8,7 @@
 #include "function_info.h"
 #include "libyt.h"
 #include "libyt_process_control.h"
+#include "numpy_controller.h"
 #include "yt_combo.h"
 
 #ifdef USE_PYBIND11
@@ -162,10 +163,9 @@ static PyObject* LibytFieldDerivedFunc(PyObject* self, PyObject* args) {
         dims[2] = grid_dimensions[2];
     }
 
-    PyObject* derived_NpArray = PyArray_SimpleNewFromData(nd, dims, typenum, output);
-    PyArray_ENABLEFLAGS((PyArrayObject*)derived_NpArray, NPY_ARRAY_OWNDATA);
+    PyObject* py_data = NumPyController::ArrayToNumPyArray(nd, dims, field_dtype, output, false, true);
 
-    return derived_NpArray;
+    return py_data;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -295,10 +295,9 @@ static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
     get_par_attr(list_length, list_gid, ptype, attr_name, data_array);
 
     // Wrap the output and return back to python
-    PyObject* outputNumpyArray = PyArray_SimpleNewFromData(nd, dims, typenum, output);
-    PyArray_ENABLEFLAGS((PyArrayObject*)outputNumpyArray, NPY_ARRAY_OWNDATA);
+    PyObject* py_data = NumPyController::ArrayToNumPyArray(nd, dims, attr_dtype, output, false, true);
 
-    return outputNumpyArray;
+    return py_data;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -444,10 +443,8 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
                 npy_dim[1] = fetched_data.data_dim[1];
                 npy_dim[2] = fetched_data.data_dim[2];
             }
-            int npy_dtype;
-            get_npy_dtype(fetched_data.data_dtype, &npy_dtype);
-            PyObject* py_field_data = PyArray_SimpleNewFromData(3, npy_dim, npy_dtype, fetched_data.data_ptr);
-            PyArray_ENABLEFLAGS((PyArrayObject*)py_field_data, NPY_ARRAY_OWNDATA);
+            PyObject* py_field_data = NumPyController::ArrayToNumPyArray(3, npy_dim, fetched_data.data_dtype,
+                                                                         fetched_data.data_ptr, false, true);
             PyDict_SetItemString(py_field_label, fname, py_field_data);
             Py_DECREF(py_field_data);
         }
@@ -629,10 +626,8 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
                 // Wrap and bind to py_attribute_dict
                 if (fetched_data.data_len > 0) {
                     npy_intp npy_dim[1] = {fetched_data.data_len};
-                    int npy_dtype;
-                    get_npy_dtype(fetched_data.data_dtype, &npy_dtype);
-                    PyObject* py_data = PyArray_SimpleNewFromData(1, npy_dim, npy_dtype, fetched_data.data_ptr);
-                    PyArray_ENABLEFLAGS((PyArrayObject*)py_data, NPY_ARRAY_OWNDATA);
+                    PyObject* py_data = NumPyController::ArrayToNumPyArray(1, npy_dim, fetched_data.data_dtype,
+                                                                           fetched_data.data_ptr, false, true);
                     PyDict_SetItemString(py_attribute_dict, attr, py_data);
                     Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.
                 } else {
