@@ -25,6 +25,12 @@ MPI_Datatype DataStructureAmr::mpi_hierarchy_data_type_ = nullptr;
 //-------------------------------------------------------------------------------------------------------
 DataStructureAmr::DataStructureAmr()
     : check_data_(false),
+      field_list_(nullptr),
+      particle_list_(nullptr),
+      grids_local_(nullptr),
+      py_hierarchy_(nullptr),
+      py_grid_data_(nullptr),
+      py_particle_data_(nullptr),
       num_grids_(0),
       num_fields_(0),
       num_par_types_(0),
@@ -39,13 +45,7 @@ DataStructureAmr::DataStructureAmr()
       grid_parent_id_(nullptr),
       grid_levels_(nullptr),
       proc_num_(nullptr),
-      par_count_list_(nullptr),
-      field_list_(nullptr),
-      particle_list_(nullptr),
-      grids_local_(nullptr),
-      py_hierarchy_(nullptr),
-      py_grid_data_(nullptr),
-      py_particle_data_(nullptr) {}
+      par_count_list_(nullptr) {}
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  DataStructureAmr
