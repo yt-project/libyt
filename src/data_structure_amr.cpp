@@ -4,8 +4,7 @@
 #include "comm_mpi.h"
 #endif
 
-#include <numpy/arrayobject.h>
-
+#include "numpy_controller.h"
 #include "yt_combo.h"
 #ifdef USE_PYBIND11
 #include "pybind11/embed.h"
@@ -17,24 +16,6 @@ int DataStructureAmr::mpi_rank_;
 #ifndef SERIAL_MODE
 MPI_Datatype DataStructureAmr::mpi_hierarchy_data_type_ = nullptr;
 #endif
-
-//-------------------------------------------------------------------------------------------------------
-// Helper Function : WrapToNumPyArray
-//
-// Notes           :  1. The array wrapped is still owned by us.
-//                    2. If it is read-only, then we need to clear the NPY_ARRAY_WRITEABLE flag.
-//-------------------------------------------------------------------------------------------------------
-static PyObject* WrapToNumPyArray(int dim, npy_intp* npy_dim, yt_dtype data_dtype, void* data_ptr, bool readonly) {
-    int npy_dtype;
-    get_npy_dtype(data_dtype, &npy_dtype);
-    PyObject* py_data = PyArray_SimpleNewFromData(dim, npy_dim, npy_dtype, data_ptr);
-
-    if (readonly) {
-        PyArray_CLEARFLAGS((PyArrayObject*)py_data, NPY_ARRAY_WRITEABLE);
-    }
-
-    return py_data;
-}
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  DataStructureAmr
@@ -76,23 +57,6 @@ void DataStructureAmr::SetPythonBindings(PyObject* py_hierarchy, PyObject* py_gr
     py_hierarchy_ = py_hierarchy;
     py_grid_data_ = py_grid_data;
     py_particle_data_ = py_particle_data;
-}
-
-//-------------------------------------------------------------------------------------------------------
-// Class         :  DataStructureAmr
-// Public Method :  InitializeNumPy
-//
-// Notes       :  1. Currently, this method is only for unit test.
-//                   This is because NumPy API initialization only imports the api within a translation unit.
-//                   Since we compile it to a libyt library and make unit test link to it,
-//                   it is in separate translation unit, we need to have a public API to initialize NumPy API
-//                   within libyt library itself.
-//-------------------------------------------------------------------------------------------------------
-int DataStructureAmr::InitializeNumPy() {
-    if (PyArray_API == nullptr) {
-        import_array1(-1);
-    }
-    return 0;
 }
 
 void DataStructureAmr::InitializeMpiHierarchyDataType() {
@@ -141,9 +105,6 @@ void DataStructureAmr::SetMpiInfo(const int mpi_size, const int mpi_root, const 
 DataStructureOutput DataStructureAmr::AllocateStorage(long num_grids, int num_grids_local, int num_fields,
                                                       int num_par_types, yt_par_type* par_type_list, int index_offset,
                                                       bool check_data) {
-    // Initialize NumPy
-    int result = DataStructureAmr::InitializeNumPy();
-
     // Initialize the data structure
     DataStructureOutput status;
 
@@ -350,18 +311,21 @@ DataStructureOutput DataStructureAmr::AllocateFullHierarchyStorageForPython(long
     np_dim[0] = num_grids;
 
     np_dim[1] = 3;
-    PyObject* py_grid_left_edge = WrapToNumPyArray(2, np_dim, YT_DOUBLE, grid_left_edge_, false);
-    PyObject* py_grid_right_edge = WrapToNumPyArray(2, np_dim, YT_DOUBLE, grid_right_edge_, false);
-    PyObject* py_grid_dimensions = WrapToNumPyArray(2, np_dim, YT_INT, grid_dimensions_, false);
+    PyObject* py_grid_left_edge =
+        NumPyController::ArrayToNumPyArray(2, np_dim, YT_DOUBLE, grid_left_edge_, false, false);
+    PyObject* py_grid_right_edge =
+        NumPyController::ArrayToNumPyArray(2, np_dim, YT_DOUBLE, grid_right_edge_, false, false);
+    PyObject* py_grid_dimensions =
+        NumPyController::ArrayToNumPyArray(2, np_dim, YT_INT, grid_dimensions_, false, false);
 
     np_dim[1] = 1;
-    PyObject* py_grid_parent_id = WrapToNumPyArray(2, np_dim, YT_LONG, grid_parent_id_, false);
-    PyObject* py_grid_levels = WrapToNumPyArray(2, np_dim, YT_INT, grid_levels_, false);
-    PyObject* py_proc_num = WrapToNumPyArray(2, np_dim, YT_INT, proc_num_, false);
+    PyObject* py_grid_parent_id = NumPyController::ArrayToNumPyArray(2, np_dim, YT_LONG, grid_parent_id_, false, false);
+    PyObject* py_grid_levels = NumPyController::ArrayToNumPyArray(2, np_dim, YT_INT, grid_levels_, false, false);
+    PyObject* py_proc_num = NumPyController::ArrayToNumPyArray(2, np_dim, YT_INT, proc_num_, false, false);
     PyObject* py_par_count_list;
     if (num_par_types > 0) {
         np_dim[1] = num_par_types;
-        py_par_count_list = WrapToNumPyArray(2, np_dim, YT_LONG, par_count_list_, false);
+        py_par_count_list = NumPyController::ArrayToNumPyArray(2, np_dim, YT_LONG, par_count_list_, false, false);
     }
 
     // Bind them to libyt.hierarchy
@@ -1150,9 +1114,12 @@ DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(const yt_grid& 
         // insert data under py_field_labels dict
         // (1) Grab NumPy Enumerate Type in order: (1)data_dtype (2)field_dtype
         int grid_dtype;
+        yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
         if (get_npy_dtype((grid.field_data)[v].data_dtype, &grid_dtype) == YT_SUCCESS) {
+            data_dtype = (grid.field_data)[v].data_dtype;
         } else if (get_npy_dtype(field_list_[v].field_dtype, &grid_dtype) == YT_SUCCESS) {
             (grid.field_data)[v].data_dtype = field_list_[v].field_dtype;
+            data_dtype = field_list_[v].field_dtype;
         } else {
             Py_DECREF(py_grid_id);
             Py_DECREF(py_field_labels);
@@ -1195,11 +1162,8 @@ DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(const yt_grid& 
                                  (grid.field_data)[v].data_dimensions[2]};
 
         // (3) Insert data to dict
-        // PyArray_SimpleNewFromData simply creates an array wrapper and does not allocate and own the array
-        py_field_data = PyArray_SimpleNewFromData(3, grid_dims, grid_dtype, (grid.field_data)[v].data_ptr);
-
-        // Mark this memory (NumPy array) read-only
-        PyArray_CLEARFLAGS((PyArrayObject*)py_field_data, NPY_ARRAY_WRITEABLE);
+        py_field_data =
+            NumPyController::ArrayToNumPyArray(3, grid_dims, data_dtype, (grid.field_data)[v].data_ptr, true, false);
 
         // add the field data to dict "libyt.grid_data[grid_id][field_list.field_name]"
         PyDict_SetItemString(py_field_labels, field_list_[v].field_name, py_field_data);
@@ -1257,8 +1221,8 @@ DataStructureOutput DataStructureAmr::BindLocalParticleDataToPython(const yt_gri
                 return {DataStructureStatus::kDataStructureFailed, error};
             }
             npy_intp array_dims[1] = {(grid.par_count_list)[p]};
-            py_data = PyArray_SimpleNewFromData(1, array_dims, data_dtype, (grid.particle_data)[p][a].data_ptr);
-            PyArray_CLEARFLAGS((PyArrayObject*)py_data, NPY_ARRAY_WRITEABLE);
+            py_data = NumPyController::ArrayToNumPyArray(1, array_dims, particle_list_[p].attr_list[a].attr_dtype,
+                                                         (grid.particle_data)[p][a].data_ptr, true, false);
 
             // Get the dictionary and append py_data
             if (PyDict_Contains(py_particle_data_, py_grid_id) != 1) {

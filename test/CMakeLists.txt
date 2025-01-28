@@ -44,7 +44,7 @@ target_link_libraries(TestCommMPI PUBLIC
 gtest_discover_tests(TestCommMPI)
 endif ()
 
-## Test Python
+## Test Python Shell
 if (INTERACTIVE_MODE OR JUPYTER_KERNEL)
 if (NOT SERIAL_MODE)
 add_executable(TestPythonShellWithCommMPI test_python_shell.cpp)
@@ -85,7 +85,7 @@ target_include_directories(TestDataStructureAmrWithCommMpi PUBLIC
 target_link_libraries(TestDataStructureAmrWithCommMpi PUBLIC
     gtest_main
     MPI::MPI_CXX
-    ${Python_LIBRARIES}
+    ${Python_LIBRARIES} Python::NumPy
     yt
 )
 else()
@@ -96,7 +96,7 @@ target_include_directories(TestDataStructureAmr PUBLIC
 )
 target_link_libraries(TestDataStructureAmr PUBLIC
         gtest_main
-        ${Python_LIBRARIES}
+        ${Python_LIBRARIES} Python::NumPy
         yt
 )
 endif()

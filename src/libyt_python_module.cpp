@@ -9,6 +9,7 @@
 #include "comm_mpi_rma.h"
 #include "libyt.h"
 #include "libyt_process_control.h"
+#include "numpy_controller.h"
 #include "yt_combo.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -340,8 +341,8 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
             }
             int npy_dtype;
             get_npy_dtype(fetched_data.data_dtype, &npy_dtype);
-            PyObject* py_data = PyArray_SimpleNewFromData(3, npy_dim, npy_dtype, fetched_data.data_ptr);
-            PyArray_ENABLEFLAGS((PyArrayObject*)py_data, NPY_ARRAY_OWNDATA);
+            PyObject* py_data = NumPyController::ArrayToNumPyArray(3, npy_dim, fetched_data.data_dtype,
+                                                                   fetched_data.data_ptr, false, true);
 
             if (!py_output.contains(pybind11::int_(fetched_data.id))) {
                 py_field = pybind11::dict();
@@ -475,10 +476,8 @@ pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind1
                 if (fetched_data.data_len > 0) {
                     PyObject* py_data;
                     npy_intp npy_dim[1] = {fetched_data.data_len};
-                    int npy_dtype;
-                    get_npy_dtype(fetched_data.data_dtype, &npy_dtype);
-                    py_data = PyArray_SimpleNewFromData(1, npy_dim, npy_dtype, fetched_data.data_ptr);
-                    PyArray_ENABLEFLAGS((PyArrayObject*)py_data, NPY_ARRAY_OWNDATA);
+                    py_data = NumPyController::ArrayToNumPyArray(1, npy_dim, fetched_data.data_dtype,
+                                                                 fetched_data.data_ptr, false, true);
 
                     py_output[pybind11::int_(gid)][ptype.c_str()][attr.c_str()] = py_data;
                     Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.

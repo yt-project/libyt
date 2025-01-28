@@ -5,6 +5,7 @@
 #include <Python.h>
 
 #include "data_structure_amr.h"
+#include "numpy_controller.h"
 
 class PythonFixture : public testing::Test {
 private:
@@ -23,9 +24,9 @@ private:
         CommMpi::InitializeInfo(0);
 #endif
         DataStructureAmr::SetMpiInfo(mpi_size_, 0, mpi_rank_);
-        DataStructureAmr::InitializeNumPy();
 
         // Initialize
+        NumPyController::InitializeNumPy();
         InitializeTemplateDictStorage();
         py_hierarchy_ = CreateTemplateDictStorage("hierarchy");
         py_grid_data_ = CreateTemplateDictStorage("grid_data");

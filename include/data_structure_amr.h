@@ -127,7 +127,6 @@ public:
     // Initialize
     DataStructureAmr();
     static void SetMpiInfo(int mpi_size, int mpi_root, int mpi_rank);
-    static int InitializeNumPy();
     void SetPythonBindings(PyObject* py_hierarchy, PyObject* py_grid_data, PyObject* py_particle_data);
 #ifndef SERIAL_MODE
     MPI_Datatype& GetMpiHierarchyDataType() { return mpi_hierarchy_data_type_; }
