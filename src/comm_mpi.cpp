@@ -1,15 +1,11 @@
 #ifndef SERIAL_MODE
 #include "comm_mpi.h"
 
-#include "comm_mpi_rma.h"
-#include "data_structure_amr.h"
 #include "timer.h"
 
 int CommMpi::mpi_rank_ = 0;
 int CommMpi::mpi_size_ = 1;
 int CommMpi::mpi_root_ = 0;
-
-MPI_Datatype CommMpi::yt_long_mpi_type_;
 
 void CommMpi::InitializeInfo(int mpi_root) {
     SET_TIMER(__PRETTY_FUNCTION__);
@@ -17,16 +13,6 @@ void CommMpi::InitializeInfo(int mpi_root) {
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
     mpi_root_ = mpi_root;
-}
-
-void CommMpi::InitializeYtLongMpiDataType() {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
-    int length[1] = {1};
-    const MPI_Aint displacements[1] = {0};
-    MPI_Datatype types[1] = {MPI_LONG};
-    MPI_Type_create_struct(1, length, displacements, types, &yt_long_mpi_type_);
-    MPI_Type_commit(&yt_long_mpi_type_);
 }
 
 void CommMpi::SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local) {
