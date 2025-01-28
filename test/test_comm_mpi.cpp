@@ -62,8 +62,8 @@ TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_yt_hierarchy) {
     yt_hierarchy* recv_buffer = new yt_hierarchy[total_send_counts];
 
     // Act
-    BigMpiStatus result = BigMpiAllgatherv<yt_hierarchy>(mpi_root, send_count_in_each_rank, (void*)send_buffer,
-                                                         mpi_datatype, (void*)recv_buffer);
+    BigMpiStatus result =
+        BigMpiAllgatherv<yt_hierarchy>(send_count_in_each_rank, (void*)send_buffer, mpi_datatype, (void*)recv_buffer);
 
     // Assert
     EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);

@@ -16,8 +16,7 @@ enum class BigMpiStatus : int { kBigMpiFailed = 0, kBigMpiExceedCounts = 1, kBig
 // Description :  This is a workaround method for passing big send count of MPI_Allgatherv.
 //-------------------------------------------------------------------------------------------------------
 template<typename T>
-BigMpiStatus BigMpiAllgatherv(int root_rank, int* send_counts, const void* send_buffer, MPI_Datatype mpi_datatype,
-                              void* recv_buffer) {
+BigMpiStatus BigMpiAllgatherv(int* send_counts, const void* send_buffer, MPI_Datatype mpi_datatype, void* recv_buffer) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     int mpi_size, mpi_rank;
@@ -39,7 +38,7 @@ BigMpiStatus BigMpiAllgatherv(int root_rank, int* send_counts, const void* send_
             offsets[i] += send_counts[j];
             accumulate += send_counts[j];
         }
-        // exceeding INT_MAX, start MPI_Gatherv
+        // exceeding INT_MAX, start MPI_Allgatherv
         if (accumulate > INT_MAX) {
             // Set recv_counts and offsets.
             for (int k = 0; k < mpi_size; k++) {
@@ -50,7 +49,7 @@ BigMpiStatus BigMpiAllgatherv(int root_rank, int* send_counts, const void* send_
                     recv_counts[k] = 0;
                 }
             }
-            // MPI_Gatherv
+            // MPI_Allgatherv
             if (mpi_start <= mpi_rank && mpi_rank < i) {
                 MPI_Allgatherv(send_buffer, send_counts[mpi_rank], mpi_datatype, &(((T*)recv_buffer)[index_start]),
                                recv_counts, offsets, mpi_datatype, MPI_COMM_WORLD);
@@ -80,7 +79,7 @@ BigMpiStatus BigMpiAllgatherv(int root_rank, int* send_counts, const void* send_
                     recv_counts[k] = 0;
                 }
             }
-            // MPI_Gatherv
+            // MPI_Allgatherv
             if (mpi_start <= mpi_rank && mpi_rank <= i) {
                 MPI_Allgatherv(send_buffer, send_counts[mpi_rank], mpi_datatype, &(((T*)recv_buffer)[index_start]),
                                recv_counts, offsets, mpi_datatype, MPI_COMM_WORLD);
