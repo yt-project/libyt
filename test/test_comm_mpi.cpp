@@ -21,10 +21,7 @@ protected:
     }
 
 private:
-    void SetUp() override {
-        CommMpi::InitializeInfo(0);
-        CommMpi::InitializeYtLongMpiDataType();
-    }
+    void SetUp() override { CommMpi::InitializeInfo(0); }
 };
 
 class TestBigMpi : public CommMpiFixture {};
@@ -85,46 +82,11 @@ TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_yt_hierarchy) {
     delete[] recv_buffer;
 }
 
-TEST_F(TestBigMpi, Big_MPI_Gatherv_with_yt_long) {
-    // Arrange
-    int mpi_size = CommMpi::mpi_size_;
-    int mpi_rank = CommMpi::mpi_rank_;
-    int mpi_root = CommMpi::mpi_root_;
-    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMpi::yt_long_mpi_type_;
+TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_AmrDataArray3D) {}
 
-    int* send_count_in_each_rank = new int[mpi_size];
-    long total_send_counts = 1000;  // TODO: make this a test parameter
-    int displacement = 0;
-    SplitArray(total_send_counts, mpi_size, mpi_rank, send_count_in_each_rank, &displacement);
+TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_AmrDataArray1D) {}
 
-    long* send_buffer = new long[send_count_in_each_rank[mpi_rank]];
-    for (int i = 0; i < send_count_in_each_rank[mpi_rank]; i++) {
-        send_buffer[i] = displacement + i;
-    }
-
-    long* recv_buffer = nullptr;
-    if (mpi_rank == mpi_root) {
-        recv_buffer = new long[total_send_counts];
-    }
-
-    // Act
-    BigMpiStatus result =
-        BigMpiGatherv<long>(mpi_root, send_count_in_each_rank, (void*)send_buffer, &mpi_datatype, (void*)recv_buffer);
-
-    // Assert
-    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
-    if (mpi_rank == mpi_root) {
-        for (long i = 0; i < total_send_counts; i++) {
-            EXPECT_EQ(recv_buffer[i], i);
-        }
-    }
-
-    // Clean up
-    delete[] send_count_in_each_rank;
-    delete[] send_buffer;
-    delete[] recv_buffer;
-}
+TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_MpiRmaAddress) {}
 
 TEST_F(TestBigMpi, Big_MPI_Gatherv_with_yt_hierarchy) {
     // Arrange
@@ -333,35 +295,6 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_MpiRmaAddress) {
     delete[] send_count_in_each_rank;
     delete[] send_buffer;
     delete[] recv_buffer;
-}
-
-TEST_F(TestBigMpi, Big_MPI_Bcast_with_yt_long) {
-    // Arrange
-    int mpi_size = CommMpi::mpi_size_;
-    int mpi_rank = CommMpi::mpi_rank_;
-    int mpi_root = CommMpi::mpi_root_;
-    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
-    MPI_Datatype mpi_datatype = CommMpi::yt_long_mpi_type_;
-
-    const long total_send_counts = 1000;  // TODO: make this a test parameter
-    long* send_buffer = new long[total_send_counts];
-    if (mpi_rank == mpi_root) {
-        for (int i = 0; i < total_send_counts; i++) {
-            send_buffer[i] = i;
-        }
-    }
-
-    // Act
-    BigMpiStatus result = BigMpiBcast<long>(mpi_root, total_send_counts, (void*)send_buffer, &mpi_datatype);
-
-    // Assert
-    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
-    for (long i = 0; i < total_send_counts; i++) {
-        EXPECT_EQ(send_buffer[i], i);
-    }
-
-    // Clean up
-    delete[] send_buffer;
 }
 
 TEST_F(TestBigMpi, Big_MPI_Bcast_with_yt_hierarchy) {

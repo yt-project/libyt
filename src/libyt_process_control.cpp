@@ -65,7 +65,6 @@ void LibytProcessControl::Initialize() {
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
 
     CommMpi::InitializeInfo(0);
-    CommMpi::InitializeYtLongMpiDataType();
 #endif
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)

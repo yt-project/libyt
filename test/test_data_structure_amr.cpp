@@ -21,7 +21,6 @@ private:
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size_);
         CommMpi::InitializeInfo(0);
-        CommMpi::InitializeYtLongMpiDataType();
 #endif
         DataStructureAmr::SetMpiInfo(mpi_size_, 0, mpi_rank_);
         DataStructureAmr::InitializeNumPy();

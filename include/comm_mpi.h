@@ -12,12 +12,6 @@ public:
     static int mpi_rank_;
     static int mpi_size_;
     static int mpi_root_;
-
-    // TODO: probably should move initialization of these to somewhere else, or move it inside the map
-    static MPI_Datatype yt_long_mpi_type_;
-
-    static void InitializeYtLongMpiDataType();
-
     static void InitializeInfo(int mpi_root = 0);
     static void SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local);
     static int CheckAllStates(int local_state, int desired_state, int success_value, int failure_value);
