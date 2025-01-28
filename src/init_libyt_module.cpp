@@ -71,7 +71,7 @@ static PyObject* LibytFieldDerivedFunc(PyObject* self, PyObject* args) {
     bool have_FieldName = false;
 
     derived_func = NULL;
-    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.field_list_;
+    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.GetFieldList();
     for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_fields; v++) {
         if (strcmp(field_list[v].field_name, field_name) == 0) {
             have_FieldName = true;
@@ -207,7 +207,7 @@ static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
     void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*);
     yt_dtype attr_dtype = YT_DTYPE_UNKNOWN;
     int species_index = -1;
-    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.particle_list_;
+    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.GetParticleList();
     for (int s = 0; s < LibytProcessControl::Get().param_yt_.num_par_types; s++) {
         if (strcmp(particle_list[s].par_type, ptype) == 0) {
             species_index = s;
