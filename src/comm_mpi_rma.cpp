@@ -234,16 +234,12 @@ CommMpiRmaStatus CommMpiRma<DataClass>::GatherAllPreparedData(const std::vector<
     }
     total_send_counts = search_range_[CommMpi::mpi_size_];
 
-    // Get all prepared data (TODO: why didn't I use AllGatherv?)
+    // Get all prepared data
     all_prepared_data_list_ = new DataClass[total_send_counts];
     all_prepared_data_address_list_ = new MpiRmaAddress[total_send_counts];
-    BigMpiGatherv<DataClass>(CommMpi::mpi_root_, all_send_counts, prepared_data_list.data(), &GetMpiDataType(),
-                             all_prepared_data_list_);
-    BigMpiGatherv<MpiRmaAddress>(CommMpi::mpi_root_, all_send_counts, mpi_prepared_data_address_list_.data(),
-                                 &CommMpiRma::mpi_rma_data_type_, all_prepared_data_address_list_);
-    BigMpiBcast<DataClass>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_list_, &GetMpiDataType());
-    BigMpiBcast<MpiRmaAddress>(CommMpi::mpi_root_, total_send_counts, all_prepared_data_address_list_,
-                               &CommMpiRma::mpi_rma_data_type_);
+    BigMpiAllgatherv<DataClass>(all_send_counts, prepared_data_list.data(), GetMpiDataType(), all_prepared_data_list_);
+    BigMpiAllgatherv<MpiRmaAddress>(all_send_counts, mpi_prepared_data_address_list_.data(),
+                                    CommMpiRma::mpi_rma_data_type_, all_prepared_data_address_list_);
 
     // Clean up
     delete[] all_send_counts;
