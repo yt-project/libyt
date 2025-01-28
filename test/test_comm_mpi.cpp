@@ -82,7 +82,55 @@ TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_yt_hierarchy) {
     delete[] recv_buffer;
 }
 
-TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_AmrDataArray3D) {}
+TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_AmrDataArray3D) {
+    // Arrange
+    int mpi_size = CommMpi::mpi_size_;
+    int mpi_rank = CommMpi::mpi_rank_;
+    int mpi_root = CommMpi::mpi_root_;
+    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
+    CommMpiRmaAmrDataArray3D rma("test", "test");
+    MPI_Datatype mpi_datatype = rma.GetMpiDataType();
+
+    int* send_count_in_each_rank = new int[mpi_size];
+    long total_send_counts = 1000;  // TODO: make this a test parameter
+    int displacement = 0;
+    SplitArray(total_send_counts, mpi_size, mpi_rank, send_count_in_each_rank, &displacement);
+
+    AmrDataArray3D* send_buffer = new AmrDataArray3D[send_count_in_each_rank[mpi_rank]];
+    for (int i = 0; i < send_count_in_each_rank[mpi_rank]; i++) {
+        send_buffer[i].id = displacement + i;
+        send_buffer[i].data_dtype = YT_INT;
+        send_buffer[i].contiguous_in_x = true;
+        for (int d = 0; d < 3; d++) {
+            send_buffer[i].data_dim[d] = d;
+        }
+        long temp = displacement + i;
+        std::memcpy(&(send_buffer[i].data_ptr), &temp, sizeof(temp));
+    }
+
+    AmrDataArray3D* recv_buffer = new AmrDataArray3D[total_send_counts];
+
+    // Act
+    BigMpiStatus result =
+        BigMpiAllgatherv<AmrDataArray3D>(send_count_in_each_rank, (void*)send_buffer, mpi_datatype, (void*)recv_buffer);
+
+    // Assert
+    EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
+    for (long i = 0; i < total_send_counts; i++) {
+        EXPECT_EQ(recv_buffer[i].id, i);
+        EXPECT_EQ(recv_buffer[i].data_dtype, YT_INT);
+        EXPECT_EQ(recv_buffer[i].contiguous_in_x, true);
+        for (int d = 0; d < 3; d++) {
+            EXPECT_EQ(recv_buffer[i].data_dim[d], d);
+        }
+        EXPECT_EQ(reinterpret_cast<long>(recv_buffer[i].data_ptr), i);
+    }
+
+    // Clean up
+    delete[] send_count_in_each_rank;
+    delete[] send_buffer;
+    delete[] recv_buffer;
+}
 
 TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_AmrDataArray1D) {}
 
