@@ -3,8 +3,7 @@
 #include "yt_prototype.h"
 
 //-------------------------------------------------------------------------------------------------------
-// Class         :  NumPyController
-// Public Method :  InitializeNumPy
+// Namespace     : numpy_controller
 //
 // Notes         :  1. Initialize NumPy API.
 //                  2. Currently, this method is only for unit test.
@@ -13,7 +12,7 @@
 //                     it is in separate translation unit, we need to have a public API to initialize NumPy API
 //                     within libyt library itself.
 //-------------------------------------------------------------------------------------------------------
-NumPyStatus NumPyController::InitializeNumPy() {
+NumPyStatus numpy_controller::InitializeNumPy() {
     if (PyArray_API == nullptr) {
         import_array1(NumPyStatus::kNumPyFailed);
     }
@@ -21,15 +20,14 @@ NumPyStatus NumPyController::InitializeNumPy() {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Class         :  NumPyController
-// Public Method :  ArrayToNumPyArray
+// Namespace     : numpy_controller
 //
 // Notes         :  1. Create a NumPy array from existing pointer.
 //                  2. Depending on the usage, we should Py_DECREF the returned object, once it is attached
 //                     to something, say a dictionary.
 //-------------------------------------------------------------------------------------------------------
-PyObject* NumPyController::ArrayToNumPyArray(int dim, npy_intp* npy_dim, yt_dtype data_dtype, void* data_ptr,
-                                             bool readonly, bool owned_by_python) {
+PyObject* numpy_controller::ArrayToNumPyArray(int dim, npy_intp* npy_dim, yt_dtype data_dtype, void* data_ptr,
+                                              bool readonly, bool owned_by_python) {
     int npy_dtype;
     get_npy_dtype(data_dtype, &npy_dtype);
     PyObject* py_data = PyArray_SimpleNewFromData(dim, npy_dim, npy_dtype, data_ptr);

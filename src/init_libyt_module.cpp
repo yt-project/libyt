@@ -163,7 +163,7 @@ static PyObject* LibytFieldDerivedFunc(PyObject* self, PyObject* args) {
         dims[2] = grid_dimensions[2];
     }
 
-    PyObject* py_data = NumPyController::ArrayToNumPyArray(nd, dims, field_dtype, output, false, true);
+    PyObject* py_data = numpy_controller::ArrayToNumPyArray(nd, dims, field_dtype, output, false, true);
 
     return py_data;
 }
@@ -295,7 +295,7 @@ static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
     get_par_attr(list_length, list_gid, ptype, attr_name, data_array);
 
     // Wrap the output and return back to python
-    PyObject* py_data = NumPyController::ArrayToNumPyArray(nd, dims, attr_dtype, output, false, true);
+    PyObject* py_data = numpy_controller::ArrayToNumPyArray(nd, dims, attr_dtype, output, false, true);
 
     return py_data;
 }
@@ -443,8 +443,8 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
                 npy_dim[1] = fetched_data.data_dim[1];
                 npy_dim[2] = fetched_data.data_dim[2];
             }
-            PyObject* py_field_data = NumPyController::ArrayToNumPyArray(3, npy_dim, fetched_data.data_dtype,
-                                                                         fetched_data.data_ptr, false, true);
+            PyObject* py_field_data = numpy_controller::ArrayToNumPyArray(3, npy_dim, fetched_data.data_dtype,
+                                                                          fetched_data.data_ptr, false, true);
             PyDict_SetItemString(py_field_label, fname, py_field_data);
             Py_DECREF(py_field_data);
         }
@@ -626,8 +626,8 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
                 // Wrap and bind to py_attribute_dict
                 if (fetched_data.data_len > 0) {
                     npy_intp npy_dim[1] = {fetched_data.data_len};
-                    PyObject* py_data = NumPyController::ArrayToNumPyArray(1, npy_dim, fetched_data.data_dtype,
-                                                                           fetched_data.data_ptr, false, true);
+                    PyObject* py_data = numpy_controller::ArrayToNumPyArray(1, npy_dim, fetched_data.data_dtype,
+                                                                            fetched_data.data_ptr, false, true);
                     PyDict_SetItemString(py_attribute_dict, attr, py_data);
                     Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.
                 } else {

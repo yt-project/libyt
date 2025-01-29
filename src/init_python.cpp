@@ -41,7 +41,7 @@ int init_python(int argc, char* argv[]) {
 #endif  // #ifndef USE_PYBIND11
 
     // import numpy
-    if (NumPyController::InitializeNumPy() == NumPyStatus::kNumPySuccess) {
+    if (numpy_controller::InitializeNumPy() == NumPyStatus::kNumPySuccess) {
         log_debug("Importing NumPy ... done\n");
     } else {
         YT_ABORT("Importing NumPy ... failed!\n");

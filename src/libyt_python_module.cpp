@@ -341,8 +341,8 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
             }
             int npy_dtype;
             get_npy_dtype(fetched_data.data_dtype, &npy_dtype);
-            PyObject* py_data = NumPyController::ArrayToNumPyArray(3, npy_dim, fetched_data.data_dtype,
-                                                                   fetched_data.data_ptr, false, true);
+            PyObject* py_data = numpy_controller::ArrayToNumPyArray(3, npy_dim, fetched_data.data_dtype,
+                                                                    fetched_data.data_ptr, false, true);
 
             if (!py_output.contains(pybind11::int_(fetched_data.id))) {
                 py_field = pybind11::dict();
@@ -476,8 +476,8 @@ pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind1
                 if (fetched_data.data_len > 0) {
                     PyObject* py_data;
                     npy_intp npy_dim[1] = {fetched_data.data_len};
-                    py_data = NumPyController::ArrayToNumPyArray(1, npy_dim, fetched_data.data_dtype,
-                                                                 fetched_data.data_ptr, false, true);
+                    py_data = numpy_controller::ArrayToNumPyArray(1, npy_dim, fetched_data.data_dtype,
+                                                                  fetched_data.data_ptr, false, true);
 
                     py_output[pybind11::int_(gid)][ptype.c_str()][attr.c_str()] = py_data;
                     Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't care it anymore.
