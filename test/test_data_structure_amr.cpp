@@ -26,7 +26,7 @@ private:
         DataStructureAmr::SetMpiInfo(mpi_size_, 0, mpi_rank_);
 
         // Initialize
-        NumPyController::InitializeNumPy();
+        numpy_controller::InitializeNumPy();
         InitializeTemplateDictStorage();
         py_hierarchy_ = CreateTemplateDictStorage("hierarchy");
         py_grid_data_ = CreateTemplateDictStorage("grid_data");

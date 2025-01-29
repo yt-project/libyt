@@ -97,10 +97,6 @@ void DataStructureAmr::SetMpiInfo(const int mpi_size, const int mpi_root, const 
 //                   (3) Local grid list
 //                   (4) Hierarchy bindings at C-side
 //                2. Make sure it is cleaned up before calling this.
-//                3. I don't know why for making both unit test and example work, I need to initialize NumPy
-//                   here. Probably because of PyArray_API is not initialized in the translation unit,
-//                   even though it is done in init_python.
-//                   (TODO: the initialize of NumPy will be moved to elsewhere, after I solve other issue)
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::AllocateStorage(long num_grids, int num_grids_local, int num_fields,
                                                       int num_par_types, yt_par_type* par_type_list, int index_offset,
@@ -312,20 +308,21 @@ DataStructureOutput DataStructureAmr::AllocateFullHierarchyStorageForPython(long
 
     np_dim[1] = 3;
     PyObject* py_grid_left_edge =
-        NumPyController::ArrayToNumPyArray(2, np_dim, YT_DOUBLE, grid_left_edge_, false, false);
+        numpy_controller::ArrayToNumPyArray(2, np_dim, YT_DOUBLE, grid_left_edge_, false, false);
     PyObject* py_grid_right_edge =
-        NumPyController::ArrayToNumPyArray(2, np_dim, YT_DOUBLE, grid_right_edge_, false, false);
+        numpy_controller::ArrayToNumPyArray(2, np_dim, YT_DOUBLE, grid_right_edge_, false, false);
     PyObject* py_grid_dimensions =
-        NumPyController::ArrayToNumPyArray(2, np_dim, YT_INT, grid_dimensions_, false, false);
+        numpy_controller::ArrayToNumPyArray(2, np_dim, YT_INT, grid_dimensions_, false, false);
 
     np_dim[1] = 1;
-    PyObject* py_grid_parent_id = NumPyController::ArrayToNumPyArray(2, np_dim, YT_LONG, grid_parent_id_, false, false);
-    PyObject* py_grid_levels = NumPyController::ArrayToNumPyArray(2, np_dim, YT_INT, grid_levels_, false, false);
-    PyObject* py_proc_num = NumPyController::ArrayToNumPyArray(2, np_dim, YT_INT, proc_num_, false, false);
+    PyObject* py_grid_parent_id =
+        numpy_controller::ArrayToNumPyArray(2, np_dim, YT_LONG, grid_parent_id_, false, false);
+    PyObject* py_grid_levels = numpy_controller::ArrayToNumPyArray(2, np_dim, YT_INT, grid_levels_, false, false);
+    PyObject* py_proc_num = numpy_controller::ArrayToNumPyArray(2, np_dim, YT_INT, proc_num_, false, false);
     PyObject* py_par_count_list;
     if (num_par_types > 0) {
         np_dim[1] = num_par_types;
-        py_par_count_list = NumPyController::ArrayToNumPyArray(2, np_dim, YT_LONG, par_count_list_, false, false);
+        py_par_count_list = numpy_controller::ArrayToNumPyArray(2, np_dim, YT_LONG, par_count_list_, false, false);
     }
 
     // Bind them to libyt.hierarchy
@@ -1163,7 +1160,7 @@ DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(const yt_grid& 
 
         // (3) Insert data to dict
         py_field_data =
-            NumPyController::ArrayToNumPyArray(3, grid_dims, data_dtype, (grid.field_data)[v].data_ptr, true, false);
+            numpy_controller::ArrayToNumPyArray(3, grid_dims, data_dtype, (grid.field_data)[v].data_ptr, true, false);
 
         // add the field data to dict "libyt.grid_data[grid_id][field_list.field_name]"
         PyDict_SetItemString(py_field_labels, field_list_[v].field_name, py_field_data);
@@ -1221,8 +1218,8 @@ DataStructureOutput DataStructureAmr::BindLocalParticleDataToPython(const yt_gri
                 return {DataStructureStatus::kDataStructureFailed, error};
             }
             npy_intp array_dims[1] = {(grid.par_count_list)[p]};
-            py_data = NumPyController::ArrayToNumPyArray(1, array_dims, particle_list_[p].attr_list[a].attr_dtype,
-                                                         (grid.particle_data)[p][a].data_ptr, true, false);
+            py_data = numpy_controller::ArrayToNumPyArray(1, array_dims, particle_list_[p].attr_list[a].attr_dtype,
+                                                          (grid.particle_data)[p][a].data_ptr, true, false);
 
             // Get the dictionary and append py_data
             if (PyDict_Contains(py_particle_data_, py_grid_id) != 1) {
