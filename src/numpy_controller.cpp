@@ -1,3 +1,4 @@
+#define LIBYT_INIT_NUMPY
 #include "numpy_controller.h"
 
 #include "yt_prototype.h"

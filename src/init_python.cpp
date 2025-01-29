@@ -1,9 +1,5 @@
-// define CALL_IMPORT_ARRAY since this file will invoke import_array to import NumPy
-#define CALL_IMPORT_ARRAY
-#include "yt_combo.h"
-#undef CALL_IMPORT_ARRAY
-
 #include "numpy_controller.h"
+#include "yt_combo.h"
 
 #ifdef USE_PYBIND11
 #include "pybind11/embed.h"
