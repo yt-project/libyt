@@ -19,7 +19,7 @@ namespace numpy_controller {
 NumPyStatus InitializeNumPy();
 PyObject* ArrayToNumPyArray(int dim, npy_intp* npy_dim, yt_dtype data_dtype, void* data_ptr, bool readonly = false,
                             bool owned_by_python = false);
-NumPyStatus GetNumPyArrayInfo(PyObject* py_array, NumPyArray* npy_array_info_ptr);
+NumPyArray GetNumPyArrayInfo(PyObject* py_array);
 }  // namespace numpy_controller
 
 #endif  // LIBYT_PROJECT_INCLUDE_NUMPY_CONTROLLER_H_
