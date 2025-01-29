@@ -4,6 +4,7 @@
 
 //-------------------------------------------------------------------------------------------------------
 // Namespace     : numpy_controller
+// Function name : InitializeNumPy
 //
 // Notes         :  1. Initialize NumPy API.
 //                  2. Currently, this method is only for unit test.
@@ -21,6 +22,7 @@ NumPyStatus numpy_controller::InitializeNumPy() {
 
 //-------------------------------------------------------------------------------------------------------
 // Namespace     : numpy_controller
+// Function name : ArrayToNumPyArray
 //
 // Notes         :  1. Create a NumPy array from existing pointer.
 //                  2. Depending on the usage, we should Py_DECREF the returned object, once it is attached
@@ -42,3 +44,33 @@ PyObject* numpy_controller::ArrayToNumPyArray(int dim, npy_intp* npy_dim, yt_dty
 
     return py_data;
 }
+
+//-------------------------------------------------------------------------------------------------------
+// Namespace     : numpy_controller
+// Function name : GetNumPyArrayInfo
+//
+// Notes         :  1. Parse the numpy array info and stored it in npy_array_info.
+//                  2. Since I cannot overload the function with different return type, I pass in the pointer.
+//-------------------------------------------------------------------------------------------------------
+template<int N>
+NumPyStatus numpy_controller::GetNumPyArrayInfo(PyObject* py_array, NumPyArray<N>* npy_array_info_ptr) {
+    PyArrayObject* py_array_obj = reinterpret_cast<PyArrayObject*>(py_array);
+
+    int ndim = PyArray_NDIM(py_array_obj);
+    npy_intp* dims = PyArray_DIMS(py_array_obj);
+    for (int d = 0; d < ndim; d++) {
+        npy_array_info_ptr->data_dim[d] = (int)dims[d];
+    }
+    npy_array_info_ptr->data_ptr = PyArray_DATA(py_array_obj);
+    PyArray_Descr* py_array_info = PyArray_DESCR(py_array_obj);
+    if (get_yt_dtype_from_npy(py_array_info->type_num, &(npy_array_info_ptr->data_dtype)) != YT_SUCCESS) {
+        std::string error =
+            "No matching yt_dtype for NumPy data type num " + std::to_string(py_array_info->type_num) + ".\n";
+        return NumPyStatus::kNumPyFailed;
+    }
+
+    return NumPyStatus::kNumPySuccess;
+}
+
+template NumPyStatus numpy_controller::GetNumPyArrayInfo<3>(PyObject* py_array, NumPyArray<3>* npy_array_info_ptr);
+template NumPyStatus numpy_controller::GetNumPyArrayInfo<1>(PyObject* py_array, NumPyArray<1>* npy_array_info_ptr);

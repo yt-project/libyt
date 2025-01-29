@@ -1705,17 +1705,14 @@ DataStructureOutput DataStructureAmr::GetPythonBoundLocalFieldData(long gid, con
     Py_DECREF(py_field);
 
     // Get NumPy array dimensions/data pointer/dtype
-    npy_intp* py_array_dims = PyArray_DIMS(py_array_obj);
+    NumPyArray<3> py_data_info;
+    numpy_controller::GetNumPyArrayInfo<3>(PyDict_GetItem(PyDict_GetItem(py_grid_data_, py_grid_id), py_field),
+                                           &py_data_info);
     for (int d = 0; d < 3; d++) {
-        (*field_data).data_dimensions[d] = (int)py_array_dims[d];
+        (*field_data).data_dimensions[d] = (int)py_data_info.data_dim[d];
     }
-    (*field_data).data_ptr = PyArray_DATA(py_array_obj);
-    PyArray_Descr* py_array_info = PyArray_DESCR(py_array_obj);
-    if (get_yt_dtype_from_npy(py_array_info->type_num, &(*field_data).data_dtype) != YT_SUCCESS) {
-        std::string error =
-            "No matching yt_dtype for NumPy data type num " + std::to_string(py_array_info->type_num) + ".\n";
-        return {DataStructureStatus::kDataStructureFailed, error};
-    }
+    (*field_data).data_ptr = py_data_info.data_ptr;
+    (*field_data).data_dtype = py_data_info.data_dtype;
 
     return {DataStructureStatus::kDataStructureSuccess, std::string()};
 }
