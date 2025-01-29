@@ -1699,17 +1699,16 @@ DataStructureOutput DataStructureAmr::GetPythonBoundLocalFieldData(long gid, con
         Py_DECREF(py_field);
         return {DataStructureStatus::kDataStructureFailed, error};
     }
-    PyArrayObject* py_array_obj = (PyArrayObject*)PyDict_GetItem(PyDict_GetItem(py_grid_data_, py_grid_id), py_field);
 
     Py_DECREF(py_grid_id);
     Py_DECREF(py_field);
 
     // Get NumPy array dimensions/data pointer/dtype
-    NumPyArray<3> py_data_info;
-    numpy_controller::GetNumPyArrayInfo<3>(PyDict_GetItem(PyDict_GetItem(py_grid_data_, py_grid_id), py_field),
-                                           &py_data_info);
+    NumPyArray py_data_info;
+    numpy_controller::GetNumPyArrayInfo(PyDict_GetItem(PyDict_GetItem(py_grid_data_, py_grid_id), py_field),
+                                        &py_data_info);
     for (int d = 0; d < 3; d++) {
-        (*field_data).data_dimensions[d] = (int)py_data_info.data_dim[d];
+        (*field_data).data_dimensions[d] = (int)py_data_info.data_dims[d];
     }
     (*field_data).data_ptr = py_data_info.data_ptr;
     (*field_data).data_dtype = py_data_info.data_dtype;
@@ -1749,7 +1748,7 @@ DataStructureOutput DataStructureAmr::GetPythonBoundLocalParticleData(long gid, 
     Py_DECREF(py_ptype);
     Py_DECREF(py_attr);
 
-    // Get NumPy array dimensions/data pointer/dtype
+    // Get NumPy array dimensions/data pointer/dtype TODO: start here (call GetNumPyArrayInfo
     npy_intp* py_data_dims = PyArray_DIMS(py_data);
     (*par_data).data_dimensions[0] = (int)py_data_dims[0];
     (*par_data).data_dimensions[1] = 0;
