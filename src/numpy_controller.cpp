@@ -52,18 +52,14 @@ PyObject* numpy_controller::ArrayToNumPyArray(int dim, npy_intp* npy_dim, yt_dty
 // Notes         :  1. Parse the numpy array info and stored it in npy_array_info.
 //                  2. Since I cannot overload the function with different return type, I pass in the pointer.
 //-------------------------------------------------------------------------------------------------------
-NumPyStatus numpy_controller::GetNumPyArrayInfo(PyObject* py_array, NumPyArray* npy_array_info_ptr) {
+NumPyArray numpy_controller::GetNumPyArrayInfo(PyObject* py_array) {
     PyArrayObject* py_array_obj = reinterpret_cast<PyArrayObject*>(py_array);
-
-    npy_array_info_ptr->ndim = PyArray_NDIM(py_array_obj);
-    npy_array_info_ptr->data_dims = PyArray_DIMS(py_array_obj);
-    npy_array_info_ptr->data_ptr = PyArray_DATA(py_array_obj);
+    NumPyArray array_info;
+    array_info.ndim = PyArray_NDIM(py_array_obj);
+    array_info.data_dims = PyArray_DIMS(py_array_obj);
+    array_info.data_ptr = PyArray_DATA(py_array_obj);
     PyArray_Descr* py_array_info = PyArray_DESCR(py_array_obj);
-    if (get_yt_dtype_from_npy(py_array_info->type_num, &(npy_array_info_ptr->data_dtype)) != YT_SUCCESS) {
-        std::string error =
-            "No matching yt_dtype for NumPy data type num " + std::to_string(py_array_info->type_num) + ".\n";
-        return NumPyStatus::kNumPyFailed;
-    }
+    get_yt_dtype_from_npy(py_array_info->type_num, &(array_info.data_dtype));
 
-    return NumPyStatus::kNumPySuccess;
+    return array_info;
 }

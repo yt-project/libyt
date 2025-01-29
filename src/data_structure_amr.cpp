@@ -1704,9 +1704,8 @@ DataStructureOutput DataStructureAmr::GetPythonBoundLocalFieldData(long gid, con
     Py_DECREF(py_field);
 
     // Get NumPy array dimensions/data pointer/dtype
-    NumPyArray py_data_info;
-    numpy_controller::GetNumPyArrayInfo(PyDict_GetItem(PyDict_GetItem(py_grid_data_, py_grid_id), py_field),
-                                        &py_data_info);
+    NumPyArray py_data_info =
+        numpy_controller::GetNumPyArrayInfo(PyDict_GetItem(PyDict_GetItem(py_grid_data_, py_grid_id), py_field));
     for (int d = 0; d < 3; d++) {
         (*field_data).data_dimensions[d] = (int)py_data_info.data_dims[d];
     }
@@ -1741,25 +1740,19 @@ DataStructureOutput DataStructureAmr::GetPythonBoundLocalParticleData(long gid, 
                             ", " + ptype + ", " + attr + " on MPI rank " + std::to_string(mpi_rank_) + ".\n";
         return {DataStructureStatus::kDataStructureFailed, error};
     }
-    PyArrayObject* py_data = (PyArrayObject*)PyDict_GetItem(
-        PyDict_GetItem(PyDict_GetItem(py_particle_data_, py_grid_id), py_ptype), py_attr);
 
     Py_DECREF(py_grid_id);
     Py_DECREF(py_ptype);
     Py_DECREF(py_attr);
 
-    // Get NumPy array dimensions/data pointer/dtype TODO: start here (call GetNumPyArrayInfo
-    npy_intp* py_data_dims = PyArray_DIMS(py_data);
-    (*par_data).data_dimensions[0] = (int)py_data_dims[0];
+    // Get NumPy array dimensions/data pointer/dtype
+    NumPyArray py_data_info = numpy_controller::GetNumPyArrayInfo(
+        PyDict_GetItem(PyDict_GetItem(PyDict_GetItem(py_particle_data_, py_grid_id), py_ptype), py_attr));
+    (*par_data).data_dimensions[0] = (int)py_data_info.data_dims[0];
     (*par_data).data_dimensions[1] = 0;
     (*par_data).data_dimensions[2] = 0;
-    (*par_data).data_ptr = PyArray_DATA(py_data);
-    PyArray_Descr* py_data_info = PyArray_DESCR(py_data);
-    if (get_yt_dtype_from_npy(py_data_info->type_num, &(*par_data).data_dtype) != YT_SUCCESS) {
-        std::string error =
-            "No matching yt_dtype for NumPy data type num " + std::to_string(py_data_info->type_num) + ".\n";
-        return {DataStructureStatus::kDataStructureFailed, error};
-    }
+    (*par_data).data_ptr = py_data_info.data_ptr;
+    (*par_data).data_dtype = py_data_info.data_dtype;
 
     return {DataStructureStatus::kDataStructureSuccess, std::string()};
 }
