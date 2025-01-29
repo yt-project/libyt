@@ -1,10 +1,7 @@
-#define NO_PYTHON
-#include "yt_combo.h"
-#undef NO_PYTHON
 #include <stdarg.h>
-#include <string.h>
 
 #include "libyt_process_control.h"
+#include "yt_combo.h"
 
 // width of log prefix ==> [LogPrefixWidth] messages
 static const int LogPrefixWidth = 10;
