@@ -10,9 +10,9 @@ enum class NumPyStatus : int { kNumPyFailed = 0, kNumPySuccess = 1 };
 
 template<int N>
 struct NumPyArray {
+    yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
     int dim = N;
-    npy_intp npy_dim[N];
-    yt_dtype npy_type;
+    npy_intp data_dim[N]{};
     void* data_ptr = nullptr;
 };
 
@@ -21,7 +21,7 @@ NumPyStatus InitializeNumPy();
 PyObject* ArrayToNumPyArray(int dim, npy_intp* npy_dim, yt_dtype data_dtype, void* data_ptr, bool readonly = false,
                             bool owned_by_python = false);
 template<int N>
-void GetNumPyArrayInfo(PyObject* py_array, NumPyArray<N>* npy_array_info);
+NumPyStatus GetNumPyArrayInfo(PyObject* py_array, NumPyArray<N>* npy_array_info_ptr);
 }  // namespace numpy_controller
 
 #endif  // LIBYT_PROJECT_INCLUDE_NUMPY_CONTROLLER_H_
