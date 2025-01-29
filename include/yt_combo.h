@@ -14,19 +14,19 @@
 // for using C-API in multiple files
 // ==> note that NO_IMPORT_ARRAY must not be defined for the file calling import_array()
 // reference: http://docs.scipy.org/doc/numpy/reference/c-api.array.html#importing-the-api
-#ifndef CALL_IMPORT_ARRAY
-#define NO_IMPORT_ARRAY
-#endif
-#define PY_ARRAY_UNIQUE_SYMBOL LIBYT_ARRAY_API
-#define PY_UFUNC_UNIQUE_SYMBOL LIBYT_UFUNC_API
-
-// to get rid of the warning messages about using deprecated NumPy API
-#define NPY_NO_DEPRECATED_API NPY_API_VERSION
-
-// Python.h must be included before any standard headers are included
-#include <Python.h>
-
-#include "numpy/arrayobject.h"
+// #ifndef CALL_IMPORT_ARRAY
+// #define NO_IMPORT_ARRAY
+// #endif
+// #define PY_ARRAY_UNIQUE_SYMBOL LIBYT_ARRAY_API
+// #define PY_UFUNC_UNIQUE_SYMBOL LIBYT_UFUNC_API
+//
+//// to get rid of the warning messages about using deprecated NumPy API
+// #define NPY_NO_DEPRECATED_API NPY_API_VERSION
+//
+//// Python.h must be included before any standard headers are included
+// #include <Python.h>
+//
+// #include "numpy/arrayobject.h"
 
 #endif  // #ifndef NO_PYTHON
 
