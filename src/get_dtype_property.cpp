@@ -3,6 +3,7 @@
 
 #include "big_mpi.h"
 #include "libyt.h"
+#include "numpy_controller.h"
 #include "yt_combo.h"
 
 #ifdef USE_PYBIND11
