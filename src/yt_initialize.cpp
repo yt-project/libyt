@@ -1,5 +1,6 @@
 #include "libyt.h"
 #include "libyt_process_control.h"
+#include "python_controller.h"
 #include "yt_combo.h"
 
 static void PrintLibytInfo();
