@@ -28,8 +28,8 @@ void log_debug(const char* Format, ...);
 void log_error(const char* format, ...);
 
 int CreateLibytModule();
-int init_python(int argc, char* argv[]);
-int init_libyt_module();
+int InitPython(int argc, char* argv[]);
+int InitLibytModule();
 int get_npy_dtype(yt_dtype data_type, int* npy_dtype);
 int get_dtype_size(yt_dtype data_type, int* dtype_size);
 int get_dtype_typeid(yt_dtype data_type, const std::type_info** dtype_id);

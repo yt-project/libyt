@@ -10,7 +10,7 @@
 // Description :  Initialize Python interpreter
 //
 // Note        :  1. Called by yt_initialize()
-//                2. Initialize Python interpreter and Numpy.
+//                2. Initialize Python interpreter (using Pybind11 or Pure C API) and Numpy.
 //                3. Set up identifier flag:
 //                   sys._parallel = True --> run yt in inline mode
 //                   sys._interactive_mode = True --> mpi does not abort when there is error (ABORT)
@@ -20,7 +20,7 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int init_python(int argc, char* argv[]) {
+int InitPython(int argc, char* argv[]) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef USE_PYBIND11

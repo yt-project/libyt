@@ -28,7 +28,7 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int init_libyt_module() {
+int InitLibytModule() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // import newly created libyt module
@@ -51,7 +51,7 @@ int init_libyt_module() {
 
     // check if script exist
     if (LibytProcessControl::Get().mpi_rank_ == 0) {
-        struct stat buffer;
+        struct stat buffer {};
         std::string script_fullname = std::string(LibytProcessControl::Get().param_libyt_.script) + std::string(".py");
         if (stat(script_fullname.c_str(), &buffer) == 0) {
             log_debug("Finding user script %s ... done\n", script_fullname.c_str());
