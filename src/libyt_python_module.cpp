@@ -28,7 +28,7 @@
 //-------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  derived_func
+// Function    :  DerivedFunc
 // Description :  Use the derived function inside yt_field struct to generate the field, then pass back
 //                to Python.
 //
@@ -46,7 +46,7 @@
 //
 // Return      :  numpy.3darray
 //-------------------------------------------------------------------------------------------------------
-pybind11::array derived_func(long gid, const char* field_name) {
+pybind11::array DerivedFunc(long gid, const char* field_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Get field info and catch error
@@ -126,7 +126,7 @@ pybind11::array derived_func(long gid, const char* field_name) {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  get_particle
+// Function    :  GetParticle
 // Description :  Use the get_par_attr defined inside yt_particle struct to get the particle attributes.
 //
 // Note        :  1. Support only grid dimension = 3 for now, which is "coor_x", "coor_y", "coor_z" in
@@ -146,7 +146,7 @@ pybind11::array derived_func(long gid, const char* field_name) {
 //
 // Return      :  numpy.1darray
 //-------------------------------------------------------------------------------------------------------
-pybind11::array get_particle(long gid, const char* ptype, const char* attr_name) {
+pybind11::array GetParticle(long gid, const char* ptype, const char* attr_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // Get particle info and catch error
@@ -238,7 +238,7 @@ pybind11::array get_particle(long gid, const char* ptype, const char* attr_name)
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  get_field_remote
+// Function    :  GetFieldRemote
 // Description :  Get non-local field data from remote ranks.
 //
 // Note        :  1. Support only grid dimension = 3 for now.
@@ -265,10 +265,10 @@ pybind11::array get_particle(long gid, const char* ptype, const char* attr_name)
 //
 // Return      :  dict obj data[grid id][field_name][:,:,:] or None if it is serial mode
 //-------------------------------------------------------------------------------------------------------
-pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_fname_list,
-                                  const pybind11::list& py_to_prepare, int len_to_prepare,
-                                  const pybind11::list& py_nonlocal_id, const pybind11::list& py_nonlocal_rank,
-                                  int len_nonlocal) {
+pybind11::object GetFieldRemote(const pybind11::list& py_fname_list, int len_fname_list,
+                                const pybind11::list& py_to_prepare, int len_to_prepare,
+                                const pybind11::list& py_nonlocal_id, const pybind11::list& py_nonlocal_rank,
+                                int len_nonlocal) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef SERIAL_MODE
@@ -364,7 +364,7 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  get_particle_remote
+// Function    :  GetParticleRemote
 // Description :  Get non-local particle data from remote ranks.
 //
 // Note        :  1. We return in dictionary objects.
@@ -388,10 +388,10 @@ pybind11::object get_field_remote(const pybind11::list& py_fname_list, int len_f
 //
 // Return      :  dict obj data[grid id][ptype][attribute]
 //-------------------------------------------------------------------------------------------------------
-pybind11::object get_particle_remote(const pybind11::dict& py_ptf, const pybind11::iterable& py_ptf_keys,
-                                     const pybind11::list& py_to_prepare, int len_to_prepare,
-                                     const pybind11::list& py_nonlocal_id, const pybind11::list& py_nonlocal_rank,
-                                     int len_nonlocal) {
+pybind11::object GetParticleRemote(const pybind11::dict& py_ptf, const pybind11::iterable& py_ptf_keys,
+                                   const pybind11::list& py_to_prepare, int len_to_prepare,
+                                   const pybind11::list& py_nonlocal_id, const pybind11::list& py_nonlocal_rank,
+                                   int len_nonlocal) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef SERIAL_MODE
@@ -545,10 +545,10 @@ PYBIND11_EMBEDDED_MODULE(libyt, m) {
     m.attr("libyt_info")["SUPPORT_TIMER"] = pybind11::bool_(false);
 #endif
 
-    m.def("derived_func", &derived_func, pybind11::return_value_policy::take_ownership);
-    m.def("get_particle", &get_particle, pybind11::return_value_policy::take_ownership);
-    m.def("get_field_remote", &get_field_remote, pybind11::return_value_policy::take_ownership);
-    m.def("get_particle_remote", &get_particle_remote, pybind11::return_value_policy::take_ownership);
+    m.def("derived_func", &DerivedFunc, pybind11::return_value_policy::take_ownership);
+    m.def("get_particle", &GetParticle, pybind11::return_value_policy::take_ownership);
+    m.def("get_field_remote", &GetFieldRemote, pybind11::return_value_policy::take_ownership);
+    m.def("get_particle_remote", &GetParticleRemote, pybind11::return_value_policy::take_ownership);
 }
 
 #endif  // #ifdef USE_PYBIND11
