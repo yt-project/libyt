@@ -22,11 +22,6 @@ endif ()
 # Test scripts and discover tests
 include(GoogleTest)
 
-## Test template
-add_executable(TestTemplate test_template.cpp)
-target_link_libraries(TestTemplate PUBLIC gtest_main)
-gtest_discover_tests(TestTemplate)
-
 ## Test Comm MPI
 if (NOT SERIAL_MODE)
 add_executable(TestCommMPI test_comm_mpi.cpp)
