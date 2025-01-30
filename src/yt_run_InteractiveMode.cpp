@@ -11,6 +11,7 @@
 
 #include "function_info.h"
 #include "libyt_process_control.h"
+#include "libyt_utilities.h"
 #include "magic_command.h"
 #endif
 
@@ -60,12 +61,11 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     }
 
     // enter interactive mode only when flag file is detected
-    struct stat buffer;
-    if (stat(flag_file_name, &buffer) != 0) {
+    if (libyt_utilities::DoesFileExist(flag_file_name)) {
+        log_info("Flag file '%s' is detected ... entering interactive mode\n", flag_file_name);
+    } else {
         log_info("Flag file '%s' is not detected ... leaving interactive mode\n", flag_file_name);
         return YT_SUCCESS;
-    } else {
-        log_info("Flag file '%s' is detected ... entering interactive mode\n", flag_file_name);
     }
 
     // create prompt interface

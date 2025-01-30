@@ -1,11 +1,10 @@
-#include <sys/stat.h>
-
 #include <cstring>
 #include <fstream>
 #include <string>
 
 #include "function_info.h"
 #include "libyt_process_control.h"
+#include "libyt_utilities.h"
 #include "yt_combo.h"
 
 #ifdef USE_PYBIND11
@@ -51,9 +50,8 @@ int InitLibytModule() {
 
     // check if script exist
     if (LibytProcessControl::Get().mpi_rank_ == 0) {
-        struct stat buffer {};
         std::string script_fullname = std::string(LibytProcessControl::Get().param_libyt_.script) + std::string(".py");
-        if (stat(script_fullname.c_str(), &buffer) == 0) {
+        if (libyt_utilities::DoesFileExist(script_fullname.c_str())) {
             log_debug("Finding user script %s ... done\n", script_fullname.c_str());
         } else {
             log_info("Unable to find user script %s, creating one ...\n", script_fullname.c_str());
