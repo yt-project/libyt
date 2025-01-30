@@ -44,6 +44,18 @@ target_link_libraries(TestCommMPI PUBLIC
 gtest_discover_tests(TestCommMPI)
 endif ()
 
+## Test NumPy
+add_executable(TestNumPyController test_numpy_controller.cpp)
+target_include_directories(TestNumPyController PUBLIC
+    ${Python_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/include
+)
+target_link_libraries(TestNumPyController PUBLIC
+    gtest_main
+    ${Python_LIBRARIES} Python::NumPy
+    yt
+)
+
 ## Test Python Shell
 if (INTERACTIVE_MODE OR JUPYTER_KERNEL)
 if (NOT SERIAL_MODE)
