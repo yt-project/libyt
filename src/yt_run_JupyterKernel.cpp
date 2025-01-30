@@ -5,7 +5,6 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <thread>
 #include <xeus-zmq/xserver_zmq.hpp>
 #include <xeus/xkernel.hpp>
@@ -14,6 +13,7 @@
 #include "function_info.h"
 #include "libyt_kernel.h"
 #include "libyt_process_control.h"
+#include "libyt_utilities.h"
 #ifndef SERIAL_MODE
 #include "libyt_worker.h"
 #endif
@@ -51,12 +51,11 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
     LibytProcessControl::Get().function_info_list_.RunEveryFunction();
 
     // see if we need to start libyt kernel by checking if file flag_file_name exist.
-    struct stat buffer;
-    if (stat(flag_file_name, &buffer) != 0) {
+    if (libyt_utilities::DoesFileExist(flag_file_name)) {
+        log_info("File '%s' detected, preparing libyt kernel for Jupyter Notebook access ...\n", flag_file_name);
+    } else {
         log_info("No file '%s' detected, skip starting libyt kernel for Jupyter Notebook access ...\n", flag_file_name);
         return YT_SUCCESS;
-    } else {
-        log_info("File '%s' detected, preparing libyt kernel for Jupyter Notebook access ...\n", flag_file_name);
     }
 
 #ifndef SERIAL_MODE
@@ -87,7 +86,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
             while (!complete) {
                 try {
                     // Check if connection file exist
-                    if (stat(kernel_connection_filename, &buffer) != 0) {
+                    if (!libyt_utilities::DoesFileExist(kernel_connection_filename)) {
                         throw -1;
                     }
 
