@@ -12,8 +12,8 @@
 #endif
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  init_libyt_module
-// Description :  Initialize the libyt module
+// Function    :  PreparePythonEnvForLibyt
+// Description :  Prepare python environment for libyt process
 //
 // Note        :  1. Import newly created libyt module.
 //                2. Load user script to python.
@@ -27,7 +27,7 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int InitLibytModule() {
+int PreparePythonEnvForLibyt() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // import newly created libyt module
@@ -66,39 +66,29 @@ int InitLibytModule() {
 #endif
 
     // import YT inline analysis script
-    int command_width = 8 + strlen(LibytProcessControl::Get().param_libyt_.script);  // 8 = "import " + '\0'
-    char* command = (char*)malloc(command_width * sizeof(char));
-    sprintf(command, "import %s", LibytProcessControl::Get().param_libyt_.script);
-
-    if (PyRun_SimpleString(command) == 0)
+    std::string command_str = "import " + std::string(LibytProcessControl::Get().param_libyt_.script);
+    if (PyRun_SimpleString(command_str.c_str()) == 0)
         log_info("Importing YT inline analysis script \"%s\" ... done\n",
                  LibytProcessControl::Get().param_libyt_.script);
     else {
-        free(command);
         YT_ABORT(
             "Importing YT inline analysis script \"%s\" ... failed (please do not include the \".py\" extension)!\n",
             LibytProcessControl::Get().param_libyt_.script);
     }
 
-    free(command);
-
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // add imported script's namespace under in libyt.interactive_mode["script_globals"]
-    command_width = 200 + strlen(LibytProcessControl::Get().param_libyt_.script);
-    command = (char*)malloc(command_width * sizeof(char));
-    sprintf(command,
-            "libyt.interactive_mode[\"script_globals\"] = sys.modules[\"%s\"].__dict__\n"
-            "libyt.interactive_mode[\"func_err_msg\"] = dict()\n"
-            "libyt.interactive_mode[\"func_body\"] = dict()\n",
-            LibytProcessControl::Get().param_libyt_.script);
+    command_str = "libyt.interactive_mode[\"script_globals\"] = sys.modules[\"" +
+                  std::string(LibytProcessControl::Get().param_libyt_.script) +
+                  "\"].__dict__\n"
+                  "libyt.interactive_mode[\"func_err_msg\"] = dict()\n"
+                  "libyt.interactive_mode[\"func_body\"] = dict()\n";
 
-    if (PyRun_SimpleString(command) == 0) {
+    if (PyRun_SimpleString(command_str.c_str()) == 0) {
         log_debug("Preparing interactive mode environment ... done\n");
     } else {
-        free(command);
         YT_ABORT("Preparing interactive mode environment ... failed\n");
     }
-    free(command);
 
     std::string filename = std::string(LibytProcessControl::Get().param_libyt_.script) + ".py";
     LibytPythonShell::load_file_func_body(filename.c_str());
