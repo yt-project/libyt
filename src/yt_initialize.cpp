@@ -53,7 +53,7 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
 
 #ifndef USE_PYBIND11
     // create libyt module, should be before init_python
-    if (create_libyt_module() == YT_FAIL) return YT_FAIL;
+    if (CreateLibytModule() == YT_FAIL) return YT_FAIL;
 #endif
 
     // initialize Python interpreter
