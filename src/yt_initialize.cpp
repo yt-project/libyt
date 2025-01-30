@@ -57,10 +57,10 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
 #endif
 
     // initialize Python interpreter
-    if (init_python(argc, argv) == YT_FAIL) return YT_FAIL;
+    if (InitPython(argc, argv) == YT_FAIL) return YT_FAIL;
 
     // import libyt and inline python script.
-    if (init_libyt_module() == YT_FAIL) return YT_FAIL;
+    if (InitLibytModule() == YT_FAIL) return YT_FAIL;
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // set python exception hook and set not-yet-done error msg
