@@ -56,8 +56,9 @@ LibytProcessControl::LibytProcessControl() {
 // Description :  Initialize libyt process control; every operation should happen after this step.
 //
 // Notes       :  1. It is called in yt_initialize().
-//                2. Initialize MPI rank, MPI size. (if not in SERIAL_MODE)
+//                2. Initialize MPI rank, MPI size for all other classes. (if not in SERIAL_MODE)
 //                3. Initialize and create libyt profile file. (if SUPPORT_TIMER is set)
+//                4. TODO: should I make the initialization of other stuff here?
 //-------------------------------------------------------------------------------------------------------
 void LibytProcessControl::Initialize() {
 #ifndef SERIAL_MODE

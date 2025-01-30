@@ -806,8 +806,7 @@ int create_libyt_module() {
 //                   (1) libyt.interactive_mode["script_globals"] = sys.modules["<script>"].__dict__
 //                   (2) libyt.interactive_mode["func_err_msg"] = dict()
 //                4. Bind py_grid_data/py_particle_data/py_hierarchy/py_param_yt/py_param_user/
-//                   py_libyt_info to dictionary under libyt Python module.
-//                   (TODO: This is only needed in Pybind11)
+//                   This is only needed in Pybind11
 //
 // Parameter   :  None
 //
