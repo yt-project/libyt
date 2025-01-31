@@ -3,7 +3,7 @@
 
 void LogInfo(const char* format, ...);
 void LogWarning(const char* format, ...);
-void log_debug(const char* format, ...);
+void LogDebug(const char* format, ...);
 void log_error(const char* format, ...);
 
 #endif  // LIBYT_PROJECT_INCLUDE_LOGGING_H_

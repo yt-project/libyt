@@ -72,7 +72,7 @@ void LogWarning(const char* format, ...) {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  log_debug
+// Function    :  LogDebug
 // Description :  Print out debug messages to standard output
 //
 // Note        :  1. Similar to LogInfo, except that it works only for verbose level >= YT_VERBOSE_DEBUG
@@ -83,7 +83,7 @@ void LogWarning(const char* format, ...) {
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
-void log_debug(const char* format, ...) {
+void LogDebug(const char* format, ...) {
     // work only for verbose level >= YT_VERBOSE_DEBUG
     if (LibytProcessControl::Get().param_libyt_.verbose < YT_VERBOSE_DEBUG) return;
 

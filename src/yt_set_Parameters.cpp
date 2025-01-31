@@ -52,12 +52,12 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
 
     // check if all parameters have been set properly
     if (check_yt_param_yt(*input_param_yt))
-        log_debug("Validating YT parameters ... done\n");
+        LogDebug("Validating YT parameters ... done\n");
     else
         YT_ABORT("Validating YT parameters ... failed\n");
 
     // print out all parameters
-    log_debug("List of YT parameters:\n");
+    LogDebug("List of YT parameters:\n");
     print_yt_param_yt(*input_param_yt);
 
     // store user-provided parameters to a libyt internal variable
@@ -80,7 +80,7 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
         log_error(status.error.c_str());
         return YT_FAIL;
     } else {
-        log_debug("Allocate storage for amr data structure ... done\n");
+        LogDebug("Allocate storage for amr data structure ... done\n");
     }
 
     // set the default figure base name if it's not set by users.
@@ -166,7 +166,7 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
     add_dict_vector_n(LibytProcessControl::Get().py_param_yt_, "domain_dimensions", 3, param_yt.domain_dimensions);
 #endif  // #ifdef USE_PYBIND11
 
-    log_debug("Inserting YT parameters to libyt.param_yt ... done\n");
+    LogDebug("Inserting YT parameters to libyt.param_yt ... done\n");
 
     // If the above all works like charm.
     LibytProcessControl::Get().param_yt_set_ = true;
