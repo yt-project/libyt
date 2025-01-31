@@ -42,7 +42,7 @@ void LogInfo(const char* format, ...) {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  log_warning
+// Function    :  LogWarning
 // Description :  Print out warning messages to standard error
 //
 // Note        :  1. Similar to LogInfo, except that it works only for verbose level >= YT_VERBOSE_WARNING
@@ -53,7 +53,7 @@ void LogInfo(const char* format, ...) {
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
-void log_warning(const char* format, ...) {
+void LogWarning(const char* format, ...) {
     // work only for verbose level >= YT_VERBOSE_WARNING
     if (LibytProcessControl::Get().param_libyt_.verbose < YT_VERBOSE_WARNING) return;
 

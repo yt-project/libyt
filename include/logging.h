@@ -2,7 +2,7 @@
 #define LIBYT_PROJECT_INCLUDE_LOGGING_H_
 
 void LogInfo(const char* format, ...);
-void log_warning(const char* format, ...);
+void LogWarning(const char* format, ...);
 void log_debug(const char* format, ...);
 void log_error(const char* format, ...);
 
