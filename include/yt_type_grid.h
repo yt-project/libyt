@@ -1,5 +1,5 @@
-#ifndef __YT_TYPE_GRID_H__
-#define __YT_TYPE_GRID_H__
+#ifndef LIBYT_PROJECT_INCLUDE_YT_TYPE_GRID_H_
+#define LIBYT_PROJECT_INCLUDE_YT_TYPE_GRID_H_
 
 #include "yt_macro.h"
 
@@ -107,4 +107,4 @@ typedef struct yt_grid {
 
 } yt_grid;
 
-#endif  // #ifndef __YT_TYPE_GRID_H__
+#endif  // LIBYT_PROJECT_INCLUDE_YT_TYPE_GRID_H_

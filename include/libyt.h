@@ -1,5 +1,5 @@
-#ifndef __LIBYT_H__
-#define __LIBYT_H__
+#ifndef LIBYT_PROJECT_INCLUDE_LIBYT_H_
+#define LIBYT_PROJECT_INCLUDE_LIBYT_H_
 
 /*******************************************************************************
 /

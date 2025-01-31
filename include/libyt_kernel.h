@@ -1,5 +1,5 @@
-#ifndef __LIBYT_KERNEL_H__
-#define __LIBYT_KERNEL_H__
+#ifndef LIBYT_PROJECT_INCLUDE_LIBYT_KERNEL_H_
+#define LIBYT_PROJECT_INCLUDE_LIBYT_KERNEL_H_
 
 #include <Python.h>
 
@@ -24,4 +24,4 @@ private:
     void shutdown_request_impl() override;
 };
 
-#endif  // __LIBYT_KERNEL_H__
+#endif  // LIBYT_PROJECT_INCLUDE_LIBYT_KERNEL_H_

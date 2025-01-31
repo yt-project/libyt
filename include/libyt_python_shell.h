@@ -1,5 +1,5 @@
-#ifndef __LIBYT_PYTHON_SHELL_H__
-#define __LIBYT_PYTHON_SHELL_H__
+#ifndef LIBYT_PROJECT_INCLUDE_LIBYT_PYTHON_SHELL_H_
+#define LIBYT_PROJECT_INCLUDE_LIBYT_PYTHON_SHELL_H_
 
 #include <Python.h>
 
@@ -70,4 +70,4 @@ public:
                                 std::vector<PythonOutput>& output, int output_mpi_rank);
 };
 
-#endif  // __LIBYT_PYTHON_SHELL_H__
+#endif  // LIBYT_PROJECT_INCLUDE_LIBYT_PYTHON_SHELL_H_

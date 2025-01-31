@@ -1,5 +1,5 @@
-#ifndef __YT_TYPE_ARRAY_H__
-#define __YT_TYPE_ARRAY_H__
+#ifndef LIBYT_PROJECT_INCLUDE_YT_TYPE_ARRAY_H_
+#define LIBYT_PROJECT_INCLUDE_YT_TYPE_ARRAY_H_
 
 #include "yt_macro.h"
 
@@ -40,4 +40,4 @@ typedef struct yt_array {
 
 } yt_array;
 
-#endif  // #ifndef __YT_TYPE_ARRAY_H__
+#endif  // LIBYT_PROJECT_INCLUDE_YT_TYPE_ARRAY_H_

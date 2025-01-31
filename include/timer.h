@@ -1,5 +1,5 @@
-#ifndef __TIMER_H__
-#define __TIMER_H__
+#ifndef LIBYT_PROJECT_INCLUDE_TIMER_H_
+#define LIBYT_PROJECT_INCLUDE_TIMER_H_
 
 #ifdef SUPPORT_TIMER
 #include <chrono>
@@ -23,4 +23,4 @@ private:
 #define SET_TIMER(x)
 #endif  // #ifdef SUPPORT_TIMER
 
-#endif  //__TIMER_H__
+#endif  // LIBYT_PROJECT_INCLUDE_TIMER_H_

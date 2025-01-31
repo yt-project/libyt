@@ -1,5 +1,5 @@
-#ifndef __YT_TYPE_FIELD_H__
-#define __YT_TYPE_FIELD_H__
+#ifndef LIBYT_PROJECT_INCLUDE_YT_TYPE_FIELD_H_
+#define LIBYT_PROJECT_INCLUDE_YT_TYPE_FIELD_H_
 
 #ifndef __cplusplus
 #include <stdbool.h>
@@ -81,4 +81,4 @@ typedef struct yt_field {
 
 } yt_field;
 
-#endif  // #ifndef __YT_TYPE_FIELD_H__
+#endif  // LIBYT_PROJECT_INCLUDE_YT_TYPE_FIELD_H_

@@ -1,5 +1,5 @@
-#ifndef __YT_PROTOTYPE_H__
-#define __YT_PROTOTYPE_H__
+#ifndef LIBYT_PROJECT_INCLUDE_YT_PROTOTYPE_H_
+#define LIBYT_PROJECT_INCLUDE_YT_PROTOTYPE_H_
 
 // include relevant headers
 #include <typeinfo>
@@ -24,4 +24,4 @@ int add_dict_vector_n(PyObject* dict, const char* key, const int len, const T* v
 int add_dict_string(PyObject* dict, const char* key, const char* string);
 #endif
 
-#endif  // #ifndef __YT_PROTOTYPE_H__
+#endif  // LIBYT_PROJECT_INCLUDE_YT_PROTOTYPE_H_
