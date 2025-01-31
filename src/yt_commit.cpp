@@ -58,7 +58,7 @@ int yt_commit() {
     status = LibytProcessControl::Get().data_structure_amr_.BindInfoToPython("libyt.param_yt",
                                                                              LibytProcessControl::Get().py_param_yt_);
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
-        log_debug("Loading field/particle info to libyt ... done!\n");
+        LogDebug("Loading field/particle info to libyt ... done!\n");
     } else {
         log_error(status.error.c_str());
         YT_ABORT("Loading field/particle info to libyt ... failed!\n");
@@ -67,7 +67,7 @@ int yt_commit() {
     int root_rank = 0;
     status = LibytProcessControl::Get().data_structure_amr_.BindAllHierarchyToPython(root_rank);
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
-        log_debug("Loading full hierarchy to libyt ... done!\n");
+        LogDebug("Loading full hierarchy to libyt ... done!\n");
     } else {
         log_error(status.error.c_str());
         YT_ABORT("Loading full hierarchy to libyt ... failed!\n");
@@ -75,7 +75,7 @@ int yt_commit() {
 
     status = LibytProcessControl::Get().data_structure_amr_.BindLocalDataToPython();
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
-        log_debug("Loading local data to libyt ... done!\n");
+        LogDebug("Loading local data to libyt ... done!\n");
     } else {
         log_error(status.error.c_str());
         YT_ABORT("Loading local data to libyt ... failed!\n");

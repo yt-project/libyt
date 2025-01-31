@@ -65,7 +65,7 @@ void LibytWorker::start() {
         }
     }
 
-    log_debug("Leaving libyt worker on MPI process %d\n", m_mpi_rank);
+    LogDebug("Leaving libyt worker on MPI process %d\n", m_mpi_rank);
 }
 
 #endif  // #if defined(JUPYTER_KERNEL) && !defined(SERIAL_MODE)

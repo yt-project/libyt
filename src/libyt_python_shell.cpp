@@ -90,11 +90,11 @@ int LibytPythonShell::load_file_func_body(const char* filename) {
             filename);
 
     if (PyRun_SimpleString(command) == 0) {
-        log_debug("Loading function body in script %s ... done\n", filename);
+        LogDebug("Loading function body in script %s ... done\n", filename);
         free(command);
         return YT_SUCCESS;
     } else {
-        log_debug("Loading function body in script %s ... failed\n", filename);
+        LogDebug("Loading function body in script %s ... failed\n", filename);
         free(command);
         return YT_FAIL;
     }

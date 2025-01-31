@@ -32,7 +32,7 @@ int PreparePythonEnvForLibyt() {
 
     // import newly created libyt module
     if (PyRun_SimpleString("import libyt\n") == 0)
-        log_debug("Import libyt module ... done\n");
+        LogDebug("Import libyt module ... done\n");
     else
         YT_ABORT("Import libyt module ... failed!\n");
 
@@ -52,7 +52,7 @@ int PreparePythonEnvForLibyt() {
     if (LibytProcessControl::Get().mpi_rank_ == 0) {
         std::string script_fullname = std::string(LibytProcessControl::Get().param_libyt_.script) + std::string(".py");
         if (libyt_utilities::DoesFileExist(script_fullname.c_str())) {
-            log_debug("Finding user script %s ... done\n", script_fullname.c_str());
+            LogDebug("Finding user script %s ... done\n", script_fullname.c_str());
         } else {
             LogInfo("Unable to find user script %s, creating one ...\n", script_fullname.c_str());
             std::ofstream python_script(script_fullname.c_str());
@@ -85,7 +85,7 @@ int PreparePythonEnvForLibyt() {
                   "libyt.interactive_mode[\"func_body\"] = dict()\n";
 
     if (PyRun_SimpleString(command_str.c_str()) == 0) {
-        log_debug("Preparing interactive mode environment ... done\n");
+        LogDebug("Preparing interactive mode environment ... done\n");
     } else {
         YT_ABORT("Preparing interactive mode environment ... failed\n");
     }

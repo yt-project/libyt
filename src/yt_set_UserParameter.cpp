@@ -24,7 +24,7 @@ static int add_string(const char* key, const char* input);
             }                                                                                                          \
             py_param_user[key] = tuple;                                                                                \
         }                                                                                                              \
-        log_debug("Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key);                    \
+        LogDebug("Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key);                     \
         return YT_SUCCESS;                                                                                             \
     }
 #endif
@@ -185,7 +185,7 @@ static int add_nonstring(const char* key, const int n, const T* input) {
                  "unsigned long*)!\n");
     }
 
-    log_debug("Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key);
+    LogDebug("Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key);
 
     return YT_SUCCESS;
 
@@ -198,7 +198,7 @@ static int add_string(const char* key, const char* input) {
     // export data to libyt.param_user
     if (add_dict_string(LibytProcessControl::Get().py_param_user_, key, input) == YT_FAIL) return YT_FAIL;
 
-    log_debug("Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key);
+    LogDebug("Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key);
 
     return YT_SUCCESS;
 

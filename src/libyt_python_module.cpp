@@ -1280,7 +1280,7 @@ static PyObject* PyInitLibyt(void) {
     // Create libyt module
     PyObject* libyt_module = PyModule_Create(&libyt_module_definition);
     if (libyt_module != nullptr) {
-        log_debug("Creating libyt module ... done\n");
+        LogDebug("Creating libyt module ... done\n");
     } else {
         YT_ABORT("Creating libyt module ... failed!\n");
     }
@@ -1333,7 +1333,7 @@ static PyObject* PyInitLibyt(void) {
     PyModule_AddObject(libyt_module, "interactive_mode", LibytProcessControl::Get().py_interactive_mode_);
 #endif
 
-    log_debug("Attaching empty dictionaries to libyt module ... done\n");
+    LogDebug("Attaching empty dictionaries to libyt module ... done\n");
 
     return libyt_module;
 }
