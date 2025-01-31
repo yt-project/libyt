@@ -77,7 +77,7 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
     }
 
     if (status.status != DataStructureStatus::kDataStructureSuccess) {
-        log_error(status.error.c_str());
+        LogError(status.error.c_str());
         return YT_FAIL;
     } else {
         LogDebug("Allocate storage for amr data structure ... done\n");

@@ -402,7 +402,7 @@ void FunctionInfoList::RunEveryFunction() {
                 // We set the status to failed even though this should never happen,
                 // because the status is set based on if an error msg is set or not.
                 function.SetStatus(FunctionInfo::kFailed);
-                log_error("Unexpected error occurred when running PyRun_SimpleString\n");
+                LogError("Unexpected error occurred when running PyRun_SimpleString\n");
             } else {
                 function.SetStatusUsingPythonResult();
             }

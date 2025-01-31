@@ -46,7 +46,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef INTERACTIVE_MODE
-    log_error("Cannot reload script. Please compile libyt with -DINTERACTIVE_MODE.\n");
+    LogError("Cannot reload script. Please compile libyt with -DINTERACTIVE_MODE.\n");
     return YT_FAIL;
 #else
     // check if libyt has been initialized

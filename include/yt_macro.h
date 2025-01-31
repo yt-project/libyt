@@ -23,7 +23,7 @@
 
 #define YT_ABORT(...)                                                                                                  \
     {                                                                                                                  \
-        log_error(__VA_ARGS__);                                                                                        \
+        LogError(__VA_ARGS__);                                                                                         \
         fprintf(stderr, "%13s==> file <%s>, line <%d>, function <%s>\n", "", __FILE__, __LINE__, __FUNCTION__);        \
         return YT_FAIL;                                                                                                \
     }

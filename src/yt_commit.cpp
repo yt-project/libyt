@@ -60,7 +60,7 @@ int yt_commit() {
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         LogDebug("Loading field/particle info to libyt ... done!\n");
     } else {
-        log_error(status.error.c_str());
+        LogError(status.error.c_str());
         YT_ABORT("Loading field/particle info to libyt ... failed!\n");
     }
 
@@ -69,7 +69,7 @@ int yt_commit() {
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         LogDebug("Loading full hierarchy to libyt ... done!\n");
     } else {
-        log_error(status.error.c_str());
+        LogError(status.error.c_str());
         YT_ABORT("Loading full hierarchy to libyt ... failed!\n");
     }
 
@@ -77,7 +77,7 @@ int yt_commit() {
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         LogDebug("Loading local data to libyt ... done!\n");
     } else {
-        log_error(status.error.c_str());
+        LogError(status.error.c_str());
         YT_ABORT("Loading local data to libyt ... failed!\n");
     }
 

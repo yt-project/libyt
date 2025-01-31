@@ -39,7 +39,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef JUPYTER_KERNEL
-    log_error("Cannot start libyt kernel for Jupyter. Please compile libyt with -DJUPYTER_KERNEL.\n");
+    LogError("Cannot start libyt kernel for Jupyter. Please compile libyt with -DJUPYTER_KERNEL.\n");
     return YT_FAIL;
 #else
     // check if libyt has been initialized
@@ -103,12 +103,12 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
                     complete = true;
                 } catch (int err_code) {
                     if (err_code == -1) {
-                        log_error("Unable to find \"%s\" ...\n", kernel_connection_filename);
+                        LogError("Unable to find \"%s\" ...\n", kernel_connection_filename);
                     }
                 } catch (const nlohmann::json::parse_error& e) {
                     switch (e.id) {
                         case 101: {
-                            log_error(
+                            LogError(
                                 "Unable to parse \"%s\". This error may be caused by not enclosing key-value pairs in "
                                 "{} bracket or not separating key-value pairs using ',' (nlohmann json err "
                                 "msg: %s)\n",
@@ -116,35 +116,35 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
                             break;
                         }
                         default: {
-                            log_error("Unable to parse \"%s\" (nlohmann json err msg: %s)\n",
-                                      kernel_connection_filename, e.what());
+                            LogError("Unable to parse \"%s\" (nlohmann json err msg: %s)\n", kernel_connection_filename,
+                                     e.what());
                         }
                     }
                 } catch (const nlohmann::json::type_error& e) {
                     switch (e.id) {
                         case 302: {
-                            log_error("Error occurred while reading keys in \"%s\". "
-                                      "This error may be caused by missing one of the keys (\"transport\", \"ip\", "
-                                      "\"control_port\", \"shell_port\", \"stdin_port\", \"iopub_port\", \"hb_port\", "
-                                      "\"signature_scheme\", \"key\") "
-                                      "(nlohmann json err msg: %s)\n",
-                                      kernel_connection_filename, e.what());
+                            LogError("Error occurred while reading keys in \"%s\". "
+                                     "This error may be caused by missing one of the keys (\"transport\", \"ip\", "
+                                     "\"control_port\", \"shell_port\", \"stdin_port\", \"iopub_port\", \"hb_port\", "
+                                     "\"signature_scheme\", \"key\") "
+                                     "(nlohmann json err msg: %s)\n",
+                                     kernel_connection_filename, e.what());
                             break;
                         }
                         default: {
-                            log_error("Error occurred while reading keys in \"%s\" (nlohmann json err msg: %s)\n",
-                                      kernel_connection_filename, e.what());
+                            LogError("Error occurred while reading keys in \"%s\" (nlohmann json err msg: %s)\n",
+                                     kernel_connection_filename, e.what());
                         }
                     }
                 } catch (const nlohmann::json::exception& e) {
-                    log_error("Other errors occurred when reading \"%s\" (nlohmann json err msg: %s)\n",
-                              kernel_connection_filename, e.what());
+                    LogError("Other errors occurred when reading \"%s\" (nlohmann json err msg: %s)\n",
+                             kernel_connection_filename, e.what());
                 } catch (const std::out_of_range& e) {
-                    log_error("This error may be caused by not providing \"signature_scheme\" and \"key\" in \"%s\" "
-                              "(std::string err msg: %s)\n",
-                              kernel_connection_filename, e.what());
+                    LogError("This error may be caused by not providing \"signature_scheme\" and \"key\" in \"%s\" "
+                             "(std::string err msg: %s)\n",
+                             kernel_connection_filename, e.what());
                 } catch (const zmq::error_t& e) {
-                    log_error("Port address already in use, please change port number (zmq err msg: %s)\n", e.what());
+                    LogError("Port address already in use, please change port number (zmq err msg: %s)\n", e.what());
                 }
                 std::this_thread::sleep_for(std::chrono::seconds(2));
             }
