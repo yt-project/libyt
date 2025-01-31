@@ -55,14 +55,14 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
 
 #ifndef USE_PYBIND11
     // create libyt module, should be before init_python
-    if (CreateLibytModule() == YT_FAIL) return YT_FAIL;
+    if (python_controller::CreateLibytModule() == YT_FAIL) return YT_FAIL;
 #endif
 
     // initialize Python interpreter
-    if (InitPython(argc, argv) == YT_FAIL) return YT_FAIL;
+    if (python_controller::InitPython(argc, argv) == YT_FAIL) return YT_FAIL;
 
     // import libyt and inline python script.
-    if (PreparePythonEnvForLibyt() == YT_FAIL) return YT_FAIL;
+    if (python_controller::PreparePythonEnvForLibyt() == YT_FAIL) return YT_FAIL;
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // set python exception hook and set not-yet-done error msg

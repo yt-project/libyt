@@ -1,6 +1,7 @@
 #ifndef LIBYT_PROJECT_INCLUDE_PYTHON_CONTROLLER_H_
 #define LIBYT_PROJECT_INCLUDE_PYTHON_CONTROLLER_H_
 
+namespace python_controller {
 int CreateLibytModule();
 int InitPython(int argc, char* argv[]);
 int PreparePythonEnvForLibyt();
@@ -11,5 +12,6 @@ template<typename T>
 int AddVectorNToDict(PyObject* dict, const char* key, int len, const T* vector);
 int AddStringToDict(PyObject* dict, const char* key, const char* string);
 #endif
+}  // namespace python_controller
 
 #endif  // LIBYT_PROJECT_INCLUDE_PYTHON_CONTROLLER_H_

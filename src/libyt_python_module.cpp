@@ -6,6 +6,7 @@
 #include "libyt_process_control.h"
 #include "logging.h"
 #include "numpy_controller.h"
+#include "python_controller.h"
 #include "timer.h"
 
 #ifdef USE_PYBIND11
@@ -1342,14 +1343,15 @@ static PyObject* PyInitLibyt(void) {
 #endif  // #ifdef USE_PYBIND11
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  create_libyt_module
+// Namespace   :  python_controller
+// Function    :  CreateLibytModule
 // Description :  Create the libyt module
 //
 // Note        :  1. Create libyt module, should be called before Py_Initialize().
 //                2. Only has effect when in pure Python C API (-DUSE_PYBIND11=OFF)
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int CreateLibytModule() {
+int python_controller::CreateLibytModule() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef USE_PYBIND11

@@ -5,6 +5,8 @@
 #include "logging.h"
 #include "timer.h"
 
+namespace python_controller {
+
 //-------------------------------------------------------------------------------------------------------
 // Function    :  AddScalarToDict
 // Description :  Auxiliary function for adding a scalar item to a Python dictionary
@@ -158,4 +160,6 @@ template int AddVectorNToDict<long long>(PyObject* dict, const char* key, const 
 template int AddVectorNToDict<unsigned int>(PyObject* dict, const char* key, const int len, const unsigned int* vector);
 template int AddVectorNToDict<unsigned long>(PyObject* dict, const char* key, const int len,
                                              const unsigned long* vector);
+
+}  // namespace python_controller
 #endif  // #ifndef USE_PYBIND11
