@@ -54,10 +54,10 @@ int PreparePythonEnvForLibyt() {
         if (libyt_utilities::DoesFileExist(script_fullname.c_str())) {
             log_debug("Finding user script %s ... done\n", script_fullname.c_str());
         } else {
-            log_info("Unable to find user script %s, creating one ...\n", script_fullname.c_str());
+            LogInfo("Unable to find user script %s, creating one ...\n", script_fullname.c_str());
             std::ofstream python_script(script_fullname.c_str());
             python_script.close();
-            log_info("Creating empty user script %s ... done\n", script_fullname.c_str());
+            LogInfo("Creating empty user script %s ... done\n", script_fullname.c_str());
         }
     }
 
@@ -68,8 +68,8 @@ int PreparePythonEnvForLibyt() {
     // import YT inline analysis script
     std::string command_str = "import " + std::string(LibytProcessControl::Get().param_libyt_.script);
     if (PyRun_SimpleString(command_str.c_str()) == 0)
-        log_info("Importing YT inline analysis script \"%s\" ... done\n",
-                 LibytProcessControl::Get().param_libyt_.script);
+        LogInfo("Importing YT inline analysis script \"%s\" ... done\n",
+                LibytProcessControl::Get().param_libyt_.script);
     else {
         YT_ABORT(
             "Importing YT inline analysis script \"%s\" ... failed (please do not include the \".py\" extension)!\n",

@@ -396,7 +396,7 @@ void FunctionInfoList::RunEveryFunction() {
                                               "    libyt.interactive_mode[\"func_err_msg\"][\"") +
                                   function.GetFunctionName() + std::string("\"] = traceback.format_exc()\n");
 
-            log_info("Performing YT inline analysis %s ...\n", function.GetFunctionNameWithInputArgs().c_str());
+            LogInfo("Performing YT inline analysis %s ...\n", function.GetFunctionNameWithInputArgs().c_str());
             function.SetStatus(FunctionInfo::kNeedUpdate);
             if (PyRun_SimpleString(command.c_str()) != 0) {
                 // We set the status to failed even though this should never happen,
@@ -407,8 +407,8 @@ void FunctionInfoList::RunEveryFunction() {
                 function.SetStatusUsingPythonResult();
             }
             FunctionInfo::ExecuteStatus all_status = function.GetAllStatus();
-            log_info("Performing YT inline analysis %s ... %s\n", function.GetFunctionNameWithInputArgs().c_str(),
-                     (all_status == FunctionInfo::kSuccess) ? "done" : "failed");
+            LogInfo("Performing YT inline analysis %s ... %s\n", function.GetFunctionNameWithInputArgs().c_str(),
+                    (all_status == FunctionInfo::kSuccess) ? "done" : "failed");
         }
     }
 }
