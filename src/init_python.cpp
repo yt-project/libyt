@@ -27,7 +27,7 @@ int InitPython(int argc, char* argv[]) {
     // 0: skips the initialization registration of signal handlers
     Py_InitializeEx(0);
     if (Py_IsInitialized())
-        LogDebug("Initializing Python interpreter ... done\n");
+        logging::LogDebug("Initializing Python interpreter ... done\n");
     else {
         YT_ABORT("Initializing Python interpreter ... failed!\n");
     }
@@ -37,14 +37,14 @@ int InitPython(int argc, char* argv[]) {
 
     // import numpy
     if (numpy_controller::InitializeNumPy() == NumPyStatus::kNumPySuccess) {
-        LogDebug("Importing NumPy ... done\n");
+        logging::LogDebug("Importing NumPy ... done\n");
     } else {
         YT_ABORT("Importing NumPy ... failed!\n");
     }
 
     // add the current location to the module search path
     if (PyRun_SimpleString("import sys; sys.path.insert(0, '.')") == 0) {
-        LogDebug("Adding search path for modules ... done\n");
+        logging::LogDebug("Adding search path for modules ... done\n");
     } else {
         YT_ABORT("Adding search path for modules ... failed!\n");
     }
@@ -52,7 +52,7 @@ int InitPython(int argc, char* argv[]) {
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     // import traceback and inspect for interactive mode
     if (PyRun_SimpleString("import traceback, inspect") == 0) {
-        LogDebug("Import traceback and inspect ... done\n");
+        logging::LogDebug("Import traceback and inspect ... done\n");
     } else {
         YT_ABORT("Import traceback and inspect ... failed!\n");
     }
@@ -61,7 +61,7 @@ int InitPython(int argc, char* argv[]) {
     // set up identifier flag
     // (sys._parallel = True --> run yt in parallel in inline mode)
     if (PyRun_SimpleString("sys._parallel = True") == 0) {
-        LogDebug("Set sys._parallel=True ... done\n");
+        logging::LogDebug("Set sys._parallel=True ... done\n");
     } else {
         YT_ABORT("Set sys._parallel=True ... failed\n");
     }
@@ -69,7 +69,7 @@ int InitPython(int argc, char* argv[]) {
     // (sys._interactive_mode = True --> mpi does not abort when there is error)
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     if (PyRun_SimpleString("sys._interactive_mode = True") == 0) {
-        LogDebug("Set sys._interactive_mode=True ... done\n");
+        logging::LogDebug("Set sys._interactive_mode=True ... done\n");
     } else {
         YT_ABORT("Set sys._interactive_mode=True ... failed\n");
     }
@@ -77,7 +77,7 @@ int InitPython(int argc, char* argv[]) {
 
     // import the garbage collector interface
     if (PyRun_SimpleString("import gc") == 0) {
-        LogDebug("Import Python garbage collector ... done\n");
+        logging::LogDebug("Import Python garbage collector ... done\n");
     } else {
         YT_ABORT("Import Python garbage collector ... failed!\n");
     }

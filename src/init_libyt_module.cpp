@@ -32,7 +32,7 @@ int PreparePythonEnvForLibyt() {
 
     // import newly created libyt module
     if (PyRun_SimpleString("import libyt\n") == 0)
-        LogDebug("Import libyt module ... done\n");
+        logging::LogDebug("Import libyt module ... done\n");
     else
         YT_ABORT("Import libyt module ... failed!\n");
 
@@ -52,12 +52,12 @@ int PreparePythonEnvForLibyt() {
     if (LibytProcessControl::Get().mpi_rank_ == 0) {
         std::string script_fullname = std::string(LibytProcessControl::Get().param_libyt_.script) + std::string(".py");
         if (libyt_utilities::DoesFileExist(script_fullname.c_str())) {
-            LogDebug("Finding user script %s ... done\n", script_fullname.c_str());
+            logging::LogDebug("Finding user script %s ... done\n", script_fullname.c_str());
         } else {
-            LogInfo("Unable to find user script %s, creating one ...\n", script_fullname.c_str());
+            logging::LogInfo("Unable to find user script %s, creating one ...\n", script_fullname.c_str());
             std::ofstream python_script(script_fullname.c_str());
             python_script.close();
-            LogInfo("Creating empty user script %s ... done\n", script_fullname.c_str());
+            logging::LogInfo("Creating empty user script %s ... done\n", script_fullname.c_str());
         }
     }
 
@@ -68,8 +68,8 @@ int PreparePythonEnvForLibyt() {
     // import YT inline analysis script
     std::string command_str = "import " + std::string(LibytProcessControl::Get().param_libyt_.script);
     if (PyRun_SimpleString(command_str.c_str()) == 0)
-        LogInfo("Importing YT inline analysis script \"%s\" ... done\n",
-                LibytProcessControl::Get().param_libyt_.script);
+        logging::LogInfo("Importing YT inline analysis script \"%s\" ... done\n",
+                         LibytProcessControl::Get().param_libyt_.script);
     else {
         YT_ABORT(
             "Importing YT inline analysis script \"%s\" ... failed (please do not include the \".py\" extension)!\n",
@@ -85,7 +85,7 @@ int PreparePythonEnvForLibyt() {
                   "libyt.interactive_mode[\"func_body\"] = dict()\n";
 
     if (PyRun_SimpleString(command_str.c_str()) == 0) {
-        LogDebug("Preparing interactive mode environment ... done\n");
+        logging::LogDebug("Preparing interactive mode environment ... done\n");
     } else {
         YT_ABORT("Preparing interactive mode environment ... failed\n");
     }

@@ -51,33 +51,33 @@ int yt_commit() {
         YT_ABORT("Please invoke yt_get_GridsPtr() before calling %s()!\n", __FUNCTION__);
     }
 
-    LogInfo("Loading full hierarchy and local data to libyt ...\n");
+    logging::LogInfo("Loading full hierarchy and local data to libyt ...\n");
 
     // Add field_list to libyt.param_yt['field_list'] dictionary
     DataStructureOutput status;
     status = LibytProcessControl::Get().data_structure_amr_.BindInfoToPython("libyt.param_yt",
                                                                              LibytProcessControl::Get().py_param_yt_);
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
-        LogDebug("Loading field/particle info to libyt ... done!\n");
+        logging::LogDebug("Loading field/particle info to libyt ... done!\n");
     } else {
-        LogError(status.error.c_str());
+        logging::LogError(status.error.c_str());
         YT_ABORT("Loading field/particle info to libyt ... failed!\n");
     }
 
     int root_rank = 0;
     status = LibytProcessControl::Get().data_structure_amr_.BindAllHierarchyToPython(root_rank);
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
-        LogDebug("Loading full hierarchy to libyt ... done!\n");
+        logging::LogDebug("Loading full hierarchy to libyt ... done!\n");
     } else {
-        LogError(status.error.c_str());
+        logging::LogError(status.error.c_str());
         YT_ABORT("Loading full hierarchy to libyt ... failed!\n");
     }
 
     status = LibytProcessControl::Get().data_structure_amr_.BindLocalDataToPython();
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
-        LogDebug("Loading local data to libyt ... done!\n");
+        logging::LogDebug("Loading local data to libyt ... done!\n");
     } else {
-        LogError(status.error.c_str());
+        logging::LogError(status.error.c_str());
         YT_ABORT("Loading local data to libyt ... failed!\n");
     }
 
@@ -86,7 +86,7 @@ int yt_commit() {
 
     // Above all works like charm
     LibytProcessControl::Get().commit_grids_ = true;
-    LogInfo("Loading full hierarchy and local data ... done.\n");
+    logging::LogInfo("Loading full hierarchy and local data ... done.\n");
 
     return YT_SUCCESS;
 

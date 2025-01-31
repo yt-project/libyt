@@ -60,12 +60,12 @@ void LibytWorker::start() {
             }
             default: {
                 done = true;
-                LogError("Unknown job indicator '%d'\n", indicator);
+                logging::LogError("Unknown job indicator '%d'\n", indicator);
             }
         }
     }
 
-    LogDebug("Leaving libyt worker on MPI process %d\n", m_mpi_rank);
+    logging::LogDebug("Leaving libyt worker on MPI process %d\n", m_mpi_rank);
 }
 
 #endif  // #if defined(JUPYTER_KERNEL) && !defined(SERIAL_MODE)

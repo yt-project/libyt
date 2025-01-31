@@ -21,7 +21,7 @@
 int yt_finalize() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    LogInfo("Exiting libyt ...\n");
+    logging::LogInfo("Exiting libyt ...\n");
 
     // check whether libyt has been initialized
     if (!LibytProcessControl::Get().libyt_initialized_) {

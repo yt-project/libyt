@@ -33,12 +33,12 @@ int yt_get_ParticlesPtr(yt_particle** particle_list) {
                  LibytProcessControl::Get().param_yt_.num_par_types);
     }
 
-    LogInfo("Getting pointer to particle list information ...\n");
+    logging::LogInfo("Getting pointer to particle list information ...\n");
 
     *particle_list = LibytProcessControl::Get().data_structure_amr_.GetParticleList();
 
     LibytProcessControl::Get().get_particles_ptr_ = true;
-    LogInfo("Getting pointer to particle list information  ... done.\n");
+    logging::LogInfo("Getting pointer to particle list information  ... done.\n");
 
     return YT_SUCCESS;
 }
