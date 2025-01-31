@@ -26,11 +26,6 @@ void log_warning(const char* format, ...);
 void log_debug(const char* Format, ...);
 void log_error(const char* format, ...);
 
-#ifdef USE_PYBIND11
-pybind11::array get_pybind11_allocate_array_dtype(yt_dtype data_type, const std::vector<long>& shape,
-                                                  const std::vector<long>& stride);
-#endif
-
 int check_yt_param_yt(const yt_param_yt& param_yt);
 int print_yt_param_yt(const yt_param_yt& param_yt);
 int print_yt_field(const yt_field& field);
