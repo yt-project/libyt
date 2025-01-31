@@ -36,7 +36,7 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
 
     // check if libyt has free all the resource in previous inline-analysis
     if (LibytProcessControl::Get().need_free_) {
-        log_warning("Please invoke yt_free() before calling %s() for next iteration!\n", __FUNCTION__);
+        LogWarning("Please invoke yt_free() before calling %s() for next iteration!\n", __FUNCTION__);
         YT_ABORT("Overwrite existing parameters may leads to memory leak, please called yt_free() first!\n");
     }
 
