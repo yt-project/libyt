@@ -8,7 +8,8 @@
 
 #include "function_info.h"
 #include "libyt_process_control.h"
-#include "yt_combo.h"
+#include "logging.h"
+#include "timer.h"
 
 int FunctionInfo::mpi_rank_;
 int FunctionInfo::mpi_root_;

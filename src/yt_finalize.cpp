@@ -1,6 +1,7 @@
 #include "libyt.h"
 #include "libyt_process_control.h"
-#include "yt_combo.h"
+#include "logging.h"
+#include "timer.h"
 
 #ifdef USE_PYBIND11
 #include "pybind11/embed.h"
