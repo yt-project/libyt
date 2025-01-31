@@ -1,5 +1,4 @@
 #include <cstring>
-#include <typeinfo>
 
 #include "big_mpi.h"
 #include "libyt.h"
@@ -10,89 +9,6 @@
 #include "pybind11/embed.h"
 #include "pybind11/numpy.h"
 #endif
-
-//-------------------------------------------------------------------------------------------------------
-// Function    :  get_dtype_typeid
-// Description :  Match from yt_dtype (YT_*) to type id (C type).
-//
-// Note        :  1. This function matches yt_dtype to C type id, and will write result as a pointer
-//                   in dtype_id.
-//                2.   yt_dtype            C Type
-//                  ========================================
-//                     YT_FLOAT            float
-//                     YT_DOUBLE           double
-//                     YT_LONGDOUBLE       long double
-//                     YT_INT              int
-//                     YT_LONG             long
-//
-// Parameter   :  data_type : yt_dtype, YT_*.
-//                dtype_id  : address of a pointer to type info.
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
-int get_dtype_typeid(yt_dtype data_type, const std::type_info** dtype_id) {
-    switch (data_type) {
-        case YT_FLOAT:
-            *dtype_id = &typeid(float);
-            return YT_SUCCESS;
-        case YT_DOUBLE:
-            *dtype_id = &typeid(double);
-            return YT_SUCCESS;
-        case YT_LONGDOUBLE:
-            *dtype_id = &typeid(long double);
-            return YT_SUCCESS;
-        case YT_CHAR:
-            *dtype_id = &typeid(char);
-            return YT_SUCCESS;
-        case YT_UCHAR:
-            *dtype_id = &typeid(unsigned char);
-            return YT_SUCCESS;
-        case YT_SHORT:
-            *dtype_id = &typeid(short);
-            return YT_SUCCESS;
-        case YT_USHORT:
-            *dtype_id = &typeid(unsigned short);
-            return YT_SUCCESS;
-        case YT_INT:
-            *dtype_id = &typeid(int);
-            return YT_SUCCESS;
-        case YT_UINT:
-            *dtype_id = &typeid(unsigned int);
-            return YT_SUCCESS;
-        case YT_LONG:
-            *dtype_id = &typeid(long);
-            return YT_SUCCESS;
-        case YT_ULONG:
-            *dtype_id = &typeid(unsigned long);
-            return YT_SUCCESS;
-        case YT_LONGLONG:
-            *dtype_id = &typeid(long long);
-            return YT_SUCCESS;
-        case YT_ULONGLONG:
-            *dtype_id = &typeid(unsigned long long);
-            return YT_SUCCESS;
-        case YT_DTYPE_UNKNOWN:
-            log_warning("Forget to set yt_dtype, yt_dtype is YT_DTYPE_UNKNOWN.\n");
-            return YT_FAIL;
-        default:
-            bool valid = false;
-            for (int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++) {
-                yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
-                if (data_type == dtype) {
-                    valid = true;
-                    break;
-                }
-            }
-            if (valid) {
-                log_error("Forget to match new yt_dtype to C type in get_dtype_typeid function.\n");
-            } else {
-                log_error("No such yt_dtype.\n");
-            }
-
-            *dtype_id = nullptr;
-            return YT_FAIL;
-    }
-}
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  get_dtype_allocation
