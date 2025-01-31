@@ -213,24 +213,13 @@ BigMpiStatus BigMpiBcast(int root_rank, long send_count, void* buffer, MPI_Datat
 //-------------------------------------------------------------------------------------------------------
 // Function    :  big_MPI_Get
 // Description :  This is a workaround method for passing big send count of MPI_Get.
-//
-// Note        :  1. big_MPI_Get_dtype delegates calls to here.
-//
-// Parameter   :  void         *recv_buff   : Store received buffer.
-//                long          data_len    : Total length of the data.
-//                MPI_Datatype *mpi_dtype   : MPI_Datatype.
-//                int           get_rank    : Rank to get.
-//                MPI_Aint      base_address: Address of the first element of the target buffer.
-//                MPI_Win      *window      : Window.
-//
-// Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
 template<typename T>
-int big_MPI_Get(void* recv_buff, long data_len, MPI_Datatype* mpi_dtype, int get_rank, MPI_Aint base_address,
-                MPI_Win* window) {
+BigMpiStatus BigMpiGet(void* recv_buff, long data_len, MPI_Datatype* mpi_dtype, int get_rank, MPI_Aint base_address,
+                       MPI_Win* window) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    // The maximum sendcount of MPI_Get is INT_MAX.
+    // The maximum send count of MPI_Get is INT_MAX.
     long stride = INT_MAX;
     int part = (int)(data_len / stride) + 1;
     int remain = (int)(data_len % stride);
@@ -251,7 +240,7 @@ int big_MPI_Get(void* recv_buff, long data_len, MPI_Datatype* mpi_dtype, int get
         address += stride * size;
     }
 
-    return YT_SUCCESS;
+    return BigMpiStatus::kBigMpiSuccess;
 }
 
 #endif  // #ifndef SERIAL_MODE

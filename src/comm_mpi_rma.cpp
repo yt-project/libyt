@@ -11,6 +11,51 @@ template<typename DataClass>
 MPI_Datatype CommMpiRma<DataClass>::mpi_rma_data_type_ = nullptr;
 
 //-------------------------------------------------------------------------------------------------------
+// Function    :  CallBigMpiGetBasedOnYtDtype
+// Description :  Helper function for calling big_MPI_Get template based on yt_dtype
+//
+// Notes       :  1. This function delegates calling big_MPI_Get.
+//                2. It maps to correct C type and call big_MPI_Get based on yt_dtype.
+//                3. If unable to map yt_dtype to C type, then it returns MpiStatus::kBigMpiFailed.
+//-------------------------------------------------------------------------------------------------------
+static BigMpiStatus CallBigMpiGetBasedOnYtDtype(void* recv_buff, long data_len, yt_dtype* data_dtype,
+                                                MPI_Datatype* mpi_dtype, int get_rank, MPI_Aint base_address,
+                                                MPI_Win* window) {
+    switch (*data_dtype) {
+        case YT_FLOAT:
+            return BigMpiGet<float>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_DOUBLE:
+            return BigMpiGet<double>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_LONGDOUBLE:
+            return BigMpiGet<long double>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_CHAR:
+            return BigMpiGet<char>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_UCHAR:
+            return BigMpiGet<unsigned char>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_SHORT:
+            return BigMpiGet<short>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_USHORT:
+            return BigMpiGet<unsigned short>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_INT:
+            return BigMpiGet<int>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_UINT:
+            return BigMpiGet<unsigned int>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_LONG:
+            return BigMpiGet<long>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_ULONG:
+            return BigMpiGet<unsigned long>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_LONGLONG:
+            return BigMpiGet<long long>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_ULONGLONG:
+            return BigMpiGet<unsigned long long>(recv_buff, data_len, mpi_dtype, get_rank, base_address, window);
+        case YT_DTYPE_UNKNOWN:
+            return BigMpiStatus::kBigMpiFailed;
+        default:
+            return BigMpiStatus::kBigMpiFailed;
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Class         :  CommMpiRma<DataClass>
 // Public Method :  Constructor
 //
@@ -310,9 +355,10 @@ CommMpiRmaStatus CommMpiRma<DataClass>::FetchRemoteData(const std::vector<CommMp
                 // Copy data from remote buffer to local, and set the pointer in fetched_data
                 void* fetched_data_buffer = malloc(data_size);
                 fetched_data.data_ptr = fetched_data_buffer;
-                if (big_MPI_Get_dtype(fetched_data_buffer, data_len, &fetched_data.data_dtype, &mpi_dtype,
-                                      all_prepared_data_address_list_[s].mpi_rank,
-                                      all_prepared_data_address_list_[s].mpi_address, &mpi_window_) != YT_SUCCESS) {
+                if (CallBigMpiGetBasedOnYtDtype(fetched_data_buffer, data_len, &fetched_data.data_dtype, &mpi_dtype,
+                                                all_prepared_data_address_list_[s].mpi_rank,
+                                                all_prepared_data_address_list_[s].mpi_address,
+                                                &mpi_window_) != BigMpiStatus::kBigMpiSuccess) {
                     error_str_ = std::string("Fetch remote data buffer (data_group, id, mpi_rank) = (") +
                                  data_group_name_ + std::string(", ") + std::to_string(fid.id) + std::string(", ") +
                                  std::to_string(all_prepared_data_address_list_[s].mpi_rank) +
