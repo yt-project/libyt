@@ -105,8 +105,7 @@ pybind11::array DerivedFunc(long gid, const char* field_name) {
 
     // Generate derived field data
     std::vector<long> shape, stride;
-    int dtype_size;
-    get_dtype_size(field_dtype, &dtype_size);
+    int dtype_size = dtype_utilities::GetYtDtypeSize(field_dtype);
     if (field_list[field_id].contiguous_in_x) {
         shape = {grid_dimensions[2], grid_dimensions[1], grid_dimensions[0]};
     } else {
@@ -221,8 +220,7 @@ pybind11::array GetParticle(long gid, const char* ptype, const char* attr_name) 
     }
 
     // Generate particle data
-    int dtype_size;
-    get_dtype_size(attr_dtype, &dtype_size);
+    int dtype_size = dtype_utilities::GetYtDtypeSize(attr_dtype);
     std::vector<long> shape({array_length});
     std::vector<long> stride({dtype_size});
     pybind11::array output = get_pybind11_allocate_array_dtype(attr_dtype, shape, stride);

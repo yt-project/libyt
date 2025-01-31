@@ -402,8 +402,7 @@ long CommMpiRmaAmrDataArray3D::GetDataSize(const AmrDataArray3D& data) {
         return -1;
     }
 
-    int dtype_size;
-    get_dtype_size(data.data_dtype, &dtype_size);
+    int dtype_size = dtype_utilities::GetYtDtypeSize(data.data_dtype);
     return data.data_dim[0] * data.data_dim[1] * data.data_dim[2] * dtype_size;
 }
 
@@ -469,8 +468,7 @@ long CommMpiRmaAmrDataArray1D::GetDataSize(const AmrDataArray1D& data) {
         return -1;
     }
 
-    int dtype_size;
-    get_dtype_size(data.data_dtype, &dtype_size);
+    int dtype_size = dtype_utilities::GetYtDtypeSize(data.data_dtype);
     return data.data_len * dtype_size;
 }
 
