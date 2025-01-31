@@ -5,6 +5,14 @@
 namespace dtype_utilities {
 
 #ifndef SERIAL_MODE
+//-------------------------------------------------------------------------------------------------------
+// Namespace    :  dtype_utilities
+// Function name:  YtDtype2MpiDtype
+// Description  :  Map yt_dtype to mpi data type.
+//
+// Notes        :  1. Since there is no mapping of YT_DTYPE_UNKNOWN to mpi data type, it will just return
+//                    nullptr.
+//-------------------------------------------------------------------------------------------------------
 MPI_Datatype YtDtype2MpiDtype(yt_dtype data_type) {
     switch (data_type) {
         case YT_FLOAT:
@@ -41,6 +49,13 @@ MPI_Datatype YtDtype2MpiDtype(yt_dtype data_type) {
 }
 #endif  // #ifndef SERIAL_MODE
 
+//-------------------------------------------------------------------------------------------------------
+// Namespace    :  dtype_utilities
+// Function name:  NumPyDtype2YtDtype
+// Description  :  Map NumPy data type to yt_dtype.
+//
+// Notes        :  1. If the NumPy data type is not found, it will return YT_DTYPE_UNKNOWN.
+//-------------------------------------------------------------------------------------------------------
 yt_dtype NumPyDtype2YtDtype(int npy_dtype) {
     switch (npy_dtype) {
         case NPY_FLOAT:
@@ -74,6 +89,14 @@ yt_dtype NumPyDtype2YtDtype(int npy_dtype) {
     }
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Namespace    :  dtype_utilities
+// Function name:  YtDtype2NumPyDtype
+// Description  :  Map yt_dtype to NumPy data type.
+//
+// Notes        :  1. If the yt_dtype is not found, it will return -1.
+//                    (numpy data type is just a bunch of enums larger than 0.)
+//-------------------------------------------------------------------------------------------------------
 int YtDtype2NumPyDtype(yt_dtype data_type) {
     switch (data_type) {
         case YT_FLOAT:
@@ -109,6 +132,13 @@ int YtDtype2NumPyDtype(yt_dtype data_type) {
     }
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Namespace    :  dtype_utilities
+// Function name:  GetYtDtypeSize
+// Description  :  Get the size of the yt_dtype using sizeof.
+//
+// Notes        :  1. If the yt_dtype is not found, it will return -1.
+//-------------------------------------------------------------------------------------------------------
 int GetYtDtypeSize(yt_dtype data_type) {
     switch (data_type) {
         case YT_FLOAT:
@@ -144,6 +174,13 @@ int GetYtDtypeSize(yt_dtype data_type) {
     }
 }
 
+//-------------------------------------------------------------------------------------------------------
+// Namespace    :  dtype_utilities
+// Function name:  AllocateMemory
+// Description  :  Allocate memory based on yt_dtype and length.
+//
+// Notes        :  1. If the yt_dtype is not found, it will return nullptr.
+//-------------------------------------------------------------------------------------------------------
 void* AllocateMemory(yt_dtype data_type, unsigned long length) {
     switch (data_type) {
         case YT_FLOAT: {
