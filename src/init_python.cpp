@@ -1,5 +1,6 @@
 #include "logging.h"
 #include "numpy_controller.h"
+#include "python_controller.h"
 #include "timer.h"
 
 #ifdef USE_PYBIND11
@@ -7,7 +8,8 @@
 #endif
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  init_python
+// Namespace   :  python_controller
+// Function    :  InitPython
 // Description :  Initialize Python interpreter
 //
 // Note        :  1. Called by yt_initialize()
@@ -21,7 +23,7 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int InitPython(int argc, char* argv[]) {
+int python_controller::InitPython(int argc, char* argv[]) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef USE_PYBIND11

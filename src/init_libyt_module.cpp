@@ -6,6 +6,7 @@
 #include "libyt_process_control.h"
 #include "libyt_utilities.h"
 #include "logging.h"
+#include "python_controller.h"
 #include "timer.h"
 
 #ifdef USE_PYBIND11
@@ -13,6 +14,7 @@
 #endif
 
 //-------------------------------------------------------------------------------------------------------
+// Namespace   :  python_controller
 // Function    :  PreparePythonEnvForLibyt
 // Description :  Prepare python environment for libyt process
 //
@@ -28,7 +30,7 @@
 //
 // Return      :  YT_SUCCESS or YT_FAIL
 //-------------------------------------------------------------------------------------------------------
-int PreparePythonEnvForLibyt() {
+int python_controller::PreparePythonEnvForLibyt() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // import newly created libyt module

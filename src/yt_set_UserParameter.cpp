@@ -180,9 +180,12 @@ static int add_nonstring(const char* key, const int n, const T* input) {
         typeid(T) == typeid(long long)) {
         //    scalar and 3-element array
         if (n == 1) {
-            if (AddScalarToDict(LibytProcessControl::Get().py_param_user_, key, *input) == YT_FAIL) return YT_FAIL;
+            if (python_controller::AddScalarToDict(LibytProcessControl::Get().py_param_user_, key, *input) == YT_FAIL)
+                return YT_FAIL;
         } else {
-            if (AddVectorNToDict(LibytProcessControl::Get().py_param_user_, key, n, input) == YT_FAIL) return YT_FAIL;
+            if (python_controller::AddVectorNToDict(LibytProcessControl::Get().py_param_user_, key, n, input) ==
+                YT_FAIL)
+                return YT_FAIL;
         }
     } else {
         YT_ABORT("Unsupported data type (only support char*, float*, double*, int*, long*, long long*, unsigned int*, "
@@ -200,7 +203,8 @@ static int add_nonstring(const char* key, const int n, const T* input) {
 //***********************************************
 static int add_string(const char* key, const char* input) {
     // export data to libyt.param_user
-    if (AddStringToDict(LibytProcessControl::Get().py_param_user_, key, input) == YT_FAIL) return YT_FAIL;
+    if (python_controller::AddStringToDict(LibytProcessControl::Get().py_param_user_, key, input) == YT_FAIL)
+        return YT_FAIL;
 
     logging::LogDebug("Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key);
 
