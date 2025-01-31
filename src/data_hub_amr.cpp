@@ -1,5 +1,6 @@
 #include "data_hub_amr.h"
 
+#include "dtype_utilities.h"
 #include "yt_prototype.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -67,7 +68,8 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
 
             // Allocate memory for data_ptr and generate data
             long data_len = amr_data.data_dim[0] * amr_data.data_dim[1] * amr_data.data_dim[2];
-            if (get_dtype_allocation(amr_data.data_dtype, data_len, &amr_data.data_ptr) != YT_SUCCESS) {
+            amr_data.data_ptr = dtype_utilities::AllocateMemory(amr_data.data_dtype, data_len);
+            if (amr_data.data_ptr == nullptr) {
                 error_str_ = std::string("Failed to allocate memory for (field_name, gid) = (") + field_name +
                              std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
                              std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
@@ -196,8 +198,8 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
             }
 
             // Generate buffer
-            if (get_dtype_allocation(amr_1d_data.data_dtype, amr_1d_data.data_len, &amr_1d_data.data_ptr) !=
-                YT_SUCCESS) {
+            amr_1d_data.data_ptr = dtype_utilities::AllocateMemory(amr_1d_data.data_dtype, amr_1d_data.data_len);
+            if (amr_1d_data.data_ptr == nullptr) {
                 error_str_ =
                     std::string("Failed to allocate memory for (particle type, attribute, gid, data_len) = (") + ptype +
                     std::string(", ") + pattr + std::string(", ") + std::to_string(gid) + std::string(", ") +

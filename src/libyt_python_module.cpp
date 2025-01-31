@@ -642,8 +642,8 @@ static PyObject* LibytFieldDerivedFunc(PyObject* self, PyObject* args) {
     //      The called object will then OWN this numpy array, so that we don't have to free it.
     // TODO: Hybrid OpenMP/MPI, need to allocate for a list of gid.
     long gridTotalSize = grid_dimensions[0] * grid_dimensions[1] * grid_dimensions[2];
-    void* output;
-    if (get_dtype_allocation(field_dtype, gridTotalSize, &output) != YT_SUCCESS) {
+    void* output = dtype_utilities::AllocateMemory(field_dtype, gridTotalSize);
+    if (output == nullptr) {
         PyErr_Format(PyExc_ValueError, "Unknown field_dtype in field [%s]\n", field_name);
         return NULL;
     }
@@ -793,14 +793,14 @@ static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
     int nd = 1;
     int typenum = dtype_utilities::YtDtype2NumPyDtype(attr_dtype);
     npy_intp dims[1] = {array_length};
-    void* output;
+    void* output = dtype_utilities::AllocateMemory(attr_dtype, array_length);
 
     if (typenum < 0) {
         PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
         return NULL;
     }
 
-    if (get_dtype_allocation(attr_dtype, array_length, &output) != YT_SUCCESS) {
+    if (output == nullptr) {
         PyErr_Format(PyExc_ValueError, "Particle [ %s ] attribute [ %s ], unknown yt_dtype.\n", ptype, attr_name);
         return NULL;
     }
