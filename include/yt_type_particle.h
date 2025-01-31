@@ -1,5 +1,5 @@
-#ifndef __YT_TYPE_PARTICLE_H__
-#define __YT_TYPE_PARTICLE_H__
+#ifndef LIBYT_PROJECT_INCLUDE_YT_TYPE_PARTICLE_H_
+#define LIBYT_PROJECT_INCLUDE_YT_TYPE_PARTICLE_H_
 
 #include "yt_type_array.h"
 
@@ -135,4 +135,4 @@ typedef struct yt_particle {
 
 } yt_particle;
 
-#endif  // #ifndef __YT_TYPE_PARTICLE_H__
+#endif  // LIBYT_PROJECT_INCLUDE_YT_TYPE_PARTICLE_H_

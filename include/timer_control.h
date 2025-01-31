@@ -1,5 +1,5 @@
-#ifndef __TIMERCONTROL_H__
-#define __TIMERCONTROL_H__
+#ifndef LIBYT_PROJECT_INCLUDE_TIMER_CONTROL_H_
+#define LIBYT_PROJECT_INCLUDE_TIMER_CONTROL_H_
 
 #ifdef SUPPORT_TIMER
 #include <mutex>
@@ -19,4 +19,4 @@ private:
 };
 #endif  // #ifdef SUPPORT_TIMER
 
-#endif  // #ifndef __TIMERCONTROL_H__
+#endif  // LIBYT_PROJECT_INCLUDE_TIMER_CONTROL_H_
