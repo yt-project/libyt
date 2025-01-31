@@ -135,38 +135,38 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
 #else
     // export data to libyt.param_yt
     // strings
-    add_dict_string(LibytProcessControl::Get().py_param_yt_, "frontend", param_yt.frontend);
-    add_dict_string(LibytProcessControl::Get().py_param_yt_, "fig_basename", param_yt.fig_basename);
+    AddStringToDict(LibytProcessControl::Get().py_param_yt_, "frontend", param_yt.frontend);
+    AddStringToDict(LibytProcessControl::Get().py_param_yt_, "fig_basename", param_yt.fig_basename);
 
     // scalars
-    add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "current_time", param_yt.current_time);
-    add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "current_redshift", param_yt.current_redshift);
-    add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "omega_lambda", param_yt.omega_lambda);
-    add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "omega_matter", param_yt.omega_matter);
-    add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "hubble_constant", param_yt.hubble_constant);
-    add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "length_unit", param_yt.length_unit);
-    add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "mass_unit", param_yt.mass_unit);
-    add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "time_unit", param_yt.time_unit);
-    add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "velocity_unit", param_yt.velocity_unit);
+    AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "current_time", param_yt.current_time);
+    AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "current_redshift", param_yt.current_redshift);
+    AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "omega_lambda", param_yt.omega_lambda);
+    AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "omega_matter", param_yt.omega_matter);
+    AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "hubble_constant", param_yt.hubble_constant);
+    AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "length_unit", param_yt.length_unit);
+    AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "mass_unit", param_yt.mass_unit);
+    AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "time_unit", param_yt.time_unit);
+    AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "velocity_unit", param_yt.velocity_unit);
 
     if (param_yt.magnetic_unit == DBL_UNDEFINED) {
-        add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "magnetic_unit", 1);
+        AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "magnetic_unit", 1);
     } else {
-        add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "magnetic_unit", param_yt.magnetic_unit);
+        AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "magnetic_unit", param_yt.magnetic_unit);
     }
 
-    add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "cosmological_simulation",
+    AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "cosmological_simulation",
                     param_yt.cosmological_simulation);
-    add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "dimensionality", param_yt.dimensionality);
-    add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "refine_by", param_yt.refine_by);
-    add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "index_offset", param_yt.index_offset);
-    add_dict_scalar(LibytProcessControl::Get().py_param_yt_, "num_grids", param_yt.num_grids);
+    AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "dimensionality", param_yt.dimensionality);
+    AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "refine_by", param_yt.refine_by);
+    AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "index_offset", param_yt.index_offset);
+    AddScalarToDict(LibytProcessControl::Get().py_param_yt_, "num_grids", param_yt.num_grids);
 
     // vectors (stored as Python tuples)
-    add_dict_vector_n(LibytProcessControl::Get().py_param_yt_, "domain_left_edge", 3, param_yt.domain_left_edge);
-    add_dict_vector_n(LibytProcessControl::Get().py_param_yt_, "domain_right_edge", 3, param_yt.domain_right_edge);
-    add_dict_vector_n(LibytProcessControl::Get().py_param_yt_, "periodicity", 3, param_yt.periodicity);
-    add_dict_vector_n(LibytProcessControl::Get().py_param_yt_, "domain_dimensions", 3, param_yt.domain_dimensions);
+    AddVectorNToDict(LibytProcessControl::Get().py_param_yt_, "domain_left_edge", 3, param_yt.domain_left_edge);
+    AddVectorNToDict(LibytProcessControl::Get().py_param_yt_, "domain_right_edge", 3, param_yt.domain_right_edge);
+    AddVectorNToDict(LibytProcessControl::Get().py_param_yt_, "periodicity", 3, param_yt.periodicity);
+    AddVectorNToDict(LibytProcessControl::Get().py_param_yt_, "domain_dimensions", 3, param_yt.domain_dimensions);
 #endif  // #ifdef USE_PYBIND11
 
     logging::LogDebug("Inserting YT parameters to libyt.param_yt ... done\n");
