@@ -40,7 +40,7 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
         YT_ABORT("Overwrite existing parameters may leads to memory leak, please called yt_free() first!\n");
     }
 
-    log_info("Setting YT parameters ...\n");
+    LogInfo("Setting YT parameters ...\n");
 
     // reset all cosmological parameters to zero for non-cosmological datasets
     if (!input_param_yt->cosmological_simulation) {
@@ -171,7 +171,7 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
     // If the above all works like charm.
     LibytProcessControl::Get().param_yt_set_ = true;
     LibytProcessControl::Get().need_free_ = true;
-    log_info("Setting YT parameters ... done.\n");
+    LogInfo("Setting YT parameters ... done.\n");
 
     return YT_SUCCESS;
 

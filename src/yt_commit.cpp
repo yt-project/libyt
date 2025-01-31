@@ -51,7 +51,7 @@ int yt_commit() {
         YT_ABORT("Please invoke yt_get_GridsPtr() before calling %s()!\n", __FUNCTION__);
     }
 
-    log_info("Loading full hierarchy and local data to libyt ...\n");
+    LogInfo("Loading full hierarchy and local data to libyt ...\n");
 
     // Add field_list to libyt.param_yt['field_list'] dictionary
     DataStructureOutput status;
@@ -86,7 +86,7 @@ int yt_commit() {
 
     // Above all works like charm
     LibytProcessControl::Get().commit_grids_ = true;
-    log_info("Loading full hierarchy and local data ... done.\n");
+    LogInfo("Loading full hierarchy and local data ... done.\n");
 
     return YT_SUCCESS;
 

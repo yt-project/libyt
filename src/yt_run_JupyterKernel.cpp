@@ -52,9 +52,9 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
 
     // see if we need to start libyt kernel by checking if file flag_file_name exist.
     if (libyt_utilities::DoesFileExist(flag_file_name)) {
-        log_info("File '%s' detected, preparing libyt kernel for Jupyter Notebook access ...\n", flag_file_name);
+        LogInfo("File '%s' detected, preparing libyt kernel for Jupyter Notebook access ...\n", flag_file_name);
     } else {
-        log_info("No file '%s' detected, skip starting libyt kernel for Jupyter Notebook access ...\n", flag_file_name);
+        LogInfo("No file '%s' detected, skip starting libyt kernel for Jupyter Notebook access ...\n", flag_file_name);
         return YT_SUCCESS;
     }
 
@@ -150,12 +150,12 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
             }
 
             // Launch kernel
-            log_info("Launching libyt kernel using provided connection file \"%s\" ...\n", kernel_connection_filename);
+            LogInfo("Launching libyt kernel using provided connection file \"%s\" ...\n", kernel_connection_filename);
             if (libyt_kernel_ptr != nullptr) {
                 libyt_kernel_ptr->start();
             } else {
-                log_info("Launching libyt kernel using provided connection file \"%s\" ... failed\n",
-                         kernel_connection_filename);
+                LogInfo("Launching libyt kernel using provided connection file \"%s\" ... failed\n",
+                        kernel_connection_filename);
             }
             delete libyt_kernel_ptr;
         } else {
@@ -183,7 +183,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
             file.close();
 
             // Launch kernel
-            log_info("Launching libyt kernel, connection info are stored in \"%s\" ...\n", kernel_connection_filename);
+            LogInfo("Launching libyt kernel, connection info are stored in \"%s\" ...\n", kernel_connection_filename);
             libyt_kernel.start();
         }
 

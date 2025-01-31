@@ -62,9 +62,9 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
 
     // enter interactive mode only when flag file is detected
     if (libyt_utilities::DoesFileExist(flag_file_name)) {
-        log_info("Flag file '%s' is detected ... entering interactive mode\n", flag_file_name);
+        LogInfo("Flag file '%s' is detected ... entering interactive mode\n", flag_file_name);
     } else {
-        log_info("Flag file '%s' is not detected ... leaving interactive mode\n", flag_file_name);
+        LogInfo("Flag file '%s' is not detected ... leaving interactive mode\n", flag_file_name);
         return YT_SUCCESS;
     }
 

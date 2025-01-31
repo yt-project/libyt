@@ -40,7 +40,7 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
     int func_index = LibytProcessControl::Get().function_info_list_.GetFunctionIndex(function_name);
     if (func_index != -1) {
         if (LibytProcessControl::Get().function_info_list_[func_index].GetRun() == FunctionInfo::RunStatus::kWillIdle) {
-            log_info("YT inline function \"%s\" was set to idle ... idle\n", function_name);
+            LogInfo("YT inline function \"%s\" was set to idle ... idle\n", function_name);
             return YT_SUCCESS;
         } else if (LibytProcessControl::Get().function_info_list_[func_index].GetRun() ==
                    FunctionInfo::RunStatus::kNotSetYet)
@@ -112,7 +112,7 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
                            std::string(", sys.modules[\"") +
                            std::string(LibytProcessControl::Get().param_libyt_.script) + std::string("\"].__dict__)"));
 
-    log_info("Performing YT inline analysis %s ...\n", str_function.c_str());
+    LogInfo("Performing YT inline analysis %s ...\n", str_function.c_str());
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     std::string str_CallYT_TryExcept;
@@ -141,10 +141,10 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
 #endif
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    log_info("Performing YT inline analysis %s ... %s.\n", str_function.c_str(),
-             (all_status == FunctionInfo::ExecuteStatus::kSuccess) ? "done" : "failed");
+    LogInfo("Performing YT inline analysis %s ... %s.\n", str_function.c_str(),
+            (all_status == FunctionInfo::ExecuteStatus::kSuccess) ? "done" : "failed");
 #else
-    log_info("Performing YT inline analysis %s ... done.\n", str_function.c_str());
+    LogInfo("Performing YT inline analysis %s ... done.\n", str_function.c_str());
 #endif
 
     return YT_SUCCESS;

@@ -85,8 +85,8 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
         // if every function works fine, leave reloading script mode,
         // otherwise create flag file to indicate it enters the mode
         if (!enter_reload) {
-            log_info("No failed inline functions and no file '%s' detected, leaving reload script mode ... \n",
-                     flag_file_name);
+            LogInfo("No failed inline functions and no file '%s' detected, leaving reload script mode ... \n",
+                    flag_file_name);
             return YT_SUCCESS;
         } else {
             if (mpi_rank == mpi_root) {
@@ -94,11 +94,11 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 generate_flag_file.close();
             }
             remove_flag_file = true;
-            log_info("Generating '%s' because there are errors in inline functions ... entering reload script mode\n",
-                     flag_file_name);
+            LogInfo("Generating '%s' because there are errors in inline functions ... entering reload script mode\n",
+                    flag_file_name);
         }
     } else {
-        log_info("Flag file '%s' is detected ... entering reload script mode\n", flag_file_name);
+        LogInfo("Flag file '%s' is detected ... entering reload script mode\n", flag_file_name);
     }
 
     // make sure every process has reached here
@@ -120,8 +120,8 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
         // responsible for getting reload instruction and broadcast to non-root rank
         if (mpi_rank == mpi_root) {
             // block and detect <reload_file_name> or <reload_file_name>_EXIT every 2 sec
-            log_info("Create '%s' file to reload script '%s', or create '%s' file to exit.\n", reload_file_name,
-                     script_name, reload_exit_filename.c_str());
+            LogInfo("Create '%s' file to reload script '%s', or create '%s' file to exit.\n", reload_file_name,
+                    script_name, reload_exit_filename.c_str());
             bool get_reload_state = false;
             while (!get_reload_state) {
                 if (libyt_utilities::DoesFileExist(reload_file_name)) {
@@ -140,13 +140,13 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 MPI_Bcast(&indicator, 1, MPI_INT, mpi_root, MPI_COMM_WORLD);
 #endif
                 LibytProcessControl::Get().python_shell_.ClearHistory();
-                log_info("Detect '%s' file ... exiting reload script\n", reload_exit_filename.c_str());
+                LogInfo("Detect '%s' file ... exiting reload script\n", reload_exit_filename.c_str());
                 if (libyt_utilities::DoesFileExist(reload_exit_filename.c_str())) {
                     std::remove(reload_exit_filename.c_str());
                 }
                 break;
             } else {
-                log_info("Detect '%s' file ... reloading '%s' script\n", reload_file_name, script_name);
+                LogInfo("Detect '%s' file ... reloading '%s' script\n", reload_file_name, script_name);
             }
 
             // create new dumped results temporary file for reloading file
@@ -272,8 +272,8 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 dump_result_file << "Unable to store the output when reloading the script." << std::endl;
                 dump_result_file.close();
 
-                log_info("Reloading script '%s' ... failed\n", script_name);
-                log_info("See '%s' log\n", reload_failed_filename.c_str());
+                LogInfo("Reloading script '%s' ... failed\n", script_name);
+                LogInfo("See '%s' log\n", reload_failed_filename.c_str());
             }
 
             // remove reload_file_name flag file when done
@@ -314,7 +314,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
         std::remove(flag_file_name);
     }
 
-    log_info("Exit reloading script\n");
+    LogInfo("Exit reloading script\n");
 
     return YT_SUCCESS;
 #endif  // #ifndef INTERACTIVE_MODE
