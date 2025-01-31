@@ -26,7 +26,6 @@ void log_warning(const char* format, ...);
 void log_debug(const char* Format, ...);
 void log_error(const char* format, ...);
 
-int get_dtype_size(yt_dtype data_type, int* dtype_size);
 int get_dtype_typeid(yt_dtype data_type, const std::type_info** dtype_id);
 int get_dtype_allocation(yt_dtype data_type, unsigned long length, void** data_ptr);
 #ifdef USE_PYBIND11
