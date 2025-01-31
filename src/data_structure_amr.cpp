@@ -4,6 +4,7 @@
 #include "comm_mpi.h"
 #endif
 
+#include "dtype_utilities.h"
 #include "numpy_controller.h"
 #include "yt_combo.h"
 #ifdef USE_PYBIND11
@@ -1110,11 +1111,10 @@ DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(const yt_grid& 
 
         // insert data under py_field_labels dict
         // (1) Grab NumPy Enumerate Type in order: (1)data_dtype (2)field_dtype
-        int grid_dtype;
         yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
-        if (get_npy_dtype((grid.field_data)[v].data_dtype, &grid_dtype) == YT_SUCCESS) {
+        if (dtype_utilities::YtDtype2NumPyDtype((grid.field_data)[v].data_dtype) >= 0) {
             data_dtype = (grid.field_data)[v].data_dtype;
-        } else if (get_npy_dtype(field_list_[v].field_dtype, &grid_dtype) == YT_SUCCESS) {
+        } else if (dtype_utilities::YtDtype2NumPyDtype(field_list_[v].field_dtype) >= 0) {
             (grid.field_data)[v].data_dtype = field_list_[v].field_dtype;
             data_dtype = field_list_[v].field_dtype;
         } else {
@@ -1198,8 +1198,7 @@ DataStructureOutput DataStructureAmr::BindLocalParticleDataToPython(const yt_gri
             if ((grid.particle_data)[p][a].data_ptr == nullptr) continue;
 
             // Wrap the data array if pointer exist
-            int data_dtype;
-            if (get_npy_dtype(particle_list_[p].attr_list[a].attr_dtype, &data_dtype) != YT_SUCCESS) {
+            if (dtype_utilities::YtDtype2NumPyDtype(particle_list_[p].attr_list[a].attr_dtype) < 0) {
                 Py_DECREF(py_attributes);
                 Py_DECREF(py_ptype_labels);
                 Py_DECREF(py_grid_id);

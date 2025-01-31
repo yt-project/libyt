@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "comm_mpi_rma.h"
+#include "dtype_utilities.h"
 #include "libyt.h"
 #include "libyt_process_control.h"
 #include "numpy_controller.h"
@@ -340,8 +341,6 @@ pybind11::object GetFieldRemote(const pybind11::list& py_fname_list, int len_fna
                 npy_dim[1] = fetched_data.data_dim[1];
                 npy_dim[2] = fetched_data.data_dim[2];
             }
-            int npy_dtype;
-            get_npy_dtype(fetched_data.data_dtype, &npy_dtype);
             PyObject* py_data = numpy_controller::ArrayToNumPyArray(3, npy_dim, fetched_data.data_dtype,
                                                                     fetched_data.data_ptr, false, true);
 
@@ -668,10 +667,10 @@ static PyObject* LibytFieldDerivedFunc(PyObject* self, PyObject* args) {
     // thus we have to check if the field has contiguous_in_x == true or false.
     // TODO: Hybrid OpenMP/MPI, we will need to further pack up a list of gid's field data into Python dictionary.
     int nd = 3;
-    int typenum;
+    int typenum = dtype_utilities::YtDtype2NumPyDtype(field_dtype);
     npy_intp dims[3];
 
-    if (get_npy_dtype(field_dtype, &typenum) != YT_SUCCESS) {
+    if (typenum < 0) {
         PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
         return NULL;
     }
@@ -794,11 +793,11 @@ static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
     // Finally, return numpy 1D array, by wrapping the output.
     // We do not need to free output, since we make python owns this data after returning.
     int nd = 1;
-    int typenum;
+    int typenum = dtype_utilities::YtDtype2NumPyDtype(attr_dtype);
     npy_intp dims[1] = {array_length};
     void* output;
 
-    if (get_npy_dtype(attr_dtype, &typenum) != YT_SUCCESS) {
+    if (typenum < 0) {
         PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
         return NULL;
     }
