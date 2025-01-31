@@ -9,7 +9,7 @@
 #include "timer.h"
 
 #ifdef USE_PYBIND11
-// #include "pybind11/embed.h"
+#include "pybind11/embed.h"
 #endif
 
 //-------------------------------------------------------------------------------------------------------
