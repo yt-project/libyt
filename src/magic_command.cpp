@@ -7,7 +7,7 @@
 
 #include "function_info.h"
 #include "libyt_process_control.h"
-#include "yt_combo.h"
+#include "timer.h"
 
 int MagicCommand::mpi_root_;
 int MagicCommand::mpi_rank_;

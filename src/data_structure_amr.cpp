@@ -6,7 +6,6 @@
 
 #include "dtype_utilities.h"
 #include "numpy_controller.h"
-#include "yt_combo.h"
 #ifdef USE_PYBIND11
 #include "pybind11/embed.h"
 #endif

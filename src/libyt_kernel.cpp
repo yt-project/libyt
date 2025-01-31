@@ -6,9 +6,9 @@
 
 #include "libyt.h"
 #include "libyt_process_control.h"
-#include "libyt_python_shell.h"
+#include "logging.h"
 #include "magic_command.h"
-#include "yt_combo.h"
+#include "timer.h"
 
 static std::vector<std::string> SplitByChar(const std::string& code, const char* c);
 static std::array<int, 2> FindLinenoColumno(const std::string& code, int pos);

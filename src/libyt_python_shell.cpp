@@ -8,7 +8,8 @@
 
 #include "function_info.h"
 #include "libyt_process_control.h"
-#include "yt_combo.h"
+#include "logging.h"
+#include "timer.h"
 
 static std::vector<std::string> GenerateErrMsg(const std::vector<std::string>& statements);
 static bool LastLineHasBackslash(const std::string& code);

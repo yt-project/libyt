@@ -1,5 +1,6 @@
 #include "libyt.h"
-#include "yt_combo.h"
+#include "logging.h"
+#include "timer.h"
 
 #ifdef JUPYTER_KERNEL
 #include <chrono>

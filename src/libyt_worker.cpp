@@ -4,8 +4,9 @@
 #include <mpi.h>
 
 #include "libyt_process_control.h"
+#include "logging.h"
 #include "magic_command.h"
-#include "yt_combo.h"
+#include "timer.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytWorker
