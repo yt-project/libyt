@@ -30,6 +30,48 @@
 
 #ifdef USE_PYBIND11
 //-------------------------------------------------------------------------------------------------------
+// Helper function : AllocatePybind11Array
+// Description     : Allocate pybind11::array_t array based on yt_dtype, shape, and stride.
+//
+// Notes           : 1. If the yt_dtype is not found, it will return pybind11::array().
+//-------------------------------------------------------------------------------------------------------
+static pybind11::array AllocatePybind11Array(yt_dtype data_type, const std::vector<long>& shape,
+                                             const std::vector<long>& stride) {
+    switch (data_type) {
+        case YT_FLOAT:
+            return pybind11::array_t<float>(shape, stride);
+        case YT_DOUBLE:
+            return pybind11::array_t<double>(shape, stride);
+        case YT_LONGDOUBLE:
+            return pybind11::array_t<long double>(shape, stride);
+        case YT_CHAR:
+            return pybind11::array_t<char>(shape, stride);
+        case YT_UCHAR:
+            return pybind11::array_t<unsigned char>(shape, stride);
+        case YT_SHORT:
+            return pybind11::array_t<short>(shape, stride);
+        case YT_USHORT:
+            return pybind11::array_t<unsigned short>(shape, stride);
+        case YT_INT:
+            return pybind11::array_t<int>(shape, stride);
+        case YT_UINT:
+            return pybind11::array_t<unsigned int>(shape, stride);
+        case YT_LONG:
+            return pybind11::array_t<long>(shape, stride);
+        case YT_ULONG:
+            return pybind11::array_t<unsigned long>(shape, stride);
+        case YT_LONGLONG:
+            return pybind11::array_t<long long>(shape, stride);
+        case YT_ULONGLONG:
+            return pybind11::array_t<unsigned long long>(shape, stride);
+        case YT_DTYPE_UNKNOWN:
+            return pybind11::array();
+        default:
+            return pybind11::array();
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------
 // Function    :  DerivedFunc
 // Description :  Use the derived function inside yt_field struct to generate the field, then pass back
 //                to Python.
@@ -112,7 +154,7 @@ pybind11::array DerivedFunc(long gid, const char* field_name) {
         shape = {grid_dimensions[0], grid_dimensions[1], grid_dimensions[2]};
     }
     stride = {dtype_size * shape[1] * shape[2], dtype_size * shape[2], dtype_size};
-    pybind11::array output = get_pybind11_allocate_array_dtype(field_dtype, shape, stride);
+    pybind11::array output = AllocatePybind11Array(field_dtype, shape, stride);
 
     // Call derived function
     yt_array data_array[1];
@@ -223,7 +265,7 @@ pybind11::array GetParticle(long gid, const char* ptype, const char* attr_name) 
     int dtype_size = dtype_utilities::GetYtDtypeSize(attr_dtype);
     std::vector<long> shape({array_length});
     std::vector<long> stride({dtype_size});
-    pybind11::array output = get_pybind11_allocate_array_dtype(attr_dtype, shape, stride);
+    pybind11::array output = AllocatePybind11Array(attr_dtype, shape, stride);
 
     // Call get particle attribute function
     yt_array data_array[1];

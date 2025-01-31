@@ -85,53 +85,5 @@ int big_MPI_Get_dtype(void* recv_buff, long data_len, yt_dtype* data_dtype, MPI_
 #endif
 
 #ifdef USE_PYBIND11
-pybind11::array get_pybind11_allocate_array_dtype(yt_dtype data_type, const std::vector<long>& shape,
-                                                  const std::vector<long>& stride) {
-    switch (data_type) {
-        case YT_FLOAT:
-            return pybind11::array_t<float>(shape, stride);
-        case YT_DOUBLE:
-            return pybind11::array_t<double>(shape, stride);
-        case YT_LONGDOUBLE:
-            return pybind11::array_t<long double>(shape, stride);
-        case YT_CHAR:
-            return pybind11::array_t<char>(shape, stride);
-        case YT_UCHAR:
-            return pybind11::array_t<unsigned char>(shape, stride);
-        case YT_SHORT:
-            return pybind11::array_t<short>(shape, stride);
-        case YT_USHORT:
-            return pybind11::array_t<unsigned short>(shape, stride);
-        case YT_INT:
-            return pybind11::array_t<int>(shape, stride);
-        case YT_UINT:
-            return pybind11::array_t<unsigned int>(shape, stride);
-        case YT_LONG:
-            return pybind11::array_t<long>(shape, stride);
-        case YT_ULONG:
-            return pybind11::array_t<unsigned long>(shape, stride);
-        case YT_LONGLONG:
-            return pybind11::array_t<long long>(shape, stride);
-        case YT_ULONGLONG:
-            return pybind11::array_t<unsigned long long>(shape, stride);
-        case YT_DTYPE_UNKNOWN:
-            log_warning("yt_dtype is YT_DTYPE_UNKNOWN. Unable to create pybind11::array\n");
-            return pybind11::array();
-        default:
-            bool valid = false;
-            for (int yt_dtypeInt = YT_FLOAT; yt_dtypeInt < YT_DTYPE_UNKNOWN; yt_dtypeInt++) {
-                yt_dtype dtype = static_cast<yt_dtype>(yt_dtypeInt);
-                if (data_type == dtype) {
-                    valid = true;
-                    break;
-                }
-            }
-            if (valid) {
-                log_error("Forget to delegate new yt_dtype to pybind11::array_t.\n");
-            } else {
-                log_error("No such yt_dtype.\n");
-            }
-            return pybind11::array();
-    }
-}
+
 #endif
