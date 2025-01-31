@@ -26,7 +26,6 @@ void log_warning(const char* format, ...);
 void log_debug(const char* Format, ...);
 void log_error(const char* format, ...);
 
-int get_dtype_allocation(yt_dtype data_type, unsigned long length, void** data_ptr);
 #ifdef USE_PYBIND11
 pybind11::array get_pybind11_allocate_array_dtype(yt_dtype data_type, const std::vector<long>& shape,
                                                   const std::vector<long>& stride);
