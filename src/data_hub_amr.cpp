@@ -1,7 +1,6 @@
 #include "data_hub_amr.h"
 
 #include "dtype_utilities.h"
-#include "yt_prototype.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  DataHubAmr

@@ -2,7 +2,6 @@
 #include "numpy_controller.h"
 
 #include "dtype_utilities.h"
-#include "yt_prototype.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Namespace     : numpy_controller

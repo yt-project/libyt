@@ -12,18 +12,6 @@
 #include <Python.h>
 #endif
 
-#ifndef SERIAL_MODE
-#include <mpi.h>
-
-#include "data_structure_amr.h"
-int check_sum_num_grids_local_MPI(int mpi_size, int* num_grids_local_MPI);
-#endif
-
-void log_info(const char* Format, ...);
-void log_warning(const char* format, ...);
-void log_debug(const char* Format, ...);
-void log_error(const char* format, ...);
-
 int check_yt_param_yt(const yt_param_yt& param_yt);
 int print_yt_param_yt(const yt_param_yt& param_yt);
 int print_yt_field(const yt_field& field);

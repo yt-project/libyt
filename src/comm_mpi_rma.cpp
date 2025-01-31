@@ -5,7 +5,6 @@
 #include "comm_mpi.h"
 #include "dtype_utilities.h"
 #include "timer.h"
-#include "yt_prototype.h"
 
 template<typename DataClass>
 MPI_Datatype CommMpiRma<DataClass>::mpi_rma_data_type_ = nullptr;
