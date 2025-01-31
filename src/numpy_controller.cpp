@@ -1,6 +1,7 @@
 #define LIBYT_INIT_NUMPY
 #include "numpy_controller.h"
 
+#include "dtype_utilities.h"
 #include "yt_prototype.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -31,8 +32,7 @@ NumPyStatus numpy_controller::InitializeNumPy() {
 //-------------------------------------------------------------------------------------------------------
 PyObject* numpy_controller::ArrayToNumPyArray(int dim, npy_intp* npy_dim, yt_dtype data_dtype, void* data_ptr,
                                               bool readonly, bool owned_by_python) {
-    int npy_dtype;
-    get_npy_dtype(data_dtype, &npy_dtype);
+    int npy_dtype = dtype_utilities::YtDtype2NumPyDtype(data_dtype);
     PyObject* py_data = PyArray_SimpleNewFromData(dim, npy_dim, npy_dtype, data_ptr);
 
     if (readonly) {
