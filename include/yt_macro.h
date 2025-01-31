@@ -1,5 +1,5 @@
-#ifndef __YT_MACRO_H__
-#define __YT_MACRO_H__
+#ifndef LIBYT_PROJECT_INCLUDE_YT_MACRO_H_
+#define LIBYT_PROJECT_INCLUDE_YT_MACRO_H_
 
 #ifdef __cplusplus
 #include <cfloat>
@@ -21,11 +21,4 @@
 #define INT_UNDEFINED INT_MIN
 #define LNG_UNDEFINED LONG_MIN
 
-#define YT_ABORT(...)                                                                                                  \
-    {                                                                                                                  \
-        logging::LogError(__VA_ARGS__);                                                                                \
-        fprintf(stderr, "%13s==> file <%s>, line <%d>, function <%s>\n", "", __FILE__, __LINE__, __FUNCTION__);        \
-        return YT_FAIL;                                                                                                \
-    }
-
-#endif  // #ifndef __YT_MACRO_H__
+#endif  // LIBYT_PROJECT_INCLUDE_YT_MACRO_H_
