@@ -517,6 +517,7 @@ int get_dtype_allocation(yt_dtype data_type, unsigned long length, void** data_p
 //                     YT_LONGDOUBLE       long double
 //                     YT_INT              int
 //                     YT_LONG             long
+//                4. TODO: maybe I can move this to a local function in comm_mpi_rma.cpp
 //
 // Parameter   :  data_type : yt_dtype, YT_*.
 //                length    : length of the 1d array
