@@ -99,11 +99,11 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
             std::string("\"] = \"LIBYT Error: Please avoid using both \\\"\\\"\\\" and \'\'\' for triple quotes.\\n\"");
         LibytProcessControl::Get().function_info_list_[func_index].SetStatus(FunctionInfo::ExecuteStatus::kFailed);
         if (PyRun_SimpleString(str_set_error.c_str()) != 0) {
-            log_error("Unexpected error occurred when setting unable to wrap error message in interactive mode.\n");
+            LogError("Unexpected error occurred when setting unable to wrap error message in interactive mode.\n");
         }
 #endif
         // return YT_FAIL
-        log_error("Please avoid using both \"\"\" and ''' for triple quotes.\n");
+        LogError("Please avoid using both \"\"\" and ''' for triple quotes.\n");
         YT_ABORT("Invoking %s ... failed\n", str_function.c_str());
     }
 

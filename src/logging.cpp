@@ -102,13 +102,13 @@ void LogDebug(const char* format, ...) {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  log_error
+// Function    :  LogError
 // Description :  Print out error messages to standard error
 //
 // Note        :  1. Similar to LogInfo, except that messages are always printed out regardless of the
 //                   verbose level
 //                2. Messages are printed out to standard error with a prefix "[YT_ERROR] "
-//                3. A convenient macro "YT_ABORT" is defined in yt_macro.h, which calls log_error, print
+//                3. A convenient macro "YT_ABORT" is defined in yt_macro.h, which calls LogError, print
 //                   out the line number, and returns YT_FAIL
 //
 // Parameter   :  format : Output format
@@ -116,7 +116,7 @@ void LogDebug(const char* format, ...) {
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
-void log_error(const char* format, ...) {
+void LogError(const char* format, ...) {
     // flush previous messages
     fflush(stderr);
 

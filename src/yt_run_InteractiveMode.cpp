@@ -36,8 +36,8 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef INTERACTIVE_MODE
-    log_error("Cannot enter interactive prompt. "
-              "Please compile libyt with -DINTERACTIVE_MODE.\n");
+    LogError("Cannot enter interactive prompt. "
+             "Please compile libyt with -DINTERACTIVE_MODE.\n");
     return YT_FAIL;
 #else
     // check if libyt has been initialized

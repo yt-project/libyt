@@ -60,7 +60,7 @@ void LibytWorker::start() {
             }
             default: {
                 done = true;
-                log_error("Unknown job indicator '%d'\n", indicator);
+                LogError("Unknown job indicator '%d'\n", indicator);
             }
         }
     }
