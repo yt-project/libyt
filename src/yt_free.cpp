@@ -30,8 +30,8 @@ int yt_free() {
 
     // check if user has run through all the routine.
     if (!LibytProcessControl::Get().commit_grids_) {
-        LogWarning("You are going to free every libyt initialized and allocated array, "
-                   "even though the inline-analysis procedure has not finished yet!\n");
+        logging::LogWarning("You are going to free every libyt initialized and allocated array, "
+                            "even though the inline-analysis procedure has not finished yet!\n");
     }
 
 #ifndef SERIAL_MODE

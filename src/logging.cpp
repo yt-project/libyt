@@ -5,6 +5,7 @@
 // width of log prefix ==> [LogPrefixWidth] messages
 static const int kLogPrefixWidth = 10;
 
+namespace logging {
 //-------------------------------------------------------------------------------------------------------
 // Function    :  LogInfo
 // Description :  Print out basic messages to standard output
@@ -130,3 +131,5 @@ void LogError(const char* format, ...) {
 
     va_end(arg);
 }
+
+}  // namespace logging

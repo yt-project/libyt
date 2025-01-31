@@ -41,16 +41,16 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
         param_libyt->counter;  // useful during restart, where the initial counter can be non-zero
     LibytProcessControl::Get().param_libyt_.check_data = param_libyt->check_data;
 
-    LogInfo("******libyt version******\n");
-    LogInfo("         %d.%d.%d\n", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION, LIBYT_MICRO_VERSION);
+    logging::LogInfo("******libyt version******\n");
+    logging::LogInfo("         %d.%d.%d\n", LIBYT_MAJOR_VERSION, LIBYT_MINOR_VERSION, LIBYT_MICRO_VERSION);
     PrintLibytInfo();
-    LogInfo("*************************\n");
+    logging::LogInfo("*************************\n");
 
-    LogInfo("Initializing libyt ...\n");
-    LogInfo("   verbose = %d\n", LibytProcessControl::Get().param_libyt_.verbose);
-    LogInfo("    script = %s\n", LibytProcessControl::Get().param_libyt_.script);
-    LogInfo("   counter = %ld\n", LibytProcessControl::Get().param_libyt_.counter);
-    LogInfo("check_data = %s\n", (LibytProcessControl::Get().param_libyt_.check_data ? "true" : "false"));
+    logging::LogInfo("Initializing libyt ...\n");
+    logging::LogInfo("   verbose = %d\n", LibytProcessControl::Get().param_libyt_.verbose);
+    logging::LogInfo("    script = %s\n", LibytProcessControl::Get().param_libyt_.script);
+    logging::LogInfo("   counter = %ld\n", LibytProcessControl::Get().param_libyt_.counter);
+    logging::LogInfo("check_data = %s\n", (LibytProcessControl::Get().param_libyt_.check_data ? "true" : "false"));
 
 #ifndef USE_PYBIND11
     // create libyt module, should be before init_python
@@ -82,26 +82,26 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
 
 static void PrintLibytInfo() {
 #ifdef SERIAL_MODE
-    LogInfo("  SERIAL_MODE: ON\n");
+    logging::LogInfo("  SERIAL_MODE: ON\n");
 #else
-    LogInfo("  SERIAL_MODE: OFF\n");
+    logging::LogInfo("  SERIAL_MODE: OFF\n");
 #endif
 
 #ifdef INTERACTIVE_MODE
-    LogInfo("  INTERACTIVE_MODE: ON\n");
+    logging::LogInfo("  INTERACTIVE_MODE: ON\n");
 #else
-    LogInfo("  INTERACTIVE_MODE: OFF\n");
+    logging::LogInfo("  INTERACTIVE_MODE: OFF\n");
 #endif
 
 #ifdef JUPYTER_KERNEL
-    LogInfo("  JUPYTER_KERNEL: ON\n");
+    logging::LogInfo("  JUPYTER_KERNEL: ON\n");
 #else
-    LogInfo("  JUPYTER_KERNEL: OFF\n");
+    logging::LogInfo("  JUPYTER_KERNEL: OFF\n");
 #endif
 
 #ifdef SUPPORT_TIMER
-    LogInfo("  SUPPORT_TIMER: ON\n");
+    logging::LogInfo("  SUPPORT_TIMER: ON\n");
 #else
-    LogInfo("  SUPPORT_TIMER: OFF\n");
+    logging::LogInfo("  SUPPORT_TIMER: OFF\n");
 #endif
 }

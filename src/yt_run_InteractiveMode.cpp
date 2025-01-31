@@ -36,8 +36,8 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef INTERACTIVE_MODE
-    LogError("Cannot enter interactive prompt. "
-             "Please compile libyt with -DINTERACTIVE_MODE.\n");
+    logging::LogError("Cannot enter interactive prompt. "
+                      "Please compile libyt with -DINTERACTIVE_MODE.\n");
     return YT_FAIL;
 #else
     // check if libyt has been initialized
@@ -62,9 +62,9 @@ int yt_run_InteractiveMode(const char* flag_file_name) {
 
     // enter interactive mode only when flag file is detected
     if (libyt_utilities::DoesFileExist(flag_file_name)) {
-        LogInfo("Flag file '%s' is detected ... entering interactive mode\n", flag_file_name);
+        logging::LogInfo("Flag file '%s' is detected ... entering interactive mode\n", flag_file_name);
     } else {
-        LogInfo("Flag file '%s' is not detected ... leaving interactive mode\n", flag_file_name);
+        logging::LogInfo("Flag file '%s' is not detected ... leaving interactive mode\n", flag_file_name);
         return YT_SUCCESS;
     }
 

@@ -36,11 +36,11 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
 
     // check if libyt has free all the resource in previous inline-analysis
     if (LibytProcessControl::Get().need_free_) {
-        LogWarning("Please invoke yt_free() before calling %s() for next iteration!\n", __FUNCTION__);
+        logging::LogWarning("Please invoke yt_free() before calling %s() for next iteration!\n", __FUNCTION__);
         YT_ABORT("Overwrite existing parameters may leads to memory leak, please called yt_free() first!\n");
     }
 
-    LogInfo("Setting YT parameters ...\n");
+    logging::LogInfo("Setting YT parameters ...\n");
 
     // reset all cosmological parameters to zero for non-cosmological datasets
     if (!input_param_yt->cosmological_simulation) {
@@ -52,12 +52,12 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
 
     // check if all parameters have been set properly
     if (check_yt_param_yt(*input_param_yt))
-        LogDebug("Validating YT parameters ... done\n");
+        logging::LogDebug("Validating YT parameters ... done\n");
     else
         YT_ABORT("Validating YT parameters ... failed\n");
 
     // print out all parameters
-    LogDebug("List of YT parameters:\n");
+    logging::LogDebug("List of YT parameters:\n");
     print_yt_param_yt(*input_param_yt);
 
     // store user-provided parameters to a libyt internal variable
@@ -77,10 +77,10 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
     }
 
     if (status.status != DataStructureStatus::kDataStructureSuccess) {
-        LogError(status.error.c_str());
+        logging::LogError(status.error.c_str());
         return YT_FAIL;
     } else {
-        LogDebug("Allocate storage for amr data structure ... done\n");
+        logging::LogDebug("Allocate storage for amr data structure ... done\n");
     }
 
     // set the default figure base name if it's not set by users.
@@ -166,12 +166,12 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
     add_dict_vector_n(LibytProcessControl::Get().py_param_yt_, "domain_dimensions", 3, param_yt.domain_dimensions);
 #endif  // #ifdef USE_PYBIND11
 
-    LogDebug("Inserting YT parameters to libyt.param_yt ... done\n");
+    logging::LogDebug("Inserting YT parameters to libyt.param_yt ... done\n");
 
     // If the above all works like charm.
     LibytProcessControl::Get().param_yt_set_ = true;
     LibytProcessControl::Get().need_free_ = true;
-    LogInfo("Setting YT parameters ... done.\n");
+    logging::LogInfo("Setting YT parameters ... done.\n");
 
     return YT_SUCCESS;
 

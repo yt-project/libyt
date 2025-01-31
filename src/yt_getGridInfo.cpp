@@ -37,7 +37,7 @@ int yt_getGridInfo_Dimensions(const long gid, int (*dimensions)[3]) {
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
     } else {
-        LogError(status.error.c_str());
+        logging::LogError(status.error.c_str());
         return YT_FAIL;
     }
 }
@@ -56,7 +56,7 @@ int yt_getGridInfo_LeftEdge(const long gid, double (*left_edge)[3]) {
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
     } else {
-        LogError(status.error.c_str());
+        logging::LogError(status.error.c_str());
         return YT_FAIL;
     }
 }
@@ -75,7 +75,7 @@ int yt_getGridInfo_RightEdge(const long gid, double (*right_edge)[3]) {
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
     } else {
-        LogError(status.error.c_str());
+        logging::LogError(status.error.c_str());
         return YT_FAIL;
     }
 }
@@ -94,7 +94,7 @@ int yt_getGridInfo_ParentId(const long gid, long* parent_id) {
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
     } else {
-        LogError(status.error.c_str());
+        logging::LogError(status.error.c_str());
         return YT_SUCCESS;
     }
 }
@@ -113,7 +113,7 @@ int yt_getGridInfo_Level(const long gid, int* level) {
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
     } else {
-        LogError(status.error.c_str());
+        logging::LogError(status.error.c_str());
         return YT_FAIL;
     }
 }
@@ -132,7 +132,7 @@ int yt_getGridInfo_ProcNum(const long gid, int* proc_num) {
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
     } else {
-        LogError(status.error.c_str());
+        logging::LogError(status.error.c_str());
         return YT_FAIL;
     }
 }
@@ -163,7 +163,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_co
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
     } else {
-        LogError(status.error.c_str());
+        logging::LogError(status.error.c_str());
         return YT_FAIL;
     }
 }
@@ -198,7 +198,7 @@ int yt_getGridInfo_FieldData(const long gid, const char* field_name, yt_data* fi
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
     } else {
-        LogError(status.error.c_str());
+        logging::LogError(status.error.c_str());
         return YT_FAIL;
     }
 }
@@ -229,7 +229,7 @@ int yt_getGridInfo_ParticleData(const long gid, const char* ptype, const char* a
     if (status.status == DataStructureStatus::kDataStructureSuccess) {
         return YT_SUCCESS;
     } else {
-        LogError(status.error.c_str());
+        logging::LogError(status.error.c_str());
         return YT_FAIL;
     }
 }
