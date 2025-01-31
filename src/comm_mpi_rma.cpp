@@ -3,6 +3,7 @@
 
 #include "big_mpi.h"
 #include "comm_mpi.h"
+#include "dtype_utilities.h"
 #include "timer.h"
 #include "yt_prototype.h"
 
@@ -288,8 +289,7 @@ CommMpiRmaStatus CommMpiRma<DataClass>::FetchRemoteData(const std::vector<CommMp
                 }
 
                 // Check the size, length, and data pointer
-                MPI_Datatype mpi_dtype;
-                get_mpi_dtype(fetched_data.data_dtype, &mpi_dtype);
+                MPI_Datatype mpi_dtype = dtype_utilities::YtDtype2MpiDtype(fetched_data.data_dtype);
                 long data_size = GetDataSize(fetched_data);
                 long data_len = GetDataLen(fetched_data);
                 if (data_size < 0) {
