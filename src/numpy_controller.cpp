@@ -50,8 +50,7 @@ PyObject* numpy_controller::ArrayToNumPyArray(int dim, npy_intp* npy_dim, yt_dty
 // Namespace     : numpy_controller
 // Function name : GetNumPyArrayInfo
 //
-// Notes         :  1. Parse the numpy array info and stored it in npy_array_info.
-//                  2. Since I cannot overload the function with different return type, I pass in the pointer.
+// Notes         :  1. Parse the numpy array info and return it.
 //-------------------------------------------------------------------------------------------------------
 NumPyArray numpy_controller::GetNumPyArrayInfo(PyObject* py_array) {
     PyArrayObject* py_array_obj = reinterpret_cast<PyArrayObject*>(py_array);
@@ -60,7 +59,7 @@ NumPyArray numpy_controller::GetNumPyArrayInfo(PyObject* py_array) {
     array_info.data_dims = PyArray_DIMS(py_array_obj);
     array_info.data_ptr = PyArray_DATA(py_array_obj);
     PyArray_Descr* py_array_info = PyArray_DESCR(py_array_obj);
-    get_yt_dtype_from_npy(py_array_info->type_num, &(array_info.data_dtype));
+    array_info.data_dtype = dtype_utilities::NumPyDtype2YtDtype(py_array_info->type_num);
 
     return array_info;
 }
