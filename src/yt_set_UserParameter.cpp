@@ -1,8 +1,10 @@
+#include <typeinfo>
+
 #include "libyt.h"
 #include "libyt_process_control.h"
 #include "logging.h"
+#include "python_controller.h"
 #include "timer.h"
-#include "yt_prototype.h"
 
 #ifdef USE_PYBIND11
 #include "pybind11/embed.h"
