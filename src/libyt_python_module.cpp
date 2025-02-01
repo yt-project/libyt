@@ -339,7 +339,7 @@ pybind11::object GetFieldRemote(const pybind11::list& py_fname_list, int len_fna
         // Prepare data for each field on each MPI rank.
         std::string fname = py_fname.cast<std::string>();
 
-        DataHubAmr local_amr_data;
+        DataHubAmrDataArray3D local_amr_data(false);
         DataHubReturn<AmrDataArray3D> prepared_data =
             local_amr_data.GetLocalFieldData(LibytProcessControl::Get().data_structure_amr_, fname, prepare_id_list);
 
@@ -458,7 +458,7 @@ pybind11::object GetParticleRemote(const pybind11::dict& py_ptf, const pybind11:
                 }
             }
 
-            DataHubAmr local_particle_data;
+            DataHubAmrDataArray1D local_particle_data(false);
             DataHubReturn<AmrDataArray1D> prepared_data = local_particle_data.GetLocalParticleData(
                 LibytProcessControl::Get().data_structure_amr_, ptype, attr, prepare_id_list);
             DataHubStatus all_status = static_cast<DataHubStatus>(CommMpi::CheckAllStates(
@@ -949,7 +949,7 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
         // Prepare local data
         py_deref_list.push_back(py_fname);
         char* fname = PyBytes_AsString(py_fname);
-        DataHubAmr local_amr_data;
+        DataHubAmrDataArray3D local_amr_data(false);
         DataHubReturn<AmrDataArray3D> prepared_data =
             local_amr_data.GetLocalFieldData(LibytProcessControl::Get().data_structure_amr_, fname, prepare_id_list);
         DataHubStatus all_status = static_cast<DataHubStatus>(CommMpi::CheckAllStates(
@@ -1110,7 +1110,7 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
                     prepare_id_list.push_back(gid);
                 }
             }
-            DataHubAmr local_particle_data;
+            DataHubAmrDataArray1D local_particle_data(false);
             DataHubReturn<AmrDataArray1D> prepared_data = local_particle_data.GetLocalParticleData(
                 LibytProcessControl::Get().data_structure_amr_, ptype, attr, prepare_id_list);
             DataHubStatus all_status = static_cast<DataHubStatus>(CommMpi::CheckAllStates(

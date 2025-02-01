@@ -180,6 +180,7 @@ int GetYtDtypeSize(yt_dtype data_type) {
 // Description  :  Allocate memory based on yt_dtype and length.
 //
 // Notes        :  1. If the yt_dtype is not found, it will return nullptr.
+//                 2. The caller is responsible for freeing the memory.
 //-------------------------------------------------------------------------------------------------------
 void* AllocateMemory(yt_dtype data_type, unsigned long length) {
     switch (data_type) {
