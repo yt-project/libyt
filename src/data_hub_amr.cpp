@@ -3,7 +3,32 @@
 #include "dtype_utilities.h"
 
 //-------------------------------------------------------------------------------------------------------
-// Class         :  DataHubAmr
+// Class         :  DataHub
+// Public Method :  ClearCache
+//
+// Notes       :  1. Clear the cache, and decide if new allocation needs to be freed.
+//                2. Assuming DataClass struct has data pointer called data_ptr.
+//-------------------------------------------------------------------------------------------------------
+template<typename DataClass>
+void DataHub<DataClass>::ClearCache() {
+    if (!take_ownership_) {
+        for (size_t i = 0; i < data_array_list_.size(); i++) {
+            if (is_new_allocation_list_[i]) {
+                free(data_array_list_[i].data_ptr);
+            }
+        }
+    }
+
+    is_new_allocation_list_.clear();
+    data_array_list_.clear();
+    error_str_ = std::string("");
+}
+
+template class DataHub<AmrDataArray3D>;
+template class DataHub<AmrDataArray1D>;
+
+//-------------------------------------------------------------------------------------------------------
+// Class         :  DataHubAmrDataArray3D
 // Public Method :  GetLocalFieldData
 //
 // Notes       :  1. Get local field data and cache it.
@@ -14,9 +39,9 @@
 //                   then it will be marked in is_new_allocation_list_. It will later be freed by ClearCache.
 //                6. TODO: The function is not tested yet
 //-------------------------------------------------------------------------------------------------------
-DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureAmr& ds_amr,
-                                                            const std::string& field_name,
-                                                            const std::vector<long>& grid_id_list) {
+DataHubReturn<AmrDataArray3D> DataHubAmrDataArray3D::GetLocalFieldData(const DataStructureAmr& ds_amr,
+                                                                       const std::string& field_name,
+                                                                       const std::vector<long>& grid_id_list) {
     // Free cache before doing new query
     ClearCache();
 
@@ -26,7 +51,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
         error_str_ = std::string("Cannot find field_name [ ") + field_name +
                      std::string(" ] in field_list on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
                      std::string(".\n");
-        return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
+        return {DataHubStatus::kDataHubFailed, data_array_list_};
     }
 
     if (strcmp(field_list[field_id].field_type, "derived_func") == 0) {
@@ -41,7 +66,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
                 error_str_ += std::string("Failed to get grid dim for (field_name, gid) = (") + field_name +
                               std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
                               std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
-                return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
+                return {DataHubStatus::kDataHubFailed, data_array_list_};
             }
             if (field_list[field_id].contiguous_in_x) {
                 amr_data.data_dim[0] = grid_dim[2];
@@ -62,7 +87,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
                 error_str_ = std::string("Derived function derived_func not set in field [ ") + field_name +
                              std::string(" ] on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
                              std::string(".\n");
-                return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
+                return {DataHubStatus::kDataHubFailed, data_array_list_};
             }
 
             // Allocate memory for data_ptr and generate data
@@ -72,7 +97,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
                 error_str_ = std::string("Failed to allocate memory for (field_name, gid) = (") + field_name +
                              std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
                              std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
-                return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
+                return {DataHubStatus::kDataHubFailed, data_array_list_};
             }
             // TODO: test using OpenMP in derived_func and pass in a group of ids.
             //       What would happen if we didn't compile libyt with OpenMP? (Time Profile This)
@@ -85,7 +110,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
             (*derived_func)(list_len, list_gid, field_name.c_str(), data_array);
 
             is_new_allocation_list_.emplace_back(true);
-            amr_data_array_3d_list_.emplace_back(amr_data);
+            data_array_list_.emplace_back(amr_data);
         }
     } else if (strcmp(field_list[field_id].field_type, "cell-centered") == 0 ||
                strcmp(field_list[field_id].field_type, "face-centered") == 0) {
@@ -97,7 +122,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
                 error_str_ += std::string("Failed to get data (field_name, gid) = (") + field_name + std::string(", ") +
                               std::to_string(gid) + std::string(") on MPI rank ") +
                               std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
-                return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
+                return {DataHubStatus::kDataHubFailed, data_array_list_};
             }
             AmrDataArray3D amr_data{};
             amr_data.id = gid;
@@ -109,20 +134,20 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
             amr_data.data_ptr = field_data.data_ptr;
 
             is_new_allocation_list_.emplace_back(false);
-            amr_data_array_3d_list_.emplace_back(amr_data);
+            data_array_list_.emplace_back(amr_data);
         }
     } else {
         error_str_ = std::string("Unknown field type [ ") + std::string(field_list[field_id].field_type) +
                      std::string(" ] in field [ ") + field_name + std::string(" ] on MPI rank ") +
                      std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
-        return {DataHubStatus::kDataHubFailed, amr_data_array_3d_list_};
+        return {DataHubStatus::kDataHubFailed, data_array_list_};
     }
 
-    return {DataHubStatus::kDataHubSuccess, amr_data_array_3d_list_};
+    return {DataHubStatus::kDataHubSuccess, data_array_list_};
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Class         :  DataHubAmr
+// Class         :  DataHubAmrDataArray1D
 // Public Method :  GetLocalParticleData
 //
 // Notes       :  1. Get local particle data and cache it.
@@ -133,9 +158,10 @@ DataHubReturn<AmrDataArray3D> DataHubAmr::GetLocalFieldData(const DataStructureA
 //                5. It first look for data in libyt.particle_data, if not found, it will call get_par_attr.
 //                6. TODO: The function is not tested yet
 //-------------------------------------------------------------------------------------------------------
-DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructureAmr& ds_amr, const std::string& ptype,
-                                                               const std::string& pattr,
-                                                               const std::vector<long>& grid_id_list) {
+DataHubReturn<AmrDataArray1D> DataHubAmrDataArray1D::GetLocalParticleData(const DataStructureAmr& ds_amr,
+                                                                          const std::string& ptype,
+                                                                          const std::string& pattr,
+                                                                          const std::vector<long>& grid_id_list) {
     // Free cache before doing new query
     ClearCache();
 
@@ -146,7 +172,7 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
         error_str_ = std::string("Cannot find (particle type, attribute) = (") + ptype + std::string(", ") + pattr +
                      std::string(") in particle_list on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
                      std::string(".\n");
-        return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
+        return {DataHubStatus::kDataHubFailed, data_array_list_};
     }
 
     for (const long& gid : grid_id_list) {
@@ -162,18 +188,18 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
             error_str_ += std::string("Failed to get particle count for (particle type, gid) = (") + ptype +
                           std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
                           std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
-            return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
+            return {DataHubStatus::kDataHubFailed, data_array_list_};
         }
         if (amr_1d_data.data_len < 0) {
             error_str_ = std::string("Particle count = ") + std::to_string(amr_1d_data.data_len) +
                          std::string(" < 0 for (particle type, gid) = (") + ptype + std::string(", ") +
                          std::to_string(gid) + std::string(") on MPI rank ") +
                          std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
-            return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
+            return {DataHubStatus::kDataHubFailed, data_array_list_};
         } else if (amr_1d_data.data_len == 0) {
             amr_1d_data.data_ptr = nullptr;
             is_new_allocation_list_.emplace_back(false);
-            amr_data_array_1d_list_.emplace_back(amr_1d_data);
+            data_array_list_.emplace_back(amr_1d_data);
             continue;
         }
 
@@ -184,7 +210,7 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
             // Read from libyt.particle_data
             amr_1d_data.data_ptr = par_array.data_ptr;
             is_new_allocation_list_.emplace_back(false);
-            amr_data_array_1d_list_.emplace_back(amr_1d_data);
+            data_array_list_.emplace_back(amr_1d_data);
         } else {
             // Get particle function get_par_attr
             void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*) =
@@ -193,7 +219,7 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
                 error_str_ = std::string("Get particle function get_par_attr not set in particle type [ ") + ptype +
                              std::string(" ] on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
                              std::string(".\n");
-                return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
+                return {DataHubStatus::kDataHubFailed, data_array_list_};
             }
 
             // Generate buffer
@@ -204,7 +230,7 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
                     std::string(", ") + pattr + std::string(", ") + std::to_string(gid) + std::string(", ") +
                     std::to_string(amr_1d_data.data_len) + std::string(") on MPI rank ") +
                     std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
-                return {DataHubStatus::kDataHubFailed, amr_data_array_1d_list_};
+                return {DataHubStatus::kDataHubFailed, data_array_list_};
             }
             int list_len = 1;
             long list_gid[1] = {gid};
@@ -214,39 +240,9 @@ DataHubReturn<AmrDataArray1D> DataHubAmr::GetLocalParticleData(const DataStructu
             data_array[0].data_ptr = amr_1d_data.data_ptr;
             (*get_par_attr)(list_len, list_gid, ptype.c_str(), pattr.c_str(), data_array);
             is_new_allocation_list_.emplace_back(true);
-            amr_data_array_1d_list_.emplace_back(amr_1d_data);
+            data_array_list_.emplace_back(amr_1d_data);
         }
     }
 
-    return {DataHubStatus::kDataHubSuccess, amr_data_array_1d_list_};
-}
-
-//-------------------------------------------------------------------------------------------------------
-// Class         :  DataHubAmr
-// Public Method :  ClearCache
-//
-// Notes       :  1. Clear the cache, and decide if new allocation needs to be freed.
-//                2. TODO: since the class holds both 1D and 3D data cache, and only one of them will be
-//                         used at a time, we need to check which one is is_new_allocation_list_ referring to.
-//-------------------------------------------------------------------------------------------------------
-void DataHubAmr::ClearCache() {
-    if (!take_ownership_) {
-        if (is_new_allocation_list_.size() == amr_data_array_3d_list_.size()) {
-            for (size_t i = 0; i < amr_data_array_3d_list_.size(); i++) {
-                if (is_new_allocation_list_[i]) {
-                    free(amr_data_array_3d_list_[i].data_ptr);
-                }
-            }
-        } else if (is_new_allocation_list_.size() == amr_data_array_1d_list_.size()) {
-            for (size_t i = 0; i < amr_data_array_1d_list_.size(); i++) {
-                if (is_new_allocation_list_[i]) {
-                    free(amr_data_array_1d_list_[i].data_ptr);
-                }
-            }
-        }
-    }
-    is_new_allocation_list_.clear();
-    amr_data_array_3d_list_.clear();
-    amr_data_array_1d_list_.clear();
-    error_str_ = std::string("");
+    return {DataHubStatus::kDataHubSuccess, data_array_list_};
 }
