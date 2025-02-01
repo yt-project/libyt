@@ -22,6 +22,8 @@ endif ()
 # Test scripts and discover tests
 include(GoogleTest)
 
+# TODO: need to use gtest_discover_tests() to run all tests
+
 ## Test Comm MPI
 if (NOT SERIAL_MODE)
 add_executable(TestCommMPI test_comm_mpi.cpp)
@@ -107,5 +109,15 @@ target_link_libraries(TestDataStructureAmr PUBLIC
         yt
 )
 endif()
+
+## Test Data Hub Amr
+add_executable(TestDataHubAmr test_data_hub_amr.cpp)
+target_include_directories(TestDataHubAmr PUBLIC
+        ${CMAKE_SOURCE_DIR}/include
+)
+target_link_libraries(TestDataHubAmr PUBLIC
+        gtest_main
+        yt
+)
 
 endif () # if (LIBYT_RUN_TEST)
