@@ -127,11 +127,18 @@ pybind11::array DerivedFunc(long gid, const char* field_name) {
     }
 
     // Get grid info and catch error
-    int grid_dimensions[3], proc_num;
-    if (yt_getGridInfo_ProcNum(gid, &proc_num) != YT_SUCCESS ||
-        yt_getGridInfo_Dimensions(gid, &grid_dimensions) != YT_SUCCESS) {
-        std::string error_msg = "Cannot get grid [ " + std::to_string(gid) + " ] dimensions or MPI process rank.\n";
-        throw pybind11::value_error(error_msg.c_str());
+    int proc_num;
+    DataStructureOutput status =
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridProcNum(gid, &proc_num);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        throw pybind11::value_error(status.error.c_str());
+    }
+
+    int grid_dimensions[3];
+    status =
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridDimensions(gid, grid_dimensions);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        throw pybind11::value_error(status.error.c_str());
     }
 
     if (proc_num != LibytProcessControl::Get().mpi_rank_) {
@@ -237,12 +244,18 @@ pybind11::array GetParticle(long gid, const char* ptype, const char* attr_name) 
     }
 
     // Get particle info and catch error
-    long array_length;
     int proc_num;
-    if (yt_getGridInfo_ProcNum(gid, &proc_num) != YT_SUCCESS ||
-        yt_getGridInfo_ParticleCount(gid, ptype, &array_length) != YT_SUCCESS) {
-        std::string error_msg = "Cannot get particle number in grid [ " + std::to_string(gid) + " ] or MPI rank.\n";
-        throw pybind11::value_error(error_msg.c_str());
+    DataStructureOutput status =
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridProcNum(gid, &proc_num);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        throw pybind11::value_error(status.error.c_str());
+    }
+
+    long array_length;
+    status = LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridParticleCount(gid, ptype,
+                                                                                                         &array_length);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        throw pybind11::value_error(status.error.c_str());
     }
 
     if (proc_num != LibytProcessControl::Get().mpi_rank_) {
@@ -660,12 +673,22 @@ static PyObject* LibytFieldDerivedFunc(PyObject* self, PyObject* args) {
     }
 
     // Get the grid's dimension[3], proc_num according to the gid.
-    int grid_dimensions[3], proc_num;
-    if (yt_getGridInfo_ProcNum(gid, &proc_num) != YT_SUCCESS ||
-        yt_getGridInfo_Dimensions(gid, &grid_dimensions) != YT_SUCCESS) {
-        PyErr_Format(PyExc_ValueError, "Cannot get grid [%ld] dimensions or MPI rank.\n", gid);
+    int proc_num;
+    DataStructureOutput status =
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridProcNum(gid, &proc_num);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        PyErr_Format(PyExc_ValueError, status.error.c_str());
         return NULL;
     }
+
+    int grid_dimensions[3];
+    status =
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridDimensions(gid, grid_dimensions);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        PyErr_Format(PyExc_ValueError, status.error.c_str());
+        return NULL;
+    }
+
     if (proc_num != LibytProcessControl::Get().mpi_rank_) {
         PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal grid. Grid [%ld] is on MPI rank [%d].\n", gid,
                      proc_num);
@@ -808,13 +831,22 @@ static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
     }
 
     // Get length of the returned 1D numpy array, which is equal to par_count_list in the grid.
-    long array_length;
     int proc_num;
-    if (yt_getGridInfo_ProcNum(gid, &proc_num) != YT_SUCCESS ||
-        yt_getGridInfo_ParticleCount(gid, ptype, &array_length) != YT_SUCCESS) {
-        PyErr_Format(PyExc_ValueError, "Cannot get particle number in grid [%ld] or MPI rank.\n", gid);
+    DataStructureOutput status =
+        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridProcNum(gid, &proc_num);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        PyErr_Format(PyExc_ValueError, status.error.c_str());
         return NULL;
     }
+
+    long array_length;
+    status = LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridParticleCount(gid, ptype,
+                                                                                                         &array_length);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        PyErr_Format(PyExc_ValueError, status.error.c_str());
+        return NULL;
+    }
+
     if (proc_num != LibytProcessControl::Get().mpi_rank_) {
         PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal particles. Grid [%ld] is on MPI rank [%d].\n", gid,
                      proc_num);
