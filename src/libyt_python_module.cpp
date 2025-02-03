@@ -150,6 +150,10 @@ pybind11::array DerivedFunc(long gid, const char* field_name) {
 //                4. We will always return 1D numpy array, with length equal particle count of the species
 //                   in that grid.
 //                5. Return Py_None if number of ptype particle == 0.
+//                6. Due to the creation of pybind11::array_t using an existing pointer makes Python not owning
+//                   an array, we have to initialize a new buffer in array_t and copy the generated data into
+//                   the new buffer.
+//                   (ref: https://stackoverflow.com/a/44682603/20413451)
 //
 // Python Parameter     :          int : GID of the grid
 //                                 str : ptype, particle type
@@ -163,97 +167,47 @@ pybind11::array DerivedFunc(long gid, const char* field_name) {
 pybind11::array GetParticle(long gid, const char* ptype, const char* attr_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    // Get particle info and catch error
-    void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*) = nullptr;
-    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.GetParticleList();
-    int particle_id = -1, attr_id = -1;
-    yt_dtype attr_dtype = YT_DTYPE_UNKNOWN;
+    // TODO: check memory leakage when early return
 
-    for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_par_types; v++) {
-        if (strcmp(particle_list[v].par_type, ptype) == 0) {
-            particle_id = v;
-            get_par_attr = particle_list[v].get_par_attr;
-            for (int w = 0; w < particle_list[v].num_attr; w++) {
-                if (strcmp(particle_list[v].attr_list[w].attr_name, attr_name) == 0) {
-                    attr_id = w;
-                    attr_dtype = particle_list[v].attr_list[w].attr_dtype;
-                    break;
-                }
-            }
-            break;
+    // Generate data
+    std::vector<long> gid_list = {gid};
+    std::vector<AmrDataArray1D> storage;
+    DataStructureOutput status =
+        LibytProcessControl::Get().data_structure_amr_.GenerateLocalParticleData(gid_list, ptype, attr_name, storage);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+            PyErr_SetString(PyExc_NotImplementedError, status.error.c_str());
+            throw pybind11::error_already_set();
+        } else {
+            throw pybind11::value_error(status.error.c_str());
         }
     }
 
-    if (particle_id == -1) {
-        std::string error_msg = "Cannot find particle type [ " + std::string(ptype) + " ] in particle_list.\n";
-        throw pybind11::value_error(error_msg.c_str());
-    }
-    if (attr_id == -1) {
-        std::string error_msg = "Cannot find attribute [ " + std::string(attr_name) + " ] in particle type [ " +
-                                std::string(ptype) + " ] in particle_list.\n";
-        throw pybind11::value_error(error_msg.c_str());
-    }
-    if (get_par_attr == nullptr) {
-        std::string error_msg =
-            "In particle_list, par_type [ " + std::string(ptype) + " ], get_par_attr did not set properly.";
-        PyErr_SetString(PyExc_NotImplementedError, error_msg.c_str());
-        throw pybind11::error_already_set();
-    }
-    if (attr_dtype == YT_DTYPE_UNKNOWN) {
-        std::string error_msg = "In particle_list, par_type [ " + std::string(ptype) + " ] attr_name [ " +
-                                std::string(attr_name) + " ], attr_dtype did not set properly.\n";
-        throw pybind11::value_error(error_msg.c_str());
-    }
-
-    // Get particle info and catch error
-    int proc_num;
-    DataStructureOutput status =
-        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridProcNum(gid, &proc_num);
-    if (status.status != DataStructureStatus::kDataStructureSuccess) {
-        throw pybind11::value_error(status.error.c_str());
-    }
-
-    long array_length;
-    status = LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridParticleCount(gid, ptype,
-                                                                                                         &array_length);
-    if (status.status != DataStructureStatus::kDataStructureSuccess) {
-        throw pybind11::value_error(status.error.c_str());
-    }
-
-    if (proc_num != LibytProcessControl::Get().mpi_rank_) {
-        std::string error_msg = "Trying to prepare nonlocal particles. Grid [ " + std::to_string(gid) +
-                                " ] is on MPI rank [ " + std::to_string(proc_num) + " ].\n";
-        throw pybind11::value_error(error_msg.c_str());
-    }
-    if (array_length == 0) {
+    // Return None if there is no particle
+    if (storage[0].data_len == 0) {
         // TODO: can I do this??? Even if I cannot, just return a dummy array, yt_libyt filters particle 0 too.
         // but should find a better solution too.
         // It returns a numpy.ndarray with () object
         return pybind11::none();
+    } else {
+        // Allocate pybind11
+        // (We need this otherwise the array is not owned by python :()
+        int dtype_size = dtype_utilities::GetYtDtypeSize(storage[0].data_dtype);
+        if (dtype_size < 0) {
+            throw pybind11::value_error("Cannot get size of yt_dtype.\n");
+        }
+        std::vector<long> shape({storage[0].data_len});
+        std::vector<long> stride({dtype_size});
+        pybind11::array output = AllocatePybind11Array(storage[0].data_dtype, shape, stride);
+
+        // Copy data from storage to output and then free storage
+        memcpy(output.mutable_data(), storage[0].data_ptr, dtype_size * shape[0]);
+        for (const AmrDataArray1D& kData : storage) {
+            free(kData.data_ptr);
+        }
+
+        return static_cast<pybind11::array>(output);
     }
-    if (array_length < 0) {
-        std::string error_msg = "Trying to prepare particle type [ " + std::string(ptype) + " ] in grid [ " +
-                                std::to_string(gid) + " ] that has particle count = " + std::to_string(array_length) +
-                                " < 0.\n";
-        throw pybind11::value_error(error_msg.c_str());
-    }
-
-    // Generate particle data
-    int dtype_size = dtype_utilities::GetYtDtypeSize(attr_dtype);
-    std::vector<long> shape({array_length});
-    std::vector<long> stride({dtype_size});
-    pybind11::array output = AllocatePybind11Array(attr_dtype, shape, stride);
-
-    // Call get particle attribute function
-    yt_array data_array[1];
-    data_array[0].data_ptr = static_cast<void*>(output.mutable_data());
-    data_array[0].data_length = array_length;
-    data_array[0].gid = gid;
-    long list_gid[1] = {gid};
-
-    get_par_attr(1, list_gid, ptype, attr_name, data_array);
-
-    return static_cast<pybind11::array>(output);
 }
 
 //-------------------------------------------------------------------------------------------------------
