@@ -1,16 +1,13 @@
-#define NO_PYTHON
-#include "yt_combo.h"
-#undef NO_PYTHON
 #include <stdarg.h>
-#include <string.h>
 
 #include "libyt_process_control.h"
 
 // width of log prefix ==> [LogPrefixWidth] messages
-static const int LogPrefixWidth = 10;
+static const int kLogPrefixWidth = 10;
 
+namespace logging {
 //-------------------------------------------------------------------------------------------------------
-// Function    :  log_info
+// Function    :  LogInfo
 // Description :  Print out basic messages to standard output
 //
 // Note        :  1. Work only for verbose level >= YT_VERBOSE_INFO
@@ -25,7 +22,7 @@ static const int LogPrefixWidth = 10;
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
-void log_info(const char* format, ...) {
+void LogInfo(const char* format, ...) {
     if (LibytProcessControl::Get().mpi_rank_ != 0) return;
 
     // work only for verbose level >= YT_VERBOSE_INFO
@@ -38,19 +35,18 @@ void log_info(const char* format, ...) {
     va_list arg;
     va_start(arg, format);
 
-    fprintf(stdout, "[%-*s] ", LogPrefixWidth, "YT_INFO");
+    fprintf(stdout, "[%-*s] ", kLogPrefixWidth, "YT_INFO");
     vfprintf(stdout, format, arg);
     fflush(stdout);
 
     va_end(arg);
-
-}  // FUNCTION : log_info
+}
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  log_warning
+// Function    :  LogWarning
 // Description :  Print out warning messages to standard error
 //
-// Note        :  1. Similar to log_info, excpet that it works only for verbose level >= YT_VERBOSE_WARNING
+// Note        :  1. Similar to LogInfo, except that it works only for verbose level >= YT_VERBOSE_WARNING
 //                2. Messages are printed out to standard output with a prefix "[YT_WARNING] "
 //
 // Parameter   :  format : Output format
@@ -58,7 +54,7 @@ void log_info(const char* format, ...) {
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
-void log_warning(const char* format, ...) {
+void LogWarning(const char* format, ...) {
     // work only for verbose level >= YT_VERBOSE_WARNING
     if (LibytProcessControl::Get().param_libyt_.verbose < YT_VERBOSE_WARNING) return;
 
@@ -69,19 +65,18 @@ void log_warning(const char* format, ...) {
     va_list arg;
     va_start(arg, format);
 
-    fprintf(stderr, "[%-*s] ", LogPrefixWidth, "YT_WARNING");
+    fprintf(stderr, "[%-*s] ", kLogPrefixWidth, "YT_WARNING");
     vfprintf(stderr, format, arg);
     fflush(stderr);
 
     va_end(arg);
-
-}  // FUNCTION : log_warning
+}
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  log_debug
+// Function    :  LogDebug
 // Description :  Print out debug messages to standard output
 //
-// Note        :  1. Similar to log_info, excpet that it works only for verbose level >= YT_VERBOSE_DEBUG
+// Note        :  1. Similar to LogInfo, except that it works only for verbose level >= YT_VERBOSE_DEBUG
 //                2. Messages are printed out to standard output with a prefix "[YT_DEBUG] "
 //
 // Parameter   :  format : Output format
@@ -89,7 +84,7 @@ void log_warning(const char* format, ...) {
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
-void log_debug(const char* format, ...) {
+void LogDebug(const char* format, ...) {
     // work only for verbose level >= YT_VERBOSE_DEBUG
     if (LibytProcessControl::Get().param_libyt_.verbose < YT_VERBOSE_DEBUG) return;
 
@@ -100,22 +95,21 @@ void log_debug(const char* format, ...) {
     va_list arg;
     va_start(arg, format);
 
-    fprintf(stderr, "[%-*s] ", LogPrefixWidth, "YT_DEBUG");
+    fprintf(stderr, "[%-*s] ", kLogPrefixWidth, "YT_DEBUG");
     vfprintf(stderr, format, arg);
     fflush(stderr);
 
     va_end(arg);
-
-}  // FUNCTION : log_debug
+}
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  log_error
+// Function    :  LogError
 // Description :  Print out error messages to standard error
 //
-// Note        :  1. Similar to log_info, excpet that messages are always printed out regardless of the
+// Note        :  1. Similar to LogInfo, except that messages are always printed out regardless of the
 //                   verbose level
 //                2. Messages are printed out to standard error with a prefix "[YT_ERROR] "
-//                3. A convenient macro "YT_ABORT" is defined in yt_macro.h, which calls log_error, print
+//                3. A convenient macro "YT_ABORT" is defined in yt_macro.h, which calls LogError, print
 //                   out the line number, and returns YT_FAIL
 //
 // Parameter   :  format : Output format
@@ -123,7 +117,7 @@ void log_debug(const char* format, ...) {
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
-void log_error(const char* format, ...) {
+void LogError(const char* format, ...) {
     // flush previous messages
     fflush(stderr);
 
@@ -131,10 +125,11 @@ void log_error(const char* format, ...) {
     va_list arg;
     va_start(arg, format);
 
-    fprintf(stderr, "[%-*s] ", LogPrefixWidth, "YT_ERROR");
+    fprintf(stderr, "[%-*s] ", kLogPrefixWidth, "YT_ERROR");
     vfprintf(stderr, format, arg);
     fflush(stderr);
 
     va_end(arg);
+}
 
-}  // FUNCTION : log_error
+}  // namespace logging

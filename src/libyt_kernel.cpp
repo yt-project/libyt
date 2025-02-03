@@ -6,13 +6,12 @@
 
 #include "libyt.h"
 #include "libyt_process_control.h"
-#include "libyt_python_shell.h"
+#include "logging.h"
 #include "magic_command.h"
-#include "yt_combo.h"
+#include "timer.h"
 
-static std::vector<std::string> split(const std::string& code, const char* c);
-static std::array<std::string, 2> split_on_line(const std::string& code, unsigned int lineno);
-static std::array<int, 2> find_lineno_columno(const std::string& code, int pos);
+static std::vector<std::string> SplitByChar(const std::string& code, const char* c);
+static std::array<int, 2> FindLinenoColumno(const std::string& code, int pos);
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytKernel
@@ -33,7 +32,7 @@ void LibytKernel::configure_impl() {
 
     PyObject* py_module_jedi = PyImport_ImportModule("jedi");
     if (py_module_jedi == NULL) {
-        log_info(
+        logging::LogInfo(
             "Unable to import jedi, jedi auto-completion library is disabled (See https://jedi.readthedocs.io/)\n");
         m_py_jedi_interpreter = NULL;
     } else {
@@ -41,7 +40,7 @@ void LibytKernel::configure_impl() {
         Py_DECREF(py_module_jedi);
     }
 
-    log_info("libyt kernel: configure the kernel ... done\n");
+    logging::LogInfo("libyt kernel: configure the kernel ... done\n");
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -89,48 +88,18 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
             publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
         }
         if (!command_output.error.empty()) {
-            publish_execution_error("LibytMagicCommandError", "", split(command_output.error, "\n"));
+            publish_execution_error("LibytMagicCommandError", "", SplitByChar(command_output.error, "\n"));
         }
 
         return xeus::create_successful_reply();
     }
 
     // Make sure code is valid before continue
-    CodeValidity code_validity = LibytPythonShell::check_code_validity(code, false, cell_name.c_str());
-    if (code_validity.is_valid.compare("complete") != 0) {
-        publish_execution_error("", "", split(code_validity.error_msg, "\n"));
+    CodeValidity code_validity = LibytPythonShell::CheckCodeValidity(code, false, cell_name.c_str());
+    if (code_validity.is_valid != "complete") {
+        publish_execution_error("", "", SplitByChar(code_validity.error_msg, "\n"));
         return xeus::create_successful_reply();
     }
-
-    // Parse the code using ast, and separate the last statement
-    PyObject* py_module_ast = PyImport_ImportModule("ast");
-    PyObject* py_ast_parse = PyObject_GetAttrString(py_module_ast, "parse");
-    PyObject* py_result = PyObject_CallFunction(py_ast_parse, "s", code.c_str());
-    PyObject* py_result_body = PyObject_GetAttrString(py_result, "body");
-
-    // index guard, though this is unlikely happen
-    Py_ssize_t num_statements = PyList_Size(py_result_body);
-    if (num_statements <= 0) {
-        return xeus::create_successful_reply();
-    }
-    long last_statement_lineno =
-        PyLong_AsLong(PyObject_GetAttrString(PyList_GET_ITEM(py_result_body, num_statements - 1), "lineno"));
-    std::array<std::string, 2> code_split = split_on_line(code, last_statement_lineno - 1);
-
-    // Append newline at the end of the last statement, so that Python won't produce EOF error
-    if (code_split[1].length() > 0) {
-        code_split[1].append("\n");
-    }
-
-    // Append newline at the front of the last statement, so that Python error buffer can catch the correct lineno
-    if (last_statement_lineno >= 1) {
-        code_split[1].insert(0, std::string(last_statement_lineno - 1, '\n'));
-    }
-
-    Py_DECREF(py_module_ast);
-    Py_DECREF(py_ast_parse);
-    Py_DECREF(py_result);
-    Py_DECREF(py_result_body);
 
     // Call execute cell, and concatenate the string
     // TODO: It is a bad practice to send execute signal msg to other ranks like this, should wrap in function.
@@ -138,33 +107,53 @@ nl::json LibytKernel::execute_request_impl(int execution_counter, const std::str
     int indicator = 1;
     MPI_Bcast(&indicator, 1, MPI_INT, LibytProcessControl::Get().mpi_root_, MPI_COMM_WORLD);
 #endif
-    std::array<AccumulatedOutputString, 2> output =
-        LibytProcessControl::Get().python_shell_.execute_cell(code_split, cell_name);
+    std::vector<PythonOutput> output;
+    PythonStatus all_execute_status = LibytProcessControl::Get().python_shell_.AllExecuteCell(
+        code, cell_name, LibytProcessControl::Get().mpi_root_, output, LibytProcessControl::Get().mpi_root_);
 
     // Insert header to string
-    for (int i = 0; i < 2; i++) {
-        if (output[i].output_string.length() > 0) {
-            int offset = 0;
-            for (int r = 0; r < LibytProcessControl::Get().mpi_size_; r++) {
-                std::string head =
-                    std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\n\033[0;30m");
-                if (output[i].output_length[r] == 0) {
-                    head += std::string("(None)\n");
-                }
-                output[i].output_string.insert(offset, head);
-                offset = offset + head.length() + output[i].output_length[r];
-            }
+    bool all_output_is_none = true;
+    bool all_error_is_none = true;
+    std::string combined_output, combined_error;
+    for (int r = 0; r < LibytProcessControl::Get().mpi_size_; r++) {
+        if (!output[r].output.empty()) {
+            all_output_is_none = false;
+            break;
+        }
+    }
+    for (int r = 0; r < LibytProcessControl::Get().mpi_size_; r++) {
+        if (!output[r].error.empty()) {
+            all_error_is_none = false;
+            break;
+        }
+    }
+    if (!all_output_is_none) {
+        for (int r = 0; r < LibytProcessControl::Get().mpi_size_; r++) {
+#ifndef SERIAL_MODE
+            combined_output +=
+                std::string("\033[1;34m[MPI Process ") + std::to_string(r) + std::string("]\033[0;30m\n");
+#endif
+            combined_output += (!output[r].output.empty() ? output[r].output : "(None)\n");
+        }
+    }
+    if (!all_error_is_none) {
+        for (int r = 0; r < LibytProcessControl::Get().mpi_size_; r++) {
+#ifndef SERIAL_MODE
+            combined_error +=
+                std::string("\033[1;36m[MPI Process ") + std::to_string(r) + std::string(" -- Error Msg]\033[0;30m\n");
+#endif
+            combined_error += (!output[r].error.empty() ? output[r].error : "(None)\n");
         }
     }
 
     // Publish results
-    if (output[0].output_string.length() > 0) {
+    if (!combined_output.empty()) {
         nl::json pub_data;
-        pub_data["text/plain"] = output[0].output_string.c_str();
+        pub_data["text/plain"] = std::move(combined_output);
         publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
     }
-    if (output[1].output_string.length() > 0) {
-        publish_execution_error("", "", split(output[1].output_string, "\n"));
+    if (!combined_error.empty()) {
+        publish_execution_error("", "", SplitByChar(combined_error, "\n"));
     }
 
     return xeus::create_successful_reply();
@@ -189,15 +178,15 @@ nl::json LibytKernel::complete_request_impl(const std::string& code, int cursor_
 
     // Check if jedi has successfully import
     if (m_py_jedi_interpreter == NULL) {
-        log_info(
+        logging::LogInfo(
             "Unable to import jedi, jedi auto-completion library is disabled (See https://jedi.readthedocs.io/)\n");
         return xeus::create_complete_reply({}, cursor_pos, cursor_pos);
     }
 
     PyObject* py_tuple_args = PyTuple_New(2);
     PyObject* py_list_scope = PyList_New(1);
-    PyList_SET_ITEM(py_list_scope, 0, LibytPythonShell::get_script_namespace());  // steal ref
-    Py_INCREF(LibytPythonShell::get_script_namespace());
+    PyList_SET_ITEM(py_list_scope, 0, LibytPythonShell::GetExecutionNamespace());  // steal ref
+    Py_INCREF(LibytPythonShell::GetExecutionNamespace());
     PyTuple_SET_ITEM(py_tuple_args, 0, Py_BuildValue("s", code.c_str()));  // steal ref
     PyTuple_SET_ITEM(py_tuple_args, 1, py_list_scope);                     // steal ref
     PyObject* py_script = PyObject_CallObject(m_py_jedi_interpreter, py_tuple_args);
@@ -205,7 +194,7 @@ nl::json LibytKernel::complete_request_impl(const std::string& code, int cursor_
     Py_XDECREF(py_list_scope);
 
     // find lineno and columno of the cursor position, and call script.complete(lineno, columno)
-    std::array<int, 2> pos_no = find_lineno_columno(code, cursor_pos);
+    std::array<int, 2> pos_no = FindLinenoColumno(code, cursor_pos);
     PyObject* py_script_complete_callable = PyObject_GetAttrString(py_script, "complete");
     py_tuple_args = PyTuple_New(2);
     PyTuple_SET_ITEM(py_tuple_args, 0, PyLong_FromLong(pos_no[0]));
@@ -257,7 +246,7 @@ nl::json LibytKernel::complete_request_impl(const std::string& code, int cursor_
 nl::json LibytKernel::inspect_request_impl(const std::string& code, int cursor_pos, int detail_level) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    log_info("Code inspection is not supported yet\n");
+    logging::LogInfo("Code inspection is not supported yet\n");
 
     return xeus::create_inspect_reply();
 }
@@ -279,8 +268,8 @@ nl::json LibytKernel::inspect_request_impl(const std::string& code, int cursor_p
 nl::json LibytKernel::is_complete_request_impl(const std::string& code) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    CodeValidity code_validity = LibytPythonShell::check_code_validity(code, true);
-    if (code_validity.is_valid.compare("complete") == 0) {
+    CodeValidity code_validity = LibytPythonShell::CheckCodeValidity(code, true);
+    if (code_validity.is_valid == "complete") {
         return xeus::create_is_complete_reply("complete");
     } else {
         return xeus::create_is_complete_reply("incomplete");
@@ -359,13 +348,13 @@ void LibytKernel::shutdown_request_impl() {
         Py_DECREF(m_py_jedi_interpreter);
     }
 
-    LibytProcessControl::Get().python_shell_.clear_prompt_history();
+    LibytProcessControl::Get().python_shell_.ClearHistory();
 
-    log_info("Shutting down libyt kernel ...\n");
+    logging::LogInfo("Shutting down libyt kernel ...\n");
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Method      :  split
+// Method      :  SplitByChar
 // Description :  Split the string based on character
 //
 // Notes       :  1. It's a local method.
@@ -378,12 +367,12 @@ void LibytKernel::shutdown_request_impl() {
 //
 // Return      :  std::vector<std::string>
 //-------------------------------------------------------------------------------------------------------
-static std::vector<std::string> split(const std::string& code, const char* c) {
+static std::vector<std::string> SplitByChar(const std::string& code, const char* c) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     std::vector<std::string> code_split;
     std::size_t start_pos = 0, found;
-    while (code.length() > 0) {
+    while (!code.empty()) {
         found = code.find(c, start_pos);
         if (found != std::string::npos) {
             code_split.emplace_back(code.substr(start_pos, found - start_pos));
@@ -397,45 +386,7 @@ static std::vector<std::string> split(const std::string& code, const char* c) {
 }
 
 //-------------------------------------------------------------------------------------------------------
-// Method      :  split_on_line
-// Description :  Split the string to two parts on lineno.
-//
-// Notes       :  1. It's a local method.
-//                2. Line count starts at 1.
-//                3. code_split[0] contains line 1 ~ lineno, code_split[1] contains the rest.
-//
-// Arguments   :  const std::string& code  : raw code
-//                unsigned int     lineno  : split on lineno, code_split[0] includes lineno
-//
-// Return      :  std::array<std::string, 2> code_split[0] : code from line 1 ~ lineno
-//                                           code_split[1] : the rest of the code
-//-------------------------------------------------------------------------------------------------------
-static std::array<std::string, 2> split_on_line(const std::string& code, unsigned int lineno) {
-    SET_TIMER(__PRETTY_FUNCTION__);
-
-    std::array<std::string, 2> code_split = {std::string(""), std::string("")};
-    std::size_t start_pos = 0, found;
-    unsigned int line = 1;
-    while (code.length() > 0) {
-        found = code.find('\n', start_pos);
-        if (found != std::string::npos) {
-            if (line == lineno) {
-                code_split[0] = std::move(code.substr(0, found));
-                code_split[1] = std::move(code.substr(found + 1, code.length() - found));
-                break;
-            }
-        } else {
-            code_split[1] = std::move(code.substr(0, code.length()));
-            break;
-        }
-        start_pos = found + 1;
-        line += 1;
-    }
-    return code_split;
-}
-
-//-------------------------------------------------------------------------------------------------------
-// Method      :  find_lineno_columno
+// Method      :  FindLinenoColumno
 // Description :  Convert cursor position to lineno and columno, count starts from 1.
 //
 // Notes       :  1. Cursor position, lineno, and columno count start from 1.
@@ -448,7 +399,7 @@ static std::array<std::string, 2> split_on_line(const std::string& code, unsigne
 // Return      : std::array<int, 2> no[0] : lineno
 //                                  no[1] : columno
 //-------------------------------------------------------------------------------------------------------
-static std::array<int, 2> find_lineno_columno(const std::string& code, int pos) {
+static std::array<int, 2> FindLinenoColumno(const std::string& code, int pos) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     if (code.length() < pos) return {-1, -1};

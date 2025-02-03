@@ -1,5 +1,5 @@
-#ifndef __YT_TYPE_PARAM_LIBYT_H__
-#define __YT_TYPE_PARAM_LIBYT_H__
+#ifndef LIBYT_PROJECT_INCLUDE_YT_TYPE_PARAM_LIBYT_H_
+#define LIBYT_PROJECT_INCLUDE_YT_TYPE_PARAM_LIBYT_H_
 
 #ifndef __cplusplus
 #include <stdbool.h>
@@ -42,4 +42,4 @@ typedef struct yt_param_libyt {
 
 } yt_param_libyt;
 
-#endif  // #ifndef __YT_TYPE_PARAM_LIBYT_H__
+#endif  // LIBYT_PROJECT_INCLUDE_YT_TYPE_PARAM_LIBYT_H_

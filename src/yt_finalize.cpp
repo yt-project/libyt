@@ -1,6 +1,7 @@
 #include "libyt.h"
 #include "libyt_process_control.h"
-#include "yt_combo.h"
+#include "logging.h"
+#include "timer.h"
 
 #ifdef USE_PYBIND11
 #include "pybind11/embed.h"
@@ -21,22 +22,25 @@
 int yt_finalize() {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    log_info("Exiting libyt ...\n");
+    logging::LogInfo("Exiting libyt ...\n");
 
     // check whether libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized) YT_ABORT("Calling yt_finalize() before yt_initialize()!\n");
+    if (!LibytProcessControl::Get().libyt_initialized_) {
+        YT_ABORT("Calling yt_finalize() before yt_initialize()!\n");
+    }
 
     // check if all the libyt allocated resource are freed
-    if (!LibytProcessControl::Get().free_gridsPtr) YT_ABORT("Please invoke yt_free() before calling yt_finalize().\n");
+    if (LibytProcessControl::Get().need_free_) {
+        YT_ABORT("Please invoke yt_free() before calling yt_finalize().\n");
+    }
 
 #ifndef USE_PYBIND11
-    // free all libyt resources
     Py_Finalize();
 #else
     pybind11::finalize_interpreter();
 #endif
 
-    LibytProcessControl::Get().libyt_initialized = false;
+    LibytProcessControl::Get().libyt_initialized_ = false;
 
     return YT_SUCCESS;
 

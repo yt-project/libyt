@@ -1,5 +1,5 @@
-#ifndef __LIBYT_PYTHON_SHELL_H__
-#define __LIBYT_PYTHON_SHELL_H__
+#ifndef LIBYT_PROJECT_INCLUDE_LIBYT_PYTHON_SHELL_H_
+#define LIBYT_PROJECT_INCLUDE_LIBYT_PYTHON_SHELL_H_
 
 #include <Python.h>
 
@@ -7,11 +7,12 @@
 #include <string>
 #include <vector>
 
-struct AccumulatedOutputString {
-    std::string output_string;
-    std::vector<int> output_length;
+enum class PythonStatus { kPythonUnknown = -1, kPythonFailed = 0, kPythonSuccess = 1 };
 
-    AccumulatedOutputString();
+struct PythonOutput {
+    PythonStatus status;
+    std::string output;
+    std::string error;
 };
 
 struct CodeValidity {
@@ -21,45 +22,52 @@ struct CodeValidity {
 
 class LibytPythonShell {
 private:
-    static std::vector<std::string> s_Bracket_NotDoneErr;
-    static std::vector<std::string> s_CompoundKeyword_NotDoneErr;
-
-    std::string m_PromptHistory;
-    int m_PromptHistoryCount;
-
-    static PyObject* s_PyGlobals;
+    static std::vector<std::string> bracket_not_done_err_;
+    static std::vector<std::string> compound_keyword_not_done_err_;
 
     static int mpi_size_;
     static int mpi_root_;
     static int mpi_rank_;
 
+    static PyObject* execution_namespace_;
+    static PyObject* function_body_dict_;
+
+    int history_count_;
+    std::string history_;
+
+    PythonStatus AllExecute(int python_input_type, const std::string& code, const std::string& cell_base_name,
+                            int src_rank, std::vector<PythonOutput>& output, int output_mpi_rank);
+    static long GetLastStatementLineno(const std::string& code);
+    static bool IsNotDoneErrMsg(const std::string& code);
+
 public:
-    LibytPythonShell() : m_PromptHistory(""), m_PromptHistoryCount(0){};
-    static void SetMPIInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
+    LibytPythonShell() : history_count_(0){};
+    static void SetMpiInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
         mpi_size_ = mpi_size;
         mpi_root_ = mpi_root;
         mpi_rank_ = mpi_rank;
     }
-    int update_prompt_history(const std::string& cmd_prompt);
-    int clear_prompt_history();
-    std::string& get_prompt_history() { return m_PromptHistory; };
+    int UpdateHistory(const std::string& cmd_prompt);
+    int ClearHistory();
+    std::string& GetHistory() { return history_; };
 
     static int load_file_func_body(const char* filename);
     static int load_input_func_body(const char* code);
     static std::vector<std::string> get_funcname_defined(const char* filename);
-    static int set_exception_hook();
-    static int init_not_done_err_msg();
-    static int init_script_namespace();
-    static PyObject* get_script_namespace() { return s_PyGlobals; }
-    static bool is_not_done_err_msg(const std::string& code);
-    static CodeValidity check_code_validity(const std::string& code, bool prompt_env = false,
-                                            const char* cell_name = "<libyt-stdin>");
-    std::array<AccumulatedOutputString, 2> execute_cell(const std::array<std::string, 2>& code_split = {"", ""},
-                                                        const std::string& cell_name = std::string(""));
-    std::array<AccumulatedOutputString, 2> execute_prompt(const std::string& code = std::string(""),
-                                                          const std::string& cell_name = std::string("<libyt-stdin>"));
-    std::array<AccumulatedOutputString, 2> execute_file(const std::string& code = std::string(""),
-                                                        const std::string& file_name = std::string(""));
+    static int SetExceptionHook();
+    static int InitializeNotDoneErrMsg();
+    static int SetExecutionNamespace(PyObject* execution_namespace);
+    static int SetFunctionBodyDict(PyObject* function_body_dict);
+    static PyObject* GetExecutionNamespace() { return execution_namespace_; }
+    static PyObject* GetFunctionBodyDict() { return function_body_dict_; }
+    static CodeValidity CheckCodeValidity(const std::string& code, bool prompt_env = false,
+                                          const char* cell_name = "<libyt-stdin>");
+    PythonStatus AllExecutePrompt(const std::string& code, const std::string& cell_base_name, int src_rank,
+                                  std::vector<PythonOutput>& output, int output_mpi_rank);
+    PythonStatus AllExecuteFile(const std::string& code, const std::string& cell_base_name, int src_rank,
+                                std::vector<PythonOutput>& output, int output_mpi_rank);
+    PythonStatus AllExecuteCell(const std::string& code, const std::string& cell_base_name, int src_rank,
+                                std::vector<PythonOutput>& output, int output_mpi_rank);
 };
 
-#endif  // __LIBYT_PYTHON_SHELL_H__
+#endif  // LIBYT_PROJECT_INCLUDE_LIBYT_PYTHON_SHELL_H_

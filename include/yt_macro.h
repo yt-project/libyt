@@ -1,5 +1,5 @@
-#ifndef __YT_MACRO_H__
-#define __YT_MACRO_H__
+#ifndef LIBYT_PROJECT_INCLUDE_YT_MACRO_H_
+#define LIBYT_PROJECT_INCLUDE_YT_MACRO_H_
 
 #ifdef __cplusplus
 #include <cfloat>
@@ -21,4 +21,4 @@
 #define INT_UNDEFINED INT_MIN
 #define LNG_UNDEFINED LONG_MIN
 
-#endif  // #ifndef __YT_MACRO_H__
+#endif  // LIBYT_PROJECT_INCLUDE_YT_MACRO_H_

@@ -1,9 +1,9 @@
 #include "libyt.h"
-#include "yt_combo.h"
+#include "logging.h"
+#include "timer.h"
 
 #ifdef INTERACTIVE_MODE
 #include <readline/readline.h>
-#include <sys/stat.h>
 
 #include <chrono>
 #include <fstream>
@@ -13,9 +13,8 @@
 #include <thread>
 
 #include "libyt_process_control.h"
+#include "libyt_utilities.h"
 #include "magic_command.h"
-
-static bool detect_file(const char* flag_file);
 #endif
 
 //-------------------------------------------------------------------------------------------------------
@@ -48,11 +47,11 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef INTERACTIVE_MODE
-    log_error("Cannot reload script. Please compile libyt with -DINTERACTIVE_MODE.\n");
+    logging::LogError("Cannot reload script. Please compile libyt with -DINTERACTIVE_MODE.\n");
     return YT_FAIL;
 #else
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized) {
+    if (!LibytProcessControl::Get().libyt_initialized_) {
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 
@@ -73,7 +72,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
 
     // check if we need to enter reload script phase
     bool remove_flag_file = false;
-    if (!detect_file(flag_file_name)) {
+    if (!libyt_utilities::DoesFileExist(flag_file_name)) {
         bool enter_reload = false;
         for (int i = 0; i < LibytProcessControl::Get().function_info_list_.GetSize(); i++) {
             if (LibytProcessControl::Get().function_info_list_[i].GetRun() == FunctionInfo::RunStatus::kWillRun &&
@@ -87,8 +86,8 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
         // if every function works fine, leave reloading script mode,
         // otherwise create flag file to indicate it enters the mode
         if (!enter_reload) {
-            log_info("No failed inline functions and no file '%s' detected, leaving reload script mode ... \n",
-                     flag_file_name);
+            logging::LogInfo("No failed inline functions and no file '%s' detected, leaving reload script mode ... \n",
+                             flag_file_name);
             return YT_SUCCESS;
         } else {
             if (mpi_rank == mpi_root) {
@@ -96,11 +95,12 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 generate_flag_file.close();
             }
             remove_flag_file = true;
-            log_info("Generating '%s' because there are errors in inline functions ... entering reload script mode\n",
-                     flag_file_name);
+            logging::LogInfo(
+                "Generating '%s' because there are errors in inline functions ... entering reload script mode\n",
+                flag_file_name);
         }
     } else {
-        log_info("Flag file '%s' is detected ... entering reload script mode\n", flag_file_name);
+        logging::LogInfo("Flag file '%s' is detected ... entering reload script mode\n", flag_file_name);
     }
 
     // make sure every process has reached here
@@ -122,13 +122,13 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
         // responsible for getting reload instruction and broadcast to non-root rank
         if (mpi_rank == mpi_root) {
             // block and detect <reload_file_name> or <reload_file_name>_EXIT every 2 sec
-            log_info("Create '%s' file to reload script '%s', or create '%s' file to exit.\n", reload_file_name,
-                     script_name, reload_exit_filename.c_str());
+            logging::LogInfo("Create '%s' file to reload script '%s', or create '%s' file to exit.\n", reload_file_name,
+                             script_name, reload_exit_filename.c_str());
             bool get_reload_state = false;
             while (!get_reload_state) {
-                if (detect_file(reload_file_name)) {
+                if (libyt_utilities::DoesFileExist(reload_file_name)) {
                     get_reload_state = true;
-                } else if (detect_file(reload_exit_filename.c_str())) {
+                } else if (libyt_utilities::DoesFileExist(reload_exit_filename.c_str())) {
                     get_reload_state = true;
                     done = true;
                 }
@@ -141,14 +141,14 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 int indicator = -1;
                 MPI_Bcast(&indicator, 1, MPI_INT, mpi_root, MPI_COMM_WORLD);
 #endif
-                LibytProcessControl::Get().python_shell_.clear_prompt_history();
-                log_info("Detect '%s' file ... exiting reload script\n", reload_exit_filename.c_str());
-                if (detect_file(reload_exit_filename.c_str())) {
+                LibytProcessControl::Get().python_shell_.ClearHistory();
+                logging::LogInfo("Detect '%s' file ... exiting reload script\n", reload_exit_filename.c_str());
+                if (libyt_utilities::DoesFileExist(reload_exit_filename.c_str())) {
                     std::remove(reload_exit_filename.c_str());
                 }
                 break;
             } else {
-                log_info("Detect '%s' file ... reloading '%s' script\n", reload_file_name, script_name);
+                logging::LogInfo("Detect '%s' file ... reloading '%s' script\n", reload_file_name, script_name);
             }
 
             // create new dumped results temporary file for reloading file
@@ -157,7 +157,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
             reload_result_file.close();
 
             // make sure file exists then reload
-            if (!detect_file(script_name)) {
+            if (!libyt_utilities::DoesFileExist(script_name)) {
                 reload_success = false;
                 reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
                 reload_result_file << "Unable to find file '" << script_name << "' ... reload failed" << std::endl;
@@ -192,41 +192,38 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
 
                 // check code validity then load python code
                 CodeValidity code_validity =
-                    LibytPythonShell::check_code_validity(python_code_buffer.str(), false, script_name);
-                if (code_validity.is_valid.compare("complete") == 0) {
+                    LibytPythonShell::CheckCodeValidity(python_code_buffer.str(), false, script_name);
+                if (code_validity.is_valid == "complete") {
 #ifndef SERIAL_MODE
                     int indicator = 1;
                     MPI_Bcast(&indicator, 1, MPI_INT, mpi_root, MPI_COMM_WORLD);
 #endif
-                    std::array<AccumulatedOutputString, 2> output =
-                        LibytProcessControl::Get().python_shell_.execute_file(python_code_buffer.str(), script_name);
-                    reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
-                    for (int i = 0; i < 2; i++) {
-                        if (output[i].output_string.length() > 0) {
-                            int offset = 0;
-                            for (int r = 0; r < mpi_size; r++) {
-                                reload_result_file << "====== MPI Process " << r << (i == 0 ? "" : " - ErrorMsg")
-                                                   << " ======\n";
-                                if (output[i].output_length[r] == 0) {
-                                    reload_result_file << "(None)\n";
-                                }
-                                reload_result_file
-                                    << output[i].output_string.substr(offset, output[i].output_length[r]).c_str()
-                                    << "\n";
-                                offset += output[i].output_length[r];
-                            }
+                    std::vector<PythonOutput> output;
+                    PythonStatus all_execute_status = LibytProcessControl::Get().python_shell_.AllExecuteFile(
+                        python_code_buffer.str(), script_name, mpi_root, output, mpi_root);
+                    reload_success = (all_execute_status == PythonStatus::kPythonSuccess);
 
-                            // error output[1] length > 0, which means there is an error
-                            if (i == 1) {
-                                reload_success = false;
-                            }
-                        } else {
-                            // error output[1] length == 0, which means there is no error msg
-                            if (i == 1) {
-                                reload_success = true;
-                                LibytPythonShell::load_file_func_body(script_name);
-                            }
-                        }
+                    // Load function body from file
+                    LibytPythonShell::load_file_func_body(script_name);
+
+                    // Write output to file
+                    reload_result_file.open(reloading_filename.c_str(), std::ostream::out | std::ostream::app);
+                    for (int r = 0; r < mpi_size; r++) {
+#ifndef SERIAL_MODE
+                        reload_result_file << "[MPI Process " << r << "]\n";
+#else
+                        reload_result_file << "[Process " << r << "]\n";
+#endif
+                        reload_result_file << (output[r].output.empty() ? "(None)\n" : output[r].output.c_str())
+                                           << "\n";
+                    }
+                    for (int r = 0; r < mpi_size; r++) {
+#ifndef SERIAL_MODE
+                        reload_result_file << "[MPI Process " << r << " -- ErrorMsg]\n";
+#else
+                        reload_result_file << "[Process " << r << " -- ErrorMsg]\n";
+#endif
+                        reload_result_file << (output[r].error.empty() ? "(None)\n" : output[r].error.c_str()) << "\n";
                     }
                     reload_result_file.close();
                 } else {
@@ -258,11 +255,15 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
             }
 
             // remove previous <reload_file_name>_SUCCESS or <reload_file_name>_FAILED and
-            if (detect_file(reload_success_filename.c_str())) std::remove(reload_success_filename.c_str());
-            if (detect_file(reload_failed_filename.c_str())) std::remove(reload_failed_filename.c_str());
+            if (libyt_utilities::DoesFileExist(reload_success_filename.c_str())) {
+                std::remove(reload_success_filename.c_str());
+            }
+            if (libyt_utilities::DoesFileExist(reload_failed_filename.c_str())) {
+                std::remove(reload_failed_filename.c_str());
+            }
 
             // rename dumped temporary file to either of them based on success or failed results.
-            if (detect_file(reloading_filename.c_str())) {
+            if (libyt_utilities::DoesFileExist(reloading_filename.c_str())) {
                 if (reload_success) {
                     std::rename(reloading_filename.c_str(), reload_success_filename.c_str());
                 } else {
@@ -273,12 +274,12 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                 dump_result_file << "Unable to store the output when reloading the script." << std::endl;
                 dump_result_file.close();
 
-                log_info("Reloading script '%s' ... failed\n", script_name);
-                log_info("See '%s' log\n", reload_failed_filename.c_str());
+                logging::LogInfo("Reloading script '%s' ... failed\n", script_name);
+                logging::LogInfo("See '%s' log\n", reload_failed_filename.c_str());
             }
 
             // remove reload_file_name flag file when done
-            if (detect_file(reload_file_name)) {
+            if (libyt_utilities::DoesFileExist(reload_file_name)) {
                 std::remove(reload_file_name);
             }
         }
@@ -291,7 +292,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
             switch (indicator) {
                 case -1: {
                     done = true;
-                    LibytProcessControl::Get().python_shell_.clear_prompt_history();
+                    LibytProcessControl::Get().python_shell_.ClearHistory();
                     break;
                 }
                 case 0: {
@@ -299,11 +300,10 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
                     break;
                 }
                 case 1: {
-                    std::array<AccumulatedOutputString, 2> output =
-                        LibytProcessControl::Get().python_shell_.execute_file();
-                    if (output[1].output_string.length() <= 0) {
-                        LibytPythonShell::load_file_func_body(script_name);
-                    }
+                    std::vector<PythonOutput> output;
+                    PythonStatus all_execute_status =
+                        LibytProcessControl::Get().python_shell_.AllExecuteFile("", "", mpi_root, output, mpi_root);
+                    LibytPythonShell::load_file_func_body(script_name);
                     break;
                 }
             }
@@ -312,31 +312,12 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
     }
 
     // remove flag file if it is generated by libyt because of error occurred in inline functions
-    if (mpi_rank == mpi_root && remove_flag_file && detect_file(flag_file_name)) {
+    if (mpi_rank == mpi_root && remove_flag_file && libyt_utilities::DoesFileExist(flag_file_name)) {
         std::remove(flag_file_name);
     }
 
-    log_info("Exit reloading script\n");
+    logging::LogInfo("Exit reloading script\n");
 
     return YT_SUCCESS;
 #endif  // #ifndef INTERACTIVE_MODE
 }
-
-#ifdef INTERACTIVE_MODE
-//-------------------------------------------------------------------------------------------------------
-// Function    :  detect_file
-// Description :  A private function for detecting if file exists.
-//
-// Parameter   :  const char *flag_file : check if this file exist
-//
-// Return      :  true/false
-//-------------------------------------------------------------------------------------------------------
-static bool detect_file(const char* flag_file) {
-    struct stat buffer {};
-    if (stat(flag_file, &buffer) != 0) {
-        return false;
-    } else {
-        return true;
-    }
-}
-#endif
