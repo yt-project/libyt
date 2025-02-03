@@ -709,113 +709,39 @@ static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
         return NULL;
     }
 
-    // Get get_par_attr function pointer defined in particle_list according to ptype and attr_name.
-    // Get attr_dtype of the attr_name.
-    // If cannot find ptype or attr_name, raise an error.
-    // If find them successfully, but get_par_attr not set, which is == NULL, raise an error.
-    void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*);
-    yt_dtype attr_dtype = YT_DTYPE_UNKNOWN;
-    int species_index = -1;
-    yt_particle* particle_list = LibytProcessControl::Get().data_structure_amr_.GetParticleList();
-    for (int s = 0; s < LibytProcessControl::Get().param_yt_.num_par_types; s++) {
-        if (strcmp(particle_list[s].par_type, ptype) == 0) {
-            species_index = s;
-
-            // Get get_par_attr
-            if (particle_list[s].get_par_attr != NULL) {
-                get_par_attr = particle_list[s].get_par_attr;
-            } else {
-                PyErr_Format(PyExc_NotImplementedError,
-                             "In particle_list par_type [ %s ], get_par_attr does not set properly.\n",
-                             particle_list[s].par_type);
-                return NULL;
-            }
-
-            // Get attr_dtype
-            for (int p = 0; p < particle_list[s].num_attr; p++) {
-                if (strcmp(particle_list[s].attr_list[p].attr_name, attr_name) == 0) {
-                    attr_dtype = particle_list[s].attr_list[p].attr_dtype;
-                    break;
-                }
-            }
-
-            break;
+    // Generate data
+    std::vector<long> gid_list = {gid};
+    std::vector<AmrDataArray1D> storage;
+    DataStructureOutput status =
+        LibytProcessControl::Get().data_structure_amr_.GenerateLocalParticleData(gid_list, ptype, attr_name, storage);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+            PyErr_Format(PyExc_NotImplementedError, status.error.c_str());
+            return NULL;
+        } else {
+            PyErr_Format(PyExc_ValueError, status.error.c_str());
+            return NULL;
         }
     }
 
-    if (species_index == -1) {
-        PyErr_Format(PyExc_ValueError, "Cannot find par_type [ %s ] in particle_list.\n", ptype);
-        return NULL;
-    }
-    if (attr_dtype == YT_DTYPE_UNKNOWN) {
-        PyErr_Format(PyExc_ValueError, "par_type [ %s ], attr_name [ %s ] not in particle_list.\n", ptype, attr_name);
-        return NULL;
-    }
-
-    // Get length of the returned 1D numpy array, which is equal to par_count_list in the grid.
-    int proc_num;
-    DataStructureOutput status =
-        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridProcNum(gid, &proc_num);
-    if (status.status != DataStructureStatus::kDataStructureSuccess) {
-        PyErr_Format(PyExc_ValueError, status.error.c_str());
-        return NULL;
-    }
-
-    long array_length;
-    status = LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridParticleCount(gid, ptype,
-                                                                                                         &array_length);
-    if (status.status != DataStructureStatus::kDataStructureSuccess) {
-        PyErr_Format(PyExc_ValueError, status.error.c_str());
-        return NULL;
-    }
-
-    if (proc_num != LibytProcessControl::Get().mpi_rank_) {
-        PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal particles. Grid [%ld] is on MPI rank [%d].\n", gid,
-                     proc_num);
-        return NULL;
-    }
-    if (array_length == 0) {
+    // Wrapping the data to numpy array, for now, storage only contains one data
+    if (storage[0].data_len == 0) {
         Py_INCREF(Py_None);
         return Py_None;
+    } else {
+        int nd = 1;
+        int typenum = dtype_utilities::YtDtype2NumPyDtype(storage[0].data_dtype);
+        npy_intp dims[1] = {storage[0].data_len};
+        if (typenum < 0) {
+            PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
+            return NULL;
+        }
+
+        PyObject* py_data =
+            numpy_controller::ArrayToNumPyArray(nd, dims, storage[0].data_dtype, storage[0].data_ptr, false, true);
+
+        return py_data;
     }
-    if (array_length < 0) {
-        PyErr_Format(PyExc_ValueError, "Grid [%ld] particle species [%s] has particle number = %ld < 0.\n", gid, ptype,
-                     array_length);
-        return NULL;
-    }
-
-    // Allocate the output array with size = array_length, type = attr_dtype, and initialize as 0
-    // Then pass in to get_par_attr(const int, const long*, const char*, const char*, yt_array*) function
-    // Finally, return numpy 1D array, by wrapping the output.
-    // We do not need to free output, since we make python owns this data after returning.
-    int nd = 1;
-    int typenum = dtype_utilities::YtDtype2NumPyDtype(attr_dtype);
-    npy_intp dims[1] = {array_length};
-    void* output = dtype_utilities::AllocateMemory(attr_dtype, array_length);
-
-    if (typenum < 0) {
-        PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
-        return NULL;
-    }
-
-    if (output == nullptr) {
-        PyErr_Format(PyExc_ValueError, "Particle [ %s ] attribute [ %s ], unknown yt_dtype.\n", ptype, attr_name);
-        return NULL;
-    }
-
-    // Call get_par_attr function pointer
-    int list_length = 1;
-    long list_gid[1] = {gid};
-    yt_array data_array[1];
-    data_array[0].gid = gid;
-    data_array[0].data_length = array_length;
-    data_array[0].data_ptr = output;
-    get_par_attr(list_length, list_gid, ptype, attr_name, data_array);
-
-    // Wrap the output and return back to python
-    PyObject* py_data = numpy_controller::ArrayToNumPyArray(nd, dims, attr_dtype, output, false, true);
-
-    return py_data;
 }
 
 //-------------------------------------------------------------------------------------------------------
