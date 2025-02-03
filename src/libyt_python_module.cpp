@@ -99,6 +99,8 @@ static pybind11::array AllocatePybind11Array(yt_dtype data_type, const std::vect
 pybind11::array DerivedFunc(long gid, const char* field_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
+    // TODO: check memory leakage when early return
+
     // Generate data
     std::vector<long> gid_list = {gid};
     std::vector<AmrDataArray3D> storage;
@@ -128,8 +130,11 @@ pybind11::array DerivedFunc(long gid, const char* field_name) {
     stride = {dtype_size * shape[1] * shape[2], dtype_size * shape[2], dtype_size};
     pybind11::array output = AllocatePybind11Array(storage[0].data_dtype, shape, stride);
 
-    // Copy data from storage to output
+    // Copy data from storage to output and then free storage
     memcpy(output.mutable_data(), storage[0].data_ptr, dtype_size * shape[0] * shape[1] * shape[2]);
+    for (const AmrDataArray3D& kData : storage) {
+        free(kData.data_ptr);
+    }
 
     return static_cast<pybind11::array>(output);
 }
