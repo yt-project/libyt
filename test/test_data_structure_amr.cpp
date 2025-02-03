@@ -111,6 +111,7 @@ protected:
 class TestDataStructureAmrBindFieldParticleInfo : public PythonFixture {};
 class TestDataStructureAmrBindHierarchy : public PythonFixture, public testing::WithParamInterface<int> {};
 class TestDataStructureAmrBindLocalData : public PythonFixture, public testing::WithParamInterface<int> {};
+class TestDataStructureAmrGenerateLocalData : public PythonFixture, public testing::WithParamInterface<int> {};
 
 TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_field_info_to_Python) {
     std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
@@ -461,9 +462,67 @@ TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_particle_data_to_Python
     }
 }
 
+TEST_P(TestDataStructureAmrGenerateLocalData, Can_generate_derived_field_data) {
+    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
+
+    // Arrange
+    DataStructureAmr ds_amr;
+    ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
+
+    int mpi_root = 0;
+    int index_offset = GetParam();
+    bool check_data = false;
+    int num_grids_local = 1;
+    long num_grids = num_grids_local * GetMpiSize();
+    long local_gid = num_grids_local * GetMpiRank() + index_offset;
+    int num_fields = 1;
+    std::cout << "(index_offset, num_fields) = (" << index_offset << ", " << num_fields << ")" << std::endl;
+    ds_amr.AllocateStorage(num_grids, num_grids_local, num_fields, 0, nullptr, index_offset, check_data);
+    GenerateLocalHierarchy(num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local, 0);
+
+    // Set field info
+    yt_field* field_list = ds_amr.GetFieldList();
+    field_list[0].field_name = "Field100";
+    field_list[0].field_type = "derived_func";
+    field_list[0].field_dtype = YT_DOUBLE;
+    field_list[0].contiguous_in_x = true;
+    field_list[0].derived_func = [](const int len, const long* gid_list, const char* field_name, yt_array* data) {
+        for (int i = 0; i < len; i++) {
+            for (int data_index = 0; data_index < data[i].data_length; data_index++) {
+                ((double*)data[i].data_ptr)[data_index] = 100.0;
+            }
+        }
+    };
+    double field_value = 100.0;
+    ds_amr.BindInfoToPython("sys.TEMPLATE_DICT_STORAGE", GetPyTemplateDictStorage());
+    ds_amr.BindAllHierarchyToPython(mpi_root);
+
+    // Act
+    std::vector<AmrDataArray3D> storage;
+    DataStructureOutput status = ds_amr.GenerateLocalFieldData({local_gid}, "Field100", storage);
+
+    // Assert
+    EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+    EXPECT_EQ(storage.size(), 1);
+    EXPECT_EQ(storage[0].id, local_gid);
+    EXPECT_EQ(storage[0].data_dtype, YT_DOUBLE);
+    EXPECT_EQ(storage[0].contiguous_in_x, field_list[0].contiguous_in_x);
+    for (int i = 0; i < storage[0].data_dim[0] * storage[0].data_dim[1] * storage[0].data_dim[2]; i++) {
+        EXPECT_EQ(((double*)storage[0].data_ptr)[i], field_value);
+    }
+
+    // Clean up
+    ds_amr.CleanUp();
+    for (const AmrDataArray3D& kData : storage) {
+        free(kData.data_ptr);
+    }
+}
+
 INSTANTIATE_TEST_SUITE_P(DifferentIndexOffset, TestDataStructureAmrBindHierarchy, testing::Values(0, 1));
 
 INSTANTIATE_TEST_SUITE_P(DifferentIndexOffset, TestDataStructureAmrBindLocalData, testing::Values(0, 1));
+
+INSTANTIATE_TEST_SUITE_P(DifferentIndexOffset, TestDataStructureAmrGenerateLocalData, testing::Values(0, 1));
 
 int main(int argc, char** argv) {
     int result = 0;
