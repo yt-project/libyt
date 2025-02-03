@@ -99,14 +99,15 @@ static pybind11::array AllocatePybind11Array(yt_dtype data_type, const std::vect
 pybind11::array DerivedFunc(long gid, const char* field_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    // TODO: check memory leakage when early return
-
     // Generate data
     std::vector<long> gid_list = {gid};
     std::vector<AmrDataArray3D> storage;
     DataStructureOutput status =
         LibytProcessControl::Get().data_structure_amr_.GenerateLocalFieldData(gid_list, field_name, storage);
     if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        for (const AmrDataArray3D& kData : storage) {
+            free(kData.data_ptr);
+        }
         if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
             PyErr_SetString(PyExc_NotImplementedError, status.error.c_str());
             throw pybind11::error_already_set();
@@ -164,14 +165,15 @@ pybind11::array DerivedFunc(long gid, const char* field_name) {
 pybind11::array GetParticle(long gid, const char* ptype, const char* attr_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    // TODO: check memory leakage when early return
-
     // Generate data
     std::vector<long> gid_list = {gid};
     std::vector<AmrDataArray1D> storage;
     DataStructureOutput status =
         LibytProcessControl::Get().data_structure_amr_.GenerateLocalParticleData(gid_list, ptype, attr_name, storage);
     if (status.status != DataStructureStatus::kDataStructureSuccess) {
+        for (const AmrDataArray1D& kData : storage) {
+            free(kData.data_ptr);
+        }
         if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
             PyErr_SetString(PyExc_NotImplementedError, status.error.c_str());
             throw pybind11::error_already_set();
