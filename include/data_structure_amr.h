@@ -172,10 +172,10 @@ public:
     int GetParticleAttributeIndex(int particle_type_index, const char* attr_name) const;
 
     // Generate data array
-    DataStructureOutput GenerateFieldData(const std::vector<long>& gid_list, const char* field_name,
-                                          std::vector<AmrDataArray3D>& storage) const;
-    DataStructureOutput GenerateParticleData(const std::vector<long>& gid_list, const char* ptype, const char* attr,
-                                             std::vector<AmrDataArray1D>& storage) const;
+    DataStructureOutput GenerateLocalFieldData(const std::vector<long>& gid_list, const char* field_name,
+                                               std::vector<AmrDataArray3D>& storage) const;
+    DataStructureOutput GenerateLocalParticleData(const std::vector<long>& gid_list, const char* ptype,
+                                                  const char* attr, std::vector<AmrDataArray1D>& storage) const;
 
     // Look up full hierarchy methods
     DataStructureOutput GetPythonBoundFullHierarchyGridDimensions(long gid, int* dimensions) const;

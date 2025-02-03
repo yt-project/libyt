@@ -58,7 +58,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmrDataArray3D::GetLocalFieldData(const Dat
     }
 
     if (strcmp(field_list[field_id].field_type, "derived_func") == 0) {
-        DataStructureOutput status = ds_amr.GenerateFieldData(grid_id_list, field_name.c_str(), data_array_list_);
+        DataStructureOutput status = ds_amr.GenerateLocalFieldData(grid_id_list, field_name.c_str(), data_array_list_);
         is_new_allocation_list_.assign(data_array_list_.size(), true);
         if (status.status != DataStructureStatus::kDataStructureSuccess) {
             error_str_ = std::move(status.error);
@@ -153,7 +153,7 @@ DataHubReturn<AmrDataArray1D> DataHubAmrDataArray1D::GetLocalParticleData(const 
 
     // Get data from get particle attribute function
     DataStructureOutput status =
-        ds_amr.GenerateParticleData(generate_gid_list, ptype.c_str(), pattr.c_str(), data_array_list_);
+        ds_amr.GenerateLocalParticleData(generate_gid_list, ptype.c_str(), pattr.c_str(), data_array_list_);
     is_new_allocation_list_.assign(data_array_list_.size(), true);
     if (status.status != DataStructureStatus::kDataStructureSuccess) {
         error_str_ = std::move(status.error);
