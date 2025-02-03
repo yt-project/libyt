@@ -633,124 +633,46 @@ static PyObject* LibytFieldDerivedFunc(PyObject* self, PyObject* args) {
     // If not in the format libyt.derived_func( int , str ), raise an error
     long gid;
     char* field_name;
-    int field_id;
-    yt_dtype field_dtype;
-
-    // TODO: Hybrid OpenMP/MPI, accept a list of gid and a string.
     if (!PyArg_ParseTuple(args, "ls", &gid, &field_name)) {
         PyErr_SetString(PyExc_TypeError, "Wrong input type, expect to be libyt.derived_func(int, str).");
         return NULL;
     }
 
-    // Get the derived_func define in field_list according to field_name.
-    //  (1) If we cannot find field_name inside field_list, raise an error.
-    //  (2) If we successfully find the field_name, but the derived_func is not assigned (is NULL), raise an error.
-    void (*derived_func)(const int, const long*, const char*, yt_array*);
-    bool have_FieldName = false;
-
-    derived_func = NULL;
-    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.GetFieldList();
-    for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_fields; v++) {
-        if (strcmp(field_list[v].field_name, field_name) == 0) {
-            have_FieldName = true;
-            field_id = v;
-            field_dtype = field_list[v].field_dtype;
-            if (field_list[v].derived_func != NULL) {
-                derived_func = field_list[v].derived_func;
-            } else {
-                PyErr_Format(PyExc_NotImplementedError,
-                             "In field_list, field_name [ %s ], derived_func did not set properly.\n",
-                             field_list[v].field_name);
-                return NULL;
-            }
-            break;
-        }
-    }
-
-    if (!have_FieldName) {
-        PyErr_Format(PyExc_ValueError, "Cannot find field_name [ %s ] in field_list.\n", field_name);
-        return NULL;
-    }
-
-    // Get the grid's dimension[3], proc_num according to the gid.
-    int proc_num;
+    // Generate data
+    std::vector<long> gid_list = {gid};
+    std::vector<AmrDataArray3D> storage;
     DataStructureOutput status =
-        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridProcNum(gid, &proc_num);
+        LibytProcessControl::Get().data_structure_amr_.GenerateLocalFieldData(gid_list, field_name, storage);
     if (status.status != DataStructureStatus::kDataStructureSuccess) {
-        PyErr_Format(PyExc_ValueError, status.error.c_str());
-        return NULL;
-    }
-
-    int grid_dimensions[3];
-    status =
-        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridDimensions(gid, grid_dimensions);
-    if (status.status != DataStructureStatus::kDataStructureSuccess) {
-        PyErr_Format(PyExc_ValueError, status.error.c_str());
-        return NULL;
-    }
-
-    if (proc_num != LibytProcessControl::Get().mpi_rank_) {
-        PyErr_Format(PyExc_ValueError, "Trying to prepare nonlocal grid. Grid [%ld] is on MPI rank [%d].\n", gid,
-                     proc_num);
-        return NULL;
-    }
-    for (int d = 0; d < 3; d++) {
-        if (grid_dimensions[d] < 0) {
-            PyErr_Format(PyExc_ValueError, "Trying to prepare grid [%ld] that has grid_dimensions[%d] = %d < 0.\n", gid,
-                         d, grid_dimensions[d]);
+        if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+            PyErr_Format(PyExc_NotImplementedError, status.error.c_str());
+            return NULL;
+        } else {
+            PyErr_Format(PyExc_ValueError, status.error.c_str());
             return NULL;
         }
     }
 
-    // Generate data using derived_func
-    //  (1) Allocate 1D array with size of grid dimension, initialized with 0.
-    //  (2) Call derived function.
-    //  (3) This array will be wrapped by Numpy API and will be return.
-    //      The called object will then OWN this numpy array, so that we don't have to free it.
-    // TODO: Hybrid OpenMP/MPI, need to allocate for a list of gid.
-    long gridTotalSize = grid_dimensions[0] * grid_dimensions[1] * grid_dimensions[2];
-    void* output = dtype_utilities::AllocateMemory(field_dtype, gridTotalSize);
-    if (output == nullptr) {
-        PyErr_Format(PyExc_ValueError, "Unknown field_dtype in field [%s]\n", field_name);
-        return NULL;
-    }
-
-    // Call derived_func result will be made inside output 1D array.
-    // TODO: Hybrid OpenMP/OpenMPI, dynamically ask a list of grid data from derived function.
-    //       I assume we get one grid at a time here. Will change later...
-    int list_length = 1;
-    long list_gid[1] = {gid};
-    yt_array data_array[1];
-    data_array[0].gid = gid;
-    data_array[0].data_length = gridTotalSize;
-    data_array[0].data_ptr = output;
-
-    (*derived_func)(list_length, list_gid, field_name, data_array);
-
-    // Wrapping the C allocated 1D array into 3D numpy array.
-    // grid_dimensions[3] is in [x][y][z] coordinate,
-    // thus we have to check if the field has contiguous_in_x == true or false.
-    // TODO: Hybrid OpenMP/MPI, we will need to further pack up a list of gid's field data into Python dictionary.
+    // Wrapping the data to numpy array, for now, storage only contains one data
     int nd = 3;
-    int typenum = dtype_utilities::YtDtype2NumPyDtype(field_dtype);
+    int typenum = dtype_utilities::YtDtype2NumPyDtype(storage[0].data_dtype);
     npy_intp dims[3];
-
     if (typenum < 0) {
         PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
         return NULL;
     }
-
-    if (field_list[field_id].contiguous_in_x) {
-        dims[0] = grid_dimensions[2];
-        dims[1] = grid_dimensions[1];
-        dims[2] = grid_dimensions[0];
+    if (storage[0].contiguous_in_x) {
+        dims[0] = storage[0].data_dim[2];
+        dims[1] = storage[0].data_dim[1];
+        dims[2] = storage[0].data_dim[0];
     } else {
-        dims[0] = grid_dimensions[0];
-        dims[1] = grid_dimensions[1];
-        dims[2] = grid_dimensions[2];
+        dims[0] = storage[0].data_dim[0];
+        dims[1] = storage[0].data_dim[1];
+        dims[2] = storage[0].data_dim[2];
     }
 
-    PyObject* py_data = numpy_controller::ArrayToNumPyArray(nd, dims, field_dtype, output, false, true);
+    PyObject* py_data =
+        numpy_controller::ArrayToNumPyArray(nd, dims, storage[0].data_dtype, storage[0].data_ptr, false, true);
 
     return py_data;
 }
