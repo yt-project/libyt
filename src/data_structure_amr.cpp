@@ -1507,6 +1507,14 @@ DataStructureOutput DataStructureAmr::GenerateLocalFieldData(const std::vector<l
     for (const long& kGid : gid_list) {
         AmrDataArray3D amr_data{};
 
+        // Make sure gid is local
+        int proc_num = -1;
+        GetPythonBoundFullHierarchyGridProcNum(kGid, &proc_num);
+        if (proc_num != DataStructureAmr::mpi_rank_) {
+            std::string error = std::string("Grid id [ ") + std::to_string(kGid) + std::string(" ] is not local.\n");
+            return {DataStructureStatus::kDataStructureFailed, error};
+        }
+
         // Get amr grid info
         int grid_dim[3];
         DataStructureOutput status = GetPythonBoundFullHierarchyGridDimensions(kGid, &grid_dim[0]);
@@ -1588,6 +1596,14 @@ DataStructureOutput DataStructureAmr::GenerateLocalParticleData(const std::vecto
 
     for (const long& kGid : gid_list) {
         AmrDataArray1D amr_1d_data{};
+
+        // Make sure gid is local
+        int proc_num = -1;
+        GetPythonBoundFullHierarchyGridProcNum(kGid, &proc_num);
+        if (proc_num != DataStructureAmr::mpi_rank_) {
+            std::string error = std::string("Grid id [ ") + std::to_string(kGid) + std::string(" ] is not local.\n");
+            return {DataStructureStatus::kDataStructureFailed, error};
+        }
 
         // Get particle info
         amr_1d_data.id = kGid;
