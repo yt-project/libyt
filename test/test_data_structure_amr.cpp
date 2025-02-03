@@ -493,7 +493,7 @@ TEST_P(TestDataStructureAmrGenerateLocalData, Can_generate_derived_field_data) {
             }
         }
     };
-    double field_value = 100.0;
+    double value = 100.0;
     ds_amr.BindInfoToPython("sys.TEMPLATE_DICT_STORAGE", GetPyTemplateDictStorage());
     ds_amr.BindAllHierarchyToPython(mpi_root);
 
@@ -508,7 +508,7 @@ TEST_P(TestDataStructureAmrGenerateLocalData, Can_generate_derived_field_data) {
     EXPECT_EQ(storage[0].data_dtype, YT_DOUBLE);
     EXPECT_EQ(storage[0].contiguous_in_x, field_list[0].contiguous_in_x);
     for (int i = 0; i < storage[0].data_dim[0] * storage[0].data_dim[1] * storage[0].data_dim[2]; i++) {
-        EXPECT_EQ(((double*)storage[0].data_ptr)[i], field_value);
+        EXPECT_EQ(((double*)storage[0].data_ptr)[i], value);
     }
 
     // Clean up
@@ -518,10 +518,72 @@ TEST_P(TestDataStructureAmrGenerateLocalData, Can_generate_derived_field_data) {
     }
 }
 
+TEST_P(TestDataStructureAmrGenerateLocalData, Can_generate_particle_data) {
+    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
+
+    // Arrange
+    DataStructureAmr ds_amr;
+    ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
+
+    int mpi_root = 0;
+    int index_offset = GetParam();
+    bool check_data = false;
+    int num_grids_local = 1;
+    long num_grids = num_grids_local * GetMpiSize();
+    long local_gid = num_grids_local * GetMpiRank() + index_offset;
+    int num_par_types = 1;
+    yt_par_type par_type_list[1];
+    par_type_list[0].par_type = "Par100";
+    par_type_list[0].num_attr = 4;
+    std::cout << "(index_offset, num_par_types) = (" << index_offset << ", " << num_par_types << ")" << std::endl;
+    ds_amr.AllocateStorage(num_grids, num_grids_local, 0, num_par_types, par_type_list, index_offset, check_data);
+    GenerateLocalHierarchy(num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local, num_par_types);
+
+    // Set particle info
+    yt_particle* particle_list = ds_amr.GetParticleList();
+    const char* attr_name_list[4] = {"PosX", "PosY", "PosZ", "Attr"};
+    for (int a = 0; a < particle_list[0].num_attr; a++) {
+        particle_list[0].attr_list[a].attr_name = attr_name_list[a];
+        particle_list[0].attr_list[a].attr_dtype = YT_DOUBLE;
+    }
+    particle_list[0].coor_x = "PosX";
+    particle_list[0].coor_y = "PosY";
+    particle_list[0].coor_z = "PosZ";
+    particle_list[0].get_par_attr = [](const int len, const long* gid_list, const char* ptype, const char* attr,
+                                       yt_array* data) {
+        for (int i = 0; i < len; i++) {
+            for (int data_index = 0; data_index < data[i].data_length; data_index++) {
+                ((double*)data[i].data_ptr)[data_index] = 100.0;
+            }
+        }
+    };
+    double value = 100.0;
+    ds_amr.BindInfoToPython("sys.TEMPLATE_DICT_STORAGE", GetPyTemplateDictStorage());
+    ds_amr.BindAllHierarchyToPython(mpi_root);
+
+    // Act
+    std::vector<AmrDataArray1D> storage;
+    DataStructureOutput status = ds_amr.GenerateLocalParticleData({local_gid}, "Par100", "Attr", storage);
+
+    // Assert
+    EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
+    EXPECT_EQ(storage.size(), 1);
+    EXPECT_EQ(storage[0].id, local_gid);
+    EXPECT_EQ(storage[0].data_dtype, YT_DOUBLE);
+    EXPECT_EQ(storage[0].data_len, 10);
+    for (int i = 0; i < storage[0].data_len; i++) {
+        EXPECT_EQ(((double*)storage[0].data_ptr)[i], value);
+    }
+
+    // Clean up
+    ds_amr.CleanUp();
+    for (const AmrDataArray1D& kData : storage) {
+        free(kData.data_ptr);
+    }
+}
+
 INSTANTIATE_TEST_SUITE_P(DifferentIndexOffset, TestDataStructureAmrBindHierarchy, testing::Values(0, 1));
-
 INSTANTIATE_TEST_SUITE_P(DifferentIndexOffset, TestDataStructureAmrBindLocalData, testing::Values(0, 1));
-
 INSTANTIATE_TEST_SUITE_P(DifferentIndexOffset, TestDataStructureAmrGenerateLocalData, testing::Values(0, 1));
 
 int main(int argc, char** argv) {
