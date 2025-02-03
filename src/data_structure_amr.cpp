@@ -1525,7 +1525,14 @@ DataStructureOutput DataStructureAmr::GenerateLocalFieldData(const std::vector<l
                      std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
             return {DataStructureStatus::kDataStructureFailed, error};
         }
-        // TODO: check if grid_dim > 0
+        for (int d = 0; d < 3; d++) {
+            if (grid_dim[d] <= 0) {
+                std::string error = std::string("Grid dim for (field_name, gid) = (") + field_name + std::string(", ") +
+                                    std::to_string(kGid) + std::string(") on MPI rank ") +
+                                    std::to_string(DataStructureAmr::mpi_rank_) + std::string(" is <= 0.\n");
+                return {DataStructureStatus::kDataStructureFailed, error};
+            }
+        }
         if (field_list_[field_id].contiguous_in_x) {
             amr_data.data_dim[0] = grid_dim[2];
             amr_data.data_dim[1] = grid_dim[1];
