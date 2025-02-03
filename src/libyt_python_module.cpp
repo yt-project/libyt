@@ -119,9 +119,6 @@ pybind11::array DerivedFunc(long gid, const char* field_name) {
     // (We need this otherwise the array is not owned by python :()
     std::vector<long> shape, stride;
     int dtype_size = dtype_utilities::GetYtDtypeSize(storage[0].data_dtype);
-    if (dtype_size < 0) {
-        throw pybind11::value_error("Cannot get size of yt_dtype.\n");
-    }
     if (storage[0].contiguous_in_x) {
         shape = {storage[0].data_dim[2], storage[0].data_dim[1], storage[0].data_dim[0]};
     } else {
@@ -193,9 +190,6 @@ pybind11::array GetParticle(long gid, const char* ptype, const char* attr_name) 
         // Allocate pybind11
         // (We need this otherwise the array is not owned by python :()
         int dtype_size = dtype_utilities::GetYtDtypeSize(storage[0].data_dtype);
-        if (dtype_size < 0) {
-            throw pybind11::value_error("Cannot get size of yt_dtype.\n");
-        }
         std::vector<long> shape({storage[0].data_len});
         std::vector<long> stride({dtype_size});
         pybind11::array output = AllocatePybind11Array(storage[0].data_dtype, shape, stride);
@@ -571,12 +565,7 @@ static PyObject* LibytFieldDerivedFunc(PyObject* self, PyObject* args) {
 
     // Wrapping the data to numpy array, for now, storage only contains one data
     int nd = 3;
-    int typenum = dtype_utilities::YtDtype2NumPyDtype(storage[0].data_dtype);
     npy_intp dims[3];
-    if (typenum < 0) {
-        PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
-        return NULL;
-    }
     if (storage[0].contiguous_in_x) {
         dims[0] = storage[0].data_dim[2];
         dims[1] = storage[0].data_dim[1];
@@ -646,13 +635,7 @@ static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
         return Py_None;
     } else {
         int nd = 1;
-        int typenum = dtype_utilities::YtDtype2NumPyDtype(storage[0].data_dtype);
         npy_intp dims[1] = {storage[0].data_len};
-        if (typenum < 0) {
-            PyErr_Format(PyExc_ValueError, "Unknown yt_dtype, cannot get the NumPy enumerate type properly.\n");
-            return NULL;
-        }
-
         PyObject* py_data =
             numpy_controller::ArrayToNumPyArray(nd, dims, storage[0].data_dtype, storage[0].data_ptr, false, true);
 
