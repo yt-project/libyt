@@ -8,6 +8,7 @@
 #include <Python.h>
 
 #include <string>
+#include <vector>
 
 #include "yt_type.h"
 
@@ -33,6 +34,27 @@ struct yt_hierarchy {
     int dimensions[3]{-1, -1, -1};
     int level = -1;
     int proc_num = -1;
+};
+
+//-------------------------------------------------------------------------------------------------------
+// Structure   :  AmrDataArray3D / AmrDataArray1D
+// Description :  Data structure for 3d / 1d data array.
+//
+// Notes       :  1. Must have data_ptr.
+//-------------------------------------------------------------------------------------------------------
+struct AmrDataArray3D {
+    long id = -1;
+    yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
+    int data_dim[3]{0, 0, 0};
+    void* data_ptr = nullptr;
+    bool contiguous_in_x = false;
+};
+
+struct AmrDataArray1D {
+    long id = -1;
+    yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
+    void* data_ptr = nullptr;
+    long data_len = 0;
 };
 
 enum class DataStructureStatus : int { kDataStructureFailed = 0, kDataStructureSuccess = 1 };
@@ -148,6 +170,12 @@ public:
     int GetFieldIndex(const char* field_name) const;
     int GetParticleIndex(const char* particle_type) const;
     int GetParticleAttributeIndex(int particle_type_index, const char* attr_name) const;
+
+    // Generate data array
+    DataStructureOutput GenerateFieldData(const std::vector<long>& gid_list, const char* field_name,
+                                          std::vector<AmrDataArray3D>& storage) const;
+    DataStructureOutput GenerateParticleData(const std::vector<long>& gid_list, const char* ptype, const char* attr,
+                                             std::vector<AmrDataArray1D>& storage) const;
 
     // Look up full hierarchy methods
     DataStructureOutput GetPythonBoundFullHierarchyGridDimensions(long gid, int* dimensions) const;
