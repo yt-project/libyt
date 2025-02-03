@@ -84,6 +84,10 @@ static pybind11::array AllocatePybind11Array(yt_dtype data_type, const std::vect
 //                   yt_field.
 //                4. Now, input from Python only contains gid and field name. In the future, when we
 //                   support hybrid OpenMP/MPI, it can accept list and a string.
+//                5. Due to the creation of pybind11::array_t using an existing pointer makes Python not owning
+//                   an array, we have to initialize a new buffer in array_t and copy the generated data into
+//                   the new buffer.
+//                   (ref: https://stackoverflow.com/a/44682603/20413451)
 //
 // Python Parameter     :          int : GID of the grid
 //                                 str : field name
@@ -95,84 +99,37 @@ static pybind11::array AllocatePybind11Array(yt_dtype data_type, const std::vect
 pybind11::array DerivedFunc(long gid, const char* field_name) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
-    // Get field info and catch error
-    void (*derived_func)(const int, const long*, const char*, yt_array*) = nullptr;
-    yt_field* field_list = LibytProcessControl::Get().data_structure_amr_.GetFieldList();
-    int field_id = -1;
-    yt_dtype field_dtype = YT_DTYPE_UNKNOWN;
-
-    for (int v = 0; v < LibytProcessControl::Get().param_yt_.num_fields; v++) {
-        if (strcmp(field_list[v].field_name, field_name) == 0) {
-            field_id = v;
-            field_dtype = field_list[v].field_dtype;
-            derived_func = field_list[v].derived_func;
-            break;
-        }
-    }
-
-    if (field_id == -1) {
-        std::string error_msg = "Cannot find field_name [ " + std::string(field_name) + " ] in field_list.\n";
-        throw pybind11::value_error(error_msg.c_str());
-    }
-    if (derived_func == nullptr) {
-        std::string error_msg =
-            "In field_list, field_name [ " + std::string(field_name) + " ], derived_func did not set properly.";
-        PyErr_SetString(PyExc_NotImplementedError, error_msg.c_str());
-        throw pybind11::error_already_set();
-    }
-    if (field_dtype == YT_DTYPE_UNKNOWN) {
-        std::string error_msg =
-            "In field_list, field_name [ " + std::string(field_name) + " ], field_dtype did not set properly.\n";
-        throw pybind11::value_error(error_msg.c_str());
-    }
-
-    // Get grid info and catch error
-    int proc_num;
+    // Generate data
+    std::vector<long> gid_list = {gid};
+    std::vector<AmrDataArray3D> storage;
     DataStructureOutput status =
-        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridProcNum(gid, &proc_num);
+        LibytProcessControl::Get().data_structure_amr_.GenerateLocalFieldData(gid_list, field_name, storage);
     if (status.status != DataStructureStatus::kDataStructureSuccess) {
-        throw pybind11::value_error(status.error.c_str());
-    }
-
-    int grid_dimensions[3];
-    status =
-        LibytProcessControl::Get().data_structure_amr_.GetPythonBoundFullHierarchyGridDimensions(gid, grid_dimensions);
-    if (status.status != DataStructureStatus::kDataStructureSuccess) {
-        throw pybind11::value_error(status.error.c_str());
-    }
-
-    if (proc_num != LibytProcessControl::Get().mpi_rank_) {
-        std::string error_msg = "Trying to prepare nonlocal grid. Grid [ " + std::to_string(gid) +
-                                " ] is on MPI rank [ " + std::to_string(proc_num) + " ].\n";
-        throw pybind11::value_error(error_msg.c_str());
-    }
-    for (int d = 0; d < 3; d++) {
-        if (grid_dimensions[d] < 0) {
-            std::string error_msg = "Trying to prepare grid [ " + std::to_string(gid) + " ] that has grid_dimensions[" +
-                                    std::to_string(d) + "] = " + std::to_string(grid_dimensions[d]) + " < 0.\n";
-            throw pybind11::value_error(error_msg.c_str());
+        if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+            PyErr_SetString(PyExc_NotImplementedError, status.error.c_str());
+            throw pybind11::error_already_set();
+        } else {
+            throw pybind11::value_error(status.error.c_str());
         }
     }
 
-    // Generate derived field data
+    // Allocate pybind11
+    // (We need this otherwise the array is not owned by python :()
     std::vector<long> shape, stride;
-    int dtype_size = dtype_utilities::GetYtDtypeSize(field_dtype);
-    if (field_list[field_id].contiguous_in_x) {
-        shape = {grid_dimensions[2], grid_dimensions[1], grid_dimensions[0]};
+    int dtype_size = dtype_utilities::GetYtDtypeSize(storage[0].data_dtype);
+    if (dtype_size < 0) {
+        throw pybind11::value_error("Cannot get size of yt_dtype.\n");
+    }
+    if (storage[0].contiguous_in_x) {
+        shape = {storage[0].data_dim[2], storage[0].data_dim[1], storage[0].data_dim[0]};
     } else {
-        shape = {grid_dimensions[0], grid_dimensions[1], grid_dimensions[2]};
+        shape = {storage[0].data_dim[0], storage[0].data_dim[1], storage[0].data_dim[2]};
     }
     stride = {dtype_size * shape[1] * shape[2], dtype_size * shape[2], dtype_size};
-    pybind11::array output = AllocatePybind11Array(field_dtype, shape, stride);
+    pybind11::array output = AllocatePybind11Array(storage[0].data_dtype, shape, stride);
 
-    // Call derived function
-    yt_array data_array[1];
-    data_array[0].data_ptr = static_cast<void*>(output.mutable_data());
-    data_array[0].data_length = shape[0] * shape[1] * shape[2];
-    data_array[0].gid = gid;
-    long list_gid[1] = {gid};
-
-    derived_func(1, list_gid, field_name, data_array);
+    // Copy data from storage to output
+    memcpy(output.mutable_data(), storage[0].data_ptr, dtype_size * shape[0] * shape[1] * shape[2]);
 
     return static_cast<pybind11::array>(output);
 }
