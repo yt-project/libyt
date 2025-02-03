@@ -57,7 +57,11 @@ struct AmrDataArray1D {
     long data_len = 0;
 };
 
-enum class DataStructureStatus : int { kDataStructureFailed = 0, kDataStructureSuccess = 1 };
+enum class DataStructureStatus : int {
+    kDataStructureFailed = 0,
+    kDataStructureNotImplemented = 1,
+    kDataStructureSuccess = 2
+};
 
 struct DataStructureOutput {
     DataStructureStatus status;

@@ -1525,6 +1525,7 @@ DataStructureOutput DataStructureAmr::GenerateLocalFieldData(const std::vector<l
                      std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
             return {DataStructureStatus::kDataStructureFailed, error};
         }
+        // TODO: check if grid_dim > 0
         if (field_list_[field_id].contiguous_in_x) {
             amr_data.data_dim[0] = grid_dim[2];
             amr_data.data_dim[1] = grid_dim[1];
@@ -1544,7 +1545,7 @@ DataStructureOutput DataStructureAmr::GenerateLocalFieldData(const std::vector<l
             std::string error = std::string("Derived function derived_func not set in field [ ") + field_name +
                                 std::string(" ] on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
                                 std::string(".\n");
-            return {DataStructureStatus::kDataStructureFailed, error};
+            return {DataStructureStatus::kDataStructureNotImplemented, error};
         }
 
         // Allocate memory for data_ptr and generate data
@@ -1636,7 +1637,7 @@ DataStructureOutput DataStructureAmr::GenerateLocalParticleData(const std::vecto
             std::string error = std::string("Get particle function get_par_attr not set in particle type [ ") + ptype +
                                 std::string(" ] on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
                                 std::string(".\n");
-            return {DataStructureStatus::kDataStructureSuccess, error};
+            return {DataStructureStatus::kDataStructureNotImplemented, error};
         }
 
         // Generate buffer
