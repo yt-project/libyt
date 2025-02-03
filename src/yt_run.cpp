@@ -4,7 +4,8 @@
 #include "function_info.h"
 #include "libyt.h"
 #include "libyt_process_control.h"
-#include "yt_combo.h"
+#include "logging.h"
+#include "timer.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_run_FunctionArguments
@@ -30,7 +31,7 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized) {
+    if (!LibytProcessControl::Get().libyt_initialized_) {
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 
@@ -40,7 +41,7 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
     int func_index = LibytProcessControl::Get().function_info_list_.GetFunctionIndex(function_name);
     if (func_index != -1) {
         if (LibytProcessControl::Get().function_info_list_[func_index].GetRun() == FunctionInfo::RunStatus::kWillIdle) {
-            log_info("YT inline function \"%s\" was set to idle ... idle\n", function_name);
+            logging::LogInfo("YT inline function \"%s\" was set to idle ... idle\n", function_name);
             return YT_SUCCESS;
         } else if (LibytProcessControl::Get().function_info_list_[func_index].GetRun() ==
                    FunctionInfo::RunStatus::kNotSetYet)
@@ -99,11 +100,12 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
             std::string("\"] = \"LIBYT Error: Please avoid using both \\\"\\\"\\\" and \'\'\' for triple quotes.\\n\"");
         LibytProcessControl::Get().function_info_list_[func_index].SetStatus(FunctionInfo::ExecuteStatus::kFailed);
         if (PyRun_SimpleString(str_set_error.c_str()) != 0) {
-            log_error("Unexpected error occurred when setting unable to wrap error message in interactive mode.\n");
+            logging::LogError(
+                "Unexpected error occurred when setting unable to wrap error message in interactive mode.\n");
         }
 #endif
         // return YT_FAIL
-        log_error("Please avoid using both \"\"\" and ''' for triple quotes.\n");
+        logging::LogError("Please avoid using both \"\"\" and ''' for triple quotes.\n");
         YT_ABORT("Invoking %s ... failed\n", str_function.c_str());
     }
 
@@ -112,7 +114,7 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
                            std::string(", sys.modules[\"") +
                            std::string(LibytProcessControl::Get().param_libyt_.script) + std::string("\"].__dict__)"));
 
-    log_info("Performing YT inline analysis %s ...\n", str_function.c_str());
+    logging::LogInfo("Performing YT inline analysis %s ...\n", str_function.c_str());
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     std::string str_CallYT_TryExcept;
@@ -141,10 +143,10 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
 #endif
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    log_info("Performing YT inline analysis %s ... %s.\n", str_function.c_str(),
-             (all_status == FunctionInfo::ExecuteStatus::kSuccess) ? "done" : "failed");
+    logging::LogInfo("Performing YT inline analysis %s ... %s.\n", str_function.c_str(),
+                     (all_status == FunctionInfo::ExecuteStatus::kSuccess) ? "done" : "failed");
 #else
-    log_info("Performing YT inline analysis %s ... done.\n", str_function.c_str());
+    logging::LogInfo("Performing YT inline analysis %s ... done.\n", str_function.c_str());
 #endif
 
     return YT_SUCCESS;

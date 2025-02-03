@@ -1,5 +1,5 @@
-#ifndef __YT_TYPE_H__
-#define __YT_TYPE_H__
+#ifndef LIBYT_PROJECT_INCLUDE_YT_TYPE_H_
+#define LIBYT_PROJECT_INCLUDE_YT_TYPE_H_
 
 /*******************************************************************************
 /
@@ -35,4 +35,4 @@ typedef enum yt_dtype {
 #include "yt_type_param_yt.h"
 #include "yt_type_particle.h"
 
-#endif  // #ifndef __YT_TYPE_H__
+#endif  // LIBYT_PROJECT_INCLUDE_YT_TYPE_H_

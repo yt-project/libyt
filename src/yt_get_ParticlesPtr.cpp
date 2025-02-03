@@ -1,6 +1,7 @@
 #include "libyt.h"
 #include "libyt_process_control.h"
-#include "yt_combo.h"
+#include "logging.h"
+#include "timer.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  yt_get_ParticlesPtr
@@ -18,12 +19,12 @@ int yt_get_ParticlesPtr(yt_particle** particle_list) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized) {
+    if (!LibytProcessControl::Get().libyt_initialized_) {
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 
     // check if yt_set_Parameters() have been called
-    if (!LibytProcessControl::Get().param_yt_set) {
+    if (!LibytProcessControl::Get().param_yt_set_) {
         YT_ABORT("Please invoke yt_set_Parameters() before calling %s()!\n", __FUNCTION__);
     }
 
@@ -33,12 +34,12 @@ int yt_get_ParticlesPtr(yt_particle** particle_list) {
                  LibytProcessControl::Get().param_yt_.num_par_types);
     }
 
-    log_info("Getting pointer to particle list information ...\n");
+    logging::LogInfo("Getting pointer to particle list information ...\n");
 
-    *particle_list = LibytProcessControl::Get().particle_list;
+    *particle_list = LibytProcessControl::Get().data_structure_amr_.GetParticleList();
 
-    LibytProcessControl::Get().get_particlesPtr = true;
-    log_info("Getting pointer to particle list information  ... done.\n");
+    LibytProcessControl::Get().get_particles_ptr_ = true;
+    logging::LogInfo("Getting pointer to particle list information  ... done.\n");
 
     return YT_SUCCESS;
 }

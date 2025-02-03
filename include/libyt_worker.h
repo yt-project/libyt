@@ -1,5 +1,5 @@
-#ifndef __LIBYT_WORKER_H__
-#define __LIBYT_WORKER_H__
+#ifndef LIBYT_PROJECT_INCLUDE_LIBYT_WORKER_H_
+#define LIBYT_PROJECT_INCLUDE_LIBYT_WORKER_H_
 
 #include <Python.h>
 
@@ -18,4 +18,4 @@ private:
     int m_mpi_root;
 };
 
-#endif  // __LIBYT_WORKER_H__
+#endif  // LIBYT_PROJECT_INCLUDE_LIBYT_WORKER_H_

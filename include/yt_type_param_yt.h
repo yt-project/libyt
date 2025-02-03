@@ -1,5 +1,5 @@
-#ifndef __YT_TYPE_PARAM_YT_H__
-#define __YT_TYPE_PARAM_YT_H__
+#ifndef LIBYT_PROJECT_INCLUDE_YT_TYPE_PARAM_YT_H_
+#define LIBYT_PROJECT_INCLUDE_YT_TYPE_PARAM_YT_H_
 
 #include "yt_macro.h"
 #include "yt_type_particle.h"
@@ -114,4 +114,4 @@ typedef struct yt_param_yt {
 
 } yt_param_yt;
 
-#endif  // #ifndef __YT_TYPE_PARAM_YT_H__
+#endif  // LIBYT_PROJECT_INCLUDE_YT_TYPE_PARAM_YT_H_

@@ -1,11 +1,11 @@
 #include "libyt.h"
-#include "yt_combo.h"
+#include "logging.h"
+#include "timer.h"
 
 #ifdef JUPYTER_KERNEL
 #include <chrono>
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <thread>
 #include <xeus-zmq/xserver_zmq.hpp>
 #include <xeus/xkernel.hpp>
@@ -14,6 +14,7 @@
 #include "function_info.h"
 #include "libyt_kernel.h"
 #include "libyt_process_control.h"
+#include "libyt_utilities.h"
 #ifndef SERIAL_MODE
 #include "libyt_worker.h"
 #endif
@@ -39,11 +40,11 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
 #ifndef JUPYTER_KERNEL
-    log_error("Cannot start libyt kernel for Jupyter. Please compile libyt with -DJUPYTER_KERNEL.\n");
+    logging::LogError("Cannot start libyt kernel for Jupyter. Please compile libyt with -DJUPYTER_KERNEL.\n");
     return YT_FAIL;
 #else
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized) {
+    if (!LibytProcessControl::Get().libyt_initialized_) {
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
     }
 
@@ -51,12 +52,13 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
     LibytProcessControl::Get().function_info_list_.RunEveryFunction();
 
     // see if we need to start libyt kernel by checking if file flag_file_name exist.
-    struct stat buffer;
-    if (stat(flag_file_name, &buffer) != 0) {
-        log_info("No file '%s' detected, skip starting libyt kernel for Jupyter Notebook access ...\n", flag_file_name);
-        return YT_SUCCESS;
+    if (libyt_utilities::DoesFileExist(flag_file_name)) {
+        logging::LogInfo("File '%s' detected, preparing libyt kernel for Jupyter Notebook access ...\n",
+                         flag_file_name);
     } else {
-        log_info("File '%s' detected, preparing libyt kernel for Jupyter Notebook access ...\n", flag_file_name);
+        logging::LogInfo("No file '%s' detected, skip starting libyt kernel for Jupyter Notebook access ...\n",
+                         flag_file_name);
+        return YT_SUCCESS;
     }
 
 #ifndef SERIAL_MODE
@@ -87,7 +89,7 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
             while (!complete) {
                 try {
                     // Check if connection file exist
-                    if (stat(kernel_connection_filename, &buffer) != 0) {
+                    if (!libyt_utilities::DoesFileExist(kernel_connection_filename)) {
                         throw -1;
                     }
 
@@ -104,12 +106,12 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
                     complete = true;
                 } catch (int err_code) {
                     if (err_code == -1) {
-                        log_error("Unable to find \"%s\" ...\n", kernel_connection_filename);
+                        logging::LogError("Unable to find \"%s\" ...\n", kernel_connection_filename);
                     }
                 } catch (const nlohmann::json::parse_error& e) {
                     switch (e.id) {
                         case 101: {
-                            log_error(
+                            logging::LogError(
                                 "Unable to parse \"%s\". This error may be caused by not enclosing key-value pairs in "
                                 "{} bracket or not separating key-value pairs using ',' (nlohmann json err "
                                 "msg: %s)\n",
@@ -117,46 +119,51 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
                             break;
                         }
                         default: {
-                            log_error("Unable to parse \"%s\" (nlohmann json err msg: %s)\n",
-                                      kernel_connection_filename, e.what());
+                            logging::LogError("Unable to parse \"%s\" (nlohmann json err msg: %s)\n",
+                                              kernel_connection_filename, e.what());
                         }
                     }
                 } catch (const nlohmann::json::type_error& e) {
                     switch (e.id) {
                         case 302: {
-                            log_error("Error occurred while reading keys in \"%s\". "
-                                      "This error may be caused by missing one of the keys (\"transport\", \"ip\", "
-                                      "\"control_port\", \"shell_port\", \"stdin_port\", \"iopub_port\", \"hb_port\", "
-                                      "\"signature_scheme\", \"key\") "
-                                      "(nlohmann json err msg: %s)\n",
-                                      kernel_connection_filename, e.what());
+                            logging::LogError(
+                                "Error occurred while reading keys in \"%s\". "
+                                "This error may be caused by missing one of the keys (\"transport\", \"ip\", "
+                                "\"control_port\", \"shell_port\", \"stdin_port\", \"iopub_port\", \"hb_port\", "
+                                "\"signature_scheme\", \"key\") "
+                                "(nlohmann json err msg: %s)\n",
+                                kernel_connection_filename, e.what());
                             break;
                         }
                         default: {
-                            log_error("Error occurred while reading keys in \"%s\" (nlohmann json err msg: %s)\n",
-                                      kernel_connection_filename, e.what());
+                            logging::LogError(
+                                "Error occurred while reading keys in \"%s\" (nlohmann json err msg: %s)\n",
+                                kernel_connection_filename, e.what());
                         }
                     }
                 } catch (const nlohmann::json::exception& e) {
-                    log_error("Other errors occurred when reading \"%s\" (nlohmann json err msg: %s)\n",
-                              kernel_connection_filename, e.what());
+                    logging::LogError("Other errors occurred when reading \"%s\" (nlohmann json err msg: %s)\n",
+                                      kernel_connection_filename, e.what());
                 } catch (const std::out_of_range& e) {
-                    log_error("This error may be caused by not providing \"signature_scheme\" and \"key\" in \"%s\" "
-                              "(std::string err msg: %s)\n",
-                              kernel_connection_filename, e.what());
+                    logging::LogError(
+                        "This error may be caused by not providing \"signature_scheme\" and \"key\" in \"%s\" "
+                        "(std::string err msg: %s)\n",
+                        kernel_connection_filename, e.what());
                 } catch (const zmq::error_t& e) {
-                    log_error("Port address already in use, please change port number (zmq err msg: %s)\n", e.what());
+                    logging::LogError("Port address already in use, please change port number (zmq err msg: %s)\n",
+                                      e.what());
                 }
                 std::this_thread::sleep_for(std::chrono::seconds(2));
             }
 
             // Launch kernel
-            log_info("Launching libyt kernel using provided connection file \"%s\" ...\n", kernel_connection_filename);
+            logging::LogInfo("Launching libyt kernel using provided connection file \"%s\" ...\n",
+                             kernel_connection_filename);
             if (libyt_kernel_ptr != nullptr) {
                 libyt_kernel_ptr->start();
             } else {
-                log_info("Launching libyt kernel using provided connection file \"%s\" ... failed\n",
-                         kernel_connection_filename);
+                logging::LogInfo("Launching libyt kernel using provided connection file \"%s\" ... failed\n",
+                                 kernel_connection_filename);
             }
             delete libyt_kernel_ptr;
         } else {
@@ -184,7 +191,8 @@ int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
             file.close();
 
             // Launch kernel
-            log_info("Launching libyt kernel, connection info are stored in \"%s\" ...\n", kernel_connection_filename);
+            logging::LogInfo("Launching libyt kernel, connection info are stored in \"%s\" ...\n",
+                             kernel_connection_filename);
             libyt_kernel.start();
         }
 

@@ -46,9 +46,13 @@ endif ()
 if (NOT SERIAL_MODE)
     set(MPI_HOME ${MPI_PATH})
 endif ()
+if (LIBYT_RUN_TEST)
+    include(CTest)
+endif ()
 
 ## sub directory ##
 add_subdirectory(vendor)                    # for vendoring
 add_subdirectory(src)                       # for library
 add_subdirectory(share)                     # for share
 add_subdirectory(example)                   # for example exe
+add_subdirectory(test)                      # for testing

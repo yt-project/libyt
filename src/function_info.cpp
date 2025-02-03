@@ -8,7 +8,8 @@
 
 #include "function_info.h"
 #include "libyt_process_control.h"
-#include "yt_combo.h"
+#include "logging.h"
+#include "timer.h"
 
 int FunctionInfo::mpi_rank_;
 int FunctionInfo::mpi_root_;
@@ -396,19 +397,20 @@ void FunctionInfoList::RunEveryFunction() {
                                               "    libyt.interactive_mode[\"func_err_msg\"][\"") +
                                   function.GetFunctionName() + std::string("\"] = traceback.format_exc()\n");
 
-            log_info("Performing YT inline analysis %s ...\n", function.GetFunctionNameWithInputArgs().c_str());
+            logging::LogInfo("Performing YT inline analysis %s ...\n", function.GetFunctionNameWithInputArgs().c_str());
             function.SetStatus(FunctionInfo::kNeedUpdate);
             if (PyRun_SimpleString(command.c_str()) != 0) {
                 // We set the status to failed even though this should never happen,
                 // because the status is set based on if an error msg is set or not.
                 function.SetStatus(FunctionInfo::kFailed);
-                log_error("Unexpected error occurred when running PyRun_SimpleString\n");
+                logging::LogError("Unexpected error occurred when running PyRun_SimpleString\n");
             } else {
                 function.SetStatusUsingPythonResult();
             }
             FunctionInfo::ExecuteStatus all_status = function.GetAllStatus();
-            log_info("Performing YT inline analysis %s ... %s\n", function.GetFunctionNameWithInputArgs().c_str(),
-                     (all_status == FunctionInfo::kSuccess) ? "done" : "failed");
+            logging::LogInfo("Performing YT inline analysis %s ... %s\n",
+                             function.GetFunctionNameWithInputArgs().c_str(),
+                             (all_status == FunctionInfo::kSuccess) ? "done" : "failed");
         }
     }
 }

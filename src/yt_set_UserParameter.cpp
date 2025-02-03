@@ -1,6 +1,10 @@
+#include <typeinfo>
+
 #include "libyt.h"
 #include "libyt_process_control.h"
-#include "yt_combo.h"
+#include "logging.h"
+#include "python_controller.h"
+#include "timer.h"
 
 #ifdef USE_PYBIND11
 #include "pybind11/embed.h"
@@ -24,7 +28,7 @@ static int add_string(const char* key, const char* input);
             }                                                                                                          \
             py_param_user[key] = tuple;                                                                                \
         }                                                                                                              \
-        log_debug("Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key);                    \
+        logging::LogDebug("Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key);            \
         return YT_SUCCESS;                                                                                             \
     }
 #endif
@@ -53,7 +57,7 @@ int yt_set_UserParameterInt(const char* key, const int n, const int* input) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -67,7 +71,7 @@ int yt_set_UserParameterLong(const char* key, const int n, const long* input) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -81,7 +85,7 @@ int yt_set_UserParameterLongLong(const char* key, const int n, const long long* 
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -95,7 +99,7 @@ int yt_set_UserParameterUint(const char* key, const int n, const unsigned int* i
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -109,7 +113,7 @@ int yt_set_UserParameterUlong(const char* key, const int n, const unsigned long*
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -123,7 +127,7 @@ int yt_set_UserParameterFloat(const char* key, const int n, const float* input) 
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -137,7 +141,7 @@ int yt_set_UserParameterDouble(const char* key, const int n, const double* input
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -151,7 +155,7 @@ int yt_set_UserParameterString(const char* key, const char* input) {
     SET_TIMER(__PRETTY_FUNCTION__);
 
     // check if libyt has been initialized
-    if (!LibytProcessControl::Get().libyt_initialized)
+    if (!LibytProcessControl::Get().libyt_initialized_)
         YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
 
 #ifndef USE_PYBIND11
@@ -176,16 +180,19 @@ static int add_nonstring(const char* key, const int n, const T* input) {
         typeid(T) == typeid(long long)) {
         //    scalar and 3-element array
         if (n == 1) {
-            if (add_dict_scalar(LibytProcessControl::Get().py_param_user_, key, *input) == YT_FAIL) return YT_FAIL;
+            if (python_controller::AddScalarToDict(LibytProcessControl::Get().py_param_user_, key, *input) == YT_FAIL)
+                return YT_FAIL;
         } else {
-            if (add_dict_vector_n(LibytProcessControl::Get().py_param_user_, key, n, input) == YT_FAIL) return YT_FAIL;
+            if (python_controller::AddVectorNToDict(LibytProcessControl::Get().py_param_user_, key, n, input) ==
+                YT_FAIL)
+                return YT_FAIL;
         }
     } else {
         YT_ABORT("Unsupported data type (only support char*, float*, double*, int*, long*, long long*, unsigned int*, "
                  "unsigned long*)!\n");
     }
 
-    log_debug("Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key);
+    logging::LogDebug("Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key);
 
     return YT_SUCCESS;
 
@@ -196,9 +203,10 @@ static int add_nonstring(const char* key, const int n, const T* input) {
 //***********************************************
 static int add_string(const char* key, const char* input) {
     // export data to libyt.param_user
-    if (add_dict_string(LibytProcessControl::Get().py_param_user_, key, input) == YT_FAIL) return YT_FAIL;
+    if (python_controller::AddStringToDict(LibytProcessControl::Get().py_param_user_, key, input) == YT_FAIL)
+        return YT_FAIL;
 
-    log_debug("Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key);
+    logging::LogDebug("Inserting code-specific parameter \"%-*s\" ... done\n", MaxParamNameWidth, key);
 
     return YT_SUCCESS;
 

@@ -4,8 +4,9 @@
 #include <mpi.h>
 
 #include "libyt_process_control.h"
+#include "logging.h"
 #include "magic_command.h"
-#include "yt_combo.h"
+#include "timer.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytWorker
@@ -44,12 +45,13 @@ void LibytWorker::start() {
         switch (indicator) {
             case -1: {
                 done = true;
-                LibytProcessControl::Get().python_shell_.clear_prompt_history();
+                LibytProcessControl::Get().python_shell_.ClearHistory();
                 break;
             }
             case 1: {
-                std::array<AccumulatedOutputString, 2> temp_string =
-                    LibytProcessControl::Get().python_shell_.execute_cell();
+                std::vector<PythonOutput> output;
+                PythonStatus all_execute_status =
+                    LibytProcessControl::Get().python_shell_.AllExecuteCell("", "", m_mpi_root, output, m_mpi_root);
                 break;
             }
             case 2: {
@@ -59,12 +61,12 @@ void LibytWorker::start() {
             }
             default: {
                 done = true;
-                log_error("Unknown job indicator '%d'\n", indicator);
+                logging::LogError("Unknown job indicator '%d'\n", indicator);
             }
         }
     }
 
-    log_debug("Leaving libyt worker on MPI process %d\n", m_mpi_rank);
+    logging::LogDebug("Leaving libyt worker on MPI process %d\n", m_mpi_rank);
 }
 
 #endif  // #if defined(JUPYTER_KERNEL) && !defined(SERIAL_MODE)
