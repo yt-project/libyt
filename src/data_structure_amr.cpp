@@ -1570,12 +1570,82 @@ DataStructureOutput DataStructureAmr::GenerateFieldData(const std::vector<long>&
 // Public Method  :  GenerateParticleData
 //
 // Notes       :  1. Generate particle data based on grid id list and ptype and attr.
-//                2. Append the generated data in storage.
+//                2. Append the generated data in storage. If the length is 0, it will still append it.
+//                3. Allocate new memory, and it is the callers responsibility to free it.
+//                4. TODO: Consider OpenMP, same question in field derived function.
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::GenerateParticleData(const std::vector<long>& gid_list, const char* ptype,
                                                            const char* attr,
                                                            std::vector<AmrDataArray1D>& storage) const {
-    return DataStructureOutput();
+    // Get particle id
+    int ptype_index = GetParticleIndex(ptype);
+    int pattr_index = GetParticleAttributeIndex(ptype_index, attr);
+    if (ptype_index == -1 || pattr_index == -1) {
+        std::string error = std::string("(particle type, attribute) = (") + ptype + std::string(", ") + attr +
+                            std::string(") not found.\n");
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    for (const long& kGid : gid_list) {
+        AmrDataArray1D amr_1d_data{};
+
+        // Get particle info
+        amr_1d_data.id = kGid;
+        amr_1d_data.data_dtype = particle_list_[ptype_index].attr_list[pattr_index].attr_dtype;
+        DataStructureOutput ds_status =
+            GetPythonBoundFullHierarchyGridParticleCount(kGid, ptype, &amr_1d_data.data_len);
+        if (ds_status.status != DataStructureStatus::kDataStructureSuccess) {
+            std::string error = std::move(ds_status.error);
+            error += std::string("Failed to get particle count for (particle type, gid) = (") + ptype +
+                     std::string(", ") + std::to_string(kGid) + std::string(") on MPI rank ") +
+                     std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
+            return {DataStructureStatus::kDataStructureFailed, error};
+        }
+        if (amr_1d_data.data_len < 0) {
+            std::string error = std::string("Particle count = ") + std::to_string(amr_1d_data.data_len) +
+                                std::string(" < 0 for (particle type, gid) = (") + ptype + std::string(", ") +
+                                std::to_string(kGid) + std::string(") on MPI rank ") +
+                                std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
+            return {DataStructureStatus::kDataStructureFailed, error};
+        } else if (amr_1d_data.data_len == 0) {
+            amr_1d_data.data_ptr = nullptr;
+            storage.emplace_back(amr_1d_data);
+            continue;
+        }
+
+        // Get particle function get_par_attr
+        void (*get_par_attr)(const int, const long*, const char*, const char*, yt_array*) =
+            particle_list_[ptype_index].get_par_attr;
+        if (get_par_attr == nullptr) {
+            std::string error = std::string("Get particle function get_par_attr not set in particle type [ ") + ptype +
+                                std::string(" ] on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
+                                std::string(".\n");
+            return {DataStructureStatus::kDataStructureSuccess, error};
+        }
+
+        // Generate buffer
+        amr_1d_data.data_ptr = dtype_utilities::AllocateMemory(amr_1d_data.data_dtype, amr_1d_data.data_len);
+        if (amr_1d_data.data_ptr == nullptr) {
+            std::string error =
+                std::string("Failed to allocate memory for (particle type, attribute, gid, data_len) = (") + ptype +
+                std::string(", ") + attr + std::string(", ") + std::to_string(kGid) + std::string(", ") +
+                std::to_string(amr_1d_data.data_len) + std::string(") on MPI rank ") +
+                std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
+            return {DataStructureStatus::kDataStructureFailed, error};
+        }
+        int list_len = 1;
+        long list_gid[1] = {kGid};
+        yt_array data_array[1];
+        data_array[0].gid = kGid;
+        data_array[0].data_length = amr_1d_data.data_len;
+        data_array[0].data_ptr = amr_1d_data.data_ptr;
+        (*get_par_attr)(list_len, list_gid, ptype, attr, data_array);
+
+        // Put in storage
+        storage.emplace_back(amr_1d_data);
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
 }
 
 //-------------------------------------------------------------------------------------------------------
