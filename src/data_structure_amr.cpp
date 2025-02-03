@@ -1486,6 +1486,100 @@ int DataStructureAmr::GetParticleAttributeIndex(int particle_type_index, const c
 
 //-------------------------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr
+// Public Method  :  GenerateFieldData
+//
+// Notes       :  1. Generate field data based on grid id list and field name.
+//                2. Append the generated data in storage.
+//                3. Allocate new memory, and it is the callers responsibility to free it.
+//                4. TODO: Test using OpenMP in derived_func and pass in a group of ids.
+//                   TODO: How should I parallelize this using OpenMP?
+//                   TODO: What would happen if we didn't compile libyt with OpenMP? (Time Profile This)
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::GenerateFieldData(const std::vector<long>& gid_list, const char* field_name,
+                                                        std::vector<AmrDataArray3D>& storage) const {
+    // Get field id
+    int field_id = GetFieldIndex(field_name);
+    if (field_id < 0) {
+        std::string error = std::string("Field name [ ") + field_name + std::string(" ] not found.\n");
+        return {DataStructureStatus::kDataStructureFailed, error};
+    }
+
+    for (const long& kGid : gid_list) {
+        AmrDataArray3D amr_data{};
+
+        // Get amr grid info
+        int grid_dim[3];
+        DataStructureOutput status = GetPythonBoundFullHierarchyGridDimensions(kGid, &grid_dim[0]);
+        if (status.status != DataStructureStatus::kDataStructureSuccess) {
+            std::string error = status.error;
+            error += std::string("Failed to get grid dim for (field_name, gid) = (") + field_name + std::string(", ") +
+                     std::to_string(kGid) + std::string(") on MPI rank ") +
+                     std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
+            return {DataStructureStatus::kDataStructureFailed, error};
+        }
+        if (field_list_[field_id].contiguous_in_x) {
+            amr_data.data_dim[0] = grid_dim[2];
+            amr_data.data_dim[1] = grid_dim[1];
+            amr_data.data_dim[2] = grid_dim[0];
+        } else {
+            amr_data.data_dim[0] = grid_dim[0];
+            amr_data.data_dim[1] = grid_dim[1];
+            amr_data.data_dim[2] = grid_dim[2];
+        }
+        amr_data.id = kGid;
+        amr_data.contiguous_in_x = field_list_[field_id].contiguous_in_x;
+        amr_data.data_dtype = field_list_[field_id].field_dtype;
+
+        // Get derived function pointer
+        void (*derived_func)(const int, const long*, const char*, yt_array*) = field_list_[field_id].derived_func;
+        if (derived_func == nullptr) {
+            std::string error = std::string("Derived function derived_func not set in field [ ") + field_name +
+                                std::string(" ] on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
+                                std::string(".\n");
+            return {DataStructureStatus::kDataStructureFailed, error};
+        }
+
+        // Allocate memory for data_ptr and generate data
+        long data_len = amr_data.data_dim[0] * amr_data.data_dim[1] * amr_data.data_dim[2];
+        amr_data.data_ptr = dtype_utilities::AllocateMemory(amr_data.data_dtype, data_len);
+        if (amr_data.data_ptr == nullptr) {
+            std::string error = std::string("Failed to allocate memory for (field_name, gid) = (") + field_name +
+                                std::string(", ") + std::to_string(kGid) + std::string(") on MPI rank ") +
+                                std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
+            return {DataStructureStatus::kDataStructureFailed, error};
+        }
+
+        // Call derived function to generate data
+        yt_array data_array[1];
+        data_array[0].gid = amr_data.id;
+        data_array[0].data_length = data_len;
+        data_array[0].data_ptr = amr_data.data_ptr;
+        int list_len = 1;
+        long list_gid[1] = {amr_data.id};
+        (*derived_func)(list_len, list_gid, field_name, data_array);
+
+        // Put in storage
+        storage.emplace_back(amr_data);
+    }
+
+    return {DataStructureStatus::kDataStructureSuccess, ""};
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
+// Public Method  :  GenerateParticleData
+//
+// Notes       :  1. Generate particle data based on grid id list and ptype and attr.
+//                2. Append the generated data in storage.
+//-------------------------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::GenerateParticleData(const std::vector<long>& gid_list, const char* ptype,
+                                                           const char* attr,
+                                                           std::vector<AmrDataArray1D>& storage) const {
+    return DataStructureOutput();
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Class          :  DataStructureAmr
 // Public Method  :  GetPythonBoundFullHierarchyGridDimensions
 //
 // Notes       :  1. Read the full hierarchy grid dimensions loaded in Python.

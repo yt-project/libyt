@@ -34,9 +34,12 @@ template class DataHub<AmrDataArray1D>;
 // Notes       :  1. Get local field data and cache it.
 //                2. The method is specific for AMR data defined in libyt.
 //                3. The method is designed to be called many times by user and fails fast.
+//                   Every time it is called, it will clear the cache.
 //                4. Can retrieve data type derived_func/cell-centered/face-centered.
+//                   And assume that the data type is the same.
 //                5. If the data retrival requires new allocation of data buffer (ex: derived function),
 //                   then it will be marked in is_new_allocation_list_. It will later be freed by ClearCache.
+//                   (TODO: do I need is_new_allocation_list_ to be a list?)
 //                6. TODO: The function is not tested yet
 //-------------------------------------------------------------------------------------------------------
 DataHubReturn<AmrDataArray3D> DataHubAmrDataArray3D::GetLocalFieldData(const DataStructureAmr& ds_amr,
@@ -55,62 +58,11 @@ DataHubReturn<AmrDataArray3D> DataHubAmrDataArray3D::GetLocalFieldData(const Dat
     }
 
     if (strcmp(field_list[field_id].field_type, "derived_func") == 0) {
-        for (const long& gid : grid_id_list) {
-            AmrDataArray3D amr_data{};
-
-            // Get amr grid info
-            int grid_dim[3];
-            DataStructureOutput status = ds_amr.GetPythonBoundFullHierarchyGridDimensions(gid, &grid_dim[0]);
-            if (status.status != DataStructureStatus::kDataStructureSuccess) {
-                error_str_ = status.error;
-                error_str_ += std::string("Failed to get grid dim for (field_name, gid) = (") + field_name +
-                              std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
-                              std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
-                return {DataHubStatus::kDataHubFailed, data_array_list_};
-            }
-            if (field_list[field_id].contiguous_in_x) {
-                amr_data.data_dim[0] = grid_dim[2];
-                amr_data.data_dim[1] = grid_dim[1];
-                amr_data.data_dim[2] = grid_dim[0];
-            } else {
-                amr_data.data_dim[0] = grid_dim[0];
-                amr_data.data_dim[1] = grid_dim[1];
-                amr_data.data_dim[2] = grid_dim[2];
-            }
-            amr_data.id = gid;
-            amr_data.contiguous_in_x = field_list[field_id].contiguous_in_x;
-            amr_data.data_dtype = field_list[field_id].field_dtype;
-
-            // Get derived function pointer
-            void (*derived_func)(const int, const long*, const char*, yt_array*) = field_list[field_id].derived_func;
-            if (derived_func == nullptr) {
-                error_str_ = std::string("Derived function derived_func not set in field [ ") + field_name +
-                             std::string(" ] on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
-                             std::string(".\n");
-                return {DataHubStatus::kDataHubFailed, data_array_list_};
-            }
-
-            // Allocate memory for data_ptr and generate data
-            long data_len = amr_data.data_dim[0] * amr_data.data_dim[1] * amr_data.data_dim[2];
-            amr_data.data_ptr = dtype_utilities::AllocateMemory(amr_data.data_dtype, data_len);
-            if (amr_data.data_ptr == nullptr) {
-                error_str_ = std::string("Failed to allocate memory for (field_name, gid) = (") + field_name +
-                             std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
-                             std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
-                return {DataHubStatus::kDataHubFailed, data_array_list_};
-            }
-            // TODO: test using OpenMP in derived_func and pass in a group of ids.
-            //       What would happen if we didn't compile libyt with OpenMP? (Time Profile This)
-            yt_array data_array[1];
-            data_array[0].gid = amr_data.id;
-            data_array[0].data_length = data_len;
-            data_array[0].data_ptr = amr_data.data_ptr;
-            int list_len = 1;
-            long list_gid[1] = {amr_data.id};
-            (*derived_func)(list_len, list_gid, field_name.c_str(), data_array);
-
-            is_new_allocation_list_.emplace_back(true);
-            data_array_list_.emplace_back(amr_data);
+        DataStructureOutput status = ds_amr.GenerateFieldData(grid_id_list, field_name.c_str(), data_array_list_);
+        is_new_allocation_list_.assign(data_array_list_.size(), true);
+        if (status.status != DataStructureStatus::kDataStructureSuccess) {
+            error_str_ = status.error;
+            return {DataHubStatus::kDataHubFailed, data_array_list_};
         }
     } else if (strcmp(field_list[field_id].field_type, "cell-centered") == 0 ||
                strcmp(field_list[field_id].field_type, "face-centered") == 0) {
