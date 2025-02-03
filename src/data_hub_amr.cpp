@@ -39,8 +39,7 @@ template class DataHub<AmrDataArray1D>;
 //                   And assume that the data type is the same.
 //                5. If the data retrival requires new allocation of data buffer (ex: derived function),
 //                   then it will be marked in is_new_allocation_list_. It will later be freed by ClearCache.
-//                   (TODO: do I need is_new_allocation_list_ to be a list?)
-//                6. TODO: The function is not tested yet
+//                6. TODO: not test it yet, only need this when doing memory leaking test.
 //-------------------------------------------------------------------------------------------------------
 DataHubReturn<AmrDataArray3D> DataHubAmrDataArray3D::GetLocalFieldData(const DataStructureAmr& ds_amr,
                                                                        const std::string& field_name,
@@ -111,7 +110,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmrDataArray3D::GetLocalFieldData(const Dat
 //                6. The order of grid_id_list passed in and the data_array_list_ is not necessarily the same.
 //                7. It first look for data in libyt.particle_data, if not found, it will call get_par_attr.
 //                   (TODO: this also shows it is a bad Api design.)
-//                8. TODO: The function is not tested yet
+//                8. TODO: not test it yet, only need this when doing memory leaking test.
 //-------------------------------------------------------------------------------------------------------
 DataHubReturn<AmrDataArray1D> DataHubAmrDataArray1D::GetLocalParticleData(const DataStructureAmr& ds_amr,
                                                                           const std::string& ptype,

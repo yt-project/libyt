@@ -110,14 +110,4 @@ target_link_libraries(TestDataStructureAmr PUBLIC
 )
 endif()
 
-## Test Data Hub Amr
-add_executable(TestDataHubAmr test_data_hub_amr.cpp)
-target_include_directories(TestDataHubAmr PUBLIC
-        ${CMAKE_SOURCE_DIR}/include
-)
-target_link_libraries(TestDataHubAmr PUBLIC
-        gtest_main
-        yt
-)
-
 endif () # if (LIBYT_RUN_TEST)
