@@ -1495,8 +1495,8 @@ int DataStructureAmr::GetParticleAttributeIndex(int particle_type_index, const c
 //                   TODO: How should I parallelize this using OpenMP?
 //                   TODO: What would happen if we didn't compile libyt with OpenMP? (Time Profile This)
 //-------------------------------------------------------------------------------------------------------
-DataStructureOutput DataStructureAmr::GenerateFieldData(const std::vector<long>& gid_list, const char* field_name,
-                                                        std::vector<AmrDataArray3D>& storage) const {
+DataStructureOutput DataStructureAmr::GenerateLocalFieldData(const std::vector<long>& gid_list, const char* field_name,
+                                                             std::vector<AmrDataArray3D>& storage) const {
     // Get field id
     int field_id = GetFieldIndex(field_name);
     if (field_id < 0) {
@@ -1574,9 +1574,9 @@ DataStructureOutput DataStructureAmr::GenerateFieldData(const std::vector<long>&
 //                3. Allocate new memory, and it is the callers responsibility to free it.
 //                4. TODO: Consider OpenMP, same question in field derived function.
 //-------------------------------------------------------------------------------------------------------
-DataStructureOutput DataStructureAmr::GenerateParticleData(const std::vector<long>& gid_list, const char* ptype,
-                                                           const char* attr,
-                                                           std::vector<AmrDataArray1D>& storage) const {
+DataStructureOutput DataStructureAmr::GenerateLocalParticleData(const std::vector<long>& gid_list, const char* ptype,
+                                                                const char* attr,
+                                                                std::vector<AmrDataArray1D>& storage) const {
     // Get particle id
     int ptype_index = GetParticleIndex(ptype);
     int pattr_index = GetParticleAttributeIndex(ptype_index, attr);
