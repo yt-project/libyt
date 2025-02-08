@@ -37,7 +37,7 @@ jobs:
           cache: 'pip'
       - run: |
           python -m pip install --upgrade pip
-          pip install numpy
+          pip install numpy mpi4py
 
       - name: Setup MPI ${{ matrix.mpi_compiler }} environment
         uses: mpi4py/setup-mpi@v1
@@ -68,14 +68,14 @@ jobs:
       - name: Run tests (MPI and RMA)
         working-directory: ${{ steps.strings.outputs.build-output-dir }}/test
         run: |
-          OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./TestCommMPI --colorful
+          OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./TestCommMPI
 
       - name: Run tests (PythonShell - MPI)
         working-directory: ${{ steps.strings.outputs.build-output-dir }}/test
         run: |
-          OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./TestPythonShellWithCommMPI --colorful
+          OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./TestPythonShellWithCommMPI
           
       - name: Run tests (DataStructure - MPI)
         working-directory: ${{ steps.strings.outputs.build-output-dir }}/test
         run: |
-          OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./TestDataStructureAmrWithCommMpi --colorful
+          OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./TestDataStructureAmrWithCommMpi
