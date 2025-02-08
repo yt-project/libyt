@@ -17,7 +17,7 @@ jobs:
   # TODO: need also serial test
   mpi-unit-test:
     name: Unit Test (MPI)
-    runs-on: ${{ matrix.platform.os }}
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
