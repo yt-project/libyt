@@ -3,20 +3,21 @@
 name: Example Test Run
 
 on:
-  push:
-    branches: [ main ]
-    paths-ignore:
-      - 'doc/**'
-      - '**.md'
-  pull_request:
-    branches: [ main ]
-    paths-ignore:
-      - 'doc/**'
-      - '**.md'
+#  push:
+#    branches: [ main ]
+#    paths-ignore:
+#      - 'doc/**'
+#      - '**.md'
+#  pull_request:
+#    branches: [ main ]
+#    paths-ignore:
+#      - 'doc/**'
+#      - '**.md'
   workflow_dispatch:
 
 jobs:
   example-test-run:
+    # TODO: don't use strategy matrix, test only one option. Since I'll be doing unit test.
     runs-on: ${{ matrix.platform.os }}
     strategy:
       fail-fast: false
