@@ -116,7 +116,6 @@ class TestCheckCodeValidity : public PythonFixture, public testing::WithParamInt
 class TestCheckCodeValidityAssumption : public PythonFixture, public testing::WithParamInterface<std::string> {};
 
 TEST_F(TestPythonExecution, AllExecutePrompt_can_execute_rvalue_empty_code) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
     // Arrange
     int src_mpi_rank = 0;
     int output_mpi_rank = 0;
@@ -154,11 +153,10 @@ TEST_F(TestPythonExecution, AllExecutePrompt_can_execute_rvalue_empty_code) {
 }
 
 TEST_F(TestPythonExecution, AllExecutePrompt_can_execute_a_valid_single_statement) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
     // Arrange
     int src_mpi_rank = 0;
     int output_mpi_rank = 0;
-    std::string src_code = "print('hello')";  // TODO: parameterize this
+    std::string src_code = "print('hello')";
     std::string expected_output = "hello\n";
 
     // Act
@@ -194,13 +192,12 @@ TEST_F(TestPythonExecution, AllExecutePrompt_can_execute_a_valid_single_statemen
 }
 
 TEST_F(TestPythonExecution, AllExecutePrompt_can_resolve_an_arbitrary_code) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
     // Arrange
     int src_mpi_rank = 0;
     int output_mpi_rank = 0;
     std::string src_code = "if True:\n"
                            "    print()\n"
-                           "print('hello')\n";  // TODO: parameterize this
+                           "print('hello')\n";
 
     // Act
     std::vector<PythonOutput> output;
@@ -230,11 +227,10 @@ TEST_F(TestPythonExecution, AllExecutePrompt_can_resolve_an_arbitrary_code) {
 }
 
 TEST_F(TestPythonExecution, AllExecutePrompt_can_resolve_an_invalid_single_statement) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
     // Arrange
     int src_mpi_rank = 0;
     int output_mpi_rank = 0;
-    std::string src_code = "print('hello'\n";  // TODO: parameterize this
+    std::string src_code = "print('hello'\n";
 
     // Act
     std::vector<PythonOutput> output;
@@ -264,10 +260,10 @@ TEST_F(TestPythonExecution, AllExecutePrompt_can_resolve_an_invalid_single_state
 }
 
 TEST_F(TestPythonExecution, AllExecuteFile_can_execute_a_valid_arbitrary_code) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
     // Arrange
     int src_mpi_rank = 0;
     int output_mpi_rank = 0;
+#ifndef SERIAL_MODE
     // TODO: probably should write a correct answer generator for the test
     std::string src_code = "\n"
                            "from mpi4py import MPI\n"
@@ -277,12 +273,22 @@ TEST_F(TestPythonExecution, AllExecuteFile_can_execute_a_valid_arbitrary_code) {
                            "\n"
                            "func(MPI.COMM_WORLD.Get_rank())\n"
                            "\n"
-                           "print('hello')\n";  // TODO: parameterize this
+                           "print('hello')\n";
     std::vector<std::string> expected_output;
     expected_output.reserve(GetMpiSize());
     for (int r = 0; r < GetMpiSize(); r++) {
         expected_output.emplace_back(std::to_string(r) + "\nhello\n");
     }
+#else
+    std::string src_code = "\n"
+                           "def func(number):\n"
+                           "    print(number)\n"
+                           "\n"
+                           "func(100)\n"
+                           "\n"
+                           "print('hello')\n";
+    std::vector<std::string> expected_output = {"100\nhello\n"};
+#endif
 
     // Act
     std::vector<PythonOutput> output;
@@ -317,10 +323,10 @@ TEST_F(TestPythonExecution, AllExecuteFile_can_execute_a_valid_arbitrary_code) {
 }
 
 TEST_F(TestPythonExecution, AllExecuteFile_can_resolve_an_invalid_arbitrary_code) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
     // Arrange
     int src_mpi_rank = 0;
     int output_mpi_rank = 0;
+#ifndef SERIAL_MODE
     // TODO: probably should write a correct answer generator for the test
     std::string src_code = "\n"
                            "from mpi4py import MPI\n"
@@ -330,12 +336,17 @@ TEST_F(TestPythonExecution, AllExecuteFile_can_resolve_an_invalid_arbitrary_code
                            "\n"
                            "func(MPI.COMM_WORLD.Get_rank())\n"
                            "\n"
-                           "print('hello')\n";  // TODO: parameterize this
-    std::vector<std::string> expected_output;
-    expected_output.reserve(GetMpiSize());
-    for (int r = 0; r < GetMpiSize(); r++) {
-        expected_output.emplace_back(std::to_string(r) + "\nhello\n");
-    }
+                           "print('hello')\n";
+#else
+    std::string src_code = "\n"
+                           ""
+                           "def func(number):\n"
+                           "    print(number\n"
+                           "\n"
+                           "func(100)\n"
+                           "\n"
+                           "print('hello')\n";
+#endif
 
     // Act
     std::vector<PythonOutput> output;
@@ -365,12 +376,11 @@ TEST_F(TestPythonExecution, AllExecuteFile_can_resolve_an_invalid_arbitrary_code
 }
 
 TEST_F(TestPythonExecution, AllExecuteCell_can_execute_empty_code) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
     // Arrange
     int src_mpi_rank = 0;
     int output_mpi_rank = 0;
     // TODO: probably should write a correct answer generator for the test
-    std::string src_code = "";  // TODO: parameterize this
+    std::string src_code = "";
     std::vector<std::string> expected_output(GetMpiSize(), "");
 
     // Act
@@ -406,10 +416,10 @@ TEST_F(TestPythonExecution, AllExecuteCell_can_execute_empty_code) {
 }
 
 TEST_F(TestPythonExecution, AllExecuteCell_can_execute_a_valid_arbitrary_code) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
     // Arrange
     int src_mpi_rank = 0;
     int output_mpi_rank = 0;
+#ifndef SERIAL_MODE
     // TODO: probably should write a correct answer generator for the test
     std::string src_code = "\n"
                            "from mpi4py import MPI\n"
@@ -419,12 +429,23 @@ TEST_F(TestPythonExecution, AllExecuteCell_can_execute_a_valid_arbitrary_code) {
                            "\n"
                            "func(MPI.COMM_WORLD.Get_rank())\n"
                            "\n"
-                           "print('hello')\n";  // TODO: parameterize this
+                           "print('hello')\n";
     std::vector<std::string> expected_output;
     expected_output.reserve(GetMpiSize());
     for (int r = 0; r < GetMpiSize(); r++) {
         expected_output.emplace_back(std::to_string(r) + "\nhello\n");
     }
+#else
+    std::string src_code = "\n"
+                           ""
+                           "def func(number):\n"
+                           "    print(number)\n"
+                           "\n"
+                           "func(100)\n"
+                           "\n"
+                           "print('hello')\n";
+    std::vector<std::string> expected_output = {"100\nhello\n"};
+#endif
 
     // Act
     std::vector<PythonOutput> output;
@@ -459,10 +480,10 @@ TEST_F(TestPythonExecution, AllExecuteCell_can_execute_a_valid_arbitrary_code) {
 }
 
 TEST_F(TestPythonExecution, AllExecuteCell_can_resolve_an_invalid_arbitrary_code) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
     // Arrange
     int src_mpi_rank = 0;
     int output_mpi_rank = 0;
+#ifndef SERIAL_MODE
     // TODO: probably should write a correct answer generator for the test
     std::string src_code = "\n"
                            "from mpi4py import MPI\n"
@@ -472,12 +493,17 @@ TEST_F(TestPythonExecution, AllExecuteCell_can_resolve_an_invalid_arbitrary_code
                            "\n"
                            "func(MPI.COMM_WORLD.Get_rank())\n"
                            "\n"
-                           "print('hello')\n";  // TODO: parameterize this
-    std::vector<std::string> expected_output;
-    expected_output.reserve(GetMpiSize());
-    for (int r = 0; r < GetMpiSize(); r++) {
-        expected_output.emplace_back(std::to_string(r) + "\nhello\n");
-    }
+                           "print('hello')\n";
+#else
+    std::string src_code = "\n"
+                           ""
+                           "def func(number):\n"
+                           "    print(number\n"
+                           "\n"
+                           "func(100)\n"
+                           "\n"
+                           "print('hello')\n";
+#endif
 
     // Act
     std::vector<PythonOutput> output;
@@ -507,8 +533,6 @@ TEST_F(TestPythonExecution, AllExecuteCell_can_resolve_an_invalid_arbitrary_code
 }
 
 TEST_P(TestCheckCodeValidity, Can_distinguish_user_not_done_yet_error) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
-
     // Arrange
     std::string not_done_code = GetParam();
 
