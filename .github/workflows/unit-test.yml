@@ -30,6 +30,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup MPI ${{ matrix.mpi_compiler }} environment
+        uses: mpi4py/setup-mpi@v1
+        with:
+          mpi: ${{ matrix.mpi_compiler }}
+
       - name: Setup Python ${{ matrix.python_version }} environment
         uses: actions/setup-python@v5
         with:
@@ -38,11 +43,6 @@ jobs:
       - run: |
           python -m pip install --upgrade pip
           pip install numpy mpi4py
-
-      - name: Setup MPI ${{ matrix.mpi_compiler }} environment
-        uses: mpi4py/setup-mpi@v1
-        with:
-          mpi: ${{ matrix.mpi_compiler }}
 
       - name: Install other dependencies
         run: |
