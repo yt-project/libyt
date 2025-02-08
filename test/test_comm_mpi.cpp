@@ -33,7 +33,6 @@ TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_yt_hierarchy) {
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
-    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     DataStructureAmr ds_amr;
     DataStructureAmr::SetMpiInfo(mpi_size, mpi_root, mpi_rank);
     MPI_Datatype mpi_datatype = ds_amr.GetMpiHierarchyDataType();
@@ -86,7 +85,6 @@ TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_AmrDataArray3D) {
     // Arrange
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
-    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     CommMpiRmaAmrDataArray3D rma("test", "test");
     MPI_Datatype mpi_datatype = rma.GetMpiDataType();
 
@@ -135,7 +133,6 @@ TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_AmrDataArray1D) {
     // Arrange
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
-    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     CommMpiRmaAmrDataArray1D rma("test", "test");
     MPI_Datatype mpi_datatype = rma.GetMpiDataType();
 
@@ -179,7 +176,6 @@ TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_MpiRmaAddress) {
     // Arrange
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
-    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     CommMpiRmaAmrDataArray3D rma("test", "test");
     MPI_Datatype mpi_datatype = rma.GetMpiAddressDataType();
 
@@ -218,7 +214,6 @@ TEST_F(TestBigMpi, Big_MPI_Gatherv_with_yt_hierarchy) {
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
-    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     DataStructureAmr ds_amr;
     DataStructureAmr::SetMpiInfo(mpi_size, mpi_root, mpi_rank);
     MPI_Datatype mpi_datatype = ds_amr.GetMpiHierarchyDataType();
@@ -277,7 +272,6 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray3D) {
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
-    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     CommMpiRmaAmrDataArray3D rma("test", "test");
     MPI_Datatype mpi_datatype = rma.GetMpiDataType();
 
@@ -332,7 +326,6 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray1D) {
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
-    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     CommMpiRmaAmrDataArray1D rma("test", "test");
     MPI_Datatype mpi_datatype = rma.GetMpiDataType();
 
@@ -383,7 +376,6 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_MpiRmaAddress) {
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
-    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     CommMpiRmaAmrDataArray3D rma("test", "test");
     MPI_Datatype mpi_datatype = rma.GetMpiAddressDataType();
 
@@ -427,7 +419,6 @@ TEST_F(TestBigMpi, Big_MPI_Bcast_with_yt_hierarchy) {
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
-    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     DataStructureAmr ds_amr;
     DataStructureAmr::SetMpiInfo(mpi_size, mpi_root, mpi_rank);
     MPI_Datatype mpi_datatype = ds_amr.GetMpiHierarchyDataType();
@@ -474,7 +465,6 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray3D) {
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
-    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     CommMpiRmaAmrDataArray3D rma("test", "test");
     MPI_Datatype mpi_datatype = rma.GetMpiDataType();
 
@@ -517,7 +507,6 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray1D) {
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
-    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     CommMpiRmaAmrDataArray1D rma("test", "test");
     MPI_Datatype mpi_datatype = rma.GetMpiDataType();
 
@@ -554,7 +543,6 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_MpiRmaAddress) {
     int mpi_size = CommMpi::mpi_size_;
     int mpi_rank = CommMpi::mpi_rank_;
     int mpi_root = CommMpi::mpi_root_;
-    std::cout << "mpi_size = " << mpi_size << ", " << "mpi_rank = " << mpi_rank << std::endl;
     CommMpiRmaAmrDataArray3D rma("test", "test");
     MPI_Datatype mpi_datatype = rma.GetMpiAddressDataType();
 
