@@ -68,14 +68,14 @@ jobs:
       - name: Run tests (MPI and RMA)
         working-directory: ${{ steps.strings.outputs.build-output-dir }}/test
         run: |
-          mpirun -np 3 ./TestCommMPI
+          OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./TestCommMPI --colorful
 
       - name: Run tests (PythonShell - MPI)
         working-directory: ${{ steps.strings.outputs.build-output-dir }}/test
         run: |
-          mpirun -np 3 ./TestPythonShellWithCommMPI
+          OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./TestPythonShellWithCommMPI --colorful
           
       - name: Run tests (DataStructure - MPI)
         working-directory: ${{ steps.strings.outputs.build-output-dir }}/test
         run: |
-          mpirun -np 3 ./TestDataStructureAmrWithCommMpi
+          OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./TestDataStructureAmrWithCommMpi --colorful
