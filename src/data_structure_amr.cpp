@@ -14,7 +14,7 @@ int DataStructureAmr::mpi_size_;
 int DataStructureAmr::mpi_root_;
 int DataStructureAmr::mpi_rank_;
 #ifndef SERIAL_MODE
-MPI_Datatype DataStructureAmr::mpi_hierarchy_data_type_ = nullptr;
+MPI_Datatype DataStructureAmr::mpi_hierarchy_data_type_ = 0;
 #endif
 
 //-------------------------------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ void DataStructureAmr::SetPythonBindings(PyObject* py_hierarchy, PyObject* py_gr
 
 void DataStructureAmr::InitializeMpiHierarchyDataType() {
 #ifndef SERIAL_MODE
-    if (DataStructureAmr::mpi_hierarchy_data_type_ != nullptr) {
+    if (DataStructureAmr::mpi_hierarchy_data_type_ != 0) {
         return;
     }
 

@@ -42,9 +42,9 @@ MPI_Datatype YtDtype2MpiDtype(yt_dtype data_type) {
         case YT_ULONGLONG:
             return MPI_UNSIGNED_LONG_LONG;
         case YT_DTYPE_UNKNOWN:
-            return nullptr;
+            return 0;
         default:
-            return nullptr;
+            return 0;
     }
 }
 #endif  // #ifndef SERIAL_MODE

@@ -1,13 +1,15 @@
 #ifndef SERIAL_MODE
 #include "comm_mpi_rma.h"
 
+#include <cstddef>
+
 #include "big_mpi.h"
 #include "comm_mpi.h"
 #include "dtype_utilities.h"
 #include "timer.h"
 
 template<typename DataClass>
-MPI_Datatype CommMpiRma<DataClass>::mpi_rma_data_type_ = nullptr;
+MPI_Datatype CommMpiRma<DataClass>::mpi_rma_data_type_ = 0;
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  CallBigMpiGetBasedOnYtDtype
@@ -70,7 +72,7 @@ CommMpiRma<DataClass>::CommMpiRma(const std::string& data_group_name, const std:
 
 template<typename DataClass>
 void CommMpiRma<DataClass>::InitializeMpiAddressDataType() {
-    if (mpi_rma_data_type_ != nullptr) {
+    if (mpi_rma_data_type_ != 0) {
         return;
     }
     int lengths[2] = {1, 1};
@@ -427,8 +429,8 @@ CommMpiRmaStatus CommMpiRma<DataClass>::CleanUp(const std::vector<DataClass>& pr
 
 template class CommMpiRma<AmrDataArray3D>;
 template class CommMpiRma<AmrDataArray1D>;
-MPI_Datatype CommMpiRmaAmrDataArray3D::mpi_data_type_ = nullptr;
-MPI_Datatype CommMpiRmaAmrDataArray1D::mpi_data_type_ = nullptr;
+MPI_Datatype CommMpiRmaAmrDataArray3D::mpi_data_type_ = 0;
+MPI_Datatype CommMpiRmaAmrDataArray1D::mpi_data_type_ = 0;
 
 //-------------------------------------------------------------------------------------------------------
 // Class          :  CommMpiRmaAmrDataArray3D
@@ -485,7 +487,7 @@ CommMpiRmaAmrDataArray3D::CommMpiRmaAmrDataArray3D(const std::string& data_group
 // Notes          :  1. Initialize custom mpi data type for AmrDataArray3D.
 //-------------------------------------------------------------------------------------------------------
 void CommMpiRmaAmrDataArray3D::InitializeMpiDataType() {
-    if (mpi_data_type_ != nullptr) {
+    if (mpi_data_type_ != 0) {
         return;
     }
 
@@ -549,7 +551,7 @@ CommMpiRmaAmrDataArray1D::CommMpiRmaAmrDataArray1D(const std::string& data_group
 // Notes          :  1. Initialize custom mpi data type for AmrDataArray1D.
 //-------------------------------------------------------------------------------------------------------
 void CommMpiRmaAmrDataArray1D::InitializeMpiDataType() {
-    if (mpi_data_type_ != nullptr) {
+    if (mpi_data_type_ != 0) {
         return;
     }
 
