@@ -4,6 +4,8 @@
 #include "comm_mpi.h"
 #endif
 
+#include <cstddef>
+
 #include "dtype_utilities.h"
 #include "numpy_controller.h"
 #ifdef USE_PYBIND11
