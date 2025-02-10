@@ -40,7 +40,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python_version }}
-          cache: 'pip'
+#          cache: 'pip'
       - run: |
           python -m pip install --upgrade pip
           pip install numpy mpi4py
