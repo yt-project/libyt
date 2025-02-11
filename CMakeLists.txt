@@ -49,7 +49,7 @@ if (NOT SERIAL_MODE)
 endif ()
 
 ## sub directory ##
-add_subdirectory(vendor)                    # for vendoring
+add_subdirectory(vendor)                    # for vendoring and third-party libraries
 add_subdirectory(src)                       # for library
 add_subdirectory(share)                     # for share
 add_subdirectory(example)                   # for example exe

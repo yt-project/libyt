@@ -1,4 +1,3 @@
-if (LIBYT_RUN_TEST)
 include(FetchContent)
 
 # Getting dependencies
@@ -105,5 +104,3 @@ target_link_libraries(TestDataStructureAmr PUBLIC
         yt
 )
 endif()
-
-endif () # if (LIBYT_RUN_TEST)
