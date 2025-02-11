@@ -26,7 +26,9 @@ jobs:
         os: ['ubuntu-latest']
         mpi_compiler: ['openmpi', 'mpich']
         python_version: ['3.10']
-        build_options: ["-DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=ON", "-DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=OFF"]
+        build_options:
+          - "-DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=ON"
+          - "-DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=OFF"
 
     steps:
       - uses: actions/checkout@v4
@@ -99,7 +101,9 @@ jobs:
       matrix:
         os: ['ubuntu-latest']
         python_version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
-        build_options: ["-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=ON", "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=OFF"]
+        build_options:
+          - "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=ON"
+          - "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=OFF"
         include:
           - os: ubuntu-20.04
             python_version: '3.7'
