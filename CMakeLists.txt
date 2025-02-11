@@ -8,7 +8,7 @@ option(SERIAL_MODE       "Compile library for serial process"                   
 option(INTERACTIVE_MODE  "Use interactive mode"                                                               OFF)
 option(JUPYTER_KERNEL    "Use Jupyter notebook interface"                                                     OFF)
 option(SUPPORT_TIMER     "Support time profiling"                                                             OFF)
-option(USE_PYBIND11      "Use pybind11"                                                                       ON )
+option(USE_PYBIND11      "Use pybind11"                                                                       OFF)
 
 ## set paths ##
 # It is recommended that we always provide PYTHON_PATH and MPI_PATH.
