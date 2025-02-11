@@ -47,7 +47,7 @@ endif ()
 # include dir
 target_include_directories(yt PRIVATE
         ${PROJECT_SOURCE_DIR}/include
-        $<$<NOT:$<BOOL:${SERIAL_MODE}>>:${MPI_INCLUDE_PATH}>
+        $<$<NOT:$<BOOL:${SERIAL_MODE}>>:${MPI_CXX_INCLUDE_DIRS}>
         ${Python_INCLUDE_DIRS}
         $<$<BOOL:${INTERACTIVE_MODE}>:${Readline_INCLUDE_DIR}>
 )
