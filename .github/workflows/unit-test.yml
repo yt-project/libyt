@@ -78,17 +78,17 @@ jobs:
           cmake --build ${{ steps.strings.outputs.build-output-dir }}
 
       - name: Run test (MPI and RMA)
-        working-directory: ${{ steps.strings.outputs.build-output-dir }}/test
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}/test/unit_test
         run: |
           OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./TestCommMPI
 
       - name: Run test (PythonShell - MPI)
-        working-directory: ${{ steps.strings.outputs.build-output-dir }}/test
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}/test/unit_test
         run: |
           OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./TestPythonShellWithCommMPI
           
       - name: Run test (DataStructure - MPI)
-        working-directory: ${{ steps.strings.outputs.build-output-dir }}/test
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}/test/unit_test
         run: |
           OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./TestDataStructureAmrWithCommMpi
 
@@ -147,16 +147,16 @@ jobs:
           cmake --build ${{ steps.strings.outputs.build-output-dir }}
 
       - name: Run test (NumPyController)
-        working-directory: ${{ steps.strings.outputs.build-output-dir }}/test
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}/test/unit_test
         run: |
           ./TestNumPyController
 
       - name: Run test (PythonShell)
-        working-directory: ${{ steps.strings.outputs.build-output-dir }}/test
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}/test/unit_test
         run: |
           ./TestPythonShell
 
       - name: Run test (DataStructureAmr)
-        working-directory: ${{ steps.strings.outputs.build-output-dir }}/test
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}/test/unit_test
         run: |
           ./TestDataStructureAmr
