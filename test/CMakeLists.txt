@@ -28,7 +28,7 @@ include(GoogleTest)
 if (NOT SERIAL_MODE)
 add_executable(TestCommMPI test_comm_mpi.cpp)
 target_include_directories(TestCommMPI PUBLIC
-    ${MPI_INCLUDE_PATH}
+    ${MPI_CXX_INCLUDE_DIRS}
     ${Python_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/include
 )
@@ -58,7 +58,7 @@ if (INTERACTIVE_MODE OR JUPYTER_KERNEL)
 if (NOT SERIAL_MODE)
 add_executable(TestPythonShellWithCommMPI test_python_shell.cpp)
 target_include_directories(TestPythonShellWithCommMPI PUBLIC
-    ${MPI_INCLUDE_PATH}
+    ${MPI_CXX_INCLUDE_DIRS}
     ${Python_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/include
 )
@@ -87,7 +87,7 @@ endif ()
 if (NOT SERIAL_MODE)
 add_executable(TestDataStructureAmrWithCommMpi test_data_structure_amr.cpp)
 target_include_directories(TestDataStructureAmrWithCommMpi PUBLIC
-    ${MPI_INCLUDE_PATH}
+    ${MPI_CXX_INCLUDE_DIRS}
     ${Python_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/include
 )

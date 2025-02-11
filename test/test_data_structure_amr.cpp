@@ -114,8 +114,6 @@ class TestDataStructureAmrBindLocalData : public PythonFixture, public testing::
 class TestDataStructureAmrGenerateLocalData : public PythonFixture, public testing::WithParamInterface<int> {};
 
 TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_field_info_to_Python) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
-
     // Arrange
     DataStructureAmr ds_amr;
     ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
@@ -158,8 +156,6 @@ TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_field_info_to_Python)
 }
 
 TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_particle_info_to_Python) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
-
     // Arrange
     DataStructureAmr ds_amr;
     ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
@@ -217,8 +213,6 @@ TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_particle_info_to_Pyth
 }
 
 TEST_P(TestDataStructureAmrBindHierarchy, Can_gather_local_hierarchy_and_bind_all_hierarchy_to_Python) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
-
     // Arrange
     DataStructureAmr ds_amr;
     ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
@@ -305,8 +299,6 @@ TEST_P(TestDataStructureAmrBindHierarchy, Can_gather_local_hierarchy_and_bind_al
 }
 
 TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_field_data_to_Python) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
-
     // Arrange
     DataStructureAmr ds_amr;
     ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
@@ -377,8 +369,6 @@ TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_field_data_to_Python) {
 }
 
 TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_particle_data_to_Python) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
-
     // Arrange
     DataStructureAmr ds_amr;
     ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
@@ -463,8 +453,6 @@ TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_particle_data_to_Python
 }
 
 TEST_P(TestDataStructureAmrGenerateLocalData, Can_generate_derived_field_data) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
-
     // Arrange
     DataStructureAmr ds_amr;
     ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
@@ -519,8 +507,6 @@ TEST_P(TestDataStructureAmrGenerateLocalData, Can_generate_derived_field_data) {
 }
 
 TEST_P(TestDataStructureAmrGenerateLocalData, Can_generate_particle_data) {
-    std::cout << "mpi_size = " << GetMpiSize() << ", mpi_rank = " << GetMpiRank() << std::endl;
-
     // Arrange
     DataStructureAmr ds_amr;
     ds_amr.SetPythonBindings(GetPyHierarchy(), GetPyGridData(), GetPyParticleData());
