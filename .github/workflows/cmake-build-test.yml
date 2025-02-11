@@ -17,19 +17,19 @@ on:
 
 jobs:
   cmake-build-test:
-    name: CMake Build Options Test
-    runs-on: ${{ matrix.os }}
+    name: CMake Build Options Test (${{ matrix.platform.os }})
+    runs-on: ${{ matrix.platform.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        mpi_compiler: ['openmpi']
-        python_version: ['3.10']
-        include:
+        platform:
           - os: 'ubuntu-latest'
             install_dep_command: 'sudo apt-get install -y libreadline-dev'
           - os: 'macos-latest'
             install_dep_command: 'brew install readline'
+        mpi_compiler: ['openmpi']
+        python_version: ['3.10']
 
     steps:
       - uses: actions/checkout@v4
@@ -51,13 +51,13 @@ jobs:
 
       - name: Install other dependencies
         run: |
-          ${{ matrix.install_dep_command }}
+          ${{ matrix.platform.install_dep_command }}
 
       - name: Set reusable strings
         id: strings
         shell: bash
         run: |
-          echo "install-prefix=~/libyt-install" >> "$GITHUB_OUTPUT"
+          echo "install-prefix=${{ github.workspace }}/libyt-install" >> "$GITHUB_OUTPUT"
 
       - name: Test Option -DUSE_PYBIND11=ON
         run: |
