@@ -1,6 +1,6 @@
 # Test if libyt can build with different options, download dependencies, and install and link correctly.
 
-name: CMake Build Options on Different Platforms Test
+name: Build Options on Different Platforms
 
 on:
   push:
@@ -43,7 +43,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python_version }}
-          allow-prereleases: true
           cache: 'pip'
       - run: |
           python -m pip install --upgrade pip
