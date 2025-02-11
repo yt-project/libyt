@@ -1,63 +1,72 @@
 # Test if libyt can build with different options, download dependencies, and install and link correctly.
 
-name: CMake Build Test
+name: CMake Build Options Test
 
 on:
-#  push:
-#    branches: [ main ]
-#    paths-ignore:
-#      - 'doc/**'
-#      - '**.md'
-#  pull_request:
-#    branches: [ main ]
-#    paths-ignore:
-#      - 'doc/**'
-#      - '**.md'
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'doc/**'
+      - '**.md'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - 'doc/**'
+      - '**.md'
   workflow_dispatch:
 
 jobs:
   cmake-build-test:
-    runs-on: ${{ matrix.platform.os }}
+    name: CMake Build Options Test
+    runs-on: ${{ matrix.os }}
+
     strategy:
       fail-fast: false
       matrix:
-        platform:
-          - os: ubuntu-latest
-            mpi: 'openmpi'
-            install_deps: brew install readline
-          - os: macos
-            mpi: 'mpich'
-            install_deps: sudo apt-get install readline
-        python-version: [ '3.7', '3.8', '3.9', '3.10', '3.11', '3.12' ]
+        mpi_compiler: ['openmpi']
+        python_version: ['3.10']
+        include:
+          - os: 'ubuntu-latest'
+            install_dep_command: 'sudo apt-get install -y libreadline-dev'
+          - os: 'macos-latest'
+            install_dep_command: 'brew install readline'
 
     steps:
-      - name: Checkout libyt repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: CMake Version
-        run: cmake --version
+      - name: Setup MPI ${{ matrix.mpi_compiler }} environment
+        uses: mpi4py/setup-mpi@v1
+        with:
+          mpi: ${{ matrix.mpi_compiler }}
 
-      - name: Setup Python ${{ matrix.python-version }} environment
+      - name: Setup Python ${{ matrix.python_version }} environment
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python_version }}
+          allow-prereleases: true
           cache: 'pip'
       - run: |
           python -m pip install --upgrade pip
           pip install numpy
 
-      - name: Setup MPI environment
-        uses: mpi4py/setup-mpi@v1
-        with:
-          mpi: ${{ matrix.platform.mpi }}
-
       - name: Install other dependencies
         run: |
-          ${{ matrix.platform.install_deps }}
+          ${{ matrix.install_dep_command }}
 
-      - name: Update GitHub Environment Variables
+      - name: Set reusable strings
+        id: strings
+        shell: bash
         run: |
-          echo "LIBYT_TEST_INSTALL_FOLDER=${{ github.workspace }}/libyt_installation" >> $GITHUB_ENV
+          echo "install-prefix=~/libyt-install" >> "$GITHUB_OUTPUT"
+
+      - name: Test Option -DUSE_PYBIND11=ON
+        run: |
+          cd ${{ github.workspace }}
+          rm -rf build
+          cmake -B build -S . -DUSE_PYBIND11=ON
+          cmake --build build
+          cmake --install build --prefix "${{ steps.strings.outputs.install-prefix }}/libyt-use_pybind11-on"
+          cd "${{ steps.strings.outputs.install-prefix }}/libyt-use_pybind11-on"
 
       - name: Test Option -DSERIAL_MODE=ON
         run: | 
@@ -65,8 +74,8 @@ jobs:
           rm -rf build
           cmake -B build -S . -DSERIAL_MODE=ON
           cmake --build build
-          cmake --install build --prefix "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-serial-on"
-          cd "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-serial-on"
+          cmake --install build --prefix "${{ steps.strings.outputs.install-prefix }}/libyt-serial-on"
+          cd "${{ steps.strings.outputs.install-prefix }}/libyt-serial-on"
 
       - name: Test Option -DINTERACTIVE_MODE=ON
         run: | 
@@ -74,8 +83,8 @@ jobs:
           rm -rf build
           cmake -B build -S . -DINTERACTIVE_MODE=ON
           cmake --build build
-          cmake --install build --prefix "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-interactive-on"
-          cd "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-interactive-on"
+          cmake --install build --prefix "${{ steps.strings.outputs.install-prefix }}/libyt-interactive-on"
+          cd "${{ steps.strings.outputs.install-prefix }}/libyt-interactive-on"
 
       - name: Test Option -DJUPYTER_KERNEL=ON
         run: |
@@ -83,8 +92,8 @@ jobs:
           rm -rf build
           cmake -B build -S . -DJUPYTER_KERNEL=ON
           cmake --build build
-          cmake --install build --prefix "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-jupyter-on"
-          cd "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-jupyter-on"
+          cmake --install build --prefix "${{ steps.strings.outputs.install-prefix }}/libyt-jupyter-on"
+          cd "${{ steps.strings.outputs.install-prefix }}/libyt-jupyter-on"
 
       - name: Test Option -DSUPPORT_TIMER=ON
         run: |
@@ -92,5 +101,5 @@ jobs:
           rm -rf build
           cmake -B build -S . -DSUPPORT_TIMER=ON
           cmake --build build
-          cmake --install build --prefix "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-timer-on"
-          cd "${{ env.LIBYT_TEST_INSTALL_FOLDER }}/libyt-timer-on"
+          cmake --install build --prefix "${{ steps.strings.outputs.install-prefix }}/libyt-timer-on"
+          cd "${{ steps.strings.outputs.install-prefix }}/libyt-timer-on"
