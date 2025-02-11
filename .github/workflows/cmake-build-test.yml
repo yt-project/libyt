@@ -1,6 +1,6 @@
 # Test if libyt can build with different options, download dependencies, and install and link correctly.
 
-name: CMake Build Options Test
+name: CMake Build Options on Different Platforms Test
 
 on:
   push:
@@ -17,7 +17,7 @@ on:
 
 jobs:
   cmake-build-test:
-    name: CMake Build Options Test (${{ matrix.platform.os }})
+    name: Build Test (${{ matrix.platform.os }})
     runs-on: ${{ matrix.platform.os }}
 
     strategy:
@@ -25,7 +25,7 @@ jobs:
       matrix:
         platform:
           - os: 'ubuntu-latest'
-            install_dep_command: 'sudo apt-get install -y libreadline-dev'
+            install_dep_command: 'sudo apt-get install -y libreadline-dev uuid-dev'
           - os: 'macos-latest'
             install_dep_command: 'brew install readline'
         mpi_compiler: ['openmpi']
