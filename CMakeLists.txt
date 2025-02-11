@@ -36,7 +36,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(BUILD_SHARED_LIBS "Building using shared libraries"                                                    ON )
 
 # run test ##
-option(LIBYT_RUN_TEST    "Run unit test"                                                                      OFF)
+option(LIBYT_RUN_TEST                "Run unit test"                                                          OFF)
+option(LIBYT_RUN_MEMORY_PROFILE      "Run memory profile"                                                     OFF)
 
 ## set path for dependencies ##
 set(Python_ROOT_DIR ${PYTHON_PATH})
@@ -45,9 +46,6 @@ if (USE_PYBIND11)
 endif ()
 if (NOT SERIAL_MODE)
     set(MPI_HOME ${MPI_PATH})
-endif ()
-if (LIBYT_RUN_TEST)
-    include(CTest)
 endif ()
 
 ## sub directory ##

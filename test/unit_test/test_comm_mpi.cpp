@@ -570,7 +570,6 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_MpiRmaAddress) {
 }
 
 TEST_F(TestUtility, SetAllNumGridsLocal_can_work) {
-    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     int num_grids_local = CommMpi::mpi_rank_;
     int* all_num_grids_local = new int[CommMpi::mpi_size_];
@@ -588,7 +587,6 @@ TEST_F(TestUtility, SetAllNumGridsLocal_can_work) {
 }
 
 TEST_F(TestUtility, CheckAllStates_can_check_all_status_is_in_desired_state) {
-    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     int local_state = 1;
     int desired_state = 1;
@@ -603,7 +601,6 @@ TEST_F(TestUtility, CheckAllStates_can_check_all_status_is_in_desired_state) {
 }
 
 TEST_F(TestUtility, SetStringUsingValueOnRank_can_sync_string_on_all_ranks) {
-    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     std::string sync_string;
     int src_mpi_rank = 0;  // TODO: make it parameterized
@@ -619,7 +616,6 @@ TEST_F(TestUtility, SetStringUsingValueOnRank_can_sync_string_on_all_ranks) {
 }
 
 TEST_F(TestUtility, GatherAllStringsToRank_can_gather_all_strings_to_dest_rank) {
-    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     std::vector<std::string> all_strings;
     std::string src_string = "def func():\n    pass\n";  // TODO: make it parameterized
@@ -640,7 +636,6 @@ TEST_F(TestUtility, GatherAllStringsToRank_can_gather_all_strings_to_dest_rank) 
 }
 
 TEST_F(TestUtility, GatherAllIntsToRank_can_gather_all_ints_to_dest_rank) {
-    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     std::vector<int> all_ints;
     int src_int = CommMpi::mpi_rank_;  // TODO: make it parameterized
@@ -661,7 +656,6 @@ TEST_F(TestUtility, GatherAllIntsToRank_can_gather_all_ints_to_dest_rank) {
 }
 
 TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_distribute_data) {
-    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     std::vector<AmrDataArray3D> prepared_data_list;
     std::vector<CommMpiRmaQueryInfo> fetch_id_list;
@@ -699,7 +693,6 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_distribute_data) {
 }
 
 TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_handle_nullptr) {
-    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     std::vector<AmrDataArray3D> prepared_data_list;
     std::vector<CommMpiRmaQueryInfo> fetch_id_list;
@@ -732,7 +725,6 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_handle_nullptr) {
 }
 
 TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_handle_prepared_data_unable_to_wrap_error) {
-    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     std::vector<AmrDataArray3D> prepared_data_list;
     std::vector<CommMpiRmaQueryInfo> fetch_id_list;
@@ -777,7 +769,6 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_handle_prepared_data_unable_t
 }
 
 TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_handle_fetch_id_not_found_error) {
-    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     std::vector<AmrDataArray3D> prepared_data_list;
     std::vector<CommMpiRmaQueryInfo> fetch_id_list;
@@ -820,7 +811,6 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray3D_can_handle_fetch_id_not_found_err
 }
 
 TEST_F(TestRma, CommMpiRma_with_AmrDataArray1D_can_distribute_data) {
-    std::cout << "mpi_size = " << CommMpi::mpi_size_ << ", " << "mpi_rank = " << CommMpi::mpi_rank_ << std::endl;
     // Arrange
     std::vector<AmrDataArray1D> prepared_data_list;
     std::vector<CommMpiRmaQueryInfo> fetch_id_list;
