@@ -22,8 +22,6 @@ endif ()
 # Test scripts and discover tests
 include(GoogleTest)
 
-# TODO: need to use gtest_discover_tests() to run all tests
-
 ## Test Comm MPI
 if (NOT SERIAL_MODE)
 add_executable(TestCommMPI test_comm_mpi.cpp)
@@ -38,7 +36,6 @@ target_link_libraries(TestCommMPI PUBLIC
     ${Python_LIBRARIES}
     yt
 )
-gtest_discover_tests(TestCommMPI)
 endif ()
 
 ## Test NumPy
@@ -68,7 +65,6 @@ target_link_libraries(TestPythonShellWithCommMPI PUBLIC
     ${Python_LIBRARIES}
     yt
 )
-gtest_discover_tests(TestPythonShellWithCommMPI)
 else ()
 add_executable(TestPythonShell test_python_shell.cpp)
 target_include_directories(TestPythonShell PUBLIC
