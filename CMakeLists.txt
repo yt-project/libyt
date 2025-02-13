@@ -36,6 +36,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(BUILD_SHARED_LIBS "Building using shared libraries"                                                    ON )
 
 # run test ##
+set(VALGRIND_PATH     "" CACHE PATH "Path to valgrind installation prefix (-DLIBYT_RUN_MEMORY_PROFILE=ON)")
+
 option(LIBYT_RUN_TEST                "Run unit test"                                                          OFF)
 option(LIBYT_RUN_MEMORY_PROFILE      "Run memory profile"                                                     OFF)
 
@@ -49,7 +51,7 @@ if (NOT SERIAL_MODE)
 endif ()
 
 ## sub directory ##
-add_subdirectory(vendor)                    # for vendoring
+add_subdirectory(vendor)                    # for vendoring and third-party libraries
 add_subdirectory(src)                       # for library
 add_subdirectory(share)                     # for share
 add_subdirectory(example)                   # for example exe
