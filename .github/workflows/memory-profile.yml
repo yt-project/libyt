@@ -44,16 +44,18 @@ jobs:
         shell: bash
         run: |
           echo "build-output-dir=build-memprof" >> "$GITHUB_OUTPUT"
+          echo "valgrind-install-prefix=$HOME/softwares/valgrind-3.22.0" >> "$GITHUB_OUTPUT"
 
       - name: Get valgrind-3.22.0 from source
         run: |
-          cd ${{ github.workspace }}
-          cd ..
+          cd $HOME
+          mkdir packages softwares
+          cd packages
           git clone --depth 1 --branch VALGRIND_3_22_0 git://sourceware.org/git/valgrind.git 
           cd valgrind
           ./autogen.sh
           ./configure --prefix=${{ steps.strings.outputs.valgrind-install-prefix }}
-          make -j4
+          make
           make install
           tree ${{ steps.strings.outputs.valgrind-install-prefix }}
 
