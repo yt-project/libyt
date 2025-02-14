@@ -54,3 +54,5 @@ target_include_directories(MemoryProfile PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
 endif ()
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_memory_profile.py ${CMAKE_CURRENT_BINARY_DIR}/test_memory_profile.py COPYONLY)
