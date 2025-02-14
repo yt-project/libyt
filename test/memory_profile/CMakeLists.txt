@@ -35,7 +35,6 @@ if (NOT SERIAL_MODE)
 add_executable(MpiMemoryProfile memory_profile.cpp)
 target_link_libraries(MpiMemoryProfile PRIVATE
     MPI::MPI_CXX
-    ${Valgrind_LIBRARY} ${Valgrind_LIBFLAGS}
     yt
 )
 target_include_directories(MpiMemoryProfile PRIVATE
@@ -46,7 +45,6 @@ target_include_directories(MpiMemoryProfile PRIVATE
 else ()
 add_executable(MemoryProfile memory_profile.cpp)
 target_link_libraries(MemoryProfile PRIVATE
-    ${Valgrind_LIBRARY} ${Valgrind_LIBFLAGS}
     yt
 )
 target_include_directories(MemoryProfile PRIVATE
