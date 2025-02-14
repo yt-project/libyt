@@ -75,11 +75,13 @@ jobs:
         working-directory: ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile
         run: |
           export OMPI_MCA_osc=sm,pt2pt
-          # TODO: load libmpiwrap
+          export LD_PRELOAD=${{ steps.strings.outputs.valgrind-install-prefix}}/lib/valgrind/libmpiwrap-amd64-linux.so
           export PYTHONMALLOC=malloc
-          ${{ steps.strings.outputs.valgrind-install-prefix}}/bin/valgrind -v --tool=massif --stacks=yes ./MemoryProfile # TODO run mpirun 
+          mpirun -np 3 --report-bindings ${{ steps.strings.outputs.valgrind-install-prefix}}/bin/valgrind \
+                 -v --tool=massif --stacks=yes ./MpiMemoryProfile
 
       - name: Upload memory profile results
-        working-directory: ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile
-        run: |
-          # TODO: Upload memory profile results
+        uses: actions/upload-artifact@v4
+        with:
+          name: mpi_memory_profile
+          path: ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/massif.out.*
