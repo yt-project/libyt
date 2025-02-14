@@ -26,9 +26,7 @@ jobs:
         with:
           mpi: 'openmpi'
       - working-directory: ${{ github.workspace }}
-        run: |
-          rm runner_mpi_info.txt
-          ompi_info >> runner_mpi_info.txt
+        run: ompi_info >> runner_mpi_info.txt
 
       - name: Setup Python 3.10 environment
         uses: actions/setup-python@v5
