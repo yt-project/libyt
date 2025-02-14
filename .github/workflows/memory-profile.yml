@@ -25,6 +25,10 @@ jobs:
         uses: mpi4py/setup-mpi@v1
         with:
           mpi: 'openmpi'
+      - working-directory: ${{ github.workspace }}
+        run: |
+          rm runner_mpi_info.txt
+          ompi_info >> runner_mpi_info.txt
 
       - name: Setup Python 3.10 environment
         uses: actions/setup-python@v5
@@ -47,6 +51,13 @@ jobs:
           echo "valgrind-install-prefix=$HOME/softwares/valgrind-3.22.0" >> "$GITHUB_OUTPUT"
 
       - name: Get valgrind-3.22.0 from source
+        uses: actions/cache@v4
+        id: valgrind_cache
+        with:
+          path: ${{ steps.strings.outputs.valgrind-install-prefix }}
+          key: ${{ runner.os }}-valgrind_3.22.0-openmpi-${{ hashFiles('runner_mpi_info.txt') }}
+
+      - if: steps.valgrind_cache.outputs.cache-hit != 'true'
         run: |
           cd $HOME
           mkdir packages softwares
