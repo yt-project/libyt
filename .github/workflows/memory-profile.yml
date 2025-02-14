@@ -63,7 +63,8 @@ jobs:
         run: |
           cd ${{ github.workspace }}
           rm -rf ${{ steps.strings.outputs.build-output-dir }}
-          cmake -DLIBYT_RUN_MEMORY_PROFILE=ON -B ${{ steps.strings.outputs.build-output-dir }} -S .
+          cmake -DLIBYT_RUN_MEMORY_PROFILE=ON -DVALGRIND_PATH=${{ steps.strings.outputs.valgrind-install-prefix }} \
+                -B ${{ steps.strings.outputs.build-output-dir }} -S .
 
       - name: Build
         run: |
