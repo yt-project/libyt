@@ -25,11 +25,32 @@ else ()
     message(FATAL_ERROR "Unable to find valgrind, please visit http://www.valgrind.org/ for more information...")
 endif()
 
+# Get mpi
+if (NOT SERIAL_MODE)
+    find_package(MPI REQUIRED)
+endif()
+
 # Compile memory profile test program
+if (NOT SERIAL_MODE)
+add_executable(MpiMemoryProfile memory_profile.cpp)
+target_link_libraries(MpiMemoryProfile PRIVATE
+    MPI::MPI_CXX
+    ${Valgrind_LIBRARY} ${Valgrind_LIBFLAGS}
+    yt
+)
+target_include_directories(MpiMemoryProfile PRIVATE
+    ${MPI_CXX_INCLUDE_DIRS}
+    ${Valgrind_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/include
+)
+else ()
 add_executable(MemoryProfile memory_profile.cpp)
 target_link_libraries(MemoryProfile PRIVATE
     ${Valgrind_LIBRARY} ${Valgrind_LIBFLAGS}
+    yt
 )
 target_include_directories(MemoryProfile PRIVATE
     ${Valgrind_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/include
 )
+endif ()
