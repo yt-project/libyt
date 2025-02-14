@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     /* Parameters for testing */
     long iter = 5;
     int grid_size = 8;
-    int num_grids = 2000000;  // cannot alter arbitrary, domain dim is based on this.
+    int num_grids = 20000;  // cannot alter arbitrary, domain dim is based on this.
     int num_grids_local = num_grids / my_size;
     if (my_rank == my_size - 1) {
         num_grids_local = num_grids - num_grids_local * (my_size - 1);
@@ -75,8 +75,8 @@ int main(int argc, char* argv[]) {
     param_yt.refine_by = 2;
     param_yt.num_grids = num_grids;
     param_yt.domain_dimensions[0] = 100 * grid_size;
-    param_yt.domain_dimensions[1] = 100 * grid_size;
-    param_yt.domain_dimensions[2] = 200 * grid_size;
+    param_yt.domain_dimensions[1] = 10 * grid_size;
+    param_yt.domain_dimensions[2] = 20 * grid_size;
 
     double space[3] = {100.0 / param_yt.domain_dimensions[0], 100.0 / param_yt.domain_dimensions[1],
                        100.0 / param_yt.domain_dimensions[2]};
