@@ -86,7 +86,7 @@ jobs:
           export OMPI_MCA_osc=sm,pt2pt
           export LD_PRELOAD=${{ steps.strings.outputs.valgrind-install-prefix}}/lib/valgrind/libmpiwrap-amd64-linux.so
           export PYTHONMALLOC=malloc
-          mpirun -np 2 ${{ steps.strings.outputs.valgrind-install-prefix}}/bin/valgrind \
+          mpirun -np 3 ${{ steps.strings.outputs.valgrind-install-prefix}}/bin/valgrind \
                  -v --tool=massif --stacks=yes ./MpiMemoryProfile
 
       - name: Prepare memory profile
