@@ -97,7 +97,7 @@ jobs:
           export LD_PRELOAD=${{ steps.strings.outputs.valgrind-install-prefix}}/lib/valgrind/libmpiwrap-amd64-linux.so
           export PYTHONMALLOC=malloc
           mpirun -np 4 ${{ steps.strings.outputs.valgrind-install-prefix}}/bin/valgrind \
-                 -v --tool=massif --stacks=yes ./MpiMemoryProfile
+                 -v --tool=massif --stacks=yes ./MpiMemoryProfile test_derived_function
 
       - name: Prepare memory profile
         working-directory: ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile
@@ -170,7 +170,7 @@ jobs:
         working-directory: ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile
         run: |
           export PYTHONMALLOC=malloc
-          valgrind -v --tool=massif --stacks=yes ./MemoryProfile
+          valgrind -v --tool=massif --stacks=yes ./MemoryProfile test_derived_function
 
       - name: Prepare memory profile
         working-directory: ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile

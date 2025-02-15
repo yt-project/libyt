@@ -10,7 +10,7 @@ except ImportError:
     my_rank = 0
     my_size = 1
 
-def yt_inline():
+def test_derived_function():
     start_id = my_rank * int(libyt.param_yt["num_grids"] / my_size)
     end_id = (my_rank + 1) * int(libyt.param_yt["num_grids"] / my_size)
     if my_rank == my_size - 1:
