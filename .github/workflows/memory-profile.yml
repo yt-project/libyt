@@ -92,7 +92,9 @@ jobs:
       - name: Prepare memory profile
         working-directory: ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile
         run: |
-          # TODO
+          cp ${{ github.workspace }}/.github/tools/combine_valgrind_snapshot.py .
+          python combine_valgrind_snapshot.py --tag BeforeFree --mpi_size 4 --total_time_step 5
+          python combine_valgrind_snapshot.py --tag AfterFree --mpi_size 4 --total_time_step 5
 
       - name: Upload memory profile results
         uses: actions/upload-artifact@v4
