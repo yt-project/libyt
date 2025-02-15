@@ -15,7 +15,7 @@ on:
 
 jobs:
   mpi-memory-profile:
-    name: Memory Profile (MPI) # Also do SERIAL
+    name: Memory Profile (MPI)
     runs-on: ubuntu-latest
 
     strategy:
@@ -110,6 +110,79 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mpi-${{ matrix.build.file_tag }}-memory_profile
+          path: |
+            ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/massif.out.*
+            ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/*.mem_prof
+
+  memory-profile:
+    name: Memory Profile (Serial)
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - build_options: "-DUSE_PYBIND11=ON"
+            file_tag: "pybind11"
+          - build_options: "-DUSE_PYBIND11=OFF"
+            file_tag: "pure_python"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 3.10 environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - run: |
+          python -m pip install --upgrade pip
+          pip install numpy
+
+      - name: Install other dependencies
+        run: |
+          sudo apt-get install -y libreadline-dev
+
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=build-memprof" >> "$GITHUB_OUTPUT"
+
+      - name: Get valgrind from apt-get
+        run: |
+          sudo apt-get install -y valgrind
+
+      - name: Configure CMake (-DLIBYT_RUN_MEMORY_PROFILE=ON)
+        run: |
+          cd ${{ github.workspace }}
+          rm -rf ${{ steps.strings.outputs.build-output-dir }}
+          cmake ${{ matrix.build.build_options }} \
+                -DLIBYT_RUN_MEMORY_PROFILE=ON \
+                -B ${{ steps.strings.outputs.build-output-dir }} -S .
+
+      - name: Build
+        run: |
+          cd ${{ github.workspace }}
+          cmake --build ${{ steps.strings.outputs.build-output-dir }}
+
+      - name: Run memory profile using valgrind massif
+        working-directory: ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile
+        run: |
+          export PYTHONMALLOC=malloc
+          valgrind -v --tool=massif --stacks=yes ./MemoryProfile
+
+      - name: Prepare memory profile
+        working-directory: ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile
+        run: |
+          cp ${{ github.workspace }}/.github/tools/combine_valgrind_snapshot.py .
+          python combine_valgrind_snapshot.py --tag BeforeFree --mpi_size 1 --total_time_step 5
+          python combine_valgrind_snapshot.py --tag AfterFree --mpi_size 1 --total_time_step 5
+
+      - name: Upload memory profile results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.build.file_tag }}-memory_profile
           path: |
             ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/massif.out.*
             ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/*.mem_prof
