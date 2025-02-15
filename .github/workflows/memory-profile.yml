@@ -157,7 +157,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}
           rm -rf ${{ steps.strings.outputs.build-output-dir }}
-          cmake ${{ matrix.build.build_options }} \
+          cmake ${{ matrix.build.build_options }} -DSERIAL_MODE=ON \
                 -DLIBYT_RUN_MEMORY_PROFILE=ON \
                 -B ${{ steps.strings.outputs.build-output-dir }} -S .
 
