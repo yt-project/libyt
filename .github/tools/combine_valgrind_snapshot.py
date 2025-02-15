@@ -28,6 +28,7 @@ def combine_detailed_snapshot(filebase: str, combined_filename: str, mpi_rank: i
 
     # make sure the file does not exist
     if os.path.exists(combined_filename):
+        print(f"{Bcolors.FAIL}File {combined_filename} already exists {Bcolors.ENDC}")
         raise "File already exists"
 
     # write the combined file
@@ -71,7 +72,7 @@ if __name__ == "__main__":
 
     # Call combine_detailed_snapshot
     file_base_name = args.tag[0] + "_rank{}_time{}.mem_prof"
-    combined_file_name = args.tag[0] + ".mem_prof"
+    combined_file_name = args.tag[0] + "_rank{}.mem_prof"
 
     for r in range(args.mpi_size[0]):
-        combine_detailed_snapshot(file_base_name, combined_file_name, r, args.total_time_steps[0])
+        combine_detailed_snapshot(file_base_name, combined_file_name.format(r), r, args.total_time_steps[0])
