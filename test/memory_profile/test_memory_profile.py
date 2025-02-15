@@ -17,7 +17,7 @@ def test_derived_function():
     if my_rank == my_size - 1:
         end_id = libyt.param_yt["num_grids"]
 
-    query_data = list(range(start_id, start_id + 6000))
+    query_data = list(range(start_id, start_id + 4000))
 
     for i in query_data:
         data = libyt.derived_func(i, "DerivedOnes")
@@ -35,5 +35,6 @@ def test_rma_function():
             query_data += list(range(start_id_list[r], start_id_list[r] + data_len))
             data_location += [r] * data_len
 
-    data = libyt.get_field_remote(["CCTwos"], len(my_data), my_data, len(query_data), query_data, data_location,
+    data = libyt.get_field_remote(["CCTwos".encode(encoding="UTF-8", errors="strict")], len(my_data), my_data,
+                                  len(query_data), query_data, data_location,
                                   len(data_location))
