@@ -44,6 +44,11 @@ int main(int argc, char* argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &my_size);
 #endif
 
+    if (argc != 2) {
+        printf("Usage: %s <python_function_name>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
     /* Parameters for testing */
     long iter = 5;
     int grid_size = 8;
@@ -238,7 +243,7 @@ int main(int argc, char* argv[]) {
 
         yt_commit();
 
-        yt_run_Function("yt_inline");
+        yt_run_Function(argv[1]);
 
         CALL_VALGRIND("BeforeFree", my_rank, t);
 
