@@ -112,7 +112,7 @@ jobs:
           name: mpi-${{ matrix.build.file_tag }}-memory_profile
           path: |
             ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/massif.out.*
-            ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/*.mem_prof
+            ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/*_rank?.mem_prof
 
   memory-profile:
     name: Memory Profile (Serial)
@@ -185,4 +185,4 @@ jobs:
           name: ${{ matrix.build.file_tag }}-memory_profile
           path: |
             ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/massif.out.*
-            ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/*_rank[0-9]+.mem_prof
+            ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/*_rank?.mem_prof
