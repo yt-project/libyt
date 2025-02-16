@@ -1,7 +1,6 @@
 import os
-import numpy as np
 
-def extract_value_from_file(filename: str, attribute: str) -> np.array:
+def extract_value_from_file(filename: str, attribute: str) -> list:
     """extract_value_from_file
     Assume attribute in a file is in a format 'attribute=value'.
     """
@@ -24,7 +23,7 @@ def extract_value_from_file(filename: str, attribute: str) -> np.array:
         found_newline = raw.find("\n", found)
         extract_value.append(int(raw[found + len(attribute) + 1: found_newline]))
 
-    return np.array(extract_value)
+    return extract_value
 
 if __name__ == "__main__":
 
