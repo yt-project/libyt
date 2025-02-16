@@ -204,7 +204,7 @@ jobs:
         with:
           github-token: ${{ secrets.MEM_PROF_COMMENT_TOKEN }}
           script: |
-            octokit.rest.issues.createComment({
+            github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
