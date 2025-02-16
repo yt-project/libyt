@@ -195,6 +195,8 @@ jobs:
       - mpi-memory-profile
       - memory-profile
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download memory profile results
         uses: actions/download-artifact@v4
         with:
