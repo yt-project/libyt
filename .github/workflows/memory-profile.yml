@@ -202,7 +202,6 @@ jobs:
       - name: Comment results in PR
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.MEM_PROF_COMMENT_TOKEN }}
           script: |
             github.rest.issues.createComment({
               issue_number: context.issue.number,
