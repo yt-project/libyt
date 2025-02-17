@@ -206,7 +206,7 @@ jobs:
         id: conclude-memory-profile
         run: |
           cp ${{ github.workspace }}/.github/tools/conclude_memory_profile.py .
-          echo "results_md="$(python conclude_memory_profile.py)"" >> "$GITHUB_OUTPUT"
+          echo "results_md="$(python conclude_memory_profile.py --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 4)"" >> "$GITHUB_OUTPUT"
 
       - name: Comment results in PR
         uses: actions/github-script@v7
