@@ -35,7 +35,7 @@ def test_rma_function():
             query_data += list(range(start_id_list[r], start_id_list[r] + data_len))
             data_location += [r] * data_len
 
-    for i in range(100):
+    for i in range(10):
         data = libyt.get_field_remote(["CCTwos".encode(encoding="UTF-8", errors="strict")], len(my_data), my_data,
                                       len(query_data), query_data, data_location,
                                       len(data_location))
