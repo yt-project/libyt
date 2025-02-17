@@ -48,19 +48,6 @@ def extract_value_from_file(folder: str or None, filename: str, attribute: str) 
 
     return results
 
-
-# class ReadmeTable:
-#     def __init__(self, title: str, columns: list, rows: list):
-#         self.title = title
-#         self.column = columns
-#         self.row = rows
-#
-#     def readme_format(self) -> str:
-#         output = ""
-#         # TODO: print the table
-#         return output
-
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Combine detailed snapshots dumped by valgrind")
@@ -93,4 +80,4 @@ if __name__ == "__main__":
                 with open(args.output_filename[0], "a") as f:
                     f.write("**{}({}_rank{})**: ".format(key, tag, r) + str(attr_value[key]) + "\n")
     with open(args.output_filename[0], "a") as f:
-        f.write("---\n\n")
+        f.write("\n---\n\n")
