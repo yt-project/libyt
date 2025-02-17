@@ -14,18 +14,20 @@ class Bcolors:
     UNDERLINE = '\033[4m'
 
 
-def extract_value_from_file(filename: str, attribute: str) -> dict:
+def extract_value_from_file(folder: str or None, filename: str, attribute: str) -> dict:
     """extract_value_from_file
     Assume attribute in a file is in a format 'attribute=value'.
     """
 
+    file_full_name = filename if folder is None else os.path.join(folder, filename)
+
     # make sure file exist and read the file
-    if not os.path.exists(filename):
-        print(f"{Bcolors.FAIL}File {filename} does not exist {Bcolors.ENDC}")
+    if not os.path.exists(file_full_name):
+        print(f"{Bcolors.FAIL}File {file_full_name} does not exist {Bcolors.ENDC}")
         raise "No such file"
-    with open(filename, "r") as f:
+    with open(file_full_name, "r") as f:
         raw = f.read()
-        print(f"Reading file {Bcolors.WARNING} {filename} {Bcolors.ENDC} ... done")
+        print(f"Reading file {Bcolors.WARNING} {file_full_name} {Bcolors.ENDC} ... done")
 
     # find all the matching attribute
     found = -1
@@ -42,7 +44,7 @@ def extract_value_from_file(filename: str, attribute: str) -> dict:
     results = dict()
     results[attribute] = extract_value
     results[attribute + "_diff"] = [extract_value[i] - extract_value[i - 1] for i in range(1, len(extract_value))]
-    print(f"Extracting attribute {Bcolors.OKGREEN} {attribute} {Bcolors.ENDC} in {filename}  ... done")
+    print(f"Extracting attribute {Bcolors.OKGREEN} {attribute} {Bcolors.ENDC} in {file_full_name}  ... done")
 
     return results
 
@@ -62,6 +64,10 @@ def extract_value_from_file(filename: str, attribute: str) -> dict:
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Combine detailed snapshots dumped by valgrind")
+    parser.add_argument('--title', metavar='title', type=str, nargs=1,
+                        help='Title')
+    parser.add_argument('--folder', metavar='folder', type=str, nargs=1,
+                        help='Folder where the files are stored. (optional)')
     parser.add_argument('--tags', metavar='tags', type=str, nargs='*',
                         help='A list of tags, e.g., "BeforeFree_rank0.mem_prof" has tag "BeforeFree"')
     parser.add_argument('--attr', metavar='attr', type=str, nargs=1,
@@ -73,11 +79,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Extract value and write to file
+    with open(args.output_filename[0], "a") as f:
+        f.write("#### " + args.title[0] + "\n\n")
     for tag in args.tags:
         for r in range(args.mpi_size[0]):
             filename = tag + "_rank{}.mem_prof".format(r)
-            attr_value = extract_value_from_file(filename, args.attr[0])
+            attr_value = extract_value_from_file(args.folder, filename, args.attr[0])
 
             for key in attr_value:
                 with open(args.output_filename[0], "a") as f:
                     f.write("**{}({}_rank{})**: ".format(key, tag, r) + str(attr_value[key]) + "\n")
+    with open(args.output_filename[0], "a") as f:
+        f.write("---\n\n")

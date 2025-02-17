@@ -205,8 +205,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: sudo apt-get install -y tree
-
       - name: Download memory profile results
         uses: actions/download-artifact@v4
         with:
@@ -214,14 +212,23 @@ jobs:
           merge-multiple: 'false'
           path: ${{ github.workspace }}/memory_profile
 
-      - run: tree ${{ github.workspace }}/memory_profile
-
       - name: Conclude memory profile results
         working-directory: ${{ github.workspace }}/memory_profile
         id: conclude-memory-profile
         run: |
           cp ${{ github.workspace }}/.github/tools/conclude_memory_profile.py .
-          echo "test 123 ... " > output.txt
+          python conclude_memory_profile.py --title Pybind11-MPI --folder mpi-pybind11-memory_profile \
+                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 4 \
+                                            --output_filename output.txt
+          python conclude_memory_profile.py --title PurePython-MPI --folder mpi-pure_python-memory_profile \
+                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 4 \
+                                            --output_filename output.txt
+          python conclude_memory_profile.py --title Pybind11 --folder pybind11-memory_profile \
+                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 1 \
+                                            --output_filename output.txt
+          python conclude_memory_profile.py --title PurePython --folder pure_python-memory_profile \
+                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 1 \
+                                            --output_filename output.txt
           {
             echo 'SCRIPT_OUTPUT<<EOF'
             cat output.txt
