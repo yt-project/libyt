@@ -68,17 +68,16 @@ if __name__ == "__main__":
                         help='Attribute to extract in valgrind massif dump.')
     parser.add_argument('--mpi_size', metavar='mpi_size', type=int, nargs=1,
                         help='MPI size')
-    parser.add_argument('--output_env', metavar='output_env', type=str, nargs=1,
-                        help='Output to environment variable.')
+    parser.add_argument('--output_filename', metavar='output_filename', type=str, nargs=1,
+                        help='Output to file.')
     args = parser.parse_args()
 
     # Extract value and write to environment variable
-    os.environ[args.output_env[0]] = ""
     for tag in args.tags:
         for r in range(args.mpi_size[0]):
             filename = tag + "_rank{}.mem_prof".format(r)
             attr_value = extract_value_from_file(filename, args.attr[0])
 
             for key in attr_value:
-                os.environ[args.output_env[0]] += "**{}({}_rank{})**: ".format(key, tag, r) + str(
-                    attr_value[key]) + " <br>"
+                with open(args.output_filename[0], "a") as f:
+                    f.write("**{}({}_rank{})**: ".format(key, tag, r) + str(attr_value[key]) + "\n")
