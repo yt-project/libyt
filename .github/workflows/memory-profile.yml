@@ -208,7 +208,11 @@ jobs:
           cp ${{ github.workspace }}/.github/tools/conclude_memory_profile.py .
           python conclude_memory_profile.py --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 4 \
                                             --output_filename output.txt
-          echo "SCRIPT_OUTPUT=$(cat output.txt)" >> $GITHUB_ENV
+          {
+            echo 'SCRIPT_OUTPUT<<EOF'
+            cat output.txt
+            echo EOF
+          } >> "$GITHUB_ENV"
 
       - name: Comment results in PR
         uses: actions/github-script@v7

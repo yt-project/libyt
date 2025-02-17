@@ -72,7 +72,7 @@ if __name__ == "__main__":
                         help='Output to file.')
     args = parser.parse_args()
 
-    # Extract value and write to environment variable
+    # Extract value and write to file
     for tag in args.tags:
         for r in range(args.mpi_size[0]):
             filename = tag + "_rank{}.mem_prof".format(r)
