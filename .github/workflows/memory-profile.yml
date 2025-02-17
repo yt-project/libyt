@@ -4,11 +4,17 @@ on:
   push:
     branches: [ "main" ]
     paths-ignore:
+      - '.github/**'
+      - 'example/**'
+      - 'test/**'
       - 'doc/**'
       - '**.md'
   pull_request:
     branches: [ "main" ]
     paths-ignore:
+      - '.github/**'
+      - 'example/**'
+      - 'test/**'
       - 'doc/**'
       - '**.md'
   workflow_dispatch:
@@ -105,14 +111,16 @@ jobs:
           cp ${{ github.workspace }}/.github/tools/combine_valgrind_snapshot.py .
           python combine_valgrind_snapshot.py --tag BeforeFree --mpi_size 4 --total_time_step 5
           python combine_valgrind_snapshot.py --tag AfterFree --mpi_size 4 --total_time_step 5
+          mkdir memory_profile
+          mv massif.out.* memory_profile
+          mv $(find . -type f -name '*_rank?.mem_prof') memory_profile
 
       - name: Upload memory profile results
         uses: actions/upload-artifact@v4
         with:
           name: mpi-${{ matrix.build.file_tag }}-memory_profile
           path: |
-            ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/massif.out.*
-            ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/*_rank?.mem_prof
+            ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/memory_profile
 
   memory-profile:
     name: Memory Profile (Serial)
@@ -178,14 +186,16 @@ jobs:
           cp ${{ github.workspace }}/.github/tools/combine_valgrind_snapshot.py .
           python combine_valgrind_snapshot.py --tag BeforeFree --mpi_size 1 --total_time_step 5
           python combine_valgrind_snapshot.py --tag AfterFree --mpi_size 1 --total_time_step 5
+          mkdir memory_profile
+          mv massif.out.* memory_profile
+          mv $(find . -type f -name '*_rank?.mem_prof') memory_profile
 
       - name: Upload memory profile results
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.build.file_tag }}-memory_profile
           path: |
-            ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/massif.out.*
-            ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/*_rank?.mem_prof
+            ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/memory_profile
 
   conclude-memory-profile:
     name: Conclude Memory Profile
@@ -200,7 +210,8 @@ jobs:
       - name: Download memory profile results
         uses: actions/download-artifact@v4
         with:
-          name: mpi-pybind11-memory_profile
+          pattern: '*-memory_profile'
+          path: ${{ github.workspace }}/memory_profile
 
       - name: Conclude memory profile results
         id: conclude-memory-profile
