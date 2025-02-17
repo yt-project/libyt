@@ -174,14 +174,17 @@ int GetYtDtypeSize(yt_dtype data_type) {
     }
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Namespace    :  dtype_utilities
-// Function name:  AllocateMemory
-// Description  :  Allocate memory based on yt_dtype and length.
-//
-// Notes        :  1. If the yt_dtype is not found, it will return nullptr.
-//                 2. The caller is responsible for freeing the memory.
-//-------------------------------------------------------------------------------------------------------
+/******************************************************************************
+ * \brief Allocate memory based on yt_dtype and length.
+ *
+ * \note 1. This is note line 1.
+ * \note 2. This is note line 2.
+ * \note 3. This is note line 3.
+ *
+ * @param data_type[in] data type
+ * @param length[in] length
+ * @return The pointer to the allocated memory.
+ *****************************************************************************/
 void* AllocateMemory(yt_dtype data_type, unsigned long length) {
     switch (data_type) {
         case YT_FLOAT: {
