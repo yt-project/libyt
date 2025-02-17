@@ -216,8 +216,8 @@ jobs:
           merge-multiple: 'false'
           path: ${{ github.workspace }}/memory_profile
 
-      - run: |
-          tree ${{ github.workspace }}/memory_profile
+      - name: Show folder structure
+        run: tree ${{ github.workspace }}/memory_profile
 
       - name: Conclude memory profile results
         working-directory: ${{ github.workspace }}/memory_profile
