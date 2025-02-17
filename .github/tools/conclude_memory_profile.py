@@ -1,6 +1,7 @@
 import os
 import argparse
 
+
 class Bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -11,6 +12,7 @@ class Bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
 
 def extract_value_from_file(filename: str, attribute: str) -> dict:
     """extract_value_from_file
@@ -44,6 +46,7 @@ def extract_value_from_file(filename: str, attribute: str) -> dict:
 
     return results
 
+
 # class ReadmeTable:
 #     def __init__(self, title: str, columns: list, rows: list):
 #         self.title = title
@@ -56,7 +59,6 @@ def extract_value_from_file(filename: str, attribute: str) -> dict:
 #         return output
 
 
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Combine detailed snapshots dumped by valgrind")
@@ -66,13 +68,17 @@ if __name__ == "__main__":
                         help='Attribute to extract in valgrind massif dump.')
     parser.add_argument('--mpi_size', metavar='mpi_size', type=int, nargs=1,
                         help='MPI size')
+    parser.add_argument('--output_env', metavar='output_env', type=str, nargs=1,
+                        help='Output to environment variable.')
     args = parser.parse_args()
 
-    # Extract value
+    # Extract value and write to environment variable
+    os.environ[args.output_env[0]] = ""
     for tag in args.tags:
         for r in range(args.mpi_size[0]):
             filename = tag + "_rank{}.mem_prof".format(r)
             attr_value = extract_value_from_file(filename, args.attr[0])
 
             for key in attr_value:
-                print("**{}({}_rank{})**:".format(key, tag, r) , attr_value[key], end=" <br>")
+                os.environ[args.output_env[0]] += "**{}({}_rank{})**: ".format(key, tag, r) + str(
+                    attr_value[key]) + " <br>"
