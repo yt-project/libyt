@@ -84,7 +84,10 @@ if __name__ == "__main__":
     for tag in args.tags:
         for r in range(args.mpi_size[0]):
             filename = tag + "_rank{}.mem_prof".format(r)
-            attr_value = extract_value_from_file(args.folder, filename, args.attr[0])
+            if args.folder is not None:
+                attr_value = extract_value_from_file(args.folder[0], filename, args.attr[0])
+            else:
+                attr_value = extract_value_from_file(None, filename, args.attr[0])
 
             for key in attr_value:
                 with open(args.output_filename[0], "a") as f:
