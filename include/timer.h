@@ -5,15 +5,15 @@
 #include <chrono>
 
 class Timer {
-public:
-    Timer(const char* func_name);
-    ~Timer();
-    void Stop();
+ public:
+  Timer(const char* func_name);
+  ~Timer();
+  void Stop();
 
-private:
-    const char* m_FuncName;
-    std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTime;
-    bool m_Stopped;
+ private:
+  const char* m_FuncName;
+  std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTime;
+  bool m_Stopped;
 };
 #endif  // #ifdef SUPPORT_TIMER
 
