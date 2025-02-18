@@ -5,15 +5,16 @@
 namespace dtype_utilities {
 
 #ifndef SERIAL_MODE
-//-------------------------------------------------------------------------------------------------------
-// Namespace    :  dtype_utilities
-// Function name:  YtDtype2MpiDtype
-// Description  :  Map yt_dtype to mpi data type.
-//
-// Notes        :  1. Since there is no mapping of YT_DTYPE_UNKNOWN to mpi data type, it
-// will just return
-//                    nullptr.
-//-------------------------------------------------------------------------------------------------------
+/*****************************************************************************************
+ * \brief Get MPI data type based on yt_dtype.
+ *
+ * \details
+ * 1. Get the MPI data type based on yt_dtype.
+ * 2. If the data type is unknown, it will return 0.
+ *
+ * @param data_type[in] yt_dtype data type
+ * @return MPI data type map from yt_dtype
+ ****************************************************************************************/
 MPI_Datatype YtDtype2MpiDtype(yt_dtype data_type) {
   switch (data_type) {
     case YT_FLOAT:
@@ -50,14 +51,16 @@ MPI_Datatype YtDtype2MpiDtype(yt_dtype data_type) {
 }
 #endif  // #ifndef SERIAL_MODE
 
-//-------------------------------------------------------------------------------------------------------
-// Namespace    :  dtype_utilities
-// Function name:  NumPyDtype2YtDtype
-// Description  :  Map NumPy data type to yt_dtype.
-//
-// Notes        :  1. If the NumPy data type is not found, it will return
-// YT_DTYPE_UNKNOWN.
-//-------------------------------------------------------------------------------------------------------
+/*****************************************************************************************
+ * \brief Get yt_dtype based on NumPy data type.
+
+ * \details
+ * 1. Get the yt_dtype based on NumPy data type.
+ * 2. If the data type is unknown, it will return YT_DTYPE_UNKNOWN.
+ *
+ * @param npy_dtype[in] NumPy data type
+ * @return yt_dtype enum map from NumPy data type
+ ****************************************************************************************/
 yt_dtype NumPyDtype2YtDtype(int npy_dtype) {
   switch (npy_dtype) {
     case NPY_FLOAT:
@@ -91,14 +94,16 @@ yt_dtype NumPyDtype2YtDtype(int npy_dtype) {
   }
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Namespace    :  dtype_utilities
-// Function name:  YtDtype2NumPyDtype
-// Description  :  Map yt_dtype to NumPy data type.
-//
-// Notes        :  1. If the yt_dtype is not found, it will return -1.
-//                    (numpy data type is just a bunch of enums larger than 0.)
-//-------------------------------------------------------------------------------------------------------
+/*****************************************************************************************
+ * \brief Get NumPy data type based on yt_dtype.
+ *
+ * \details
+ * 1. Map yt_dtype to NumPy data type. Assuming NumPy data type has enum > 0.
+ * 2. If the data type is unknown, it will return -1.
+ *
+ * @param data_type[in] yt data type
+ * @return Size of the data type in bytes
+ ****************************************************************************************/
 int YtDtype2NumPyDtype(yt_dtype data_type) {
   switch (data_type) {
     case YT_FLOAT:
@@ -134,13 +139,16 @@ int YtDtype2NumPyDtype(yt_dtype data_type) {
   }
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Namespace    :  dtype_utilities
-// Function name:  GetYtDtypeSize
-// Description  :  Get the size of the yt_dtype using sizeof.
-//
-// Notes        :  1. If the yt_dtype is not found, it will return -1.
-//-------------------------------------------------------------------------------------------------------
+/*****************************************************************************************
+ * \brief Get yt_dtype size in bytes.
+ *
+ * \details
+ * 1. Get the size of the data type in bytes.
+ * 2. If the data type is unknown, it will return -1.
+ *
+ * @param data_type[in] yt data type
+ * @return Size of the data type in bytes
+ ****************************************************************************************/
 int GetYtDtypeSize(yt_dtype data_type) {
   switch (data_type) {
     case YT_FLOAT:
@@ -176,17 +184,17 @@ int GetYtDtypeSize(yt_dtype data_type) {
   }
 }
 
-/******************************************************************************
+/*****************************************************************************************
  * \brief Allocate memory based on yt_dtype and length.
  *
- * \note 1. This is note line 1.
- * \note 2. This is note line 2.
- * \note 3. This is note line 3.
+ * \details
+ * 1. The memory is allocated based on yt_dtype and length and initialized to zero.
+ * 2. If the data type is unknown, it will return nullptr.
  *
- * @param data_type[in] data type
- * @param length[in] length
- * @return The pointer to the allocated memory.
- *****************************************************************************/
+ * @param data_type[in] yt data type
+ * @param length[in] length of the array
+ * @return The pointer to the allocated memory, or nullptr if failed.
+ ****************************************************************************************/
 void* AllocateMemory(yt_dtype data_type, unsigned long length) {
   switch (data_type) {
     case YT_FLOAT: {
