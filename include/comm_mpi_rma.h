@@ -10,9 +10,16 @@
 
 #include "data_hub_amr.h"
 
+/**
+ * \struct MpiRmaAddress
+ * \brief Structure to store MPI rank and address
+ * \details
+ * This structure is used in CommMpiRma class to pass around and store MPI rank
+ * and address.
+ */
 struct MpiRmaAddress {
-  MPI_Aint mpi_address;
-  int mpi_rank;
+  MPI_Aint mpi_address;  ///< MPI address
+  int mpi_rank;          ///< MPI rank
 };
 
 struct CommMpiRmaQueryInfo {
