@@ -10,16 +10,21 @@
 #include "yt_macro.h"
 
 enum class BigMpiStatus : int {
-  kBigMpiFailed = 0,
-  kBigMpiExceedCounts = 1,
-  kBigMpiSuccess = 2
+  kBigMpiFailed = 0,       /*!< Big mpi failure */
+  kBigMpiExceedCounts = 1, /*!< Big mpi exceed maximum counts */
+  kBigMpiSuccess = 2       /*!< Big mpi success */
 };
 
-//-------------------------------------------------------------------------------------------------------
-// Template    :  BigMpiAllgatherv
-// Description :  This is a workaround method for passing big send count of
-// MPI_Allgatherv.
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \brief This is a workaround method for passing big send count of MPI_Allgatherv.
+ *
+ * @tparam T data type or struct
+ * @param send_counts
+ * @param send_buffer
+ * @param mpi_datatype
+ * @param recv_buffer
+ * @return BigMpiStatus::kBigMpiSuccess
+ */
 template<typename T>
 BigMpiStatus BigMpiAllgatherv(int* send_counts, const void* send_buffer,
                               MPI_Datatype mpi_datatype, void* recv_buffer) {
@@ -127,10 +132,16 @@ BigMpiStatus BigMpiAllgatherv(int* send_counts, const void* send_buffer,
   return BigMpiStatus::kBigMpiSuccess;
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Template    :  BigMpiGatherv
-// Description :  This is a workaround method for passing big send count of MPI_Gatherv.
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \brief This is a workaround method for passing big send count of MPI_Gatherv.
+ * @tparam T data type or struct
+ * @param root_rank
+ * @param send_counts
+ * @param send_buffer
+ * @param mpi_datatype
+ * @param recv_buffer
+ * @return BigMpiStatus::kBigMpiSuccess
+ */
 template<typename T>
 BigMpiStatus BigMpiGatherv(int root_rank, int* send_counts, const void* send_buffer,
                            MPI_Datatype* mpi_datatype, void* recv_buffer) {
@@ -242,10 +253,15 @@ BigMpiStatus BigMpiGatherv(int root_rank, int* send_counts, const void* send_buf
   return BigMpiStatus::kBigMpiSuccess;
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  BigMpiBcast
-// Description :  This is a workaround method for passing big send count of MPI_Bcast.
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \brief This is a workaround method for passing big send count of MPI_Bcast.
+ * @tparam T data type or struct
+ * @param root_rank
+ * @param send_count
+ * @param buffer
+ * @param mpi_datatype
+ * @return BigMpiStatus::kBigMpiSuccess
+ */
 template<typename T>
 BigMpiStatus BigMpiBcast(int root_rank, long send_count, void* buffer,
                          MPI_Datatype* mpi_datatype) {
@@ -270,10 +286,17 @@ BigMpiStatus BigMpiBcast(int root_rank, long send_count, void* buffer,
   return BigMpiStatus::kBigMpiSuccess;
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  big_MPI_Get
-// Description :  This is a workaround method for passing big send count of MPI_Get.
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \brief This is a workaround method for passing big send count of MPI_Get.
+ * @tparam T data type or struct
+ * @param recv_buff
+ * @param data_len
+ * @param mpi_dtype
+ * @param get_rank
+ * @param base_address
+ * @param window
+ * @return BigMpiStatus::kBigMpiSuccess
+ */
 template<typename T>
 BigMpiStatus BigMpiGet(void* recv_buff, long data_len, MPI_Datatype* mpi_dtype,
                        int get_rank, MPI_Aint base_address, MPI_Win* window) {
