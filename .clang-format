@@ -1,27 +1,32 @@
 ﻿---
 BasedOnStyle: Google
-AccessModifierOffset: '-4'
+AccessModifierOffset: '-1'
 AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: 'true'
 AlignEscapedNewlines: Right
 AlignOperands: 'true'
 AlignTrailingComments: 'true'
+AllowAllArgumentsOnNextLine: 'true'
 AllowAllConstructorInitializersOnNextLine: 'true'
 AllowShortCaseLabelsOnASingleLine: 'false'
 AlwaysBreakBeforeMultilineStrings: 'false'
 AlwaysBreakTemplateDeclarations: 'Yes'
+BinPackArguments: 'false'
+BinPackParameters: 'true'
 BreakBeforeBraces: Attach
+BreakBeforeTernaryOperators: 'true'
 BreakConstructorInitializers: BeforeColon
 BreakInheritanceList: AfterColon
-ColumnLimit: '120'
+ColumnLimit: '90'
 CommentPragmas: '''^  *'''
 CompactNamespaces: 'false'
+ConstructorInitializerAllOnOneLineOrOnePerLine: 'true'
+DerivePointerAlignment: false
 IndentCaseLabels: 'true'
 IndentPPDirectives: None
-IndentWidth: '4'
+IndentWidth: '2'
 KeepEmptyLinesAtTheStartOfBlocks: 'false'
 Language: Cpp
-DerivePointerAlignment: false
 ReflowComments: 'true'
 SpaceAfterCStyleCast: 'false'
 SpaceAfterLogicalNot: 'false'
@@ -38,7 +43,7 @@ SpacesInCStyleCastParentheses: 'false'
 SpacesInContainerLiterals: 'false'
 SpacesInParentheses: 'false'
 SpacesInSquareBrackets: 'false'
-Standard: Cpp11
+Standard: c++14
 UseTab: Never
 
 ...
