@@ -22,17 +22,22 @@ void CommMpi::SetAllNumGridsLocal(int* all_num_grids_local, int num_grids_local)
       &num_grids_local, 1, MPI_INT, all_num_grids_local, 1, MPI_INT, MPI_COMM_WORLD);
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Class                :  CommMpi
-// Public Static Method :  CheckAllStates
-//
-// Notes       :  1. Get all states from all ranks and check if every state matches the
-// desired state,
-//                   if yes, return success value; otherwise return failure value.
-//                2. Both success value and failure value are passed in as arguments.
-//                3. It supports only integer state, which are states declared in a enum
-//                class.
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \brief Check if all states from all ranks match the desired state.
+ *
+ * \details
+ * 1. Get all states from all ranks and check if every state matches the desired state,
+ *    if yes, return success value; otherwise return failure value.
+ * 2. Both success value and failure value are passed in as arguments.
+ * 3. It supports only integer state, which are states declared in a enum class.
+ *
+ * @param local_state[in] Local state
+ * @param desired_state[in] Desired state
+ * @param success_value[in] Return value if all states matches the desired state
+ * @param failure_value[in] Return value if some doesn't match the desired state
+ * @return success_value if all states matches desired state, otherwise return
+ *         failure_value
+ */
 int CommMpi::CheckAllStates(int local_state, int desired_state, int success_value,
                             int failure_value) {
   SET_TIMER(__PRETTY_FUNCTION__);
@@ -53,17 +58,18 @@ int CommMpi::CheckAllStates(int local_state, int desired_state, int success_valu
   return match_desired_state ? success_value : failure_value;
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Class                :  CommMpi
-// Public Static Method :  SetStringUsingValueOnRank
-//
-// Notes       :  1. Sync the string on all ranks using the value on the specified rank.
-//                2. The string is passed in by reference, so the string will be sync to
-//                the src rank.
-//                3. Though reference to a string is passed in, only ranks other than src
-//                rank will have
-//                   the string over-written.
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \brief Sync the string on all ranks using the value on the specific rank.
+ *
+ * \details
+ * 1. Sync the string on all ranks using the string value on the specified rank.
+ * 2. The string is passed in by reference, so the string will be sync to the src rank.
+ * 3. Though reference to a string is passed in, only ranks other than src rank will have
+ *    the string over-written.
+ *
+ * @param sync_string[in,out] Sync with the source string on mpi rank and store it here
+ * @param src_mpi_rank[in] Source mpi rank
+ */
 void CommMpi::SetStringUsingValueOnRank(std::string& sync_string, int src_mpi_rank) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -93,13 +99,15 @@ void CommMpi::SetStringUsingValueOnRank(std::string& sync_string, int src_mpi_ra
   }
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Class                :  CommMpi
-// Public Static Method :  GatherAllStringsToRank
-//
-// Notes       :  1. It's a collective operation.
-//                2. Should I also make it ignore the string on the destination rank?
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \brief Gather all strings to the destination rank.
+ * \details
+ * 1. It's a collective operation.
+ *
+ * @param all_strings[out] All strings gathered to the destination rank as a vector
+ * @param src_string[in] Source string to be gathered
+ * @param dest_mpi_rank[in] Destination rank
+ */
 void CommMpi::GatherAllStringsToRank(std::vector<std::string>& all_strings,
                                      const std::string& src_string, int dest_mpi_rank) {
   SET_TIMER(__PRETTY_FUNCTION__);
@@ -163,14 +171,16 @@ void CommMpi::GatherAllStringsToRank(std::vector<std::string>& all_strings,
   }
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Class                :  CommMpi
-// Public Static Method :  GatherAllStringsToRank
-//
-// Notes       :  1. It's a collective operation.
-//                2. I'm not sure if using int* instead of std::vector<int> will be
-//                faster.
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \brief Gather all ints to the destination rank.
+ *
+ * \details
+ * 1. It's a collective operation.
+ *
+ * @param all_ints[out] All ints gathered to the destination rank as a vector
+ * @param src_int[in] Source int to be gathered
+ * @param dest_mpi_rank[in] Destination rank
+ */
 void CommMpi::GatherAllIntsToRank(std::vector<int>& all_ints, const int src_int,
                                   int dest_mpi_rank) {
   SET_TIMER(__PRETTY_FUNCTION__);
