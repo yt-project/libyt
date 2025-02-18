@@ -15,15 +15,16 @@
 enum class NumPyStatus : int { kNumPyFailed = 0, kNumPySuccess = 1 };
 
 struct NumPyArray {
-    yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
-    int ndim = 0;
-    npy_intp* data_dims = nullptr;
-    void* data_ptr = nullptr;
+  yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
+  int ndim = 0;
+  npy_intp* data_dims = nullptr;
+  void* data_ptr = nullptr;
 };
 
 namespace numpy_controller {
 NumPyStatus InitializeNumPy();
-PyObject* ArrayToNumPyArray(int dim, npy_intp* npy_dim, yt_dtype data_dtype, void* data_ptr, bool readonly = false,
+PyObject* ArrayToNumPyArray(int dim, npy_intp* npy_dim, yt_dtype data_dtype,
+                            void* data_ptr, bool readonly = false,
                             bool owned_by_python = false);
 NumPyArray GetNumPyArrayInfo(PyObject* py_array);
 }  // namespace numpy_controller

@@ -22,61 +22,62 @@
 // Description :  Singleton to deal with libyt internal process. (not thread-safe)
 //
 // Notes       :  1. Initialize libyt process control.
-//                2. TODO: probably should manage different modules into different classes,
+//                2. TODO: probably should manage different modules into different
+//                classes,
 //                   like timer and python shell.
 //-------------------------------------------------------------------------------------------------------
 class LibytProcessControl {
-public:
-    // MPI info
-    int mpi_rank_;
-    int mpi_size_;
-    int mpi_root_;
+ public:
+  // MPI info
+  int mpi_rank_;
+  int mpi_size_;
+  int mpi_root_;
 #ifndef SERIAL_MODE
-    CommMpi comm_mpi_;
+  CommMpi comm_mpi_;
 #endif
 
 #ifdef SUPPORT_TIMER
-    // Timer Control
-    TimerControl timer_control;
+  // Timer Control
+  TimerControl timer_control;
 #endif
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
-    // Python shell
-    LibytPythonShell python_shell_;
-    FunctionInfoList function_info_list_;
-    PyObject* py_interactive_mode_;
+  // Python shell
+  LibytPythonShell python_shell_;
+  FunctionInfoList function_info_list_;
+  PyObject* py_interactive_mode_;
 #endif
 
-    // Process control check point and data management for libyt
-    bool libyt_initialized_;
-    bool param_yt_set_;
-    bool get_fields_ptr_;
-    bool get_particles_ptr_;
-    bool get_grids_ptr_;
-    bool commit_grids_;
-    bool need_free_;
+  // Process control check point and data management for libyt
+  bool libyt_initialized_;
+  bool param_yt_set_;
+  bool get_fields_ptr_;
+  bool get_particles_ptr_;
+  bool get_grids_ptr_;
+  bool commit_grids_;
+  bool need_free_;
 
-    // libyt parameters
-    yt_param_libyt param_libyt_;
-    PyObject* py_libyt_info_;
+  // libyt parameters
+  yt_param_libyt param_libyt_;
+  PyObject* py_libyt_info_;
 
-    // yt and user parameters
-    yt_param_yt param_yt_;
-    PyObject* py_param_yt_;
-    PyObject* py_param_user_;
+  // yt and user parameters
+  yt_param_yt param_yt_;
+  PyObject* py_param_yt_;
+  PyObject* py_param_user_;
 
-    // Amr data structure
-    DataStructureAmr data_structure_amr_;
+  // Amr data structure
+  DataStructureAmr data_structure_amr_;
 
-    // Singleton methods
-    LibytProcessControl(const LibytProcessControl& other) = delete;
-    LibytProcessControl& operator=(const LibytProcessControl& other) = delete;
-    static LibytProcessControl& Get();
-    void Initialize();
+  // Singleton methods
+  LibytProcessControl(const LibytProcessControl& other) = delete;
+  LibytProcessControl& operator=(const LibytProcessControl& other) = delete;
+  static LibytProcessControl& Get();
+  void Initialize();
 
-private:
-    LibytProcessControl();
-    static LibytProcessControl instance_;
+ private:
+  LibytProcessControl();
+  static LibytProcessControl instance_;
 };
 
 #endif  // LIBYT_PROJECT_INCLUDE_LIBYT_PROCESS_CONTROL_H_

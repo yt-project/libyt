@@ -13,12 +13,12 @@ namespace libyt_utilities {
 // Return      :  true/false
 //-------------------------------------------------------------------------------------------------------
 bool DoesFileExist(const char* file_name) {
-    struct stat buffer {};
-    if (stat(file_name, &buffer) != 0) {
-        return false;
-    } else {
-        return true;
-    }
+  struct stat buffer {};
+  if (stat(file_name, &buffer) != 0) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
 }  // namespace libyt_utilities
