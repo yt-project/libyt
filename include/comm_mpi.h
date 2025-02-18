@@ -7,6 +7,10 @@
 #include <string>
 #include <vector>
 
+/**
+ * \class CommMpi
+ * \brief Class to handle MPI communication
+ */
 class CommMpi {
  public:
   static int mpi_rank_;
