@@ -195,55 +195,57 @@ jobs:
           path: |
             ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/memory_profile
 
-  conclude-memory-profile:
-    name: Conclude Memory Profile
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    needs:
-      - mpi-memory-profile
-      - memory-profile
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download memory profile results
-        uses: actions/download-artifact@v4
-        with:
-          pattern: '*-memory_profile'
-          merge-multiple: 'false'
-          path: ${{ github.workspace }}/memory_profile
-
-      - name: Conclude memory profile results
-        working-directory: ${{ github.workspace }}/memory_profile
-        id: conclude-memory-profile
-        run: |
-          cp ${{ github.workspace }}/.github/tools/conclude_memory_profile.py .
-          python conclude_memory_profile.py --title Pybind11-MPI --folder mpi-pybind11-memory_profile \
-                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 4 \
-                                            --output_filename output.txt
-          python conclude_memory_profile.py --title PurePython-MPI --folder mpi-pure_python-memory_profile \
-                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 4 \
-                                            --output_filename output.txt
-          python conclude_memory_profile.py --title Pybind11 --folder pybind11-memory_profile \
-                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 1 \
-                                            --output_filename output.txt
-          python conclude_memory_profile.py --title PurePython --folder pure_python-memory_profile \
-                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 1 \
-                                            --output_filename output.txt
-          {
-            echo 'SCRIPT_OUTPUT<<EOF'
-            cat output.txt
-            echo EOF
-          } >> "$GITHUB_ENV"
-
-      - name: Comment results in PR
-        uses: actions/github-script@v7
-        env:
-          COMMENT_BODY: ${{env.SCRIPT_OUTPUT}}
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: process.env.COMMENT_BODY
-            })
+# This prints the output of the memory profile results in the PR,
+# but currently, it is not worth it because reading the memory profile in artifacts should be enough
+#  conclude-memory-profile:
+#    name: Conclude Memory Profile
+#    if: github.event_name == 'pull_request'
+#    runs-on: ubuntu-latest
+#    needs:
+#      - mpi-memory-profile
+#      - memory-profile
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - name: Download memory profile results
+#        uses: actions/download-artifact@v4
+#        with:
+#          pattern: '*-memory_profile'
+#          merge-multiple: 'false'
+#          path: ${{ github.workspace }}/memory_profile
+#
+#      - name: Conclude memory profile results
+#        working-directory: ${{ github.workspace }}/memory_profile
+#        id: conclude-memory-profile
+#        run: |
+#          cp ${{ github.workspace }}/.github/tools/conclude_memory_profile.py .
+#          python conclude_memory_profile.py --title Pybind11-MPI --folder mpi-pybind11-memory_profile \
+#                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 4 \
+#                                            --output_filename output.txt
+#          python conclude_memory_profile.py --title PurePython-MPI --folder mpi-pure_python-memory_profile \
+#                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 4 \
+#                                            --output_filename output.txt
+#          python conclude_memory_profile.py --title Pybind11 --folder pybind11-memory_profile \
+#                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 1 \
+#                                            --output_filename output.txt
+#          python conclude_memory_profile.py --title PurePython --folder pure_python-memory_profile \
+#                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 1 \
+#                                            --output_filename output.txt
+#          {
+#            echo 'SCRIPT_OUTPUT<<EOF'
+#            cat output.txt
+#            echo EOF
+#          } >> "$GITHUB_ENV"
+#
+#      - name: Comment results in PR
+#        uses: actions/github-script@v7
+#        env:
+#          COMMENT_BODY: ${{env.SCRIPT_OUTPUT}}
+#        with:
+#          script: |
+#            github.rest.issues.createComment({
+#              issue_number: context.issue.number,
+#              owner: context.repo.owner,
+#              repo: context.repo.repo,
+#              body: process.env.COMMENT_BODY
+#            })
