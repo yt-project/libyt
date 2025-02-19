@@ -38,7 +38,7 @@ int yt_set_UserParameterUlong(const char* key, const int n, const unsigned long*
 int yt_set_UserParameterFloat(const char* key, const int n, const float* input);
 int yt_set_UserParameterDouble(const char* key, const int n, const double* input);
 int yt_set_UserParameterString(const char* key, const char* input);
-int yt_commit();
+int yt_commit(); /*!< \ingroup api_yt_commit */
 int yt_free();
 int yt_run_FunctionArguments(const char* function_name, int argc, ...);
 int yt_run_Function(const char* function_name);
