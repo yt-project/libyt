@@ -20,11 +20,21 @@ extensions = [
     "myst_parser",
     "sphinx_inline_tabs",
     "sphinx_copybutton",
-    "sphinx_design"
+    "sphinx_design",
+    "breathe"
 ]
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'README.md']
+
+# -- Options for Breathe -----------------------------------------------------
+# https://breathe.readthedocs.io/en/latest/
+
+breathe_projects = {
+    "libyt": "./doxygen/xml"
+}
+
+breathe_default_project = "libyt"
 
 # -- Options for MyST --------------------------------------------------------
 

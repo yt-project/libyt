@@ -9,10 +9,10 @@
 
 // enumerate types
 typedef enum yt_verbose {
-  YT_VERBOSE_OFF = 0,
-  YT_VERBOSE_INFO,
-  YT_VERBOSE_WARNING,
-  YT_VERBOSE_DEBUG
+  YT_VERBOSE_OFF = 0, /*!< Turn off log */
+  YT_VERBOSE_INFO,    /*!< Log level info */
+  YT_VERBOSE_WARNING, /*!< Log level warning */
+  YT_VERBOSE_DEBUG    /*!< Log level debug */
 } yt_verbose;
 
 typedef enum yt_dtype {
