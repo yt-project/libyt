@@ -1,14 +1,18 @@
 cmake_minimum_required(VERSION 3.15)
 
-###### PROJECT Info ####################################################################################################
-project(LIBYT_PROJECT VERSION 0.1.0 DESCRIPTION "In situ Python analysis tool using yt and Python")
+# cmake-format: off
+###### PROJECT Info #####################################################################
+project(LIBYT_PROJECT
+        VERSION 0.1.0
+        DESCRIPTION "In situ Python analysis tool using yt and Python"
+)
 
 ## set options ##
-option(SERIAL_MODE       "Compile library for serial process"                                                 OFF)
-option(INTERACTIVE_MODE  "Use interactive mode"                                                               OFF)
-option(JUPYTER_KERNEL    "Use Jupyter notebook interface"                                                     OFF)
-option(SUPPORT_TIMER     "Support time profiling"                                                             OFF)
-option(USE_PYBIND11      "Use pybind11"                                                                       OFF)
+option(SERIAL_MODE       "Compile library for serial process"                        OFF)
+option(INTERACTIVE_MODE  "Use interactive mode"                                      OFF)
+option(JUPYTER_KERNEL    "Use Jupyter notebook interface"                            OFF)
+option(SUPPORT_TIMER     "Support time profiling"                                    OFF)
+option(USE_PYBIND11      "Use pybind11"                                              OFF)
 
 ## set paths ##
 # It is recommended that we always provide PYTHON_PATH and MPI_PATH.
@@ -27,27 +31,27 @@ set(xeus_DIR          "" CACHE PATH "Path to xeusConfig.cmake (-DJUPYTER_KERNEL=
 set(xeus-zmq_DIR      "" CACHE PATH "Path to xeus-zmqConfig.cmake (-DJUPYTER_KERNEL=ON)")
 set(ZeroMQ_DIR        "" CACHE PATH "Path to ZeroMQConfig.cmake (-DJUPYTER_KERNEL=ON)")
 
-###### COMPILATION (DO NOT TOUCH) ######################################################################################
+###### libyt Internal Stuff (DO NOT TOUCH) ##############################################
 ## cpp version ##
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## build static/shared library ##
-option(BUILD_SHARED_LIBS "Building using shared libraries"                                                    ON )
+option(BUILD_SHARED_LIBS "Building using shared libraries"                           ON )
 
 # run test ##
 set(VALGRIND_PATH     "" CACHE PATH "Path to valgrind installation prefix (-DLIBYT_RUN_MEMORY_PROFILE=ON)")
 
-option(LIBYT_RUN_TEST                "Run unit test"                                                          OFF)
-option(LIBYT_RUN_MEMORY_PROFILE      "Run memory profile"                                                     OFF)
+option(LIBYT_RUN_TEST                "Run unit test"                                 OFF)
+option(LIBYT_RUN_MEMORY_PROFILE      "Run memory profile"                            OFF)
 
 ## set path for dependencies ##
 set(Python_ROOT_DIR ${PYTHON_PATH})
 if (USE_PYBIND11)
-    set(pybind11_DIR ${PYBIND11_PATH})
+  set(pybind11_DIR ${PYBIND11_PATH})
 endif ()
 if (NOT SERIAL_MODE)
-    set(MPI_HOME ${MPI_PATH})
+  set(MPI_HOME ${MPI_PATH})
 endif ()
 
 ## sub directory ##
@@ -56,3 +60,5 @@ add_subdirectory(src)                       # for library
 add_subdirectory(share)                     # for share
 add_subdirectory(example)                   # for example exe
 add_subdirectory(test)                      # for testing
+
+# cmake-format: on
