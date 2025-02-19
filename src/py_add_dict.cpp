@@ -161,6 +161,7 @@ int AddStringToDict(PyObject* dict, const char* key, const char* string) {
 }
 
 // explicit template instantiation
+/*!< \cond */
 template int AddScalarToDict<float>(PyObject* dict, const char* key, const float value);
 template int AddScalarToDict<double>(PyObject* dict, const char* key, const double value);
 template int AddScalarToDict<int>(PyObject* dict, const char* key, const int value);
@@ -185,6 +186,6 @@ template int AddVectorNToDict<unsigned int>(PyObject* dict, const char* key,
                                             const int len, const unsigned int* vector);
 template int AddVectorNToDict<unsigned long>(PyObject* dict, const char* key,
                                              const int len, const unsigned long* vector);
-
+/*!< \endcond */
 }  // namespace python_controller
 #endif  // #ifndef USE_PYBIND11
