@@ -4,30 +4,20 @@
 #include "logging.h"
 #include "timer.h"
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_commit
-// Description :  Add local grids, append field list and particle list info to the libyt
-// Python module.
-//
-// Note        :  1. Must call yt_get_FieldsPtr (if num_fields>0), yt_get_ParticlesPtr (if
-// num_par_types>0),
-//                   yt_get_GridsPtr, which gets data info from user.
-//                2. Check the local grids, field list, and particle list.
-//                3. Append field_list info and particle_list info to
-//                libyt.param_yt['field_list'] and
-//                   libyt.param_yt['particle_list'].
-//                4. Gather hierarchy in different rank, and check hierarchy in
-//                check_hierarchy(), excluding
-//                   particles.
-//                5. If there is particle, we gather different particle type separately.
-//                6. Pass the grids and hierarchy to YT in function append_grid().
-//                7. We assume that one grid contains all the fields belong to that grid.
-//                8. Free LibytProcessControl::Get().param_yt_.grids_local, after we have
-//                passed all grid info and data in.
-//                9. TODO: this can be more memory efficient when gathering hierarchy.
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \defgroup api_yt_commit libyt API: yt_commit
+ * \fn int yt_commit()
+ * \brief
+ * Add local grids, append field list and particle list info to the libyt Python module.
+ * \details
+ * 1. Must call \ref yt_get_FieldsPtr (if num_fields>0),
+ *    \ref yt_get_ParticlesPtr (if num_par_types>0), and \ref yt_get_GridsPtr.
+ * 2. Call DataStructureAmr to bind info, bind hierarchy, and bind local data to Python.
+ *
+ * \version 0.1.0
+ *
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_commit() {
   SET_TIMER(__PRETTY_FUNCTION__);
 
