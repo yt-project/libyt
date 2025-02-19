@@ -7,15 +7,15 @@
 #include <string>
 
 class LibytWorker {
-public:
-    LibytWorker(int myrank, int mysize, int root);
+ public:
+  LibytWorker(int myrank, int mysize, int root);
 
-    void start();
+  void start();
 
-private:
-    int m_mpi_rank;
-    int m_mpi_size;
-    int m_mpi_root;
+ private:
+  int m_mpi_rank;
+  int m_mpi_size;
+  int m_mpi_root;
 };
 
 #endif  // LIBYT_PROJECT_INCLUDE_LIBYT_WORKER_H_
