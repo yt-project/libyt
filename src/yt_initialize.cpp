@@ -6,23 +6,19 @@
 
 static void PrintLibytInfo();
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_initialize
-// Description :  Initialize libyt
-//
-// Note        :  1. Input "param_libyt" will be backed up to a libyt global variable
-//                2. This function should not be called more than once (even if
-//                yt_finalize has been called)
-//                   since some extensions (e.g., NumPy) may not work properly.
-//                3. Initialize general info, user-defined MPI data type, and
-//                LibytProcessControl
-//
-// Parameter   :  argc        : Argument count
-//                argv        : Argument vector
-//                param_libyt : libyt runtime parameters
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \defgroup api_yt_initialize libyt API: yt_initialize
+ * \fn int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt)
+ * \brief Initialize libyt
+ * \details
+ * 1. This function should not be called more than once.
+ * 2. Initialize libyt workflow, Python interpreter, and import libyt module.
+ *
+ * @param argc[in]
+ * @param argv[in]
+ * @param param_libyt[in] libyt runtime parameters
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
   LibytProcessControl::Get().Initialize();
 

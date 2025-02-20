@@ -38,31 +38,31 @@ static int add_string(const char* key, const char* input);
 // maximum string width of a key (for outputting debug information only)
 static const int MaxParamNameWidth = 15;
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_set_UserParameter*
-// Description :  Add code-specific parameters
-//
-// Note        :  1. All code-specific parameters are stored in "libyt.param_user"
-//                2. Overloaded with various data types: float, double, int, long, long
-//                long, unsigned int,
-//                   unsigned long, char*
-//                   ==> But do not use c++ template since I don't know how to instantiate
-//                   template
-//                       without function name mangling ...
-//
-// Parameter   :  key   : Dictionary key
-//                n     : Number of elements in the input array
-//                input : Input array containing "n" elements or a single string
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \addtogroup api_yt_set_UserParameter
+ * \name api_yt_set_UserParameter
+ * Set user or code-specific parameters. All the parameters will be put under
+ * @verbatim libyt.param_user["key"] = value @endverbatim.
+ */
 
+/**
+ * \brief Set user parameter int
+ * \details
+ * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 2. Data is copied.
+ *
+ * @param key[in] key
+ * @param n[in] length of value array to be set in dictionary
+ * @param input[in] value array
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_set_UserParameterInt(const char* key, const int n, const int* input) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
   // check if libyt has been initialized
-  if (!LibytProcessControl::Get().libyt_initialized_)
+  if (!LibytProcessControl::Get().libyt_initialized_) {
     YT_ABORT("Please invoke yt_initialize() before calling %s()!\n", __FUNCTION__);
+  }
 
 #ifndef USE_PYBIND11
   return add_nonstring(key, n, input);
@@ -71,6 +71,17 @@ int yt_set_UserParameterInt(const char* key, const int n, const int* input) {
 #endif
 }
 
+/**
+ * \brief Set user parameter long
+ * \details
+ * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 2. Data is copied.
+ *
+ * @param key[in] key
+ * @param n[in] length of value array to be set in dictionary
+ * @param input[in] value array
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_set_UserParameterLong(const char* key, const int n, const long* input) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -85,6 +96,17 @@ int yt_set_UserParameterLong(const char* key, const int n, const long* input) {
 #endif
 }
 
+/**
+ * \brief Set user parameter long long
+ * \details
+ * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 2. Data is copied.
+ *
+ * @param key[in] key
+ * @param n[in] length of value array to be set in dictionary
+ * @param input[in] value array
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_set_UserParameterLongLong(const char* key, const int n, const long long* input) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -99,6 +121,17 @@ int yt_set_UserParameterLongLong(const char* key, const int n, const long long* 
 #endif
 }
 
+/**
+ * \brief Set user parameter unsigned int
+ * \details
+ * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 2. Data is copied.
+ *
+ * @param key[in] key
+ * @param n[in] length of value array to be set in dictionary
+ * @param input[in] value array
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_set_UserParameterUint(const char* key, const int n, const unsigned int* input) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -113,6 +146,17 @@ int yt_set_UserParameterUint(const char* key, const int n, const unsigned int* i
 #endif
 }
 
+/**
+ * \brief Set user parameter unsigned long
+ * \details
+ * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 2. Data is copied.
+ *
+ * @param key[in] key
+ * @param n[in] length of value array to be set in dictionary
+ * @param input[in] value array
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_set_UserParameterUlong(const char* key, const int n, const unsigned long* input) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -127,6 +171,17 @@ int yt_set_UserParameterUlong(const char* key, const int n, const unsigned long*
 #endif
 }
 
+/**
+ * \brief Set user parameter float
+ * \details
+ * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 2. Data is copied.
+ *
+ * @param key[in] key
+ * @param n[in] length of value array to be set in dictionary
+ * @param input[in] value array
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_set_UserParameterFloat(const char* key, const int n, const float* input) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -141,6 +196,17 @@ int yt_set_UserParameterFloat(const char* key, const int n, const float* input) 
 #endif
 }
 
+/**
+ * \brief Set user parameter double
+ * \details
+ * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 2. Data is copied.
+ *
+ * @param key[in] key
+ * @param n[in] length of value array to be set in dictionary
+ * @param input[in] value array
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_set_UserParameterDouble(const char* key, const int n, const double* input) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -155,6 +221,16 @@ int yt_set_UserParameterDouble(const char* key, const int n, const double* input
 #endif
 }
 
+/**
+ * \brief Set user parameter string
+ * \details
+ * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 2. Data is copied.
+ *
+ * @param key[in] key
+ * @param input[in] value
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_set_UserParameterString(const char* key, const char* input) {
   SET_TIMER(__PRETTY_FUNCTION__);
 

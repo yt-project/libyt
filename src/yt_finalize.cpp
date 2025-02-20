@@ -7,19 +7,18 @@
 #include "pybind11/embed.h"
 #endif
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_finalize
-// Description :  Undo all initializations done by yt_initialize()
-//
-// Note        :  1. Do not reinitialize libyt (i.e., calling yt_initialize()) after
-// calling this function
-//                   ==> Some extensions (e.g., NumPy) may not work properly
-//                2. Make sure that the user has follow the full libyt workflow.
-//
-// Parameter   :  None
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \defgroup api_yt_finalize libyt API: yt_finalize
+ * \fn int yt_finalize()
+ * \brief Finalize libyt workflow
+ * \details
+ * 1. Do not reinitialize libyt (i.e., calling yt_initialize()) after calling this
+ *    function. Some extensions (e.g., NumPy) may not work properly.
+ * 2. Make sure that the user has follow the full libyt workflow. Like calling
+ *    \ref yt_free before calling this function.
+ *
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_finalize() {
   SET_TIMER(__PRETTY_FUNCTION__);
 

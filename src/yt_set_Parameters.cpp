@@ -11,30 +11,19 @@
 static int CheckYtParamYt(const yt_param_yt& param_yt);
 static int PrintYtParamYt(const yt_param_yt& param_yt);
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_set_Parameters
-// Description :  Set YT-specific parameters
-//
-// Note        :  1. Store yt relevant data in input "param_yt" to libyt.param_yt. Note
-// that not all the
-//                   data are passed in to python.
-//                2. To avoid user free the passed in array par_type_list, we initialize
-//                particle_list
-//                   (needs info from par_type_list) right away if num_par_types > 0.
-//                   The Amr data structure and storage is initialized here.
-//                   TODO: The Api name is bad, should fix it in libyt-v1.0.
-//                3. Should be called after yt_initialize().
-//                4. Check the validation of the data in param_yt.
-//                5. Initialize python hierarchy allocate_hierarchy() and particle_list.
-//                6. Gather each ranks number of local grids, we need this info in
-//                yt_commit().
-//
-// Parameter   :  param_yt : Structure storing YT-specific parameters that will later pass
-// to YT, and
-//                           other relevant data.
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \defgroup api_yt_set_Parameters libyt API: yt_set_Parameters
+ * \fn int yt_set_Parameters(yt_param_yt* input_param_yt)
+ * \brief Set YT-specific parameters and parameters for initializing AMR data structure
+ * \details
+ * 1. Store yt relevant data to libyt Python module \verbatim libyt.param_yt \endverbatim.
+ * 2. Initialize AMR data structure and storage.
+ * 3. Should be called after \ref yt_initialize.
+ *
+ * @param input_param_yt[in] YT-specific parameters and parameters for initializing AMR
+ *                           data structure
+ * @return
+ */
 int yt_set_Parameters(yt_param_yt* input_param_yt) {
   SET_TIMER(__PRETTY_FUNCTION__);
 

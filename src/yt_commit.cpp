@@ -14,8 +14,6 @@
  *    \ref yt_get_ParticlesPtr (if num_par_types>0), and \ref yt_get_GridsPtr.
  * 2. Call DataStructureAmr to bind info, bind hierarchy, and bind local data to Python.
  *
- * \version 0.1.0
- *
  * @return \ref YT_SUCCESS or \ref YT_FAIL
  */
 int yt_commit() {

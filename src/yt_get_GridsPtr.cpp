@@ -3,19 +3,20 @@
 #include "logging.h"
 #include "timer.h"
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_get_GridsPtr
-// Description :  Get pointer of the array of struct yt_grid with length num_grids_local.
-//
-// Note        :  1. User should call this function after yt_set_Parameters(),
-//                   since we initialize it there.
-//
-// Parameter   :  yt_grid **grids_local : Initialize and store the grid structure array
-// under this
-//                                        pointer points to.
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \defgroup api_yt_get_GridsPtr libyt API: yt_get_GridsPtr
+ * \fn int yt_get_GridsPtr(yt_grid** grids_local)
+ * \brief Get pointer of local grids information array
+ * \details
+ * 1. User should call this function after \ref yt_set_Parameters,
+ *    because the AMR structure is initialized there.
+ *
+ * \todo
+ * 1. Loading grid hierarchy and data is so inefficient, should fix it in libyt-v1.0.
+ *
+ * @param grids_local[out] Pointer to the array of struct yt_grid is stored
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_get_GridsPtr(yt_grid** grids_local) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
