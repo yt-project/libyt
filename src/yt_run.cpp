@@ -7,32 +7,39 @@
 #include "logging.h"
 #include "timer.h"
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_run_FunctionArguments
-// Description :  Call function with arguments in in situ process
-//
-// Note        :  1. Python script name, which is also its namespace's name is stored in
-//                   "LibytProcessControl::Get().param_libyt_.script"
-//                2. This python script must contain function of <function_name> you
-//                called.
-//                3. Must give argc (argument count), even if there are no arguments.
-//                4. libyt wraps function and its arguments using either """ or ''' triple
-//                quotes, and then
-//                   call exec to execute under script's namespace. So we must avoid using
-//                   both of these triple quotes in function arguments, use only one of
-//                   them.
-//                5. Under INTERACTIVE_MODE, function will be wrapped inside try/except.
-//                If there is error
-//                   it will store under
-//                   libyt.interactive_mode["func_err_msg"]["func_name"].
-//
-// Parameter   :  const char *function_name : function name in python script
-//                int  argc                 : input arguments count
-//                ...                       : list of arguments, should be input as
-//                (char*)
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \addtogroup api_yt_run_Function libyt API: yt_run_FunctionArguments / yt_run_Function
+ * \name api_yt_run_Function
+ * Run a Python function defined in the inline script namespace. The inline script
+ * namespace is passed in by \ref yt_initialize and \ref yt_param_libyt.
+ */
+
+/**
+ * \brief Call Python function with args in in situ process
+ * \fn int yt_run_FunctionArguments(const char* function_name, int argc, ...)
+ * \details
+ * 1. The function is run inside the inline script namespace, which is the script passed
+ *    in \ref yt_initialize and \ref yt_param_libyt. Which means the script contains the
+ *    function name you called.
+ * 2. Must give argc (argument count), even if there are no arguments.
+ * 3. libyt wraps function and its arguments using either """ or ''' triple quotes, so we
+ *    must avoid using both of these triple quotes in function arguments.
+ * 4. Under INTERACTIVE_MODE, function will be wrapped inside try/except.
+ *    If an error occurred, it will be stored under
+ *    @verbatim libyt.interactive_mode["func_err_msg"]["func_name"] @endverbatim.
+ *
+ * @param function_name[in] Python function name
+ * @param argc[in] Number of arguments
+ * @param ...[in] List of arguments, should be input as strings
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code-block:: c
+ *
+ *    // Equivalent to Python: function_name(1, 'string', var_name)
+ *    yt_run_FunctionArguments("function_name", 3, "1", "'string'", "var_name");
+ * \endverbatim
+ */
 int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -174,17 +181,22 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
   return YT_SUCCESS;
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_run_Function
-// Description :  Execute the YT inline analysis script
-//
-// Note        :  1. Route to yt_run_FunctionArguments(function_name, 0) to execute the
-// function.
-//
-// Parameter   :  const char *function_name : function name in python script
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \brief Call Python function without args in in situ process
+ * \fn int yt_run_Function(const char* function_name)
+ * \details
+ * 1. Route to \ref yt_run_FunctionArguments.
+ *
+ * @param function_name[in] Python function name
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code-block:: c
+ *
+ *    // Equivalent to Python: function_name()
+ *    yt_run_Function("function_name");
+ * \endverbatim
+ */
 int yt_run_Function(const char* function_name) {
   SET_TIMER(__PRETTY_FUNCTION__);
 

@@ -26,6 +26,7 @@ FAQs
 
 libyt-api/index
 debug-and-profiling/index
+api-doc/index
 ```
 
 #### Contents

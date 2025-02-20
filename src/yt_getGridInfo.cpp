@@ -3,32 +3,34 @@
 #include "logging.h"
 #include "timer.h"
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_getGridInfo_*
-// Description :  Get dimension of the grid with grid id = gid.
-//
-// Note        :  1. It searches full hierarchy loaded in Python, and returns YT_FAIL if
-// error occurs.
-//                2. grid_dimensions/left_edge/right_edge is defined in [x][y][z] <->
-//                [0][1][2] coordinate.
-//                3. gid is grid id passed in by user, it doesn't need to be 0-indexed.
-//                4.    Function                                              Search NumPy
-//                Array
-//                   --------------------------------------------------------------------------------
-//                    yt_getGridInfo_Dimensions(const long, int (*)[3])
-//                    libyt.hierarchy["grid_dimensions"] yt_getGridInfo_LeftEdge(const
-//                    long, double (*)[3])      libyt.hierarchy["grid_left_edge"]
-//                    yt_getGridInfo_RightEdge(const long, double (*)[3])
-//                    libyt.hierarchy["grid_right_edge"] yt_getGridInfo_ParentId(const
-//                    long, long *)             libyt.hierarchy["grid_parent_id"]
-//                    yt_getGridInfo_Level(const long, int *)
-//                    libyt.hierarchy["grid_levels"] yt_getGridInfo_ProcNum(const long,
-//                    int *)               libyt.hierarchy["proc_num"]
-//
-// Example     :  long gid = 0;
-//                int dim[3];
-//                yt_getGridInfo_Dimensions( gid, &dim );
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \addtogroup api_yt_getGridInfo libyt API: Getting Grid and Data Information
+ * \name api_yt_getGridInfo
+ * Get grid information or data after loading information into libyt using \ref yt_commit.
+ * This is used in data generating functions, like derived field function and get particle
+ * data.
+ */
+
+/**
+ * \brief Get grid dimensions in [x][y][z] coordinates of grid with grid id = gid.
+ * \details
+ * 1. It searches full hierarchy loaded in Python, and returns \ref YT_FAIL if error
+ *    occurs.
+ * 2. grid_dimensions is defined in [x][y][z] <-> [0][1][2] coordinate.
+ * 3. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+ *
+ * @param gid[in] grid id
+ * @param dimensions[out] grid dimensions
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code-block:: c
+ *
+ *    long gid = 0;
+ *    int dim[3];
+ *    yt_getGridInfo_Dimensions( gid, &dim );
+ * \endverbatim
+ */
 int yt_getGridInfo_Dimensions(const long gid, int (*dimensions)[3]) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -51,6 +53,26 @@ int yt_getGridInfo_Dimensions(const long gid, int (*dimensions)[3]) {
   }
 }
 
+/**
+ * \brief Get grid left edges in [x][y][z] coordinates of grid with grid id = gid.
+ * \details
+ * 1. It searches full hierarchy loaded in Python, and returns \ref YT_FAIL if error
+ *    occurs.
+ * 2. Returned left edge is defined in [x][y][z] <-> [0][1][2] coordinate.
+ * 3. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+ *
+ * @param gid[in] grid id
+ * @param left_edge[out] grid left edge
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code-block:: c
+ *
+ *    long gid = 0;
+ *    double left_edge[3];
+ *    yt_getGridInfo_LeftEdge( gid, &left_edge );
+ * \endverbatim
+ */
 int yt_getGridInfo_LeftEdge(const long gid, double (*left_edge)[3]) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -73,6 +95,26 @@ int yt_getGridInfo_LeftEdge(const long gid, double (*left_edge)[3]) {
   }
 }
 
+/**
+ * \brief Get grid right edges in [x][y][z] coordinates of grid with grid id = gid.
+ * \details
+ * 1. It searches full hierarchy loaded in Python, and returns \ref YT_FAIL if error
+ *    occurs.
+ * 2. Returned right edge is defined in [x][y][z] <-> [0][1][2] coordinate.
+ * 3. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+ *
+ * @param gid[in] grid id
+ * @param right_edge[out] grid right edge
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code-block:: c
+ *
+ *    long gid = 0;
+ *    double right_edge[3];
+ *    yt_getGridInfo_RightEdge( gid, &right_edge );
+ * \endverbatim
+ */
 int yt_getGridInfo_RightEdge(const long gid, double (*right_edge)[3]) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -95,6 +137,24 @@ int yt_getGridInfo_RightEdge(const long gid, double (*right_edge)[3]) {
   }
 }
 
+/**
+ * \brief Get parent id of grid with grid id = gid.
+ * \details
+ * 1. It searches full hierarchy loaded in Python, and returns \ref YT_FAIL if error
+ *    occurs.
+ * 2. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+ *
+ * @param gid[in] grid id
+ * @param parent_id[out] parent id
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code-block:: c
+ *
+ *    long parent_id;
+ *    yt_getGridInfo_ParentId( gid, &parent_id );
+ * \endverbatim
+ */
 int yt_getGridInfo_ParentId(const long gid, long* parent_id) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -116,6 +176,25 @@ int yt_getGridInfo_ParentId(const long gid, long* parent_id) {
   }
 }
 
+/**
+ * \brief Get level of grid with grid id = gid.
+ * \details
+ * 1. It searches full hierarchy loaded in Python, and returns \ref YT_FAIL if error
+ *    occurs.
+ * 2. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+ * 3. Root level starts at 0.
+ *
+ * @param gid[in] grid id
+ * @param level[out] level
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code-block:: c
+ *
+ *    int level;
+ *    yt_getGridInfo_Level( gid, &level );
+ * \endverbatim
+ */
 int yt_getGridInfo_Level(const long gid, int* level) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -137,6 +216,25 @@ int yt_getGridInfo_Level(const long gid, int* level) {
   }
 }
 
+/**
+ * \brief Get processor number (mpi rank) of grid with grid id = gid.
+ * \details
+ * 1. It searches full hierarchy loaded in Python, and returns \ref YT_FAIL if error
+ *    occurs.
+ * 2. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+ * 3. Processor number starts at 0.
+ *
+ * @param gid[in] grid id
+ * @param proc_num[out] processor number
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code-block:: c
+ *
+ *    int proc_num;
+ *    yt_getGridInfo_ProcNum( gid, &proc_num );
+ * \endverbatim
+ */
 int yt_getGridInfo_ProcNum(const long gid, int* proc_num) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -158,17 +256,24 @@ int yt_getGridInfo_ProcNum(const long gid, int* proc_num) {
   }
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_getGridInfo_ParticleCount
-// Description :  Get particle count of particle type ptype in grid gid.
-//
-// Note        :  1. It searches libyt.hierarchy["par_count_list"][index][ptype],
-//                   and does not check whether the grid is on this rank or not.
-//                2. gid is grid id passed in by user, it doesn't need to be 0-indexed.
-//
-// Example     :  long count;
-//                yt_getGridInfo_ParticleCount( gid, "par_type", &count );
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \brief Get particle count of a particle type inside grid with grid id = gid.
+ * \details
+ * 1. It searches full hierarchy loaded in Python, and returns \ref YT_FAIL if error
+ *    occurs.
+ * 2. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+ *
+ * @param gid[in] grid id
+ * @param ptype[in] particle type
+ * @param par_count[out] particle count
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code-block:: c
+ *
+ *    long par_count;
+ *    yt_getGridInfo_ParticleCount( gid, "io", &par_count );
+ * \endverbatim
+ */
 int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_count) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -191,23 +296,30 @@ int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_co
   }
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_getGridInfo_FieldData
-// Description :  Get libyt.grid_data of field_name in the grid with grid id = gid .
-//
-// Note        :  1. It searches simulation field data registered under libyt Python
-// module,
-//                   and return YT_FAIL if error occurs.
-//                2. gid is grid id passed in by user, it doesn't need to be 0-indexed.
-//                3. User should cast to their own datatype after receiving the pointer.
-//                4. Returns an existing data pointer and data dimensions user passed in,
-//                   and does not make a copy of it!!
-//                5. Works only for 3-dim data.
-//
-// Example     :  yt_data Data;
-//                yt_getGridInfo_FieldData( gid, "field_name", &Data );
-//                double *FieldData = (double *) Data.data_ptr;
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \brief Get field data of grid with grid id = gid.
+ * \details
+ * 1. It searches simulation field data registered under libyt Python module,
+ *    and returns \ref YT_FAIL if error occurs.
+ * 2. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+ * 3. User should cast to their own datatype after receiving the pointer.
+ * 4. Returns an existing data pointer and data dimensions user passed in,
+ *    and does not make a copy of it!!
+ * 5. Works only for 3-dim data.
+ *
+ * @param gid[in] grid id
+ * @param field_name[in] queried field name
+ * @param field_data[out] field data pointer and metadata
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code-block:: c
+ *
+ *    yt_data data;
+ *    yt_getGridInfo_FieldData(gid, "field_name", &data);
+ *    double *field_data = (double *) data.data_ptr;
+ * \endverbatim
+ */
 int yt_getGridInfo_FieldData(const long gid, const char* field_name,
                              yt_data* field_data) {
   SET_TIMER(__PRETTY_FUNCTION__);
@@ -244,6 +356,31 @@ int yt_getGridInfo_FieldData(const long gid, const char* field_name,
 //                   and does not make a copy of it!!
 //                5. For 1-dim data (like particles), the higher dimensions is set to 0.
 //-------------------------------------------------------------------------------------------------------
+/**
+ * \brief Get particle data of grid with grid id = gid.
+ * \details
+ * 1. It searches particle data registered under libyt Python module,
+ *    and returns \ref YT_FAIL if error occurs.
+ * 2. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+ * 3. User should cast to their own datatype after receiving the pointer.
+ * 4. Returns an existing data pointer and data dimensions user passed in,
+ *    and does not make a copy of it!!
+ * 5. For 1-dim data (like particles), the higher dimensions is set to 0.
+ *
+ * @param gid[in] grid id
+ * @param ptype[in] queried particle type
+ * @param attr[in] queried attribute
+ * @param par_data[out] particle data pointer and metadata
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code-block:: c
+ *
+ *    yt_data data;
+ *    yt_getGridInfo_ParticleData(gid, "io", "PosX", &data);
+ *    double *par_data = (double *) data.data_ptr;
+ * \endverbatim
+ */
 int yt_getGridInfo_ParticleData(const long gid, const char* ptype, const char* attr,
                                 yt_data* par_data) {
   SET_TIMER(__PRETTY_FUNCTION__);
