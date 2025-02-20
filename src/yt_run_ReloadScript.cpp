@@ -24,18 +24,18 @@
  * 1. This API and yt_run_InteractiveMode has the same feature, but this one uses file
  *    base to interact with the prompt.
  * 2. It simply loads each line in a file line-by-line.
- * 3. Using @verbatim embed:rst:inline reload_file_name @endverbatim _EXIT/SUCCESS/FAILED
+ * 3. Using `reload_file_name`_EXIT/SUCCESS/FAILED
  *    for a series of instructions.
  * 4. libyt command needs to be commented out and at the end of the file. For example:
  *
- * \verbatim embed:rst:leading-asterisk
+ * \rst
  * .. code-block:: python
  *
  *    # Reload this Python script
  *    print("Hello, World!")
  *    #LIBYT_COMMANDS
  *    # %libyt status
- * \endverbatim
+ * \endrst
  *
  * \warning
  * It stops and enters the API if flag file is detected or there is an error in in situ
@@ -47,7 +47,7 @@
  *
  * @param flag_file_name[in] Flag file name exists means it will enter reload script mode
  * @param reload_file_name[in] Reload operation indicator file name
- * @param script_name[in] Full Python script name to reload, include ".py"
+ * @param script_name[in] Full Python script name to reload, include `.py`
  * @return \ref YT_SUCCESS or \ref YT_FAIL
  */
 int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name,

@@ -29,11 +29,14 @@
  * 2. This API forces kernel to be on MPI process 0 (root).
  * 3. Jupyter Notebook/JupyterLab are launched in separated process.
  *
- * \warning
- * Connection file must be "libyt_kernel_connection.json" if use_connection_file = true.
+ * \rst
+ * .. important::
+ *    Connection file must be ``libyt_kernel_connection.json`` if
+ *    ``use_connection_file`` is true.
  *
- * \note
- * This API is only available when libyt is compiled with -DJUPYTER_KERNEL=ON.
+ * .. note::
+ *    This API is only available when libyt is compiled with -DJUPYTER_KERNEL=ON.
+ * \endrst
  *
  * @param flag_file_name[in] Flag file name exists means it will activate libyt kernel
  * @param use_connection_file[in] Use connection file set by user or not

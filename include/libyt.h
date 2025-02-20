@@ -1,11 +1,10 @@
 #ifndef LIBYT_PROJECT_INCLUDE_LIBYT_H_
 #define LIBYT_PROJECT_INCLUDE_LIBYT_H_
 
-/*******************************************************************************
-/
-/  This is the API header to be included by simulation codes
-/
-********************************************************************************/
+/**
+ * \file libyt.h
+ * \brief This is the API header to be included by simulation codes
+ */
 
 #define LIBYT_MAJOR_VERSION 0
 #define LIBYT_MINOR_VERSION 1

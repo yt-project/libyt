@@ -11,10 +11,9 @@
  * 1. User should call this function after \ref yt_set_Parameters,
  *    because the AMR structure is initialized there.
  *
- * \todo
- * 1. The setting up of particle info is just bad. Should fix it in libyt-v1.0.
+ * \todo The setting up of particle info is just bad. Should fix it in libyt-v1.0.
  *
- * @param particle_list[out] Pointer to the array of struct yt_particle is stored
+ * @param particle_list[out] Pointer to the array of \ref yt_particle is stored
  * @return \ref YT_SUCCESS or \ref YT_FAIL
  */
 int yt_get_ParticlesPtr(yt_particle** particle_list) {

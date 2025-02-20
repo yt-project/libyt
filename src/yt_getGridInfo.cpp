@@ -16,7 +16,7 @@
  * \details
  * 1. It searches full hierarchy loaded in Python, and returns \ref YT_FAIL if error
  *    occurs.
- * 2. grid_dimensions is defined in [x][y][z] <-> [0][1][2] coordinate.
+ * 2. grid_dimensions is defined in `[x][y][z]` <-> `[0][1][2]` coordinate.
  * 3. gid is grid id passed in by user, it doesn't need to be 0-indexed.
  *
  * @param gid[in] grid id
@@ -58,7 +58,7 @@ int yt_getGridInfo_Dimensions(const long gid, int (*dimensions)[3]) {
  * \details
  * 1. It searches full hierarchy loaded in Python, and returns \ref YT_FAIL if error
  *    occurs.
- * 2. Returned left edge is defined in [x][y][z] <-> [0][1][2] coordinate.
+ * 2. Returned left edge is defined in `[x][y][z]` <-> `[0][1][2]` coordinate.
  * 3. gid is grid id passed in by user, it doesn't need to be 0-indexed.
  *
  * @param gid[in] grid id
@@ -100,7 +100,7 @@ int yt_getGridInfo_LeftEdge(const long gid, double (*left_edge)[3]) {
  * \details
  * 1. It searches full hierarchy loaded in Python, and returns \ref YT_FAIL if error
  *    occurs.
- * 2. Returned right edge is defined in [x][y][z] <-> [0][1][2] coordinate.
+ * 2. Returned right edge is defined in `[x][y][z]` <-> `[0][1][2]` coordinate.
  * 3. gid is grid id passed in by user, it doesn't need to be 0-indexed.
  *
  * @param gid[in] grid id

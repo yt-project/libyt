@@ -16,13 +16,13 @@ static int PrintYtParamYt(const yt_param_yt& param_yt);
  * \fn int yt_set_Parameters(yt_param_yt* input_param_yt)
  * \brief Set YT-specific parameters and parameters for initializing AMR data structure
  * \details
- * 1. Store yt relevant data to libyt Python module \verbatim libyt.param_yt \endverbatim.
+ * 1. Store yt relevant data to libyt Python module `libyt.param_yt`.
  * 2. Initialize AMR data structure and storage.
  * 3. Should be called after \ref yt_initialize.
  *
  * @param input_param_yt[in] YT-specific parameters and parameters for initializing AMR
  *                           data structure
- * @return
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
  */
 int yt_set_Parameters(yt_param_yt* input_param_yt) {
   SET_TIMER(__PRETTY_FUNCTION__);
