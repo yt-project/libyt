@@ -11,10 +11,9 @@
  * 1. User should call this function after \ref yt_set_Parameters,
  *    because the AMR structure is initialized there.
  *
- * \todo
- * 1. Loading grid hierarchy and data is so inefficient, should fix it in libyt-v1.0.
+ * \todo Loading grid hierarchy and data is so inefficient, should fix it in libyt-v1.0.
  *
- * @param grids_local[out] Pointer to the array of struct yt_grid is stored
+ * @param grids_local[out] Pointer to the array of \ref yt_grid is stored
  * @return \ref YT_SUCCESS or \ref YT_FAIL
  */
 int yt_get_GridsPtr(yt_grid** grids_local) {

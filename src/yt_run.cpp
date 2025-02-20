@@ -22,23 +22,23 @@
  *    in \ref yt_initialize and \ref yt_param_libyt. Which means the script contains the
  *    function name you called.
  * 2. Must give argc (argument count), even if there are no arguments.
- * 3. libyt wraps function and its arguments using either """ or ''' triple quotes, so we
- *    must avoid using both of these triple quotes in function arguments.
+ * 3. libyt wraps function and its arguments using either \c """ or \c ''' triple quotes,
+ *    so we must avoid using both of these triple quotes in function arguments.
  * 4. Under INTERACTIVE_MODE, function will be wrapped inside try/except.
  *    If an error occurred, it will be stored under
- *    @verbatim libyt.interactive_mode["func_err_msg"]["func_name"] @endverbatim.
+ *    \c libyt.interactive_mode.
  *
  * @param function_name[in] Python function name
  * @param argc[in] Number of arguments
  * @param ...[in] List of arguments, should be input as strings
  * @return \ref YT_SUCCESS or \ref YT_FAIL
  *
- * \verbatim embed:rst:leading-asterisk
+ * \rst
  * .. code-block:: c
  *
  *    // Equivalent to Python: function_name(1, 'string', var_name)
  *    yt_run_FunctionArguments("function_name", 3, "1", "'string'", "var_name");
- * \endverbatim
+ * \endrst
  */
 int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
   SET_TIMER(__PRETTY_FUNCTION__);
@@ -190,12 +190,12 @@ int yt_run_FunctionArguments(const char* function_name, int argc, ...) {
  * @param function_name[in] Python function name
  * @return \ref YT_SUCCESS or \ref YT_FAIL
  *
- * \verbatim embed:rst:leading-asterisk
+ * \rst
  * .. code-block:: c
  *
  *    // Equivalent to Python: function_name()
  *    yt_run_Function("function_name");
- * \endverbatim
+ * \endrst
  */
 int yt_run_Function(const char* function_name) {
   SET_TIMER(__PRETTY_FUNCTION__);

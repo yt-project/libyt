@@ -48,7 +48,7 @@ static const int MaxParamNameWidth = 15;
 /**
  * \brief Set user parameter int
  * \details
- * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 1. Key-value pair will be appended to `libyt.param_user`.
  * 2. Data is copied.
  *
  * @param key[in] key
@@ -74,7 +74,7 @@ int yt_set_UserParameterInt(const char* key, const int n, const int* input) {
 /**
  * \brief Set user parameter long
  * \details
- * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 1. Key-value pair will be appended to `libyt.param_user`.
  * 2. Data is copied.
  *
  * @param key[in] key
@@ -99,7 +99,7 @@ int yt_set_UserParameterLong(const char* key, const int n, const long* input) {
 /**
  * \brief Set user parameter long long
  * \details
- * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 1. Key-value pair will be appended to `libyt.param_user`.
  * 2. Data is copied.
  *
  * @param key[in] key
@@ -124,7 +124,7 @@ int yt_set_UserParameterLongLong(const char* key, const int n, const long long* 
 /**
  * \brief Set user parameter unsigned int
  * \details
- * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 1. Key-value pair will be appended to `libyt.param_user`.
  * 2. Data is copied.
  *
  * @param key[in] key
@@ -149,7 +149,7 @@ int yt_set_UserParameterUint(const char* key, const int n, const unsigned int* i
 /**
  * \brief Set user parameter unsigned long
  * \details
- * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 1. Key-value pair will be appended to `libyt.param_user`.
  * 2. Data is copied.
  *
  * @param key[in] key
@@ -174,7 +174,7 @@ int yt_set_UserParameterUlong(const char* key, const int n, const unsigned long*
 /**
  * \brief Set user parameter float
  * \details
- * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 1. Key-value pair will be appended to `libyt.param_user`.
  * 2. Data is copied.
  *
  * @param key[in] key
@@ -199,7 +199,7 @@ int yt_set_UserParameterFloat(const char* key, const int n, const float* input) 
 /**
  * \brief Set user parameter double
  * \details
- * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 1. Key-value pair will be appended to `libyt.param_user`.
  * 2. Data is copied.
  *
  * @param key[in] key
@@ -224,7 +224,7 @@ int yt_set_UserParameterDouble(const char* key, const int n, const double* input
 /**
  * \brief Set user parameter string
  * \details
- * 1. Key-value pair will be appended to @verbatim libyt.param_user @endverbatim.
+ * 1. Key-value pair will be appended to `libyt.param_user`.
  * 2. Data is copied.
  *
  * @param key[in] key

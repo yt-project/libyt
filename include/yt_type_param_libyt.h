@@ -5,35 +5,22 @@
 #include <stdbool.h>
 #endif
 
-//-------------------------------------------------------------------------------------------------------
-// Structure   :  yt_param_libyt
-// Description :  Data structure of libyt runtime parameters
-//
-// Notes       :  1. The lifetime of script should cover the whole in situ process in
-// libyt.
-//                2. Included by yt_type.h
-//
-// Data Member :  verbose : Verbose level
-//                script  : Name of the YT inline analysis script (without the .py
-//                extension) counter : Number of rounds doing inline-analysis check_data:
-//                Check the input data (ex: hierarchy, grid information...), if it is
-//                true.
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \struct yt_param_libyt
+ * \brief Data structure of libyt runtime parameters
+ *
+ * \rst
+ * .. caution::
+ *    The lifetime of ``script`` should cover the whole in situ process in libyt.
+ * \endrst
+ */
 typedef struct yt_param_libyt {
-  yt_verbose verbose;
-  const char* script;
-  long counter;
-  bool check_data;
+  yt_verbose verbose; /*!< Verbose log level */
+  const char* script; /*!< Script name _without_ the file extension `.py` */
+  long counter;       /*!< Number of iteration doing in situ analysis */
+  bool check_data;    /*!< Check the input data (e.g., hierarchy, grid information...) */
 
 #ifdef __cplusplus
-  //===================================================================================
-  // Method      :  yt_param_libyt
-  // Description :  Constructor of the structure "yt_param_libyt"
-  //
-  // Note        :  Initialize all data members
-  //
-  // Parameter   :  None
-  //===================================================================================
   yt_param_libyt() {
     verbose = YT_VERBOSE_WARNING;
     script = "yt_inline_script";

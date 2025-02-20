@@ -11,11 +11,10 @@
  * 1. User should call this function after \ref yt_set_Parameters,
  *    because the AMR structure is initialized there.
  *
- * \todo
- * 1. The setting up of field info is just bad. Should fix it in libyt-v1.0.
- *    Probably should make setting of field info field-by-field
+ * \todo The setting up of field info is just bad. Should fix it in libyt-v1.0.
+ *       Probably should make setting of field info field-by-field
  *
- * @param field_list[out] Pointer to the array of struct yt_field is stored here
+ * @param field_list[out] Pointer to the array of \ref yt_field is stored here
  * @return \ref YT_SUCCESS or \ref YT_FAIL
  */
 int yt_get_FieldsPtr(yt_field** field_list) {
