@@ -2,6 +2,8 @@
 #
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+import os
+import subprocess
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -45,10 +47,19 @@ myst_enable_extensions = [
 suppress_warnings = [
     "myst.header"
 ]
-myst_heading_anchors= 6
+myst_heading_anchors = 6
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'furo'
 html_static_path = ['_static']
+
+# -- Read the Doc Hook -------------------------------------------------------
+if os.environ.get("READTHEDOCS") == "True":
+    def generate_doxygen_xml(_):
+        subprocess.call('cd doc; doxygen', shell=True)
+
+
+    def setup(app):
+        app.connect('builder-inited', generate_doxygen_xml)
