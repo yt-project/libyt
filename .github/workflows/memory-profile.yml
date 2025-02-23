@@ -1,4 +1,4 @@
-name: Memory Profile
+name: memory profile
 
 on:
   push:
@@ -19,7 +19,7 @@ on:
 
 jobs:
   mpi-memory-profile:
-    name: Memory Profile (MPI)
+    name: parallel
     runs-on: ubuntu-latest
 
     strategy:
@@ -121,7 +121,7 @@ jobs:
             ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/memory_profile
 
   memory-profile:
-    name: Memory Profile (Serial)
+    name: serial
     runs-on: ubuntu-latest
 
     strategy:
