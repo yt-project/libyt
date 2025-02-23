@@ -42,4 +42,4 @@ api-doc/index
 **For simulation developers:**
 - [**libyt API**](./libyt-api/index.md): this is for simulation developers that wish to implement `libyt`.
 - [**Debug and Time Profiling**](./debug-and-profiling/index.md): how to check inputs and run time profiling in `libyt`.
-
+- [**Index**](./api-doc/index.md)
