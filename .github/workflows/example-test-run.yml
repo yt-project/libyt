@@ -1,6 +1,6 @@
 # Test if example can run on multiplatform and both in serial (gcc) and parallel (openmpi)
 
-name: AMR Example Test Run
+name: amr example
 
 on:
   push:
@@ -17,7 +17,7 @@ on:
 
 jobs:
   example-parallel-test-run:
-    name: AMR Example (MPI)
+    name: parallel
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -79,7 +79,7 @@ jobs:
           OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./example DataIOTest.py
 
   example-serial-test-run:
-    name: AMR Example (GCC)
+    name: serial
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
