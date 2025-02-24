@@ -3,8 +3,10 @@
 
 #include <mpi.h>
 
+#include "libyt_process_control.h"
+#include "logging.h"
 #include "magic_command.h"
-#include "yt_combo.h"
+#include "timer.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Class       :  LibytWorker
@@ -16,8 +18,9 @@
 //                int mysize : my MPI size in MPI_COMM_WORLD
 //                int root   : MPI root rank
 //-------------------------------------------------------------------------------------------------------
-LibytWorker::LibytWorker(int myrank, int mysize, int root) : m_mpi_rank(myrank), m_mpi_size(mysize), m_mpi_root(root) {
-    SET_TIMER(__PRETTY_FUNCTION__);
+LibytWorker::LibytWorker(int myrank, int mysize, int root)
+    : m_mpi_rank(myrank), m_mpi_size(mysize), m_mpi_root(root) {
+  SET_TIMER(__PRETTY_FUNCTION__);
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -32,37 +35,40 @@ LibytWorker::LibytWorker(int myrank, int mysize, int root) : m_mpi_rank(myrank),
 // Arguments   :  (None)
 //-------------------------------------------------------------------------------------------------------
 void LibytWorker::start() {
-    SET_TIMER(__PRETTY_FUNCTION__);
+  SET_TIMER(__PRETTY_FUNCTION__);
 
-    bool done = false;
-    while (!done) {
-        int indicator;
-        MPI_Bcast(&indicator, 1, MPI_INT, m_mpi_root, MPI_COMM_WORLD);
+  bool done = false;
+  while (!done) {
+    int indicator;
+    MPI_Bcast(&indicator, 1, MPI_INT, m_mpi_root, MPI_COMM_WORLD);
 
-        // Dispatch jobs
-        switch (indicator) {
-            case -1: {
-                done = true;
-                g_libyt_python_shell.clear_prompt_history();
-                break;
-            }
-            case 1: {
-                std::array<AccumulatedOutputString, 2> temp_string = LibytPythonShell::execute_cell();
-                break;
-            }
-            case 2: {
-                MagicCommand command;
-                OutputData temp = command.run();
-                break;
-            }
-            default: {
-                done = true;
-                log_error("Unknown job indicator '%d'\n", indicator);
-            }
-        }
+    // Dispatch jobs
+    switch (indicator) {
+      case -1: {
+        done = true;
+        LibytProcessControl::Get().python_shell_.ClearHistory();
+        break;
+      }
+      case 1: {
+        std::vector<PythonOutput> output;
+        PythonStatus all_execute_status =
+            LibytProcessControl::Get().python_shell_.AllExecuteCell(
+                "", "", m_mpi_root, output, m_mpi_root);
+        break;
+      }
+      case 2: {
+        MagicCommand command(MagicCommand::EntryPoint::kLibytJupyterKernel);
+        MagicCommandOutput temp = command.Run();
+        break;
+      }
+      default: {
+        done = true;
+        logging::LogError("Unknown job indicator '%d'\n", indicator);
+      }
     }
+  }
 
-    log_debug("Leaving libyt worker on MPI process %d\n", m_mpi_rank);
+  logging::LogDebug("Leaving libyt worker on MPI process %d\n", m_mpi_rank);
 }
 
 #endif  // #if defined(JUPYTER_KERNEL) && !defined(SERIAL_MODE)

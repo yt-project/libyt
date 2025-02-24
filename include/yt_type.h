@@ -1,30 +1,33 @@
-#ifndef __YT_TYPE_H__
-#define __YT_TYPE_H__
+#ifndef LIBYT_PROJECT_INCLUDE_YT_TYPE_H_
+#define LIBYT_PROJECT_INCLUDE_YT_TYPE_H_
 
-/*******************************************************************************
-/
-/  Data types used by libyt
-/
-********************************************************************************/
+/**
+ * \file yt_type.h
+ */
 
 // enumerate types
-typedef enum yt_verbose { YT_VERBOSE_OFF = 0, YT_VERBOSE_INFO, YT_VERBOSE_WARNING, YT_VERBOSE_DEBUG } yt_verbose;
+typedef enum yt_verbose {
+  YT_VERBOSE_OFF = 0, /*!< Turn off log */
+  YT_VERBOSE_INFO,    /*!< Log level info */
+  YT_VERBOSE_WARNING, /*!< Log level warning */
+  YT_VERBOSE_DEBUG    /*!< Log level debug */
+} yt_verbose;
 
 typedef enum yt_dtype {
-    YT_FLOAT = 0,   // float
-    YT_DOUBLE,      // double
-    YT_LONGDOUBLE,  // long double
-    YT_CHAR,        // char
-    YT_UCHAR,       // unsigned char
-    YT_SHORT,       // short
-    YT_USHORT,      // unsigned short
-    YT_INT,         // int
-    YT_UINT,        // unsigned int
-    YT_LONG,        // long
-    YT_ULONG,       // unsigned long
-    YT_LONGLONG,    // long long
-    YT_ULONGLONG,   // unsigned long long
-    YT_DTYPE_UNKNOWN
+  YT_FLOAT = 0,    /*!< float */
+  YT_DOUBLE,       /*!< double */
+  YT_LONGDOUBLE,   /*!< long double */
+  YT_CHAR,         /*!< char */
+  YT_UCHAR,        /*!< unsigned char */
+  YT_SHORT,        /*!< short */
+  YT_USHORT,       /*!< unsigned short */
+  YT_INT,          /*!< int */
+  YT_UINT,         /*!< unsigned int */
+  YT_LONG,         /*!< long */
+  YT_ULONG,        /*!< unsigned long */
+  YT_LONGLONG,     /*!< long long */
+  YT_ULONGLONG,    /*!< unsigned long long */
+  YT_DTYPE_UNKNOWN /*!< unknown data type */
 } yt_dtype;
 
 // structures
@@ -35,4 +38,4 @@ typedef enum yt_dtype {
 #include "yt_type_param_yt.h"
 #include "yt_type_particle.h"
 
-#endif  // #ifndef __YT_TYPE_H__
+#endif  // LIBYT_PROJECT_INCLUDE_YT_TYPE_H_

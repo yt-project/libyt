@@ -1,13 +1,17 @@
 import yt
 import yt_libyt
-from mpi4py import MPI
 import pandas as pd
 import numpy as np
 
 yt.enable_parallelism()
 step = 0
-comm = MPI.COMM_WORLD
-myrank = comm.Get_rank()
+
+try:
+    from mpi4py import MPI
+    comm = MPI.COMM_WORLD
+    myrank = comm.Get_rank()
+except ImportError:
+    myrank = 0
 
 class DataIOTestFailed(Exception):
     """
@@ -69,7 +73,7 @@ def test_function():
         # Compare them, if bigger than criteria, raise an error
         diff = np.sum(np.absolute(sim_data - data_io)) / (dimensions[0] * dimensions[1] * dimensions[2])
         if diff > DataIOTestFailed.criteria:
-            err_msg = "On MPI rank {}, step {}, density grid (id={}) is different from simulation data {}.\n" \
+            err_msg = "On rank {}, step {}, density grid (id={}) is different from simulation data {}.\n" \
                       "DataIOTest FAILED.\n".format("%d" % myrank, "%d" % step, "%d" % gid, "%.10e" % diff)
             raise DataIOTestFailed(err_msg)
 
