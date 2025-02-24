@@ -42,7 +42,7 @@ class LibytPythonShell {
   static bool IsNotDoneErrMsg(const std::string& code);
 
  public:
-  LibytPythonShell() : history_count_(0){};
+  LibytPythonShell() : history_count_(0) {};
   static void SetMpiInfo(const int mpi_size, const int mpi_root, const int mpi_rank) {
     mpi_size_ = mpi_size;
     mpi_root_ = mpi_root;
