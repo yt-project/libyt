@@ -316,7 +316,7 @@ int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name
 // Return      :  true/false
 //-------------------------------------------------------------------------------------------------------
 static bool detect_file(const char* flag_file) {
-    struct stat buffer {};
+    struct stat buffer{};
     if (stat(flag_file, &buffer) != 0) {
         return false;
     } else {
