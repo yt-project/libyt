@@ -60,9 +60,9 @@ int init_python(int argc, char* argv[]) {
     else
         YT_ABORT("Adding search path for modules ... failed!\n");
 
-        // set up yt config
-        // (sys._parallel = True --> run yt in parallel )
-        // (sys._interactive_mode = True --> mpi does not abort when there is error)
+    // set up yt config
+    // (sys._parallel = True --> run yt in parallel )
+    // (sys._interactive_mode = True --> mpi does not abort when there is error)
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
     if (PyRun_SimpleString("sys._parallel = True; sys._interactive_mode = True") == 0)
 #else
