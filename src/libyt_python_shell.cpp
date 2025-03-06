@@ -233,9 +233,9 @@ std::vector<std::string> LibytPythonShell::get_funcname_defined(const char* file
           "\"%s\":\n"
           "            libyt.interactive_mode[\"temp\"].append(key)\n",
           filename);
-  if (PyRun_SimpleString(command) != 0)
+  if (PyRun_SimpleString(command) != 0) {
     logging::LogError("Unable to grab functions in python script %s.\n", filename);
-
+  }
   PyObject* py_func_list =
       PyDict_GetItemString(LibytProcessControl::Get().py_interactive_mode_, "temp");
   Py_ssize_t py_list_len = PyList_Size(py_func_list);
@@ -282,10 +282,11 @@ int LibytPythonShell::SetExceptionHook() {
       "sys.excepthook = mpi_libyt_interactive_mode_excepthook\n",
       mpi_rank_);
 
-  if (PyRun_SimpleString(command) == 0)
+  if (PyRun_SimpleString(command) == 0) {
     return YT_SUCCESS;
-  else
+  } else {
     return YT_FAIL;
+  }
 }
 
 //-------------------------------------------------------------------------------------------------------
