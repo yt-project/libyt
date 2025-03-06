@@ -22,7 +22,7 @@ Put Python statements and libyt defined commands in separate cells.
 3. Every MPI process executes the same piece of input synchronously.
 4. Get outputs from each process and print feedbacks on the screen.
 
-```{attention}
+```{tip}
 Changes is kept and maintained in user's inline [`script`](../../libyt-api/yt_initialize.md#yt_param_libyt)'s namespace, and it will be brought to the following round of in situ analysis.
 ```
 
@@ -38,6 +38,8 @@ This is the same as traditional Jupyter Notebook UI. Be careful when sending ker
 
 ```{attention}
 If the notebook is connected to libyt kernel, restarting only exits the kernel, and libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt_run_jupyterkernel) returns. It won't restart another kernel by itself.
+
+Interruption is not supported in libyt kernel yet.
 ```
 
 ## How to Exit
