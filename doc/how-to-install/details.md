@@ -16,7 +16,9 @@ The options are mutually independent to each other.
 | **Serial Mode** (ON)    | Compile `libyt` using GCC.   |            |                                            |
 :::
 
-> {octicon}`alert;1em;sd-text-danger;` Make sure Python bindings for MPI (`mpi4py`), MPI used for compiling simulation and `libyt` are the same. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
+```{attention}
+Make sure Python bindings for MPI (`mpi4py`), MPI used for compiling simulation and `libyt` are the same. Check how to install `mpi4py` [here](https://mpi4py.readthedocs.io/en/stable/install.html#installation).
+```
 
 ### `-DINTERACTIVE_MODE` (=`OFF`)
 
@@ -66,7 +68,9 @@ The options are mutually independent to each other.
 | `xeus_DIR`          | >=3.0.0, <4.0.0  | Path to `xeusConfig.cmake` after installing [`xeus`](https://github.com/jupyter-xeus/xeus).                                                                                                                                                                                                | `-DJUPYTER_KERNEL=ON`   |     Yes      | 
 | `xeus-zmq_DIR`      | 1.x release      | Path to `xeus-zmqConfig.cmake` after installing [`xeus-zmq`](https://github.com/jupyter-xeus/xeus-zmq).                                                                                                                                                                                    | `-DJUPYTER_KERNEL=ON`   |     Yes      | 
 
-> {octicon}`info;1em;sd-text-info;` If our system doesn't have `readline` installed, use system package manager (ex: `brew`, `apt`) to install. If we want to compile and install from the source code ourselves, make sure `--with-curses` is used when configuring.
+```{important}
+If our system doesn't have `readline` installed, use system package manager (ex: `brew`, `apt`) to install. If we want to compile and install from the source code ourselves, make sure `--with-curses` is used when configuring.
+```
 
 ## Python Dependencies
 
