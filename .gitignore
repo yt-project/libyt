@@ -10,3 +10,4 @@ vendor/xeus/
 vendor/xeus-zmq/
 vendor/xtl/
 vendor/libzmq/
+vendor/pybind11/
