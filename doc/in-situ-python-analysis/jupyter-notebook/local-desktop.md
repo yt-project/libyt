@@ -11,7 +11,7 @@
    It will launch libyt kernel once it detects `LIBYT_STOP`.
    To make `libyt` find and bind to unused port automatically, set it to `false`.
 2. Wait for connection from Jupyter Notebook / JupyterLab (See below [Connecting to Kernel](#connecting-to-kernel))
-3. Shutdown the kernel (See [How to Exit](./jupyter-notebook-access.md#how-to-exit)). 
+3. Shutdown the kernel (See [How to Exit](./frontend.md#how-to-exit)). 
 
 ## Connecting to Kernel
 

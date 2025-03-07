@@ -34,7 +34,7 @@ Use `TAB` key to do auto-completion.
 
 ### User Interface
 
-This is the same as traditional Jupyter Notebook UI. Be careful when sending kernel related instructions (ex: shutdown/interrupt/restart a kernel).
+This is the same as traditional Jupyter Notebook UI. Be careful when sending kernel related instructions (ex: shutdown/interrupt/restart a kernel). Interrupting and restarting the kernel is not supported in libyt kernel yet.
 
 ```{attention}
 If the notebook is connected to libyt kernel, restarting only exits the kernel, and libyt API [`yt_run_JupyterKernel`](../../libyt-api/yt_run_jupyterkernel.md#yt_run_jupyterkernel) returns. It won't restart another kernel by itself.
@@ -50,4 +50,4 @@ Go to `Running Terminals and Kernels` -> `Shutdown Kernel`.
 
 After exiting the kernel, the simulation process may continue its job.
 While waiting for a new libyt kernel being launched, we don't need to close the entire notebook to reconnect to it.
-We can choose the libyt kernel from the kernel list once libyt kernel is activated again.
+We can choose the libyt kernel from the kernel list once it is activated again.
