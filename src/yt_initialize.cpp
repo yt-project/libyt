@@ -6,23 +6,19 @@
 
 static void PrintLibytInfo();
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_initialize
-// Description :  Initialize libyt
-//
-// Note        :  1. Input "param_libyt" will be backed up to a libyt global variable
-//                2. This function should not be called more than once (even if
-//                yt_finalize has been called)
-//                   since some extensions (e.g., NumPy) may not work properly.
-//                3. Initialize general info, user-defined MPI data type, and
-//                LibytProcessControl
-//
-// Parameter   :  argc        : Argument count
-//                argv        : Argument vector
-//                param_libyt : libyt runtime parameters
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \defgroup api_yt_initialize libyt API: yt_initialize
+ * \fn int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt)
+ * \brief Initialize libyt
+ * \details
+ * 1. This function should not be called more than once.
+ * 2. Initialize libyt workflow, Python interpreter, and import libyt module.
+ *
+ * @param argc[in]
+ * @param argv[in]
+ * @param param_libyt[in] libyt runtime parameters
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
   LibytProcessControl::Get().Initialize();
 
@@ -34,8 +30,9 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
 
   // still need to check "init_count" since yt_finalize() will set check point
   // libyt_initialized = false"
-  if (LibytProcessControl::Get().libyt_initialized_ || init_count >= 2)
+  if (LibytProcessControl::Get().libyt_initialized_ || init_count >= 2) {
     YT_ABORT("yt_initialize() should not be called more than once!\n");
+  }
 
   // store user-provided parameters to a libyt internal variable
   // --> better do it **before** calling any log function since they will query
@@ -69,24 +66,34 @@ int yt_initialize(int argc, char* argv[], const yt_param_libyt* param_libyt) {
 #endif
 
   // initialize Python interpreter
-  if (python_controller::InitPython(argc, argv) == YT_FAIL) return YT_FAIL;
+  if (python_controller::InitPython(argc, argv) == YT_FAIL) {
+    return YT_FAIL;
+  }
 
   // import libyt and inline python script.
-  if (python_controller::PreparePythonEnvForLibyt() == YT_FAIL) return YT_FAIL;
+  if (python_controller::PreparePythonEnvForLibyt() == YT_FAIL) {
+    return YT_FAIL;
+  }
 
 #if defined(INTERACTIVE_MODE) || defined(JUPYTER_KERNEL)
   // set python exception hook and set not-yet-done error msg
-  if (LibytPythonShell::SetExceptionHook() != YT_SUCCESS) return YT_FAIL;
-  if (LibytPythonShell::InitializeNotDoneErrMsg() != YT_SUCCESS) return YT_FAIL;
+  if (LibytPythonShell::SetExceptionHook() != YT_SUCCESS) {
+    return YT_FAIL;
+  }
+  if (LibytPythonShell::InitializeNotDoneErrMsg() != YT_SUCCESS) {
+    return YT_FAIL;
+  }
 
   PyObject* exec_namespace = PyDict_GetItemString(
       LibytProcessControl::Get().py_interactive_mode_, "script_globals");
   PyObject* function_body_dict =
       PyDict_GetItemString(LibytProcessControl::Get().py_interactive_mode_, "func_body");
-  if (LibytPythonShell::SetExecutionNamespace(exec_namespace) != YT_SUCCESS)
+  if (LibytPythonShell::SetExecutionNamespace(exec_namespace) != YT_SUCCESS) {
     return YT_FAIL;
-  if (LibytPythonShell::SetFunctionBodyDict(function_body_dict) != YT_SUCCESS)
+  }
+  if (LibytPythonShell::SetFunctionBodyDict(function_body_dict) != YT_SUCCESS) {
     return YT_FAIL;
+  }
 #endif
 
   LibytProcessControl::Get().libyt_initialized_ = true;

@@ -8,21 +8,17 @@
 #include "pybind11/embed.h"
 #endif
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_free()
-// Description :  Refresh the python yt state after finish inline-analysis
-//
-// Note        :  1. Call and use by user, after they are done with all the
-// inline-analysis in this
-//                   round, or they want to freed everything allocated by libyt.
-//                2. We also freed grids_local here, in case user didn't call yt_commit
-//                and cause memory
-//                   leak.
-//
-// Parameter   :  None
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \defgroup api_yt_free libyt API: yt_free
+ * \fn int yt_free()
+ * \brief
+ * Free all libyt initialized and allocated array and refresh the inline Python state.
+ * \details
+ * 1. Call this after finishing in situ analysis in this round, or when we want to free
+ *    everything allocated by libyt.
+ *
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_free() {
   SET_TIMER(__PRETTY_FUNCTION__);
 

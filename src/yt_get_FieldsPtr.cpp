@@ -3,24 +3,20 @@
 #include "logging.h"
 #include "timer.h"
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_get_FieldsPtr
-// Description :  Get pointer of the array of struct yt_field with length num_fields.
-//
-// Note        :  1. User should call this function after yt_set_Parameters(), because the
-// Amr structure
-//                   is initialized there.
-//                   (This also shows a bad design of API, should fix it in libyt-v1.0.)
-//                2. Probably should make setting of field info field-by-field, same for
-//                particles.
-//
-// Parameter   :  yt_field **field_list  : Initialize and store the field list array under
-// this pointer
-//                                         points to.
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
-//
+/**
+ * \defgroup api_yt_get_FieldsPtr libyt API: yt_get_FieldsPtr
+ * \fn int yt_get_FieldsPtr(yt_field** field_list)
+ * \brief Get pointer of field information array
+ * \details
+ * 1. User should call this function after \ref yt_set_Parameters,
+ *    because the AMR structure is initialized there.
+ *
+ * \todo The setting up of field info is just bad. Should fix it in libyt-v1.0.
+ *       Probably should make setting of field info field-by-field
+ *
+ * @param field_list[out] Pointer to the array of \ref yt_field is stored here
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_get_FieldsPtr(yt_field** field_list) {
   SET_TIMER(__PRETTY_FUNCTION__);
 

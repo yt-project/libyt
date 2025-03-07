@@ -3,7 +3,7 @@ hide-toc: true
 ---
 
 # libyt Documents
-{bdg-primary}`version 0.1.0`
+{bdg-primary}`version 0.2.0`
 
 `libyt` is an open source C library for simulation. 
 It is an in situ analysis tool that allows researchers to analyze and visualize data using [`yt`](https://yt-project.org/) or other Python packages in parallel during simulation runtime.
@@ -26,6 +26,7 @@ FAQs
 
 libyt-api/index
 debug-and-profiling/index
+api-doc/index
 ```
 
 #### Contents
@@ -41,4 +42,4 @@ debug-and-profiling/index
 **For simulation developers:**
 - [**libyt API**](./libyt-api/index.md): this is for simulation developers that wish to implement `libyt`.
 - [**Debug and Time Profiling**](./debug-and-profiling/index.md): how to check inputs and run time profiling in `libyt`.
-
+- [**Index**](./api-doc/index.md)

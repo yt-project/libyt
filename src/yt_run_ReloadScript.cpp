@@ -17,40 +17,39 @@
 #include "magic_command.h"
 #endif
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_run_ReloadScript
-// Description :  Reload script in interactive mode
-//
-// Note        :  1. Basically, this API and yt_run_InteractiveMode has the same feature,
-// but this one
-//                   uses file base to interact with the prompt. This is a minimalist API
-//                   for reloading script.
-//                2. Instead of input each line through readline, it simply loads each
-//                line in a file line
-//                   by-line.
-//                3. It stops and enters the API if flag file is detected or there is an
-//                error in in situ
-//                   analysis. In the latter case, it will generate the flag file to
-//                   indicate it enters the mode, and will remove the flag file once it
-//                   exits the API.
-//                4. Using <reload_file_name>_EXIT/SUCCESS/FAILED for a series of
-//                instructions.
-//                   Try to avoid these instruction file names.
-//                5. Run reload script in file, forcing every libyt command needs to be
-//                commented and put at
-//                   the end and use #LIBYT_COMMANDS at the start.
-//                   Ex:
-//                     # python code ...
-//                     #LIBYT_COMMANDS
-//                     # %libyt status
-//
-// Parameter   :  const char *flag_file_name  : indicates if it will enter reload script
-// mode or not (see 3.)
-//                const char *reload_file_name: a series of flag file for reload
-//                instructions const char *script_name     : full script name to reload
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \defgroup api_yt_run_ReloadScript libyt API: yt_run_ReloadScript
+ * \fn int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name,
+ * const char* script_name) \brief Reload script in file-based prompt \details
+ * 1. This API and yt_run_InteractiveMode has the same feature, but this one uses file
+ *    base to interact with the prompt.
+ * 2. It simply loads each line in a file line-by-line.
+ * 3. Using `reload_file_name`_EXIT/SUCCESS/FAILED
+ *    for a series of instructions.
+ * 4. libyt command needs to be commented out and at the end of the file. For example:
+ *
+ * \rst
+ * .. code-block:: python
+ *
+ *    # Reload this Python script
+ *    print("Hello, World!")
+ *    #LIBYT_COMMANDS
+ *    # %libyt status
+ * \endrst
+ *
+ * \warning
+ * It stops and enters the API if flag file is detected or there is an error in in situ
+ * analysis. In the latter case, it will generate the flag file to indicate it enters the
+ * mode, and will remove the flag file once it exits the API.
+ *
+ * \note
+ * This API is only available when libyt is compiled with -DINTERACTIVE_MODE=ON.
+ *
+ * @param flag_file_name[in] Flag file name exists means it will enter reload script mode
+ * @param reload_file_name[in] Reload operation indicator file name
+ * @param script_name[in] Full Python script name to reload, include `.py`
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_run_ReloadScript(const char* flag_file_name, const char* reload_file_name,
                         const char* script_name) {
   SET_TIMER(__PRETTY_FUNCTION__);
