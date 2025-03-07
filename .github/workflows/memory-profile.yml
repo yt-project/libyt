@@ -1,0 +1,251 @@
+name: memory profile
+
+on:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'example/**'
+      - 'test/**'
+      - 'doc/**'
+      - '**.md'
+  pull_request:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'example/**'
+      - 'test/**'
+      - 'doc/**'
+      - '**.md'
+  workflow_dispatch:
+
+jobs:
+  mpi-memory-profile:
+    name: parallel
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - build_options: "-DUSE_PYBIND11=ON"
+            file_tag: "pybind11"
+          - build_options: "-DUSE_PYBIND11=OFF"
+            file_tag: "pure_python"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MPI openmpi environment
+        uses: mpi4py/setup-mpi@v1
+        with:
+          mpi: 'openmpi'
+      - working-directory: ${{ github.workspace }}
+        run: ompi_info >> runner_mpi_info.txt
+
+      - name: Setup Python 3.10 environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - run: |
+          python -m pip install --upgrade pip
+          pip install numpy mpi4py
+
+      - name: Install other dependencies
+        run: |
+          sudo apt-get install -y libreadline-dev tree
+
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=build-memprof" >> "$GITHUB_OUTPUT"
+          echo "valgrind-install-prefix=$HOME/softwares/valgrind-3.22.0" >> "$GITHUB_OUTPUT"
+
+      - name: Get valgrind-3.22.0 from source
+        uses: actions/cache@v4
+        id: valgrind_cache
+        with:
+          path: ${{ steps.strings.outputs.valgrind-install-prefix }}
+          key: ${{ runner.os }}-valgrind_3.22.0-openmpi-${{ hashFiles('runner_mpi_info.txt') }}
+
+      - if: steps.valgrind_cache.outputs.cache-hit != 'true'
+        run: |
+          cd $HOME
+          mkdir packages softwares
+          cd packages
+          git clone --depth 1 --branch VALGRIND_3_22_0 git://sourceware.org/git/valgrind.git 
+          cd valgrind
+          ./autogen.sh
+          ./configure --prefix=${{ steps.strings.outputs.valgrind-install-prefix }}
+          make
+          make install
+          tree ${{ steps.strings.outputs.valgrind-install-prefix }}
+
+      - name: Configure CMake (-DLIBYT_RUN_MEMORY_PROFILE=ON)
+        run: |
+          cd ${{ github.workspace }}
+          rm -rf ${{ steps.strings.outputs.build-output-dir }}
+          cmake ${{ matrix.build.build_options }} \
+                -DLIBYT_RUN_MEMORY_PROFILE=ON -DVALGRIND_PATH=${{ steps.strings.outputs.valgrind-install-prefix }} \
+                -B ${{ steps.strings.outputs.build-output-dir }} -S .
+
+      - name: Build
+        run: |
+          cd ${{ github.workspace }}
+          cmake --build ${{ steps.strings.outputs.build-output-dir }}
+
+      - name: Run memory profile using valgrind massif
+        working-directory: ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile
+        run: |
+          export OMPI_MCA_osc=sm,pt2pt
+          export LD_PRELOAD=${{ steps.strings.outputs.valgrind-install-prefix}}/lib/valgrind/libmpiwrap-amd64-linux.so
+          export PYTHONMALLOC=malloc
+          mpirun -np 4 ${{ steps.strings.outputs.valgrind-install-prefix}}/bin/valgrind \
+                 -v --tool=massif --stacks=yes ./MpiMemoryProfile test_rma_function
+
+      - name: Prepare memory profile
+        working-directory: ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile
+        run: |
+          cp ${{ github.workspace }}/.github/tools/combine_valgrind_snapshot.py .
+          python combine_valgrind_snapshot.py --tag BeforeFree --mpi_size 4 --total_time_step 5
+          python combine_valgrind_snapshot.py --tag AfterFree --mpi_size 4 --total_time_step 5
+          mkdir memory_profile
+          mv massif.out.* memory_profile
+          mv $(find . -type f -name '*_rank?.mem_prof') memory_profile
+
+      - name: Upload memory profile results
+        uses: actions/upload-artifact@v4
+        with:
+          name: mpi-${{ matrix.build.file_tag }}-memory_profile
+          path: |
+            ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/memory_profile
+
+  memory-profile:
+    name: serial
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - build_options: "-DUSE_PYBIND11=ON"
+            file_tag: "pybind11"
+          - build_options: "-DUSE_PYBIND11=OFF"
+            file_tag: "pure_python"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 3.10 environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - run: |
+          python -m pip install --upgrade pip
+          pip install numpy
+
+      - name: Install other dependencies
+        run: |
+          sudo apt-get install -y libreadline-dev
+
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=build-memprof" >> "$GITHUB_OUTPUT"
+
+      - name: Get valgrind from apt-get
+        run: |
+          sudo apt-get install -y valgrind
+
+      - name: Configure CMake (-DLIBYT_RUN_MEMORY_PROFILE=ON)
+        run: |
+          cd ${{ github.workspace }}
+          rm -rf ${{ steps.strings.outputs.build-output-dir }}
+          cmake ${{ matrix.build.build_options }} -DSERIAL_MODE=ON \
+                -DLIBYT_RUN_MEMORY_PROFILE=ON \
+                -B ${{ steps.strings.outputs.build-output-dir }} -S .
+
+      - name: Build
+        run: |
+          cd ${{ github.workspace }}
+          cmake --build ${{ steps.strings.outputs.build-output-dir }}
+
+      - name: Run memory profile using valgrind massif
+        working-directory: ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile
+        run: |
+          export PYTHONMALLOC=malloc
+          valgrind -v --tool=massif --stacks=yes ./MemoryProfile test_derived_function
+
+      - name: Prepare memory profile
+        working-directory: ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile
+        run: |
+          cp ${{ github.workspace }}/.github/tools/combine_valgrind_snapshot.py .
+          python combine_valgrind_snapshot.py --tag BeforeFree --mpi_size 1 --total_time_step 5
+          python combine_valgrind_snapshot.py --tag AfterFree --mpi_size 1 --total_time_step 5
+          mkdir memory_profile
+          mv massif.out.* memory_profile
+          mv $(find . -type f -name '*_rank?.mem_prof') memory_profile
+
+      - name: Upload memory profile results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.build.file_tag }}-memory_profile
+          path: |
+            ${{ github.workspace }}/${{ steps.strings.outputs.build-output-dir }}/test/memory_profile/memory_profile
+
+# This prints the output of the memory profile results in the PR,
+# but currently, it is not worth it because reading the memory profile in artifacts should be enough
+#  conclude-memory-profile:
+#    name: Conclude Memory Profile
+#    if: github.event_name == 'pull_request'
+#    runs-on: ubuntu-latest
+#    needs:
+#      - mpi-memory-profile
+#      - memory-profile
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - name: Download memory profile results
+#        uses: actions/download-artifact@v4
+#        with:
+#          pattern: '*-memory_profile'
+#          merge-multiple: 'false'
+#          path: ${{ github.workspace }}/memory_profile
+#
+#      - name: Conclude memory profile results
+#        working-directory: ${{ github.workspace }}/memory_profile
+#        id: conclude-memory-profile
+#        run: |
+#          cp ${{ github.workspace }}/.github/tools/conclude_memory_profile.py .
+#          python conclude_memory_profile.py --title Pybind11-MPI --folder mpi-pybind11-memory_profile \
+#                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 4 \
+#                                            --output_filename output.txt
+#          python conclude_memory_profile.py --title PurePython-MPI --folder mpi-pure_python-memory_profile \
+#                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 4 \
+#                                            --output_filename output.txt
+#          python conclude_memory_profile.py --title Pybind11 --folder pybind11-memory_profile \
+#                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 1 \
+#                                            --output_filename output.txt
+#          python conclude_memory_profile.py --title PurePython --folder pure_python-memory_profile \
+#                                            --tags BeforeFree AfterFree --attr mem_heap_B --mpi_size 1 \
+#                                            --output_filename output.txt
+#          {
+#            echo 'SCRIPT_OUTPUT<<EOF'
+#            cat output.txt
+#            echo EOF
+#          } >> "$GITHUB_ENV"
+#
+#      - name: Comment results in PR
+#        uses: actions/github-script@v7
+#        env:
+#          COMMENT_BODY: ${{env.SCRIPT_OUTPUT}}
+#        with:
+#          script: |
+#            github.rest.issues.createComment({
+#              issue_number: context.issue.number,
+#              owner: context.repo.owner,
+#              repo: context.repo.repo,
+#              body: process.env.COMMENT_BODY
+#            })
