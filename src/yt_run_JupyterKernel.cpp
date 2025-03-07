@@ -20,25 +20,28 @@
 #endif
 #endif
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_run_JupyterKernel
-// Description :  Start libyt kernel for Jupyter Notebook access
-//
-// Notes       :  1. Must enable -DJUPYTER_KERNEL.
-//                2. Must install jupyter_libyt for jupyter client.
-//                3. This API provides an access point for Jupyter Notebook.
-//                4. This API forces kernel to be on MPI process 0 (root).
-//                5. Simulation + libyt processes and Jupyter server are launch in
-//                separate process.
-//                6. Connection file must be "libyt_kernel_connection.json" is
-//                use_connection_file = true.
-//
-// Parameter   :  const char *flag_file_name       : once this file is detected, it will
-// activate libyt kernel.
-//                bool        use_connection_file  : use connection file set by user
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \defgroup api_yt_run_JupyterKernel libyt API: yt_run_JupyterKernel
+ * \fn int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file)
+ * \brief Start libyt kernel for Jupyter Notebook access
+ * \details
+ * 1. This API provides an access point for Jupyter Notebook.
+ * 2. This API forces kernel to be on MPI process 0 (root).
+ * 3. Jupyter Notebook/JupyterLab are launched in separated process.
+ *
+ * \rst
+ * .. important::
+ *    Connection file must be ``libyt_kernel_connection.json`` if
+ *    ``use_connection_file`` is true.
+ *
+ * .. note::
+ *    This API is only available when libyt is compiled with -DJUPYTER_KERNEL=ON.
+ * \endrst
+ *
+ * @param flag_file_name[in] Flag file name exists means it will activate libyt kernel
+ * @param use_connection_file[in] Use connection file set by user or not
+ * @return
+ */
 int yt_run_JupyterKernel(const char* flag_file_name, bool use_connection_file) {
   SET_TIMER(__PRETTY_FUNCTION__);
 

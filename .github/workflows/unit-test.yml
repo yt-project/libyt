@@ -1,6 +1,6 @@
 # Since some of the classes is still coupled to MPI, we need to run the unit tests with/without MPI.
 
-name: Unit Testing
+name: unit test
 
 on:
   push:
@@ -17,7 +17,7 @@ on:
 
 jobs:
   mpi-unit-test:
-    name: Unit Test (MPI)
+    name: parallel
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -93,7 +93,7 @@ jobs:
           OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./TestDataStructureAmrWithCommMpi
 
   unit-test:
-    name: Unit Test
+    name: serial
     runs-on: ${{ matrix.os }}
 
     strategy:

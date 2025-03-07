@@ -3,20 +3,19 @@
 #include "logging.h"
 #include "timer.h"
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_get_ParticlesPtr
-// Description :  Get pointer of the array of struct yt_particle with length
-// num_particles.
-//
-// Note        :  1. User should call this function after yt_set_Parameters(), since we
-// initialize
-//                   particle_list then.
-//
-// Parameter   :  yt_particle **particle_list  : Store the particle list array pointer.
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
-//
+/**
+ * \defgroup api_yt_get_ParticlesPtr libyt API: yt_get_ParticlesPtr
+ * \fn int yt_get_ParticlesPtr(yt_particle** particle_list)
+ * \brief Get pointer of particle information array
+ * \details
+ * 1. User should call this function after \ref yt_set_Parameters,
+ *    because the AMR structure is initialized there.
+ *
+ * \todo The setting up of particle info is just bad. Should fix it in libyt-v1.0.
+ *
+ * @param particle_list[out] Pointer to the array of \ref yt_particle is stored
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_get_ParticlesPtr(yt_particle** particle_list) {
   SET_TIMER(__PRETTY_FUNCTION__);
 

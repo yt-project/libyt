@@ -15,26 +15,24 @@
 #include "magic_command.h"
 #endif
 
-//-------------------------------------------------------------------------------------------------------
-// Function    :  yt_run_InteractiveMode
-// Description :  Enter libyt interactive mode.
-//
-// Note        :  1. Only enter this mode flag_file_name is detected.
-//                2. Display inline script execute result success/failed.
-//                3. Enter interactive mode, user will be operating in inline script's
-//                name space.
-//                   (1) Python scripting
-//                   (2) libyt command
-//                   (3) Execute characters should be less than INT_MAX.
-//                4. Let user add and decide what inline function to run in the follow
-//                process.
-//                5. This API deals with user inputs, and direct jobs to other functions.
-//
-// Parameter   :  const char *flag_file_name : once this file is detected, it enters
-// interactive mode
-//
-// Return      :  YT_SUCCESS or YT_FAIL
-//-------------------------------------------------------------------------------------------------------
+/**
+ * \defgroup api_yt_run_InteractiveMode libyt API: yt_run_InteractiveMode
+ * \fn int yt_run_InteractiveMode(const char* flag_file_name)
+ * \brief Enter libyt interactive mode.
+ * \details
+ * 1. Only enter this mode flag_file_name is detected.
+ * 2. Display inline script execute result success/failed.
+ * 3. Enter interactive mode, user will be operating in inline script's name space using
+ *    Python script and libyt command.
+ * 4. Execute characters should be less than INT_MAX.
+ * 5. This API deals with user inputs, and direct jobs to other functions.
+ *
+ * \note
+ * This API is only available when libyt is compiled with -DINTERACTIVE_MODE=ON.
+ *
+ * @param flag_file_name[in] Stop and enter interactive mode if this file is detected
+ * @return \ref YT_SUCCESS or \ref YT_FAIL
+ */
 int yt_run_InteractiveMode(const char* flag_file_name) {
   SET_TIMER(__PRETTY_FUNCTION__);
 

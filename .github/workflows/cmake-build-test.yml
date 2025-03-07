@@ -1,6 +1,6 @@
 # Test if libyt can build with different options, download dependencies, and install and link correctly.
 
-name: Build Options on Different Platforms
+name: build test
 
 on:
   push:
@@ -17,7 +17,7 @@ on:
 
 jobs:
   cmake-build-test:
-    name: Build Test (${{ matrix.platform.os }})
+    name: ${{ matrix.platform.os }}
     runs-on: ${{ matrix.platform.os }}
 
     strategy:

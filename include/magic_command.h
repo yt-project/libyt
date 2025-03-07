@@ -12,7 +12,7 @@ struct MagicCommandOutput {
   std::string error;
 
   MagicCommandOutput()
-      : exit_entry_point(false), status("Unknown"), mimetype("text/plain"){};
+      : exit_entry_point(false), status("Unknown"), mimetype("text/plain") {};
 };
 
 class MagicCommand {
