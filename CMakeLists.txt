@@ -13,6 +13,7 @@ option(INTERACTIVE_MODE  "Use interactive mode"                                 
 option(JUPYTER_KERNEL    "Use Jupyter notebook interface"                            OFF)
 option(SUPPORT_TIMER     "Support time profiling"                                    OFF)
 option(USE_PYBIND11      "Use pybind11"                                              OFF)
+option(SUPPORT_VALGRIND  "Support valgrind"                                          OFF)
 
 ## set paths ##
 # It is recommended that we always provide PYTHON_PATH and MPI_PATH.
@@ -20,6 +21,7 @@ option(USE_PYBIND11      "Use pybind11"                                         
 set(PYTHON_PATH    "" CACHE PATH "Path to Python installation prefix (Always)")
 set(MPI_PATH       "" CACHE PATH "Path to MPI installation prefix (-DSERIAL_MODE=OFF)")
 set(READLINE_PATH  "" CACHE PATH "Path to Readline installation prefix (-DINTERACTIVE_MODE=ON)")
+set(VALGRIND_PATH  "" CACHE PATH "Path to valgrind installation prefix (-DSUPPORT_VALGRIND=ON / -DLIBYT_RUN_MEMORY_PROFILE=ON)")
 
 ## set paths (optional) ##
 # libyt will get the dependencies if it cannot find one when needed.
@@ -40,8 +42,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(BUILD_SHARED_LIBS "Building using shared libraries"                           ON )
 
 # run test ##
-set(VALGRIND_PATH     "" CACHE PATH "Path to valgrind installation prefix (-DLIBYT_RUN_MEMORY_PROFILE=ON)")
-
 option(LIBYT_RUN_TEST                "Run unit test"                                 OFF)
 option(LIBYT_RUN_MEMORY_PROFILE      "Run memory profile"                            OFF)
 
