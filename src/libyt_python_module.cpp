@@ -15,6 +15,10 @@
 #include <pybind11/pytypes.h>
 #endif
 
+#ifdef SUPPORT_VALGRIND
+#include <valgrind/valgrind.h>
+#endif
+
 //-------------------------------------------------------------------------------------------------------
 // Description :  List of libyt C extension python methods built using Pybind11 API
 //
@@ -514,6 +518,16 @@ pybind11::object GetParticleRemote(const pybind11::dict& py_ptf,
 #endif  // #ifndef SERIAL_MODE
 }
 
+#ifdef SUPPORT_VALGRIND
+pybind11::object DumpValgrindDetailedSnapshot(const char* filename) {
+  std::string valgrind_cmd = "detailed_snapshot ";
+  valgrind_cmd += filename;
+
+  VALGRIND_MONITOR_COMMAND(valgrind_cmd.c_str());
+  return pybind11::none();
+}
+#endif
+
 PYBIND11_EMBEDDED_MODULE(libyt, m) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
@@ -561,6 +575,11 @@ PYBIND11_EMBEDDED_MODULE(libyt, m) {
   m.def("get_particle_remote",
         &GetParticleRemote,
         pybind11::return_value_policy::take_ownership);
+#ifdef SUPPORT_VALGRIND
+  m.def("dump_valgrind_detailed_snapshot",
+        &DumpValgrindDetailedSnapshot,
+        pybind11::return_value_policy::take_ownership);
+#endif
 }
 
 #else  // #ifdef USE_PYBIND11
@@ -1120,6 +1139,25 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
 #endif  // #ifndef SERIAL_MODE
 }
 
+#ifdef SUPPORT_VALGRIND
+static PyObject* LibytDumpValgrindDetailedSnapshot(PyObject* self, PyObject* args) {
+  char* filename;
+  if (!PyArg_ParseTuple(args, "s", &filename)) {
+    PyErr_SetString(
+        PyExc_TypeError,
+        "Wrong input type, expect to be libyt.dump_valgrind_detailed_snapshot(str).");
+    return NULL;
+  }
+
+  std::string valgrind_cmd = "detailed_snapshot ";
+  valgrind_cmd += filename;
+
+  VALGRIND_MONITOR_COMMAND(valgrind_cmd.c_str());
+
+  Py_RETURN_NONE;
+}
+#endif
+
 //-------------------------------------------------------------------------------------------------------
 // Description :  Preparation for creating libyt python module
 //
@@ -1152,6 +1190,12 @@ static PyMethodDef libyt_method_list[] = {
      LibytParticleGetParticleRemote,
      METH_VARARGS,
      "Get remote particle attribute data."},
+#ifdef SUPPORT_VALGRIND
+    {"dump_valgrind_detailed_snapshot",
+     LibytDumpValgrindDetailedSnapshot,
+     METH_VARARGS,
+     "Dump valgrind detailed snapshot."},
+#endif
     {NULL, NULL, 0, NULL}  // sentinel
 };
 

@@ -73,14 +73,17 @@ set_option(INTERACTIVE_MODE)
 set_option(JUPYTER_KERNEL)
 set_option(SUPPORT_TIMER)
 set_option(USE_PYBIND11)
+set_option(SUPPORT_VALGRIND)
 
 # include dir
 target_include_directories(
   yt
   PRIVATE
     ${PROJECT_SOURCE_DIR}/include
-    $<$<NOT:$<BOOL:${SERIAL_MODE}>>:${MPI_CXX_INCLUDE_DIRS}> ${Python_INCLUDE_DIRS}
+    $<$<NOT:$<BOOL:${SERIAL_MODE}>>:${MPI_CXX_INCLUDE_DIRS}>
+    ${Python_INCLUDE_DIRS}
     $<$<BOOL:${INTERACTIVE_MODE}>:${Readline_INCLUDE_DIR}>
+    $<$<BOOL:${SUPPORT_VALGRIND}>:${VALGRIND_PATH}/include>
 )
 
 # link lib
