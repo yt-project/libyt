@@ -321,14 +321,8 @@ pybind11::object GetFieldRemote(const pybind11::list& py_fname_list, int len_fna
     // Wrap to Python dictionary
     for (const AmrDataArray3D& fetched_data : rma_return.data_list) {
       npy_intp npy_dim[3];
-      if (fetched_data.contiguous_in_x) {
-        npy_dim[0] = fetched_data.data_dim[2];
-        npy_dim[1] = fetched_data.data_dim[1];
-        npy_dim[2] = fetched_data.data_dim[0];
-      } else {
-        npy_dim[0] = fetched_data.data_dim[0];
-        npy_dim[1] = fetched_data.data_dim[1];
-        npy_dim[2] = fetched_data.data_dim[2];
+      for (int d = 0; d < 3; d++) {
+        npy_dim[d] = fetched_data.data_dim[d];
       }
       PyObject* py_data = numpy_controller::ArrayToNumPyArray(
           3, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
@@ -847,14 +841,8 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
 
       // Wrap the data to NumPy array
       npy_intp npy_dim[3];
-      if (fetched_data.contiguous_in_x) {
-        npy_dim[0] = fetched_data.data_dim[2];
-        npy_dim[1] = fetched_data.data_dim[1];
-        npy_dim[2] = fetched_data.data_dim[0];
-      } else {
-        npy_dim[0] = fetched_data.data_dim[0];
-        npy_dim[1] = fetched_data.data_dim[1];
-        npy_dim[2] = fetched_data.data_dim[2];
+      for (int d = 0; d < 3; d++) {
+        npy_dim[d] = fetched_data.data_dim[d];
       }
       PyObject* py_field_data = numpy_controller::ArrayToNumPyArray(
           3, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
