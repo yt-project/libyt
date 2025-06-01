@@ -99,6 +99,7 @@ class DataStructureAmr {
   bool has_particle_;  // This is for tracking particle count column num in hierarchy
                        // Python binding.
   int index_offset_;
+  int dimensionality_;  // Dimensionality of the simulation
 
   double* grid_left_edge_;
   double* grid_right_edge_;
@@ -169,7 +170,8 @@ class DataStructureAmr {
   // Process of setting up the data structure
   DataStructureOutput AllocateStorage(long num_grids, int num_grids_local, int num_fields,
                                       int num_par_types, yt_par_type* par_type_list,
-                                      int index_offset, bool check_data);
+                                      int index_offset, int dimensionality,
+                                      bool check_data);
   DataStructureOutput BindInfoToPython(const std::string& py_dict_name,
                                        PyObject* py_dict);
   DataStructureOutput BindAllHierarchyToPython(int mpi_root);

@@ -42,6 +42,7 @@ DataStructureAmr::DataStructureAmr()
       num_grids_local_par_data_(0),
       has_particle_(false),
       index_offset_(0),
+      dimensionality_(3),
       grid_left_edge_(nullptr),
       grid_right_edge_(nullptr),
       grid_dimensions_(nullptr),
@@ -106,10 +107,9 @@ void DataStructureAmr::SetMpiInfo(const int mpi_size, const int mpi_root,
 //                   (4) Hierarchy bindings at C-side
 //                2. Make sure it is cleaned up before calling this.
 //-------------------------------------------------------------------------------------------------------
-DataStructureOutput DataStructureAmr::AllocateStorage(long num_grids, int num_grids_local,
-                                                      int num_fields, int num_par_types,
-                                                      yt_par_type* par_type_list,
-                                                      int index_offset, bool check_data) {
+DataStructureOutput DataStructureAmr::AllocateStorage(
+    long num_grids, int num_grids_local, int num_fields, int num_par_types,
+    yt_par_type* par_type_list, int index_offset, int dimensionality, bool check_data) {
   // Initialize the data structure
   DataStructureOutput status;
 
@@ -135,6 +135,7 @@ DataStructureOutput DataStructureAmr::AllocateStorage(long num_grids, int num_gr
 
   index_offset_ = index_offset;
   check_data_ = check_data;
+  dimensionality_ = dimensionality;
 
   return {DataStructureStatus::kDataStructureSuccess, std::string()};
 }
@@ -1193,7 +1194,7 @@ DataStructureOutput DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(
     const yt_grid& grid) const {
-  PyObject *py_grid_id, *py_field_labels, *py_field_data;
+  PyObject *py_grid_id, *py_field_labels;
   py_grid_id = PyLong_FromLong(grid.id);
   py_field_labels = PyDict_New();
   for (int v = 0; v < num_fields_; v++) {
@@ -1229,21 +1230,22 @@ DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(
       // Get grid_dimensions and consider contiguous_in_x or not, since grid_dimensions is
       // defined as [x][y][z].
       if (field_list_[v].contiguous_in_x) {
-        for (int d = 0; d < 3; d++) {
-          (grid.field_data)[v].data_dimensions[d] = (grid.grid_dimensions)[2 - d];
+        for (int d = 0; d < dimensionality_; d++) {
+          (grid.field_data)[v].data_dimensions[d] =
+              (grid.grid_dimensions)[(dimensionality_ - 1) - d];
         }
       } else {
-        for (int d = 0; d < 3; d++) {
+        for (int d = 0; d < dimensionality_; d++) {
           (grid.field_data)[v].data_dimensions[d] = (grid.grid_dimensions)[d];
         }
       }
       // Plus the ghost cell to get the actual array dimensions.
-      for (int d = 0; d < 6; d++) {
+      for (int d = 0; d < 2 * dimensionality_; d++) {
         (grid.field_data)[v].data_dimensions[d / 2] += field_list_[v].field_ghost_cell[d];
       }
     }
     // See if all data_dimensions > 0, abort if not.
-    for (int d = 0; d < 3; d++) {
+    for (int d = 0; d < dimensionality_; d++) {
       if ((grid.field_data)[v].data_dimensions[d] <= 0) {
         Py_DECREF(py_grid_id);
         Py_DECREF(py_field_labels);
@@ -1256,13 +1258,36 @@ DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(
       }
     }
 
-    npy_intp grid_dims[3] = {(grid.field_data)[v].data_dimensions[0],
-                             (grid.field_data)[v].data_dimensions[1],
-                             (grid.field_data)[v].data_dimensions[2]};
-
     // (3) Insert data to dict
-    py_field_data = numpy_controller::ArrayToNumPyArray(
-        3, grid_dims, data_dtype, (grid.field_data)[v].data_ptr, true, false);
+    PyObject* py_field_data = nullptr;
+    if (dimensionality_ == 3) {
+      npy_intp grid_dims[3] = {(grid.field_data)[v].data_dimensions[0],
+                               (grid.field_data)[v].data_dimensions[1],
+                               (grid.field_data)[v].data_dimensions[2]};
+      py_field_data = numpy_controller::ArrayToNumPyArray(dimensionality_,
+                                                          grid_dims,
+                                                          data_dtype,
+                                                          (grid.field_data)[v].data_ptr,
+                                                          true,
+                                                          false);
+    } else if (dimensionality_ == 2) {
+      npy_intp grid_dims[2] = {(grid.field_data)[v].data_dimensions[0],
+                               (grid.field_data)[v].data_dimensions[1]};
+      py_field_data = numpy_controller::ArrayToNumPyArray(dimensionality_,
+                                                          grid_dims,
+                                                          data_dtype,
+                                                          (grid.field_data)[v].data_ptr,
+                                                          true,
+                                                          false);
+    } else if (dimensionality_ == 1) {
+      npy_intp grid_dims[1] = {(grid.field_data)[v].data_dimensions[0]};
+      py_field_data = numpy_controller::ArrayToNumPyArray(dimensionality_,
+                                                          grid_dims,
+                                                          data_dtype,
+                                                          (grid.field_data)[v].data_ptr,
+                                                          true,
+                                                          false);
+    }
 
     // add the field data to dict "libyt.grid_data[grid_id][field_list.field_name]"
     PyDict_SetItemString(py_field_labels, field_list_[v].field_name, py_field_data);
