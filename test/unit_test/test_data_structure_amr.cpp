@@ -148,7 +148,7 @@ TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_field_info_to_Python)
   }
   std::cout << "(num_fields) = (" << num_fields << ")" << std::endl;
   ds_amr.AllocateStorage(
-      num_grids, num_grids_local, num_fields, 0, nullptr, index_offset, check_data);
+      num_grids, num_grids_local, num_fields, 0, nullptr, index_offset, 3, check_data);
 
   yt_field* field_list = ds_amr.GetFieldList();
   field_list[0].field_name = "Field1";
@@ -205,6 +205,7 @@ TEST_F(TestDataStructureAmrBindFieldParticleInfo, Can_bind_particle_info_to_Pyth
                          num_par_types,
                          par_type_list,
                          index_offset,
+                         3,
                          check_data);
 
   yt_particle* particle_list = ds_amr.GetParticleList();
@@ -276,6 +277,7 @@ TEST_P(TestDataStructureAmrBindHierarchy,
                          num_par_types,
                          par_type_list,
                          index_offset,
+                         3,
                          check_data);
   GenerateLocalHierarchy(
       num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local, num_par_types);
@@ -366,7 +368,7 @@ TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_field_data_to_Python) {
   std::cout << "(index_offset, num_fields) = (" << index_offset << ", " << num_fields
             << ")" << std::endl;
   ds_amr.AllocateStorage(
-      num_grids, num_grids_local, num_fields, 0, nullptr, index_offset, check_data);
+      num_grids, num_grids_local, num_fields, 0, nullptr, index_offset, 3, check_data);
   GenerateLocalHierarchy(
       num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local, 0);
 
@@ -453,6 +455,7 @@ TEST_P(TestDataStructureAmrBindLocalData, Can_bind_local_particle_data_to_Python
                          num_par_types,
                          par_type_list,
                          index_offset,
+                         3,
                          check_data);
   GenerateLocalHierarchy(
       num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local, num_par_types);
@@ -542,7 +545,7 @@ TEST_P(TestDataStructureAmrGenerateLocalData, Can_generate_derived_field_data) {
   std::cout << "(index_offset, num_fields) = (" << index_offset << ", " << num_fields
             << ")" << std::endl;
   ds_amr.AllocateStorage(
-      num_grids, num_grids_local, num_fields, 0, nullptr, index_offset, check_data);
+      num_grids, num_grids_local, num_fields, 0, nullptr, index_offset, 3, check_data);
   GenerateLocalHierarchy(
       num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local, 0);
 
@@ -611,6 +614,7 @@ TEST_P(TestDataStructureAmrGenerateLocalData, Can_generate_particle_data) {
                          num_par_types,
                          par_type_list,
                          index_offset,
+                         3,
                          check_data);
   GenerateLocalHierarchy(
       num_grids, index_offset, ds_amr.GetGridsLocal(), num_grids_local, num_par_types);
