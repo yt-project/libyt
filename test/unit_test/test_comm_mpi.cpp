@@ -869,7 +869,7 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray1D_can_distribute_data) {
     data_buffer[i] = CommMpi::mpi_rank_;
   }
   prepared_data_list.emplace_back(
-      AmrDataArray1D{CommMpi::mpi_rank_, YT_INT, data_buffer, 10});
+      AmrDataArray1D{CommMpi::mpi_rank_, YT_INT, 10, data_buffer});
 
   // Create fetch id list which gets the other mpi rank's data
   for (int r = 0; r < CommMpi::mpi_size_; r++) {
