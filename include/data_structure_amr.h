@@ -51,6 +51,14 @@ struct AmrDataArray3D {
   bool contiguous_in_x = false;
 };
 
+struct AmrDataArray2D {
+  long id = -1;
+  yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
+  int data_dim[2]{0, 0};
+  void* data_ptr = nullptr;
+  bool contiguous_in_x = false;
+};
+
 struct AmrDataArray1D {
   long id = -1;
   yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
@@ -188,9 +196,10 @@ class DataStructureAmr {
   int GetParticleAttributeIndex(int particle_type_index, const char* attr_name) const;
 
   // Generate data array
+  template<typename DataClass>
   DataStructureOutput GenerateLocalFieldData(const std::vector<long>& gid_list,
                                              const char* field_name,
-                                             std::vector<AmrDataArray3D>& storage) const;
+                                             std::vector<DataClass>& storage) const;
   DataStructureOutput GenerateLocalParticleData(
       const std::vector<long>& gid_list, const char* ptype, const char* attr,
       std::vector<AmrDataArray1D>& storage) const;

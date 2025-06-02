@@ -1654,9 +1654,10 @@ int DataStructureAmr::GetParticleAttributeIndex(int particle_type_index,
 //                   TODO: What would happen if we didn't compile libyt with OpenMP? (Time
 //                   Profile This)
 //-------------------------------------------------------------------------------------------------------
+template<typename DataClass>
 DataStructureOutput DataStructureAmr::GenerateLocalFieldData(
     const std::vector<long>& gid_list, const char* field_name,
-    std::vector<AmrDataArray3D>& storage) const {
+    std::vector<DataClass>& storage) const {
   // Get field id
   int field_id = GetFieldIndex(field_name);
   if (field_id < 0) {
@@ -1666,7 +1667,7 @@ DataStructureOutput DataStructureAmr::GenerateLocalFieldData(
   }
 
   for (const long& kGid : gid_list) {
-    AmrDataArray3D amr_data{};
+    DataClass amr_data{};
 
     // Make sure gid is local
     int proc_num = -1;
@@ -1749,6 +1750,16 @@ DataStructureOutput DataStructureAmr::GenerateLocalFieldData(
 
   return {DataStructureStatus::kDataStructureSuccess, ""};
 }
+
+template DataStructureOutput DataStructureAmr::GenerateLocalFieldData<AmrDataArray3D>(
+    const std::vector<long>& gid_list, const char* field_name,
+    std::vector<AmrDataArray3D>& storage) const;
+template DataStructureOutput DataStructureAmr::GenerateLocalFieldData<AmrDataArray2D>(
+    const std::vector<long>& gid_list, const char* field_name,
+    std::vector<AmrDataArray2D>& storage) const;
+// template DataStructureOutput DataStructureAmr::GenerateLocalFieldData<AmrDataArray1D>(
+//     const std::vector<long>& gid_list, const char* field_name,
+//     std::vector<AmrDataArray1D>& storage) const;
 
 //-------------------------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr

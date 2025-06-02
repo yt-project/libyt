@@ -570,7 +570,7 @@ TEST_P(TestDataStructureAmrGenerateLocalData, Can_generate_derived_field_data) {
   // Act
   std::vector<AmrDataArray3D> storage;
   DataStructureOutput status =
-      ds_amr.GenerateLocalFieldData({local_gid}, "Field100", storage);
+      ds_amr.GenerateLocalFieldData<AmrDataArray3D>({local_gid}, "Field100", storage);
 
   // Assert
   EXPECT_EQ(status.status, DataStructureStatus::kDataStructureSuccess) << status.error;
