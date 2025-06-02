@@ -32,13 +32,13 @@ class DataHub {
   ~DataHub() { ClearCache(); }
 };
 
-class DataHubAmrField : public DataHub<AmrDataArray3D> {
+template<typename DataClass>
+class DataHubAmrField : public DataHub<DataClass> {
  public:
-  explicit DataHubAmrField(bool take_ownership)
-      : DataHub<AmrDataArray3D>(take_ownership) {}
-  DataHubReturn<AmrDataArray3D> GetLocalFieldData(const DataStructureAmr& ds_amr,
-                                                  const std::string& field_name,
-                                                  const std::vector<long>& grid_id_list);
+  explicit DataHubAmrField(bool take_ownership) : DataHub<DataClass>(take_ownership) {}
+  DataHubReturn<DataClass> GetLocalFieldData(const DataStructureAmr& ds_amr,
+                                             const std::string& field_name,
+                                             const std::vector<long>& grid_id_list);
 };
 
 class DataHubAmrParticle : public DataHub<AmrDataArray1D> {
