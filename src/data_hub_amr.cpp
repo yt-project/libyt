@@ -44,7 +44,7 @@ template class DataHub<AmrDataArray1D>;
 //                   freed by ClearCache.
 //                6. TODO: not test it yet, only need this when doing memory leaking test.
 //-------------------------------------------------------------------------------------------------------
-DataHubReturn<AmrDataArray3D> DataHubAmrDataArray3D::GetLocalFieldData(
+DataHubReturn<AmrDataArray3D> DataHubAmrField::GetLocalFieldData(
     const DataStructureAmr& ds_amr, const std::string& field_name,
     const std::vector<long>& grid_id_list) {
   // Free cache before doing new query
@@ -125,7 +125,7 @@ DataHubReturn<AmrDataArray3D> DataHubAmrDataArray3D::GetLocalFieldData(
 //                   (TODO: this also shows it is a bad Api design.)
 //                8. TODO: not test it yet, only need this when doing memory leaking test.
 //-------------------------------------------------------------------------------------------------------
-DataHubReturn<AmrDataArray1D> DataHubAmrDataArray1D::GetLocalParticleData(
+DataHubReturn<AmrDataArray1D> DataHubAmrParticle::GetLocalParticleData(
     const DataStructureAmr& ds_amr, const std::string& ptype, const std::string& pattr,
     const std::vector<long>& grid_id_list) {
   // Free cache before doing new query
