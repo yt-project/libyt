@@ -148,7 +148,7 @@ TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_AmrDataArray1D) {
   AmrDataArray1D* send_buffer = new AmrDataArray1D[send_count_in_each_rank[mpi_rank]];
   for (int i = 0; i < send_count_in_each_rank[mpi_rank]; i++) {
     send_buffer[i].id = displacement + i;
-    send_buffer[i].data_len = displacement + i;
+    send_buffer[i].data_dim[0] = displacement + i;
     send_buffer[i].data_dtype = YT_INT;
     send_buffer[i].data_ptr = nullptr;
     long temp = displacement + i;
@@ -165,7 +165,7 @@ TEST_F(TestBigMpi, BigMpiAllgatherv_can_pass_AmrDataArray1D) {
   EXPECT_EQ(result, BigMpiStatus::kBigMpiSuccess);
   for (long i = 0; i < total_send_counts; i++) {
     EXPECT_EQ(recv_buffer[i].id, i);
-    EXPECT_EQ(recv_buffer[i].data_len, i);
+    EXPECT_EQ(recv_buffer[i].data_dim[0], i);
     EXPECT_EQ(recv_buffer[i].data_dtype, YT_INT);
     EXPECT_EQ(reinterpret_cast<long>(recv_buffer[i].data_ptr), i);
   }
@@ -353,7 +353,7 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray1D) {
                 "sizeof(void*) and sizeof(long) have difference size");
   for (int i = 0; i < send_count_in_each_rank[mpi_rank]; i++) {
     send_buffer[i].id = displacement + i;
-    send_buffer[i].data_len = displacement + i;
+    send_buffer[i].data_dim[0] = displacement + i;
     send_buffer[i].data_dtype = YT_INT;
     send_buffer[i].data_ptr = nullptr;
     long temp = displacement + i;
@@ -377,7 +377,7 @@ TEST_F(TestBigMpi, big_MPI_Gatherv_with_AmrDataArray1D) {
   if (mpi_rank == mpi_root) {
     for (long i = 0; i < total_send_counts; i++) {
       EXPECT_EQ(recv_buffer[i].id, i);
-      EXPECT_EQ(recv_buffer[i].data_len, i);
+      EXPECT_EQ(recv_buffer[i].data_dim[0], i);
       EXPECT_EQ(recv_buffer[i].data_dtype, YT_INT);
       EXPECT_EQ(reinterpret_cast<long>(recv_buffer[i].data_ptr), i);
     }
@@ -540,7 +540,7 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray1D) {
     for (int i = 0; i < total_send_counts; i++) {
       buffer[i].id = i;
       buffer[i].data_dtype = YT_INT;
-      buffer[i].data_len = i;
+      buffer[i].data_dim[0] = i;
       long temp = i;
       std::memcpy(&(buffer[i].data_ptr), &temp, sizeof(temp));
     }
@@ -555,7 +555,7 @@ TEST_F(TestBigMpi, big_MPI_Bcast_with_AmrDataArray1D) {
   for (int i = 0; i < total_send_counts; i++) {
     EXPECT_EQ(buffer[i].id, i);
     EXPECT_EQ(buffer[i].data_dtype, YT_INT);
-    EXPECT_EQ(buffer[i].data_len, i);
+    EXPECT_EQ(buffer[i].data_dim[0], i);
     EXPECT_EQ(reinterpret_cast<long>(buffer[i].data_ptr), i);
   }
 
@@ -887,8 +887,9 @@ TEST_F(TestRma, CommMpiRma_with_AmrDataArray1D_can_distribute_data) {
   EXPECT_EQ(result.status, CommMpiRmaStatus::kMpiSuccess)
       << "Error: " << comm_mpi_rma.GetErrorStr();
   for (const AmrDataArray1D& fetched_data : result.data_list) {
-    EXPECT_EQ(fetched_data.data_len, 10);
-    EXPECT_EQ(((int*)fetched_data.data_ptr)[fetched_data.data_len - 1], fetched_data.id);
+    EXPECT_EQ(fetched_data.data_dim[0], 10);
+    EXPECT_EQ(((int*)fetched_data.data_ptr)[fetched_data.data_dim[0] - 1],
+              fetched_data.id);
   }
 
   // Clean up

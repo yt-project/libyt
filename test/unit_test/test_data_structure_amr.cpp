@@ -713,8 +713,8 @@ TEST_P(TestDataStructureAmrGenerateLocalData, Can_generate_particle_data) {
   EXPECT_EQ(storage.size(), 1);
   EXPECT_EQ(storage[0].id, local_gid);
   EXPECT_EQ(storage[0].data_dtype, YT_DOUBLE);
-  EXPECT_EQ(storage[0].data_len, 10);
-  for (int i = 0; i < storage[0].data_len; i++) {
+  EXPECT_EQ(storage[0].data_dim[0], 10);
+  for (int i = 0; i < storage[0].data_dim[0]; i++) {
     EXPECT_EQ(((double*)storage[0].data_ptr)[i], value);
   }
 

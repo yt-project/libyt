@@ -198,7 +198,7 @@ pybind11::array GetParticle(long gid, const char* ptype, const char* attr_name) 
   }
 
   // Return None if there is no particle
-  if (storage[0].data_len == 0) {
+  if (storage[0].data_dim[0] == 0) {
     // TODO: can I do this??? Even if I cannot, just return a dummy array, yt_libyt
     // filters particle 0 too. but should find a better solution too. It returns a
     // numpy.ndarray with () object
@@ -207,7 +207,7 @@ pybind11::array GetParticle(long gid, const char* ptype, const char* attr_name) 
     // Allocate pybind11
     // (We need this otherwise the array is not owned by python :()
     int dtype_size = dtype_utilities::GetYtDtypeSize(storage[0].data_dtype);
-    std::vector<long> shape({storage[0].data_len});
+    std::vector<long> shape({storage[0].data_dim[0]});
     std::vector<long> stride({dtype_size});
     pybind11::array output = AllocatePybind11Array(storage[0].data_dtype, shape, stride);
 
@@ -475,9 +475,9 @@ pybind11::object GetParticleRemote(const pybind11::dict& py_ptf,
           py_output[pybind11::int_(gid)][ptype.c_str()] = pybind11::dict();
         }
 
-        if (fetched_data.data_len > 0) {
+        if (fetched_data.data_dim[0] > 0) {
           PyObject* py_data;
-          npy_intp npy_dim[1] = {fetched_data.data_len};
+          npy_intp npy_dim[1] = {fetched_data.data_dim[0]};
           py_data = numpy_controller::ArrayToNumPyArray(
               1, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
 
@@ -681,12 +681,12 @@ static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
   }
 
   // Wrapping the data to numpy array, for now, storage only contains one data
-  if (storage[0].data_len == 0) {
+  if (storage[0].data_dim[0] == 0) {
     Py_INCREF(Py_None);
     return Py_None;
   } else {
     int nd = 1;
-    npy_intp dims[1] = {storage[0].data_len};
+    npy_intp dims[1] = {storage[0].data_dim[0]};
     PyObject* py_data = numpy_controller::ArrayToNumPyArray(
         nd, dims, storage[0].data_dtype, storage[0].data_ptr, false, true);
 
@@ -1046,8 +1046,8 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
         Py_DECREF(py_ptype_key);
 
         // Wrap and bind to py_attribute_dict
-        if (fetched_data.data_len > 0) {
-          npy_intp npy_dim[1] = {fetched_data.data_len};
+        if (fetched_data.data_dim[0] > 0) {
+          npy_intp npy_dim[1] = {fetched_data.data_dim[0]};
           PyObject* py_data = numpy_controller::ArrayToNumPyArray(
               1, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
           PyDict_SetItemString(py_attribute_dict, attr, py_data);
