@@ -64,6 +64,7 @@ struct AmrDataArray1D {
   yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
   long data_dim[1] = {0};
   void* data_ptr = nullptr;
+  bool contiguous_in_x = true;  // not in use, keep it only for consistency with 3D/2D
 };
 
 enum class DataStructureStatus : int {
