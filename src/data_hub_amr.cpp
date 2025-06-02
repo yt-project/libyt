@@ -155,7 +155,7 @@ DataHubReturn<AmrDataArray1D> DataHubAmrDataArray1D::GetLocalParticleData(
       amr_1d_data.id = kGid;
       amr_1d_data.data_dtype = par_array.data_dtype;
       amr_1d_data.data_ptr = par_array.data_ptr;
-      amr_1d_data.data_len = par_array.data_dimensions[0];
+      amr_1d_data.data_dim[0] = par_array.data_dimensions[0];
       is_new_allocation_list_.emplace_back(false);
       data_array_list_.emplace_back(amr_1d_data);
     } else {

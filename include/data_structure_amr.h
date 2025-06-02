@@ -62,8 +62,8 @@ struct AmrDataArray2D {
 struct AmrDataArray1D {
   long id = -1;
   yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
+  long data_dim[1] = {0};
   void* data_ptr = nullptr;
-  long data_len = 0;
 };
 
 enum class DataStructureStatus : int {
