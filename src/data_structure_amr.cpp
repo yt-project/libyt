@@ -1658,12 +1658,20 @@ template<typename DataClass>
 DataStructureOutput DataStructureAmr::GenerateLocalFieldData(
     const std::vector<long>& gid_list, const char* field_name,
     std::vector<DataClass>& storage) const {
-  // Get field id
+  // Get field id and derived function
   int field_id = GetFieldIndex(field_name);
   if (field_id < 0) {
     std::string error =
         std::string("Field name [ ") + field_name + std::string(" ] not found.\n");
     return {DataStructureStatus::kDataStructureFailed, error};
+  }
+  void (*derived_func)(const int, const long*, const char*, yt_array*) =
+      field_list_[field_id].derived_func;
+  if (derived_func == nullptr) {
+    std::string error = std::string("Derived function derived_func not set in field [ ") +
+                        field_name + std::string(" ] on MPI rank ") +
+                        std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
+    return {DataStructureStatus::kDataStructureNotImplemented, error};
   }
 
   for (const long& kGid : gid_list) {
@@ -1700,31 +1708,23 @@ DataStructureOutput DataStructureAmr::GenerateLocalFieldData(
       }
     }
     if (field_list_[field_id].contiguous_in_x) {
-      amr_data.data_dim[0] = grid_dim[2];
-      amr_data.data_dim[1] = grid_dim[1];
-      amr_data.data_dim[2] = grid_dim[0];
+      for (int d = 0; d < dimensionality_; d++) {
+        amr_data.data_dim[d] = grid_dim[(dimensionality_ - 1) - d];
+      }
     } else {
-      amr_data.data_dim[0] = grid_dim[0];
-      amr_data.data_dim[1] = grid_dim[1];
-      amr_data.data_dim[2] = grid_dim[2];
+      for (int d = 0; d < dimensionality_; d++) {
+        amr_data.data_dim[d] = grid_dim[d];
+      }
     }
     amr_data.id = kGid;
     amr_data.contiguous_in_x = field_list_[field_id].contiguous_in_x;
     amr_data.data_dtype = field_list_[field_id].field_dtype;
 
-    // Get derived function pointer
-    void (*derived_func)(const int, const long*, const char*, yt_array*) =
-        field_list_[field_id].derived_func;
-    if (derived_func == nullptr) {
-      std::string error =
-          std::string("Derived function derived_func not set in field [ ") + field_name +
-          std::string(" ] on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
-          std::string(".\n");
-      return {DataStructureStatus::kDataStructureNotImplemented, error};
-    }
-
     // Allocate memory for data_ptr and generate data
-    long data_len = amr_data.data_dim[0] * amr_data.data_dim[1] * amr_data.data_dim[2];
+    long data_len = 1;
+    for (int d = 0; d < dimensionality_; d++) {
+      data_len *= amr_data.data_dim[d];
+    }
     amr_data.data_ptr = dtype_utilities::AllocateMemory(amr_data.data_dtype, data_len);
     if (amr_data.data_ptr == nullptr) {
       std::string error =
