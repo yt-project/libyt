@@ -63,7 +63,7 @@ DataHubReturn<DataClass> DataHubAmrField<DataClass>::GetLocalFieldData(
   }
 
   if (strcmp(field_list[field_id].field_type, "derived_func") == 0) {
-    DataStructureOutput status = ds_amr.GenerateLocalFieldData(
+    DataStructureOutput status = ds_amr.GenerateLocalFieldData<DataClass>(
         grid_id_list, field_name.c_str(), this->data_array_list_);
     this->is_new_allocation_list_.assign(this->data_array_list_.size(), true);
     if (status.status != DataStructureStatus::kDataStructureSuccess) {
@@ -84,11 +84,11 @@ DataHubReturn<DataClass> DataHubAmrField<DataClass>::GetLocalFieldData(
             std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
         return {DataHubStatus::kDataHubFailed, this->data_array_list_};
       }
-      AmrDataArray3D amr_data{};
+      DataClass amr_data{};
       amr_data.id = gid;
       amr_data.contiguous_in_x = field_list[field_id].contiguous_in_x;
       amr_data.data_dtype = field_data.data_dtype;
-      for (int d = 0; d < 3; d++) {
+      for (int d = 0; d < ds_amr.GetDimensionality(); d++) {
         amr_data.data_dim[d] = field_data.data_dimensions[d];
       }
       amr_data.data_ptr = field_data.data_ptr;

@@ -1647,7 +1647,8 @@ int DataStructureAmr::GetParticleAttributeIndex(int particle_type_index,
 // Public Method  :  GenerateFieldData
 //
 // Notes       :  1. Generate field data based on grid id list and field name.
-//                2. Append the generated data in storage.
+//                2. Append the generated data in storage. Data can be
+//                   AmrDataArray3D/2D/1D
 //                3. Allocate new memory, and it is the callers responsibility to free it.
 //                4. TODO: Test using OpenMP in derived_func and pass in a group of ids.
 //                   TODO: How should I parallelize this using OpenMP?
@@ -2091,7 +2092,7 @@ DataStructureOutput DataStructureAmr::GetPythonBoundLocalFieldData(
   // Get NumPy array dimensions/data pointer/dtype
   NumPyArray py_data_info = numpy_controller::GetNumPyArrayInfo(
       PyDict_GetItem(PyDict_GetItem(py_grid_data_, py_grid_id), py_field));
-  for (int d = 0; d < 3; d++) {
+  for (int d = 0; d < dimensionality_; d++) {
     (*field_data).data_dimensions[d] = (int)py_data_info.data_dims[d];
   }
   (*field_data).data_ptr = py_data_info.data_ptr;
