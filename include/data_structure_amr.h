@@ -188,6 +188,9 @@ class DataStructureAmr {
   void CleanUpGridsLocal();  // This method is public due to bad API design :(
   void CleanUp();
 
+  // Get basic info
+  int GetDimensionality() const { return dimensionality_; }
+
   // Look up field/particle info method.
   yt_grid* GetGridsLocal() const { return grids_local_; }
   yt_field* GetFieldList() const { return field_list_; }
