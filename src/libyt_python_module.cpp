@@ -283,7 +283,7 @@ pybind11::object GetFieldRemote(const pybind11::list& py_fname_list, int len_fna
     // Prepare data for each field on each MPI rank.
     std::string fname = py_fname.cast<std::string>();
 
-    DataHubAmrField local_amr_data(false);
+    DataHubAmrField<AmrDataArray3D> local_amr_data(false);
     DataHubReturn<AmrDataArray3D> prepared_data = local_amr_data.GetLocalFieldData(
         LibytProcessControl::Get().data_structure_amr_, fname, prepare_id_list);
 
@@ -790,7 +790,7 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
     // Prepare local data
     py_deref_list.push_back(py_fname);
     char* fname = PyBytes_AsString(py_fname);
-    DataHubAmrField local_amr_data(false);
+    DataHubAmrField<AmrDataArray3D> local_amr_data(false);
     DataHubReturn<AmrDataArray3D> prepared_data = local_amr_data.GetLocalFieldData(
         LibytProcessControl::Get().data_structure_amr_, fname, prepare_id_list);
     DataHubStatus all_status = static_cast<DataHubStatus>(

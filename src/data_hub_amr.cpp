@@ -27,6 +27,8 @@ void DataHub<DataClass>::ClearCache() {
 template class DataHub<AmrDataArray3D>;
 template class DataHub<AmrDataArray1D>;
 
+template class DataHubAmrField<AmrDataArray3D>;
+
 //-------------------------------------------------------------------------------------------------------
 // Class         :  DataHubAmrDataArray3D
 // Public Method :  GetLocalFieldData
@@ -44,28 +46,29 @@ template class DataHub<AmrDataArray1D>;
 //                   freed by ClearCache.
 //                6. TODO: not test it yet, only need this when doing memory leaking test.
 //-------------------------------------------------------------------------------------------------------
-DataHubReturn<AmrDataArray3D> DataHubAmrField::GetLocalFieldData(
+template<typename DataClass>
+DataHubReturn<DataClass> DataHubAmrField<DataClass>::GetLocalFieldData(
     const DataStructureAmr& ds_amr, const std::string& field_name,
     const std::vector<long>& grid_id_list) {
   // Free cache before doing new query
-  ClearCache();
+  this->ClearCache();
 
   yt_field* field_list = ds_amr.GetFieldList();
   int field_id = ds_amr.GetFieldIndex(field_name.c_str());
   if (field_id == -1) {
-    error_str_ = std::string("Cannot find field_name [ ") + field_name +
-                 std::string(" ] in field_list on MPI rank ") +
-                 std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
-    return {DataHubStatus::kDataHubFailed, data_array_list_};
+    this->error_str_ = std::string("Cannot find field_name [ ") + field_name +
+                       std::string(" ] in field_list on MPI rank ") +
+                       std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
+    return {DataHubStatus::kDataHubFailed, this->data_array_list_};
   }
 
   if (strcmp(field_list[field_id].field_type, "derived_func") == 0) {
-    DataStructureOutput status =
-        ds_amr.GenerateLocalFieldData(grid_id_list, field_name.c_str(), data_array_list_);
-    is_new_allocation_list_.assign(data_array_list_.size(), true);
+    DataStructureOutput status = ds_amr.GenerateLocalFieldData(
+        grid_id_list, field_name.c_str(), this->data_array_list_);
+    this->is_new_allocation_list_.assign(this->data_array_list_.size(), true);
     if (status.status != DataStructureStatus::kDataStructureSuccess) {
-      error_str_ = std::move(status.error);
-      return {DataHubStatus::kDataHubFailed, data_array_list_};
+      this->error_str_ = std::move(status.error);
+      return {DataHubStatus::kDataHubFailed, this->data_array_list_};
     }
   } else if (strcmp(field_list[field_id].field_type, "cell-centered") == 0 ||
              strcmp(field_list[field_id].field_type, "face-centered") == 0) {
@@ -74,12 +77,12 @@ DataHubReturn<AmrDataArray3D> DataHubAmrField::GetLocalFieldData(
       DataStructureOutput status =
           ds_amr.GetPythonBoundLocalFieldData(gid, field_name.c_str(), &field_data);
       if (status.status != DataStructureStatus::kDataStructureSuccess) {
-        error_str_ = status.error;
-        error_str_ += std::string("Failed to get data (field_name, gid) = (") +
-                      field_name + std::string(", ") + std::to_string(gid) +
-                      std::string(") on MPI rank ") +
-                      std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
-        return {DataHubStatus::kDataHubFailed, data_array_list_};
+        this->error_str_ = status.error;
+        this->error_str_ +=
+            std::string("Failed to get data (field_name, gid) = (") + field_name +
+            std::string(", ") + std::to_string(gid) + std::string(") on MPI rank ") +
+            std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
+        return {DataHubStatus::kDataHubFailed, this->data_array_list_};
       }
       AmrDataArray3D amr_data{};
       amr_data.id = gid;
@@ -90,19 +93,19 @@ DataHubReturn<AmrDataArray3D> DataHubAmrField::GetLocalFieldData(
       }
       amr_data.data_ptr = field_data.data_ptr;
 
-      is_new_allocation_list_.emplace_back(false);
-      data_array_list_.emplace_back(amr_data);
+      this->is_new_allocation_list_.emplace_back(false);
+      this->data_array_list_.emplace_back(amr_data);
     }
   } else {
-    error_str_ = std::string("Unknown field type [ ") +
-                 std::string(field_list[field_id].field_type) +
-                 std::string(" ] in field [ ") + field_name +
-                 std::string(" ] on MPI rank ") +
-                 std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
-    return {DataHubStatus::kDataHubFailed, data_array_list_};
+    this->error_str_ = std::string("Unknown field type [ ") +
+                       std::string(field_list[field_id].field_type) +
+                       std::string(" ] in field [ ") + field_name +
+                       std::string(" ] on MPI rank ") +
+                       std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
+    return {DataHubStatus::kDataHubFailed, this->data_array_list_};
   }
 
-  return {DataHubStatus::kDataHubSuccess, data_array_list_};
+  return {DataHubStatus::kDataHubSuccess, this->data_array_list_};
 }
 
 //-------------------------------------------------------------------------------------------------------
