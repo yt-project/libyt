@@ -1757,9 +1757,9 @@ template DataStructureOutput DataStructureAmr::GenerateLocalFieldData<AmrDataArr
 template DataStructureOutput DataStructureAmr::GenerateLocalFieldData<AmrDataArray2D>(
     const std::vector<long>& gid_list, const char* field_name,
     std::vector<AmrDataArray2D>& storage) const;
-// template DataStructureOutput DataStructureAmr::GenerateLocalFieldData<AmrDataArray1D>(
-//     const std::vector<long>& gid_list, const char* field_name,
-//     std::vector<AmrDataArray1D>& storage) const;
+template DataStructureOutput DataStructureAmr::GenerateLocalFieldData<AmrDataArray1D>(
+    const std::vector<long>& gid_list, const char* field_name,
+    std::vector<AmrDataArray1D>& storage) const;
 
 //-------------------------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr

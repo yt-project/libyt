@@ -641,14 +641,15 @@ void CommMpiRmaAmrDataArray1D::InitializeMpiDataType() {
     return;
   }
 
-  int lengths[4] = {1, 1, 1, 1};
-  MPI_Aint displacements[4];
+  int lengths[5] = {1, 1, 1, 1, 1};
+  MPI_Aint displacements[5];
   displacements[0] = offsetof(AmrDataArray1D, id);
   displacements[1] = offsetof(AmrDataArray1D, data_dtype);
   displacements[2] = offsetof(AmrDataArray1D, data_dim);
   displacements[3] = offsetof(AmrDataArray1D, data_ptr);
-  MPI_Datatype types[4] = {MPI_LONG, MPI_INT, MPI_LONG, MPI_AINT};
-  MPI_Type_create_struct(4, lengths, displacements, types, &mpi_data_type_);
+  displacements[4] = offsetof(AmrDataArray1D, contiguous_in_x);
+  MPI_Datatype types[5] = {MPI_LONG, MPI_INT, MPI_LONG, MPI_AINT, MPI_CXX_BOOL};
+  MPI_Type_create_struct(5, lengths, displacements, types, &mpi_data_type_);
   MPI_Type_commit(&mpi_data_type_);
 }
 
