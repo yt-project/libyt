@@ -836,6 +836,8 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
     prepare_id_list.push_back(PyLong_AsLong(py_prepare_grid_id));
   }
 
+  int dimensionality = LibytProcessControl::Get().data_structure_amr_.GetDimensionality();
+
   // Create fetch data list
   std::vector<CommMpiRmaQueryInfo> fetch_data_list;
   fetch_data_list.reserve(len_get_grid);
@@ -853,67 +855,108 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
   // Get all remote grid id in field name fname, get one field at a time.
   PyObject* py_fname;
   while ((py_fname = PyIter_Next(py_fname_list))) {
-    // Prepare local data
+    // RMA
     py_deref_list.push_back(py_fname);
     char* fname = PyBytes_AsString(py_fname);
-    DataHubAmrField<AmrDataArray3D> local_amr_data(false);
-    DataHubReturn<AmrDataArray3D> prepared_data = local_amr_data.GetLocalFieldData(
-        LibytProcessControl::Get().data_structure_amr_, fname, prepare_id_list);
-    DataHubStatus all_status = static_cast<DataHubStatus>(
-        CommMpi::CheckAllStates(static_cast<int>(prepared_data.status),
-                                static_cast<int>(DataHubStatus::kDataHubSuccess),
-                                static_cast<int>(DataHubStatus::kDataHubSuccess),
-                                static_cast<int>(DataHubStatus::kDataHubFailed)));
-    if (all_status != DataHubStatus::kDataHubSuccess) {
-      if (prepared_data.status == DataHubStatus::kDataHubFailed) {
-        PyErr_SetString(PyExc_RuntimeError, local_amr_data.GetErrorStr().c_str());
-      } else {
-        PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
+    if (dimensionality == 3) {
+      CommMpiRmaAmrDataArray3D rma(fname, "amr_grid");
+      std::string rma_result_msg = CallFieldRma<AmrDataArray3D>(
+          std::string(fname), prepare_id_list, fetch_data_list, rma);
+      if (rma_result_msg != "success") {
+        PyErr_SetString(PyExc_RuntimeError, rma_result_msg.c_str());
+        for (auto& py_item : py_deref_list) {
+          Py_DECREF(py_item);
+        }
+        return NULL;
       }
-      for (auto& py_item : py_deref_list) {
-        Py_DECREF(py_item);
-      }
-      return NULL;
-    }
 
-    // Call Mpi RMA operation
-    CommMpiRmaAmrDataArray3D comm_mpi_rma(fname, "amr_grid");
-    CommMpiRmaReturn<AmrDataArray3D> rma_return =
-        comm_mpi_rma.GetRemoteData(prepared_data.data_list, fetch_data_list);
-    if (rma_return.all_status != CommMpiRmaStatus::kMpiSuccess) {
-      if (rma_return.status != CommMpiRmaStatus::kMpiSuccess) {
-        PyErr_SetString(PyExc_RuntimeError, comm_mpi_rma.GetErrorStr().c_str());
-      } else {
-        PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
-      }
-      for (auto& py_item : py_deref_list) {
-        Py_DECREF(py_item);
-      }
-      return NULL;
-    }
+      // Wrap the data to Python dictionary
+      for (const AmrDataArray3D& fetched_data : rma.GetFetchedData()) {
+        // Create dictionary output[grid id][field_name]
+        PyObject* py_grid_id = PyLong_FromLong(fetched_data.id);
+        PyObject* py_field_label;
+        if (PyDict_Contains(py_output, py_grid_id) == 0) {
+          py_field_label = PyDict_New();
+          PyDict_SetItem(py_output, py_grid_id, py_field_label);
+          Py_DECREF(py_field_label);
+        }
+        py_field_label = PyDict_GetItem(py_output, py_grid_id);
+        Py_DECREF(py_grid_id);
 
-    // Wrap to Python dictionary
-    for (const AmrDataArray3D& fetched_data : rma_return.data_list) {
-      // Create dictionary output[grid id][field_name]
-      PyObject* py_grid_id = PyLong_FromLong(fetched_data.id);
-      PyObject* py_field_label;
-      if (PyDict_Contains(py_output, py_grid_id) == 0) {
-        py_field_label = PyDict_New();
-        PyDict_SetItem(py_output, py_grid_id, py_field_label);
-        Py_DECREF(py_field_label);
+        // Wrap the data to NumPy array
+        npy_intp npy_dim[3];
+        for (int d = 0; d < 3; d++) {
+          npy_dim[d] = fetched_data.data_dim[d];
+        }
+        PyObject* py_field_data = numpy_controller::ArrayToNumPyArray(
+            3, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
+        PyDict_SetItemString(py_field_label, fname, py_field_data);
+        Py_DECREF(py_field_data);
       }
-      py_field_label = PyDict_GetItem(py_output, py_grid_id);
-      Py_DECREF(py_grid_id);
+    } else if (dimensionality == 2) {
+      CommMpiRmaAmrDataArray2D rma(fname, "amr_grid");
+      std::string rma_result_msg = CallFieldRma<AmrDataArray2D>(
+          std::string(fname), prepare_id_list, fetch_data_list, rma);
+      if (rma_result_msg != "success") {
+        PyErr_SetString(PyExc_RuntimeError, rma_result_msg.c_str());
+        for (auto& py_item : py_deref_list) {
+          Py_DECREF(py_item);
+        }
+        return NULL;
+      }
 
-      // Wrap the data to NumPy array
-      npy_intp npy_dim[3];
-      for (int d = 0; d < 3; d++) {
-        npy_dim[d] = fetched_data.data_dim[d];
+      // Wrap the data to Python dictionary
+      for (const AmrDataArray2D& fetched_data : rma.GetFetchedData()) {
+        // Create dictionary output[grid id][field_name]
+        PyObject* py_grid_id = PyLong_FromLong(fetched_data.id);
+        PyObject* py_field_label;
+        if (PyDict_Contains(py_output, py_grid_id) == 0) {
+          py_field_label = PyDict_New();
+          PyDict_SetItem(py_output, py_grid_id, py_field_label);
+          Py_DECREF(py_field_label);
+        }
+        py_field_label = PyDict_GetItem(py_output, py_grid_id);
+        Py_DECREF(py_grid_id);
+
+        // Wrap the data to NumPy array
+        npy_intp npy_dim[2] = {fetched_data.data_dim[0], fetched_data.data_dim[1]};
+        PyObject* py_field_data = numpy_controller::ArrayToNumPyArray(
+            2, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
+        PyDict_SetItemString(py_field_label, fname, py_field_data);
+        Py_DECREF(py_field_data);
       }
-      PyObject* py_field_data = numpy_controller::ArrayToNumPyArray(
-          3, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
-      PyDict_SetItemString(py_field_label, fname, py_field_data);
-      Py_DECREF(py_field_data);
+    } else {
+      CommMpiRmaAmrDataArray1D rma(fname, "amr_grid");
+      std::string rma_result_msg = CallFieldRma<AmrDataArray1D>(
+          std::string(fname), prepare_id_list, fetch_data_list, rma);
+      if (rma_result_msg != "success") {
+        PyErr_SetString(PyExc_RuntimeError, rma_result_msg.c_str());
+        for (auto& py_item : py_deref_list) {
+          Py_DECREF(py_item);
+        }
+        return NULL;
+      }
+
+      // Wrap the data to Python dictionary
+      for (const AmrDataArray1D& fetched_data : rma.GetFetchedData()) {
+        // Create dictionary output[grid id][field_name]
+        PyObject* py_grid_id = PyLong_FromLong(fetched_data.id);
+        PyObject* py_field_label;
+        if (PyDict_Contains(py_output, py_grid_id) == 0) {
+          py_field_label = PyDict_New();
+          PyDict_SetItem(py_output, py_grid_id, py_field_label);
+          Py_DECREF(py_field_label);
+        }
+        py_field_label = PyDict_GetItem(py_output, py_grid_id);
+        Py_DECREF(py_grid_id);
+
+        // Wrap the data to NumPy array
+        npy_intp npy_dim[1] = {fetched_data.data_dim[0]};
+        PyObject* py_field_data = numpy_controller::ArrayToNumPyArray(
+            1, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
+        PyDict_SetItemString(py_field_label, fname, py_field_data);
+        Py_DECREF(py_field_data);
+      }
     }
     Py_DECREF(py_fname);
     py_deref_list.pop_back();
