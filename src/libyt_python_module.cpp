@@ -15,6 +15,45 @@
 #include <pybind11/pytypes.h>
 #endif
 
+#ifndef SERIAL_MODE
+template<typename DataClass, typename RmaDataClass>
+static std::string CallFieldRma(const std::string& fname,
+                                const std::vector<long>& prepare_id_list,
+                                const std::vector<CommMpiRmaQueryInfo>& fetch_data_list,
+                                RmaDataClass& rma) {
+  // Prepare data for each field on each MPI rank, fail fast if any process fails.
+  DataHubAmrField<DataClass> local_amr_data(false);
+  DataHubReturn<DataClass> prepared_data = local_amr_data.GetLocalFieldData(
+      LibytProcessControl::Get().data_structure_amr_, fname, prepare_id_list);
+
+  DataHubStatus all_status = static_cast<DataHubStatus>(
+      CommMpi::CheckAllStates(static_cast<int>(prepared_data.status),
+                              static_cast<int>(DataHubStatus::kDataHubSuccess),
+                              static_cast<int>(DataHubStatus::kDataHubSuccess),
+                              static_cast<int>(DataHubStatus::kDataHubFailed)));
+  if (all_status != DataHubStatus::kDataHubSuccess) {
+    if (prepared_data.status == DataHubStatus::kDataHubFailed) {
+      return local_amr_data.GetErrorStr();
+    } else {
+      return std::string("Error occurred in other MPI process.");
+    }
+  }
+
+  // Call MPI RMA operation
+  CommMpiRmaReturn<DataClass> rma_return =
+      rma.GetRemoteData(prepared_data.data_list, fetch_data_list);
+  if (rma_return.all_status != CommMpiRmaStatus::kMpiSuccess) {
+    if (rma_return.status != CommMpiRmaStatus::kMpiSuccess) {
+      return rma.GetErrorStr();
+    } else {
+      return std::string("Error occurred in other MPI process.");
+    }
+  }
+
+  return std::string("success");
+}
+#endif
+
 //-------------------------------------------------------------------------------------------------------
 // Description :  List of libyt C extension python methods built using Pybind11 API
 //
@@ -280,46 +319,18 @@ pybind11::object GetFieldRemote(const pybind11::list& py_fname_list, int len_fna
   // TODO: Will support distributing multiple types of field after dealing with labeling
   // for each type of field.
   for (auto& py_fname : py_fname_list) {
-    // Prepare data for each field on each MPI rank.
     std::string fname = py_fname.cast<std::string>();
 
-    DataHubAmrField<AmrDataArray3D> local_amr_data(false);
-    DataHubReturn<AmrDataArray3D> prepared_data = local_amr_data.GetLocalFieldData(
-        LibytProcessControl::Get().data_structure_amr_, fname, prepare_id_list);
-
-    // Make sure every process can get the local field data correctly, otherwise fail
-    // fast.
-    DataHubStatus all_status = static_cast<DataHubStatus>(
-        CommMpi::CheckAllStates(static_cast<int>(prepared_data.status),
-                                static_cast<int>(DataHubStatus::kDataHubSuccess),
-                                static_cast<int>(DataHubStatus::kDataHubSuccess),
-                                static_cast<int>(DataHubStatus::kDataHubFailed)));
-    if (all_status != DataHubStatus::kDataHubSuccess) {
-      if (prepared_data.status == DataHubStatus::kDataHubFailed) {
-        PyErr_SetString(PyExc_RuntimeError, local_amr_data.GetErrorStr().c_str());
-      } else {
-        PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
-      }
-      // local_amr_data.ClearCache();
-      throw pybind11::error_already_set();
-    }
-
-    // Call MPI RMA operation
-    CommMpiRmaAmrDataArray3D comm_mpi_rma(fname, "amr_grid");
-    CommMpiRmaReturn<AmrDataArray3D> rma_return =
-        comm_mpi_rma.GetRemoteData(prepared_data.data_list, fetch_data_list);
-    if (rma_return.all_status != CommMpiRmaStatus::kMpiSuccess) {
-      if (rma_return.status != CommMpiRmaStatus::kMpiSuccess) {
-        PyErr_SetString(PyExc_RuntimeError, comm_mpi_rma.GetErrorStr().c_str());
-      } else {
-        PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
-      }
-      // local_amr_data.ClearCache();
+    CommMpiRmaAmrDataArray3D rma(fname, "amr_grid");
+    std::string rma_result_msg = CallFieldRma<AmrDataArray3D, CommMpiRmaAmrDataArray3D>(
+        fname, prepare_id_list, fetch_data_list, rma);
+    if (rma_result_msg != "success") {
+      PyErr_SetString(PyExc_RuntimeError, rma_result_msg.c_str());
       throw pybind11::error_already_set();
     }
 
     // Wrap to Python dictionary
-    for (const AmrDataArray3D& fetched_data : rma_return.data_list) {
+    for (const AmrDataArray3D& fetched_data : rma.GetFetchedData()) {
       npy_intp npy_dim[3];
       for (int d = 0; d < 3; d++) {
         npy_dim[d] = fetched_data.data_dim[d];
@@ -337,8 +348,6 @@ pybind11::object GetFieldRemote(const pybind11::list& py_fname_list, int len_fna
       Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't
                            // care it anymore.
     }
-
-    // local_amr_data.ClearCache();
   }
 
   return py_output;
