@@ -25,9 +25,12 @@ void DataHub<DataClass>::ClearCache() {
 }
 
 template class DataHub<AmrDataArray3D>;
+template class DataHub<AmrDataArray2D>;
 template class DataHub<AmrDataArray1D>;
 
 template class DataHubAmrField<AmrDataArray3D>;
+template class DataHubAmrField<AmrDataArray2D>;
+template class DataHubAmrField<AmrDataArray1D>;
 
 //-------------------------------------------------------------------------------------------------------
 // Class         :  DataHubAmrDataArray3D

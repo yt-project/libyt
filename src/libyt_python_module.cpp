@@ -273,7 +273,9 @@ pybind11::array GetParticle(long gid, const char* ptype, const char* attr_name) 
 //                5. Directly return None if it is in SERIAL_MODE.
 //                   TODO: Not sure if this would affect the performance. And do I even
 //                   need this?
-//                6. In Python, it is called like:
+//                6. The duplicated code also shows that I show singled out the method to
+//                   construct and bind the data under libyt.
+//                7. In Python, it is called like:
 //                   libyt.get_field_remote( fname_list,
 //                                           len(fname_list),
 //                                           to_prepare,
@@ -315,38 +317,93 @@ pybind11::object GetFieldRemote(const pybind11::list& py_fname_list, int len_fna
     prepare_id_list.emplace_back(py_gid.cast<long>());
   }
 
+  int dimensionality = LibytProcessControl::Get().data_structure_amr_.GetDimensionality();
+
   // Initialize one CommMpiRma at a time for a field.
   // TODO: Will support distributing multiple types of field after dealing with labeling
   // for each type of field.
   for (auto& py_fname : py_fname_list) {
     std::string fname = py_fname.cast<std::string>();
 
-    CommMpiRmaAmrDataArray3D rma(fname, "amr_grid");
-    std::string rma_result_msg = CallFieldRma<AmrDataArray3D, CommMpiRmaAmrDataArray3D>(
-        fname, prepare_id_list, fetch_data_list, rma);
-    if (rma_result_msg != "success") {
-      PyErr_SetString(PyExc_RuntimeError, rma_result_msg.c_str());
-      throw pybind11::error_already_set();
-    }
-
-    // Wrap to Python dictionary
-    for (const AmrDataArray3D& fetched_data : rma.GetFetchedData()) {
-      npy_intp npy_dim[3];
-      for (int d = 0; d < 3; d++) {
-        npy_dim[d] = fetched_data.data_dim[d];
+    if (dimensionality == 3) {
+      // RMA
+      CommMpiRmaAmrDataArray3D rma(fname, "amr_grid");
+      std::string rma_result_msg = CallFieldRma<AmrDataArray3D, CommMpiRmaAmrDataArray3D>(
+          fname, prepare_id_list, fetch_data_list, rma);
+      if (rma_result_msg != "success") {
+        PyErr_SetString(PyExc_RuntimeError, rma_result_msg.c_str());
+        throw pybind11::error_already_set();
       }
-      PyObject* py_data = numpy_controller::ArrayToNumPyArray(
-          3, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
 
-      if (!py_output.contains(pybind11::int_(fetched_data.id))) {
-        py_field = pybind11::dict();
-        py_output[pybind11::int_(fetched_data.id)] = py_field;
-      } else {
-        py_field = py_output[pybind11::int_(fetched_data.id)];
+      // Wrap to Python dictionary
+      for (const AmrDataArray3D& fetched_data : rma.GetFetchedData()) {
+        npy_intp npy_dim[3];
+        for (int d = 0; d < 3; d++) {
+          npy_dim[d] = fetched_data.data_dim[d];
+        }
+        PyObject* py_data = numpy_controller::ArrayToNumPyArray(
+            3, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
+
+        if (!py_output.contains(pybind11::int_(fetched_data.id))) {
+          py_field = pybind11::dict();
+          py_output[pybind11::int_(fetched_data.id)] = py_field;
+        } else {
+          py_field = py_output[pybind11::int_(fetched_data.id)];
+        }
+        py_field[fname.c_str()] = py_data;
+        Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't
+                             // care it anymore.
       }
-      py_field[fname.c_str()] = py_data;
-      Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't
-                           // care it anymore.
+    } else if (dimensionality == 2) {
+      // RMA
+      CommMpiRmaAmrDataArray2D rma(fname, "amr_grid");
+      std::string rma_result_msg = CallFieldRma<AmrDataArray2D, CommMpiRmaAmrDataArray2D>(
+          fname, prepare_id_list, fetch_data_list, rma);
+      if (rma_result_msg != "success") {
+        PyErr_SetString(PyExc_RuntimeError, rma_result_msg.c_str());
+        throw pybind11::error_already_set();
+      }
+
+      for (const AmrDataArray2D& fetched_data : rma.GetFetchedData()) {
+        npy_intp npy_dim[2] = {fetched_data.data_dim[0], fetched_data.data_dim[1]};
+        PyObject* py_data = numpy_controller::ArrayToNumPyArray(
+            2, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
+
+        if (!py_output.contains(pybind11::int_(fetched_data.id))) {
+          py_field = pybind11::dict();
+          py_output[pybind11::int_(fetched_data.id)] = py_field;
+        } else {
+          py_field = py_output[pybind11::int_(fetched_data.id)];
+        }
+        py_field[fname.c_str()] = py_data;
+        Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't
+                             // care it anymore.
+      }
+    } else {
+      // RMA
+      CommMpiRmaAmrDataArray1D rma(fname, "amr_grid");
+      std::string rma_result_msg = CallFieldRma<AmrDataArray1D, CommMpiRmaAmrDataArray1D>(
+          fname, prepare_id_list, fetch_data_list, rma);
+      if (rma_result_msg != "success") {
+        PyErr_SetString(PyExc_RuntimeError, rma_result_msg.c_str());
+        throw pybind11::error_already_set();
+      }
+
+      for (const AmrDataArray1D& fetched_data : rma.GetFetchedData()) {
+        npy_intp npy_dim[1] = {fetched_data.data_dim[0]};
+        PyObject* py_data = numpy_controller::ArrayToNumPyArray(
+            1, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
+
+        if (!py_output.contains(pybind11::int_(fetched_data.id))) {
+          py_field = pybind11::dict();
+          py_output[pybind11::int_(fetched_data.id)] = py_field;
+        } else {
+          py_field = py_output[pybind11::int_(fetched_data.id)];
+        }
+        py_field[fname.c_str()] = py_data;
+        Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't
+                             // care it anymore.
+      }
     }
   }
 
