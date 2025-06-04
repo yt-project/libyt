@@ -42,6 +42,7 @@ struct yt_hierarchy {
 // Description :  Data structure for 3d / 1d data array.
 //
 // Notes       :  1. Must have data_ptr.
+//                2. TODO: do I even need contiguous_in_x in the array element?
 //-------------------------------------------------------------------------------------------------------
 struct AmrDataArray3D {
   long id = -1;

@@ -121,19 +121,21 @@ static pybind11::array AllocatePybind11Array(yt_dtype data_type,
 // then pass back
 //                to Python.
 //
-// Note        :  1. Support only grid dimension = 3 for now.
-//                2. This function only needs to deal with the local grids.
-//                3. The returned numpy array data type is according to field's
-//                field_dtype defined at
-//                   yt_field.
-//                4. Now, input from Python only contains gid and field name. In the
-//                future, when we
+// Note        :  1. Support dimension 1/2/3.
+//                2. The data returned is based on the dimensionality and the contiguous
+//                   in x property of the field. Assume array is C-contiguous.
+//                3. This function only needs to deal with the local grids.
+//                4. The returned numpy array data type is according to field's
+//                   field_dtype defined at yt_field.
+//                5. Now, input from Python only contains gid and field name. In the
+//                   future, when we
 //                   support hybrid OpenMP/MPI, it can accept list and a string.
-//                5. Due to the creation of pybind11::array_t using an existing pointer
-//                makes Python not owning
-//                   an array, we have to initialize a new buffer in array_t and copy the
-//                   generated data into the new buffer. (ref:
+//                6. Due to the creation of pybind11::array_t using an existing pointer
+//                   makes Python not owning an array, we have to initialize a new buffer
+//                   in array_t and copy the generated data into the new buffer. (ref:
 //                   https://stackoverflow.com/a/44682603/20413451)
+//                7. TODO: as you can see, there are duplicated code for different dim.
+//                         I'll single this out to a class later.
 //
 // Python Parameter     :          int : GID of the grid
 //                                 str : field name
@@ -145,45 +147,109 @@ static pybind11::array AllocatePybind11Array(yt_dtype data_type,
 pybind11::array DerivedFunc(long gid, const char* field_name) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
-  // Generate data
+  // Basic info
   std::vector<long> gid_list = {gid};
-  std::vector<AmrDataArray3D> storage;
-  DataStructureOutput status =
-      LibytProcessControl::Get().data_structure_amr_.GenerateLocalFieldData(
-          gid_list, field_name, storage);
-  if (status.status != DataStructureStatus::kDataStructureSuccess) {
+  int dimensionality = LibytProcessControl::Get().data_structure_amr_.GetDimensionality();
+
+  // Generated data and wrap it based on the dimensionality
+  if (dimensionality == 3) {
+    std::vector<AmrDataArray3D> storage;
+    DataStructureOutput status =
+        LibytProcessControl::Get()
+            .data_structure_amr_.GenerateLocalFieldData<AmrDataArray3D>(
+                gid_list, field_name, storage);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+      for (const AmrDataArray3D& kData : storage) {
+        free(kData.data_ptr);
+      }
+      if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+        PyErr_SetString(PyExc_NotImplementedError, status.error.c_str());
+        throw pybind11::error_already_set();
+      } else {
+        throw pybind11::value_error(status.error.c_str());
+      }
+    }
+
+    // Allocate pybind11
+    // (We need this otherwise the array is not owned by python :()
+    int dtype_size = dtype_utilities::GetYtDtypeSize(storage[0].data_dtype);
+    std::vector<long> shape = {
+        storage[0].data_dim[0], storage[0].data_dim[1], storage[0].data_dim[2]};
+    std::vector<long> stride = {
+        dtype_size * shape[1] * shape[2], dtype_size * shape[2], dtype_size};
+    pybind11::array output = AllocatePybind11Array(storage[0].data_dtype, shape, stride);
+
+    // Copy data from storage to output and then free storage
+    memcpy(output.mutable_data(),
+           storage[0].data_ptr,
+           dtype_size * shape[0] * shape[1] * shape[2]);
     for (const AmrDataArray3D& kData : storage) {
       free(kData.data_ptr);
     }
-    if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
-      PyErr_SetString(PyExc_NotImplementedError, status.error.c_str());
-      throw pybind11::error_already_set();
-    } else {
-      throw pybind11::value_error(status.error.c_str());
+    return static_cast<pybind11::array>(output);
+  } else if (dimensionality == 2) {
+    std::vector<AmrDataArray2D> storage;
+    DataStructureOutput status =
+        LibytProcessControl::Get()
+            .data_structure_amr_.GenerateLocalFieldData<AmrDataArray2D>(
+                gid_list, field_name, storage);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+      for (const AmrDataArray2D& kData : storage) {
+        free(kData.data_ptr);
+      }
+      if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+        PyErr_SetString(PyExc_NotImplementedError, status.error.c_str());
+        throw pybind11::error_already_set();
+      } else {
+        throw pybind11::value_error(status.error.c_str());
+      }
     }
-  }
 
-  // Allocate pybind11
-  // (We need this otherwise the array is not owned by python :()
-  std::vector<long> shape, stride;
-  int dtype_size = dtype_utilities::GetYtDtypeSize(storage[0].data_dtype);
-  if (storage[0].contiguous_in_x) {
-    shape = {storage[0].data_dim[2], storage[0].data_dim[1], storage[0].data_dim[0]};
+    // Allocate pybind11
+    // (We need this otherwise the array is not owned by python :()
+    int dtype_size = dtype_utilities::GetYtDtypeSize(storage[0].data_dtype);
+    std::vector<long> shape = {storage[0].data_dim[0], storage[0].data_dim[1]};
+    std::vector<long> stride = {dtype_size * shape[1], dtype_size};
+    pybind11::array output = AllocatePybind11Array(storage[0].data_dtype, shape, stride);
+
+    // Copy data from storage to output and then free storage
+    memcpy(output.mutable_data(), storage[0].data_ptr, dtype_size * shape[0] * shape[1]);
+    for (const AmrDataArray2D& kData : storage) {
+      free(kData.data_ptr);
+    }
+    return static_cast<pybind11::array>(output);
   } else {
-    shape = {storage[0].data_dim[0], storage[0].data_dim[1], storage[0].data_dim[2]};
-  }
-  stride = {dtype_size * shape[1] * shape[2], dtype_size * shape[2], dtype_size};
-  pybind11::array output = AllocatePybind11Array(storage[0].data_dtype, shape, stride);
+    std::vector<AmrDataArray1D> storage;
+    DataStructureOutput status =
+        LibytProcessControl::Get()
+            .data_structure_amr_.GenerateLocalFieldData<AmrDataArray1D>(
+                gid_list, field_name, storage);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+      for (const AmrDataArray1D& kData : storage) {
+        free(kData.data_ptr);
+      }
+      if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+        PyErr_SetString(PyExc_NotImplementedError, status.error.c_str());
+        throw pybind11::error_already_set();
+      } else {
+        throw pybind11::value_error(status.error.c_str());
+      }
+    }
 
-  // Copy data from storage to output and then free storage
-  memcpy(output.mutable_data(),
-         storage[0].data_ptr,
-         dtype_size * shape[0] * shape[1] * shape[2]);
-  for (const AmrDataArray3D& kData : storage) {
-    free(kData.data_ptr);
-  }
+    // Allocate pybind11
+    // (We need this otherwise the array is not owned by python :()
+    int dtype_size = dtype_utilities::GetYtDtypeSize(storage[0].data_dtype);
+    std::vector<long> shape = {storage[0].data_dim[0]};
+    std::vector<long> stride = {dtype_size};
+    pybind11::array output = AllocatePybind11Array(storage[0].data_dtype, shape, stride);
 
-  return static_cast<pybind11::array>(output);
+    // Copy data from storage to output and then free storage
+    memcpy(output.mutable_data(), storage[0].data_ptr, dtype_size * shape[0]);
+    for (const AmrDataArray1D& kData : storage) {
+      free(kData.data_ptr);
+    }
+    return static_cast<pybind11::array>(output);
+  }
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -659,39 +725,79 @@ static PyObject* LibytFieldDerivedFunc(PyObject* self, PyObject* args) {
     return NULL;
   }
 
-  // Generate data
+  // Grid info
   std::vector<long> gid_list = {gid};
-  std::vector<AmrDataArray3D> storage;
-  DataStructureOutput status =
-      LibytProcessControl::Get().data_structure_amr_.GenerateLocalFieldData(
-          gid_list, field_name, storage);
-  if (status.status != DataStructureStatus::kDataStructureSuccess) {
-    if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
-      PyErr_Format(PyExc_NotImplementedError, status.error.c_str());
-      return NULL;
-    } else {
-      PyErr_Format(PyExc_ValueError, status.error.c_str());
-      return NULL;
+  int nd = LibytProcessControl::Get().data_structure_amr_.GetDimensionality();
+
+  // Generate and wrap the data based on the dimension
+  if (nd == 3) {
+    std::vector<AmrDataArray3D> storage;
+    DataStructureOutput status =
+        LibytProcessControl::Get()
+            .data_structure_amr_.GenerateLocalFieldData<AmrDataArray3D>(
+                gid_list, field_name, storage);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+      for (const AmrDataArray3D& kData : storage) {
+        free(kData.data_ptr);
+      }
+      if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+        PyErr_Format(PyExc_NotImplementedError, status.error.c_str());
+        return NULL;
+      } else {
+        PyErr_Format(PyExc_ValueError, status.error.c_str());
+        return NULL;
+      }
     }
-  }
-
-  // Wrapping the data to numpy array, for now, storage only contains one data
-  int nd = 3;
-  npy_intp dims[3];
-  if (storage[0].contiguous_in_x) {
-    dims[0] = storage[0].data_dim[2];
-    dims[1] = storage[0].data_dim[1];
-    dims[2] = storage[0].data_dim[0];
+    npy_intp dims[3] = {
+        storage[0].data_dim[0], storage[0].data_dim[1], storage[0].data_dim[2]};
+    PyObject* py_data = numpy_controller::ArrayToNumPyArray(
+        nd, dims, storage[0].data_dtype, storage[0].data_ptr, false, true);
+    return py_data;
+  } else if (nd == 2) {
+    std::vector<AmrDataArray2D> storage;
+    DataStructureOutput status =
+        LibytProcessControl::Get()
+            .data_structure_amr_.GenerateLocalFieldData<AmrDataArray2D>(
+                gid_list, field_name, storage);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+      for (const AmrDataArray2D& kData : storage) {
+        free(kData.data_ptr);
+      }
+      if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+        PyErr_Format(PyExc_NotImplementedError, status.error.c_str());
+        return NULL;
+      } else {
+        PyErr_Format(PyExc_ValueError, status.error.c_str());
+        return NULL;
+      }
+    }
+    npy_intp dims[2] = {storage[0].data_dim[0], storage[0].data_dim[1]};
+    PyObject* py_data = numpy_controller::ArrayToNumPyArray(
+        nd, dims, storage[0].data_dtype, storage[0].data_ptr, false, true);
+    return py_data;
   } else {
-    dims[0] = storage[0].data_dim[0];
-    dims[1] = storage[0].data_dim[1];
-    dims[2] = storage[0].data_dim[2];
+    std::vector<AmrDataArray1D> storage;
+    DataStructureOutput status =
+        LibytProcessControl::Get()
+            .data_structure_amr_.GenerateLocalFieldData<AmrDataArray1D>(
+                gid_list, field_name, storage);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+      for (const AmrDataArray1D& kData : storage) {
+        free(kData.data_ptr);
+      }
+      if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+        PyErr_Format(PyExc_NotImplementedError, status.error.c_str());
+        return NULL;
+      } else {
+        PyErr_Format(PyExc_ValueError, status.error.c_str());
+        return NULL;
+      }
+    }
+    npy_intp dims[1] = {storage[0].data_dim[0]};
+    PyObject* py_data = numpy_controller::ArrayToNumPyArray(
+        nd, dims, storage[0].data_dtype, storage[0].data_ptr, false, true);
+    return py_data;
   }
-
-  PyObject* py_data = numpy_controller::ArrayToNumPyArray(
-      nd, dims, storage[0].data_dtype, storage[0].data_ptr, false, true);
-
-  return py_data;
 }
 
 //-------------------------------------------------------------------------------------------------------

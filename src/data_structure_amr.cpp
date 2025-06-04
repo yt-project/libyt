@@ -1648,9 +1648,11 @@ int DataStructureAmr::GetParticleAttributeIndex(int particle_type_index,
 //
 // Notes       :  1. Generate field data based on grid id list and field name.
 //                2. Append the generated data in storage. Data can be
-//                   AmrDataArray3D/2D/1D
-//                3. Allocate new memory, and it is the callers responsibility to free it.
-//                4. TODO: Test using OpenMP in derived_func and pass in a group of ids.
+//                   AmrDataArray3D/2D/1D.
+//                3. The data generated is aligned with the simulation's dimension and
+//                   if it is contiguous_in_x ([x][y][z] or [z][y][x]).
+//                4. Allocate new memory, and it is the callers responsibility to free it.
+//                5. TODO: Test using OpenMP in derived_func and pass in a group of ids.
 //                   TODO: How should I parallelize this using OpenMP?
 //                   TODO: What would happen if we didn't compile libyt with OpenMP? (Time
 //                   Profile This)
