@@ -2,13 +2,13 @@
 
 #include "dtype_utilities.h"
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Class         :  DataHub
 // Public Method :  ClearCache
 //
 // Notes       :  1. Clear the cache, and decide if new allocation needs to be freed.
 //                2. Assuming DataClass struct has data pointer called data_ptr.
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 template<typename DataClass>
 void DataHub<DataClass>::ClearCache() {
   if (!take_ownership_) {
@@ -32,8 +32,8 @@ template class DataHubAmrField<AmrDataArray3D>;
 template class DataHubAmrField<AmrDataArray2D>;
 template class DataHubAmrField<AmrDataArray1D>;
 
-//-------------------------------------------------------------------------------------------------------
-// Class         :  DataHubAmrDataArray3D
+//----------------------------------------------------------------------------------------
+// Template Class:  DataHubAmrField<DataClass>
 // Public Method :  GetLocalFieldData
 //
 // Notes       :  1. Get local field data and cache it.
@@ -48,7 +48,7 @@ template class DataHubAmrField<AmrDataArray1D>;
 //                   then it will be marked in is_new_allocation_list_. It will later be
 //                   freed by ClearCache.
 //                6. TODO: not test it yet, only need this when doing memory leaking test.
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 template<typename DataClass>
 DataHubReturn<DataClass> DataHubAmrField<DataClass>::GetLocalFieldData(
     const DataStructureAmr& ds_amr, const std::string& field_name,
@@ -111,8 +111,8 @@ DataHubReturn<DataClass> DataHubAmrField<DataClass>::GetLocalFieldData(
   return {DataHubStatus::kDataHubSuccess, this->data_array_list_};
 }
 
-//-------------------------------------------------------------------------------------------------------
-// Class         :  DataHubAmrDataArray1D
+//----------------------------------------------------------------------------------------
+// Class         :  DataHubAmrParticle
 // Public Method :  GetLocalParticleData
 //
 // Notes       :  1. Get local particle data and cache it.
@@ -126,11 +126,12 @@ DataHubReturn<DataClass> DataHubAmrField<DataClass>::GetLocalFieldData(
 //                5. Faithfully return the data even if it has length 0.
 //                6. The order of grid_id_list passed in and the data_array_list_ is not
 //                necessarily the same.
-//                7. It first look for data in libyt.particle_data, if not found, it will
+//                7. It assumes particle attribute data has only one element.
+//                8. It first look for data in libyt.particle_data, if not found, it will
 //                call get_par_attr.
 //                   (TODO: this also shows it is a bad Api design.)
-//                8. TODO: not test it yet, only need this when doing memory leaking test.
-//-------------------------------------------------------------------------------------------------------
+//                9. TODO: not test it yet, only need this when doing memory leaking test.
+//----------------------------------------------------------------------------------------
 DataHubReturn<AmrDataArray1D> DataHubAmrParticle::GetLocalParticleData(
     const DataStructureAmr& ds_amr, const std::string& ptype, const std::string& pattr,
     const std::vector<long>& grid_id_list) {
