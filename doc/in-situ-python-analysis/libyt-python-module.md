@@ -6,7 +6,9 @@
 import libyt
 ```
 
-> {octicon}`info;1em;sd-text-info;` `libyt` Python module is only importable during simulation runtime.
+```{note}
+`libyt` Python module is only importable during simulation runtime.
+```
 
 ## Dictionaries
 
@@ -131,7 +133,9 @@ get_field_remote(fname_list : list,
 ```
 - Usage: Return a dictionary that contains requested field data. The data is scattered in different processes. It is a collective operation.
 
-> {octicon}`alert;1em;sd-text-danger;` This is a collective operation, and it requires every MPI process to participate.
+```{attention}
+This is a collective operation, and it requires every MPI process to participate.
+```
 
 ### `get_particle_remote`
 ```python
@@ -145,6 +149,8 @@ get_particle_remote(par_dict : dict,
 ```
 - Usage: Return a dictionary that contains requested particle data. The data is scattered in different processes. It is a collective operation.
 
-> {octicon}`alert;1em;sd-text-danger;` This is a collective operation, and it requires every MPI process to participate.
+```{attention}
+This is a collective operation, and it requires every MPI process to participate.
+```
 
 > {octicon}`calendar;1em;sd-text-secondary;` [`get_field_remote`](#get_field_remote) and [`get_particle_remote`](#get_particle_remote) may be hard to use in general case, since we have to prepare those list by ourselves. We will improve this and make it general in the future.
