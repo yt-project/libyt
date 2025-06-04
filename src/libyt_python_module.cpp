@@ -330,10 +330,10 @@ pybind11::array GetParticle(long gid, const char* ptype, const char* attr_name) 
 // Function    :  GetFieldRemote
 // Description :  Get non-local field data from remote ranks.
 //
-// Note        :  1. Support only grid dimension = 3 for now.
+// Note        :  1. Support dimension 1/2/3.
 //                2. We return in dictionary objects.
 //                3. We assume that the fname_list passed in has the same fname order in
-//                each rank.
+//                   each rank.
 //                4. This function will get all the fields and grids in combination.
 //                   So the total returned data get is len(fname_list) * len(nonlocal_id).
 //                5. Directly return None if it is in SERIAL_MODE.
@@ -694,23 +694,20 @@ PYBIND11_EMBEDDED_MODULE(libyt, m) {
 //-------------------------------------------------------------------------------------------------------
 // Function    :  libyt_field_derived_func
 // Description :  Use the derived function inside yt_field struct to generate the field,
-// then pass back
-//                to Python.
+//                then pass back  to Python.
 //
-// Note        :  1. Support only grid dimension = 3 for now.
+// Note        :  1. Support dimension 1/2/3.
 //                2. This function only needs to deal with the local grids.
 //                3. The returned numpy array data type is according to field's
-//                field_dtype defined at
-//                   yt_field.
-//                4. grid_dimensions[3] is in [x][y][z] coordinate.
-//                5. Now, input from Python only contains gid and field name. In the
-//                future, when we
-//                   support hybrid OpenMP/MPI, it can accept list and a string.
+//                   field_dtype defined at  yt_field.
+//                4. Now, input from Python only contains gid and field name. In the
+//                   future, when we support hybrid OpenMP/MPI, it can accept list and a
+//                   string.
 //
 // Parameter   :  int : GID of the grid
 //                str : field name
 //
-// Return      :  numpy.3darray
+// Return      :  numpy.3darray / numpy.2darray / numpy.1darray
 //-------------------------------------------------------------------------------------------------------
 static PyObject* LibytFieldDerivedFunc(PyObject* self, PyObject* args) {
   SET_TIMER(__PRETTY_FUNCTION__);
@@ -870,10 +867,10 @@ static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
 // Function    :  libyt_field_get_field_remote
 // Description :  Get non-local field data from remote ranks.
 //
-// Note        :  1. Support only grid dimension = 3 for now.
+// Note        :  1. Support dimension 1/2/3.
 //                2. We return in dictionary objects.
 //                3. We assume that the fname_list passed in has the same fname order in
-//                each rank.
+//                   each rank.
 //                4. This function will get all the fields and grids in combination.
 //                   So the total returned data get is len(fname_list) * len(nonlocal_id).
 //                5. Directly return None if it is in SERIAL_MODE.
@@ -891,7 +888,7 @@ static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
 //                list obj : nonlocal_id  : nonlocal grid id that you want to get.
 //                list obj : nonlocal_rank: where to get those nonlocal grid.
 //
-// Return      :  dict obj data[grid id][field_name][:,:,:]
+// Return      :  dict obj data[grid id][field_name] = numpy array
 //-------------------------------------------------------------------------------------------------------
 static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
   SET_TIMER(__PRETTY_FUNCTION__);
