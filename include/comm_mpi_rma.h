@@ -75,6 +75,7 @@ class CommMpiRma {
   CommMpiRmaReturn<DataClass> GetRemoteData(
       const std::vector<DataClass>& prepared_data_list,
       const std::vector<CommMpiRmaQueryInfo>& fetch_id_list);
+  const std::vector<DataClass>& GetFetchedData() const { return mpi_fetched_data_; }
   const std::string& GetErrorStr() const { return error_str_; }
   MPI_Datatype& GetMpiAddressDataType() { return mpi_rma_data_type_; }
 
@@ -94,6 +95,21 @@ class CommMpiRmaAmrDataArray3D : public CommMpiRma<AmrDataArray3D> {
                            const std::string& data_format);
   MPI_Datatype& GetMpiDataType() override {
     return CommMpiRmaAmrDataArray3D::mpi_data_type_;
+  }
+};
+
+class CommMpiRmaAmrDataArray2D : public CommMpiRma<AmrDataArray2D> {
+ private:
+  static MPI_Datatype mpi_data_type_;
+  long GetDataSize(const AmrDataArray2D& data) override;
+  long GetDataLen(const AmrDataArray2D& data) override;
+  static void InitializeMpiDataType();
+
+ public:
+  CommMpiRmaAmrDataArray2D(const std::string& data_group_name,
+                           const std::string& data_format);
+  MPI_Datatype& GetMpiDataType() override {
+    return CommMpiRmaAmrDataArray2D::mpi_data_type_;
   }
 };
 

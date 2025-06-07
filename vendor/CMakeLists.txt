@@ -1,5 +1,23 @@
 include(FetchContent)
 
+# print and check Python and MPI dependencies
+find_package(
+  Python 3.7
+  COMPONENTS Development NumPy
+  REQUIRED
+)
+message(
+  STATUS
+    "Found Python: ${Python_LIBRARIES} (Python ${Python_VERSION}, NumPy ${Python_NumPy_VERSION})"
+)
+
+if (NOT SERIAL_MODE)
+  find_package(MPI REQUIRED)
+  message(
+    STATUS "Found MPI: ${MPI_CXX_LIBRARIES} (MPI version ${MPI_CXX_VERSION} implemented)"
+  )
+endif ()
+
 if (USE_PYBIND11)
 
   find_package(pybind11 QUIET)

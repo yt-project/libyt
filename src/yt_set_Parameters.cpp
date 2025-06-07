@@ -76,6 +76,7 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
         param_yt.num_par_types,
         param_yt.par_type_list,
         param_yt.index_offset,
+        param_yt.dimensionality,
         LibytProcessControl::Get().param_libyt_.check_data);
   } else {
     status = LibytProcessControl::Get().data_structure_amr_.AllocateStorage(
@@ -85,6 +86,7 @@ int yt_set_Parameters(yt_param_yt* input_param_yt) {
         0,
         nullptr,
         param_yt.index_offset,
+        param_yt.dimensionality,
         LibytProcessControl::Get().param_libyt_.check_data);
   }
 

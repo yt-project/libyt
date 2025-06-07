@@ -16,7 +16,7 @@ int yt_set_Parameters( yt_param_yt *param_yt )
 - `const char* fig_basename` (Default=`"Fig"`)
   - Usage: Base name of the output figures. Figure name will also be followed by counter number and `yt` functionality name.
 - `double domain_left_edge[3], domain_right_edge[3]` (Default=`DBL_UNDEFINED`)
-  - Usage: Simulation left and right edge in code units.
+  - Usage: Simulation left and right edge in code units. If it's a 2D/1D-simulation, fill the extra dimension with `0.0` and `1.0` for left and right edge respectively.
 - `double current_time` (Default=`DBL_UNDEFINED`)
   - Usage: Simulation time in code units.
 - `double current_redshift` (Default=`DBL_UNDEFINED`)
@@ -48,10 +48,9 @@ int yt_set_Parameters( yt_param_yt *param_yt )
     - `0`: No
     - `1`: Yes
 - `int dimensionality` (Default=`INT_UNDEFINED`)
-  - Usage: Dimensionality of the simulation. 
-  > {octicon}`alert;1em;sd-text-danger;` `libyt` only support 3 for now.
+  - Usage: Dimensionality of the simulation. Support 1/2/3-dimensional simulation.
 - `int domain_dimensions[3]` (Default=`INT_UNDEFINED`)
-  - Usage: Number of cells along each dimension on the root AMR level.
+  - Usage: Number of cells along each dimension on the root AMR level. If it's a 2D/1D-simulation, fill the extra dimension with `1`.
 - `int refine_by` (Default=`INT_UNDEFINED`)
   - Usage: Refinement factor between a grid and its subgrid.
 - `int index_offset` (Default=`0`)
@@ -81,7 +80,7 @@ param_yt.mass_unit = 1.9885e33;                                      // mass uni
 param_yt.time_unit = 3.1557e13;                                      // time unit (sec)
 param_yt.velocity_unit = param_yt.length_unit / param_yt.time_unit;  // velocity unit (cm/s)
 param_yt.current_time = time;                                        // simulation time in code units
-param_yt.dimensionality = 3;                                         // dimensionality, support 3 only
+param_yt.dimensionality = 3;                                         // dimensionality
 param_yt.refine_by = REFINE_BY;                                      // refinement factor between a grid and its subgrid
 param_yt.num_grids = num_grids;                                      // number of grids
 param_yt.num_grids_local = num_grids_local;                          // number of local grids

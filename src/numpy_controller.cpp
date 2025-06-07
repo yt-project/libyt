@@ -30,6 +30,7 @@ NumPyStatus numpy_controller::InitializeNumPy() {
 //                  2. Depending on the usage, we should Py_DECREF the returned object,
 //                  once it is attached
 //                     to something, say a dictionary.
+//                  3. We assume it is C-contiguous.
 //-------------------------------------------------------------------------------------------------------
 PyObject* numpy_controller::ArrayToNumPyArray(int dim, npy_intp* npy_dim,
                                               yt_dtype data_dtype, void* data_ptr,
