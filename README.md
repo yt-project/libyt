@@ -22,6 +22,13 @@ We can skip the intermediate step of writing data to a hard disk before doing an
 
 See the [how to install](https://libyt.readthedocs.io/en/latest/how-to-install/how-to-install.html).
 
+### Contributing
+
+We welcome contributions of all kinds! Whether you're fixing a bug, adding a feature, improving documentation, or reporting an issue -- thank you for helping improve this project.
+
+### Code of Conduct
+
+We are committed to fostering a welcoming, respectful, and inclusive environment for everyone involved in this project.
 
 ### License
 
