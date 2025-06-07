@@ -105,10 +105,10 @@ jobs:
           - "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=ON"
           - "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=OFF"
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             python_version: '3.7'
             build_options: "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=ON"
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             python_version: '3.7'
             build_options: "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=OFF"
 
