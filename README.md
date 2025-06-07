@@ -15,6 +15,7 @@ We can skip the intermediate step of writing data to a hard disk before doing an
 
 ### Related Projects
 
+- [`yt`](https://github.com/yt-project/yt): a Python package for analyzing and visualizing volumetric data. It is the core method that `libyt` uses to provide data analysis pipeline for simulations.
 - [`yt_libyt`](https://github.com/data-exp-lab/yt_libyt): a Python package that provides a `yt` frontend. It makes converting post-processing scripts using `yt` into inline scripts a two-line change.
 - [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt): a JupyterLab frontend for `libyt`. It provides methods to connect to simulations.
 
