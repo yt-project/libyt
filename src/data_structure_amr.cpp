@@ -19,13 +19,13 @@ int DataStructureAmr::mpi_rank_;
 MPI_Datatype DataStructureAmr::mpi_hierarchy_data_type_ = 0;
 #endif
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Class         :  DataStructureAmr
 // Public Method :  Constructor
 //
 // Notes       :  1. Doesn't contain necessary information to initialize the data
-// structure.
-//-------------------------------------------------------------------------------------------------------
+//                   structure.
+//----------------------------------------------------------------------------------------
 DataStructureAmr::DataStructureAmr()
     : check_data_(false),
       field_list_(nullptr),
@@ -42,6 +42,7 @@ DataStructureAmr::DataStructureAmr()
       num_grids_local_par_data_(0),
       has_particle_(false),
       index_offset_(0),
+      dimensionality_(3),
       grid_left_edge_(nullptr),
       grid_right_edge_(nullptr),
       grid_dimensions_(nullptr),
@@ -50,13 +51,13 @@ DataStructureAmr::DataStructureAmr()
       proc_num_(nullptr),
       par_count_list_(nullptr) {}
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Class         :  DataStructureAmr
 // Public Method :  SetPythonBindings
 //
 // Notes       :  1. Set the PyObject* pointer for libyt.hierarchy, libyt.grid_data,
-// libyt.particle_data
-//-------------------------------------------------------------------------------------------------------
+//                   libyt.particle_data
+//----------------------------------------------------------------------------------------
 void DataStructureAmr::SetPythonBindings(PyObject* py_hierarchy, PyObject* py_grid_data,
                                          PyObject* py_particle_data) {
   py_hierarchy_ = py_hierarchy;
@@ -95,7 +96,7 @@ void DataStructureAmr::SetMpiInfo(const int mpi_size, const int mpi_root,
   InitializeMpiHierarchyDataType();
 }
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Class         :  DataStructureAmr
 // Public Method :  AllocateStorage
 //
@@ -105,11 +106,10 @@ void DataStructureAmr::SetMpiInfo(const int mpi_size, const int mpi_root,
 //                   (3) Local grid list
 //                   (4) Hierarchy bindings at C-side
 //                2. Make sure it is cleaned up before calling this.
-//-------------------------------------------------------------------------------------------------------
-DataStructureOutput DataStructureAmr::AllocateStorage(long num_grids, int num_grids_local,
-                                                      int num_fields, int num_par_types,
-                                                      yt_par_type* par_type_list,
-                                                      int index_offset, bool check_data) {
+//----------------------------------------------------------------------------------------
+DataStructureOutput DataStructureAmr::AllocateStorage(
+    long num_grids, int num_grids_local, int num_fields, int num_par_types,
+    yt_par_type* par_type_list, int index_offset, int dimensionality, bool check_data) {
   // Initialize the data structure
   DataStructureOutput status;
 
@@ -135,18 +135,19 @@ DataStructureOutput DataStructureAmr::AllocateStorage(long num_grids, int num_gr
 
   index_offset_ = index_offset;
   check_data_ = check_data;
+  dimensionality_ = dimensionality;
 
   return {DataStructureStatus::kDataStructureSuccess, std::string()};
 }
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr
 // Private Method :  AllocateFieldList
 //
 // Notes       :  1. Allocate and initialize storage for field list.
 //                2. num_fields_ tracks the array length of field_list_.
 //                3. Make sure field_list_ is properly freed before new allocation.
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::AllocateFieldList(int num_fields) {
   if (num_fields < 0) {
     return {DataStructureStatus::kDataStructureFailed,
@@ -203,7 +204,7 @@ DataStructureOutput DataStructureAmr::AllocateParticleList(int num_par_types,
   return {DataStructureStatus::kDataStructureSuccess, ""};
 }
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr
 // Private Method :  AllocateGridsLocal
 //
@@ -222,7 +223,10 @@ DataStructureOutput DataStructureAmr::AllocateParticleList(int num_par_types,
 //                tracks the array length
 //                   of grids_local. (TODO: bad Api design)
 //                   Make sure grids_local_ is properly freed before new allocation.
-//-------------------------------------------------------------------------------------------------------
+//                5. For 2D/1D amr simulation, it still needs to fill in the extra grid
+//                   dimensions with 1, left edge to 0, right edge to 1.
+//                   And when filling the grid data, it can ignore the extra dimensions.
+//----------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::AllocateGridsLocal(int num_grids_local,
                                                          int num_fields,
                                                          int num_par_types,
@@ -286,11 +290,13 @@ DataStructureOutput DataStructureAmr::AllocateGridsLocal(int num_grids_local,
   return {DataStructureStatus::kDataStructureSuccess, ""};
 }
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr
 // Private Method :  AllocateFullHierarchyStorageForPython
 //
 // Notes       :  1. Allocate full hierarchy storage for Python bindings.
+//                2. If amr simulation is 2D or 1D, the extra dimensions will also need
+//                   to be filled. (ex: grid_left/right_edge = 0/1)
 //                2. Make sure it is empty before creating a new allocation.
 //                   If it is not empty, over-write the existing one.
 //                3. num_grids_/has_particle_ are used to track the allocation status of
@@ -298,7 +304,7 @@ DataStructureOutput DataStructureAmr::AllocateGridsLocal(int num_grids_local,
 //                   has_particle_ is set through num_par_types.
 //                   Make sure hierarchy is properly freed before new allocation.
 //                4. I'm not sure if data structure contains python code is a good idea.
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::AllocateFullHierarchyStorageForPython(
     long num_grids, int num_par_types) {
   if (num_grids < 0) {
@@ -398,16 +404,15 @@ DataStructureOutput DataStructureAmr::AllocateFullHierarchyStorageForPython(
   return {DataStructureStatus::kDataStructureSuccess, ""};
 }
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr
 // Private Method :  GatherAllHierarchy
 //
 // Notes       :  1. Gather hierarchy from different ranks to root rank, and then
-// broadcast it to all ranks.
+//                   broadcast it to all ranks.
 //                2. It stores the output in pointer passed in by the client, and it needs
-//                to be freed once
-//                   it's done.
-//-------------------------------------------------------------------------------------------------------
+//                   to be freed once it's done.
+//----------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::GatherAllHierarchy(
     int mpi_root, yt_hierarchy** full_hierarchy_ptr,
     long*** full_particle_count_ptr) const {
@@ -1179,9 +1184,11 @@ DataStructureOutput DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
 // Private Method :  BindLocalFieldDataToPython
 //
 // Notes       :  1. Wrap and build field data to a dictionary in
-// libyt.grid_data[gid][fname].
+//                   libyt.grid_data[gid][fname].
+//                   gid can have index offset.
+//                2. Can deal with 1D/2D/3D data.
 //                2. The key (gid, fname) will only be inside the dictionary only if the
-//                data is not nullptr.
+//                   data is not nullptr.
 //                3. Require field_list_ to be set before calling this function. (Bad Api)
 //                4. TODO: Assume all field data under same grid id is passed in and
 //                wrapped at once.
@@ -1193,7 +1200,7 @@ DataStructureOutput DataStructureAmr::BindAllHierarchyToPython(int mpi_root) {
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(
     const yt_grid& grid) const {
-  PyObject *py_grid_id, *py_field_labels, *py_field_data;
+  PyObject *py_grid_id, *py_field_labels;
   py_grid_id = PyLong_FromLong(grid.id);
   py_field_labels = PyDict_New();
   for (int v = 0; v < num_fields_; v++) {
@@ -1229,21 +1236,22 @@ DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(
       // Get grid_dimensions and consider contiguous_in_x or not, since grid_dimensions is
       // defined as [x][y][z].
       if (field_list_[v].contiguous_in_x) {
-        for (int d = 0; d < 3; d++) {
-          (grid.field_data)[v].data_dimensions[d] = (grid.grid_dimensions)[2 - d];
+        for (int d = 0; d < dimensionality_; d++) {
+          (grid.field_data)[v].data_dimensions[d] =
+              (grid.grid_dimensions)[(dimensionality_ - 1) - d];
         }
       } else {
-        for (int d = 0; d < 3; d++) {
+        for (int d = 0; d < dimensionality_; d++) {
           (grid.field_data)[v].data_dimensions[d] = (grid.grid_dimensions)[d];
         }
       }
       // Plus the ghost cell to get the actual array dimensions.
-      for (int d = 0; d < 6; d++) {
+      for (int d = 0; d < 2 * dimensionality_; d++) {
         (grid.field_data)[v].data_dimensions[d / 2] += field_list_[v].field_ghost_cell[d];
       }
     }
     // See if all data_dimensions > 0, abort if not.
-    for (int d = 0; d < 3; d++) {
+    for (int d = 0; d < dimensionality_; d++) {
       if ((grid.field_data)[v].data_dimensions[d] <= 0) {
         Py_DECREF(py_grid_id);
         Py_DECREF(py_field_labels);
@@ -1256,13 +1264,36 @@ DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(
       }
     }
 
-    npy_intp grid_dims[3] = {(grid.field_data)[v].data_dimensions[0],
-                             (grid.field_data)[v].data_dimensions[1],
-                             (grid.field_data)[v].data_dimensions[2]};
-
     // (3) Insert data to dict
-    py_field_data = numpy_controller::ArrayToNumPyArray(
-        3, grid_dims, data_dtype, (grid.field_data)[v].data_ptr, true, false);
+    PyObject* py_field_data = nullptr;
+    if (dimensionality_ == 3) {
+      npy_intp grid_dims[3] = {(grid.field_data)[v].data_dimensions[0],
+                               (grid.field_data)[v].data_dimensions[1],
+                               (grid.field_data)[v].data_dimensions[2]};
+      py_field_data = numpy_controller::ArrayToNumPyArray(dimensionality_,
+                                                          grid_dims,
+                                                          data_dtype,
+                                                          (grid.field_data)[v].data_ptr,
+                                                          true,
+                                                          false);
+    } else if (dimensionality_ == 2) {
+      npy_intp grid_dims[2] = {(grid.field_data)[v].data_dimensions[0],
+                               (grid.field_data)[v].data_dimensions[1]};
+      py_field_data = numpy_controller::ArrayToNumPyArray(dimensionality_,
+                                                          grid_dims,
+                                                          data_dtype,
+                                                          (grid.field_data)[v].data_ptr,
+                                                          true,
+                                                          false);
+    } else if (dimensionality_ == 1) {
+      npy_intp grid_dims[1] = {(grid.field_data)[v].data_dimensions[0]};
+      py_field_data = numpy_controller::ArrayToNumPyArray(dimensionality_,
+                                                          grid_dims,
+                                                          data_dtype,
+                                                          (grid.field_data)[v].data_ptr,
+                                                          true,
+                                                          false);
+    }
 
     // add the field data to dict "libyt.grid_data[grid_id][field_list.field_name]"
     PyDict_SetItemString(py_field_labels, field_list_[v].field_name, py_field_data);
@@ -1282,11 +1313,11 @@ DataStructureOutput DataStructureAmr::BindLocalFieldDataToPython(
 // Private Method :  BindLocalParticleDataToPython
 //
 // Notes       :  1. Wrap and build particle data to a dictionary in
-// libyt.particle_data[gid][ptype][attr].
+//                   libyt.particle_data[gid][ptype][attr].
 //                2. The key (gid, ptype, attr) will only be inside the dictionary only if
-//                the data is not nullptr.
+//                   the data is not nullptr.
 //                3. Require particle_list_ to be set before calling this function. (Bad
-//                Api)
+//                   Api)
 //                4. TODO: Currently, the API forces this function to bind and build all
 //                the data
 //                         inside the grids_local_ array at once. Might change it in the
@@ -1622,26 +1653,38 @@ int DataStructureAmr::GetParticleAttributeIndex(int particle_type_index,
 // Public Method  :  GenerateFieldData
 //
 // Notes       :  1. Generate field data based on grid id list and field name.
-//                2. Append the generated data in storage.
-//                3. Allocate new memory, and it is the callers responsibility to free it.
-//                4. TODO: Test using OpenMP in derived_func and pass in a group of ids.
+//                2. Append the generated data in storage. Data can be
+//                   AmrDataArray3D/2D/1D.
+//                3. The data generated is aligned with the simulation's dimension and
+//                   if it is contiguous_in_x ([x][y][z] or [z][y][x]).
+//                4. Allocate new memory, and it is the callers responsibility to free it.
+//                5. TODO: Test using OpenMP in derived_func and pass in a group of ids.
 //                   TODO: How should I parallelize this using OpenMP?
 //                   TODO: What would happen if we didn't compile libyt with OpenMP? (Time
 //                   Profile This)
 //-------------------------------------------------------------------------------------------------------
+template<typename DataClass>
 DataStructureOutput DataStructureAmr::GenerateLocalFieldData(
     const std::vector<long>& gid_list, const char* field_name,
-    std::vector<AmrDataArray3D>& storage) const {
-  // Get field id
+    std::vector<DataClass>& storage) const {
+  // Get field id and derived function
   int field_id = GetFieldIndex(field_name);
   if (field_id < 0) {
     std::string error =
         std::string("Field name [ ") + field_name + std::string(" ] not found.\n");
     return {DataStructureStatus::kDataStructureFailed, error};
   }
+  void (*derived_func)(const int, const long*, const char*, yt_array*) =
+      field_list_[field_id].derived_func;
+  if (derived_func == nullptr) {
+    std::string error = std::string("Derived function derived_func not set in field [ ") +
+                        field_name + std::string(" ] on MPI rank ") +
+                        std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
+    return {DataStructureStatus::kDataStructureNotImplemented, error};
+  }
 
   for (const long& kGid : gid_list) {
-    AmrDataArray3D amr_data{};
+    DataClass amr_data{};
 
     // Make sure gid is local
     int proc_num = -1;
@@ -1674,31 +1717,23 @@ DataStructureOutput DataStructureAmr::GenerateLocalFieldData(
       }
     }
     if (field_list_[field_id].contiguous_in_x) {
-      amr_data.data_dim[0] = grid_dim[2];
-      amr_data.data_dim[1] = grid_dim[1];
-      amr_data.data_dim[2] = grid_dim[0];
+      for (int d = 0; d < dimensionality_; d++) {
+        amr_data.data_dim[d] = grid_dim[(dimensionality_ - 1) - d];
+      }
     } else {
-      amr_data.data_dim[0] = grid_dim[0];
-      amr_data.data_dim[1] = grid_dim[1];
-      amr_data.data_dim[2] = grid_dim[2];
+      for (int d = 0; d < dimensionality_; d++) {
+        amr_data.data_dim[d] = grid_dim[d];
+      }
     }
     amr_data.id = kGid;
     amr_data.contiguous_in_x = field_list_[field_id].contiguous_in_x;
     amr_data.data_dtype = field_list_[field_id].field_dtype;
 
-    // Get derived function pointer
-    void (*derived_func)(const int, const long*, const char*, yt_array*) =
-        field_list_[field_id].derived_func;
-    if (derived_func == nullptr) {
-      std::string error =
-          std::string("Derived function derived_func not set in field [ ") + field_name +
-          std::string(" ] on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
-          std::string(".\n");
-      return {DataStructureStatus::kDataStructureNotImplemented, error};
-    }
-
     // Allocate memory for data_ptr and generate data
-    long data_len = amr_data.data_dim[0] * amr_data.data_dim[1] * amr_data.data_dim[2];
+    long data_len = 1;
+    for (int d = 0; d < dimensionality_; d++) {
+      data_len *= amr_data.data_dim[d];
+    }
     amr_data.data_ptr = dtype_utilities::AllocateMemory(amr_data.data_dtype, data_len);
     if (amr_data.data_ptr == nullptr) {
       std::string error =
@@ -1724,6 +1759,16 @@ DataStructureOutput DataStructureAmr::GenerateLocalFieldData(
 
   return {DataStructureStatus::kDataStructureSuccess, ""};
 }
+
+template DataStructureOutput DataStructureAmr::GenerateLocalFieldData<AmrDataArray3D>(
+    const std::vector<long>& gid_list, const char* field_name,
+    std::vector<AmrDataArray3D>& storage) const;
+template DataStructureOutput DataStructureAmr::GenerateLocalFieldData<AmrDataArray2D>(
+    const std::vector<long>& gid_list, const char* field_name,
+    std::vector<AmrDataArray2D>& storage) const;
+template DataStructureOutput DataStructureAmr::GenerateLocalFieldData<AmrDataArray1D>(
+    const std::vector<long>& gid_list, const char* field_name,
+    std::vector<AmrDataArray1D>& storage) const;
 
 //-------------------------------------------------------------------------------------------------------
 // Class          :  DataStructureAmr
@@ -1763,8 +1808,8 @@ DataStructureOutput DataStructureAmr::GenerateLocalParticleData(
     amr_1d_data.id = kGid;
     amr_1d_data.data_dtype =
         particle_list_[ptype_index].attr_list[pattr_index].attr_dtype;
-    DataStructureOutput ds_status =
-        GetPythonBoundFullHierarchyGridParticleCount(kGid, ptype, &amr_1d_data.data_len);
+    DataStructureOutput ds_status = GetPythonBoundFullHierarchyGridParticleCount(
+        kGid, ptype, &(amr_1d_data.data_dim[0]));
     if (ds_status.status != DataStructureStatus::kDataStructureSuccess) {
       std::string error = std::move(ds_status.error);
       error += std::string("Failed to get particle count for (particle type, gid) = (") +
@@ -1773,14 +1818,14 @@ DataStructureOutput DataStructureAmr::GenerateLocalParticleData(
                std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
       return {DataStructureStatus::kDataStructureFailed, error};
     }
-    if (amr_1d_data.data_len < 0) {
+    if (amr_1d_data.data_dim[0] < 0) {
       std::string error =
-          std::string("Particle count = ") + std::to_string(amr_1d_data.data_len) +
+          std::string("Particle count = ") + std::to_string(amr_1d_data.data_dim[0]) +
           std::string(" < 0 for (particle type, gid) = (") + ptype + std::string(", ") +
           std::to_string(kGid) + std::string(") on MPI rank ") +
           std::to_string(DataStructureAmr::mpi_rank_) + std::string(".\n");
       return {DataStructureStatus::kDataStructureFailed, error};
-    } else if (amr_1d_data.data_len == 0) {
+    } else if (amr_1d_data.data_dim[0] == 0) {
       amr_1d_data.data_ptr = nullptr;
       storage.emplace_back(amr_1d_data);
       continue;
@@ -1799,13 +1844,13 @@ DataStructureOutput DataStructureAmr::GenerateLocalParticleData(
 
     // Generate buffer
     amr_1d_data.data_ptr =
-        dtype_utilities::AllocateMemory(amr_1d_data.data_dtype, amr_1d_data.data_len);
+        dtype_utilities::AllocateMemory(amr_1d_data.data_dtype, amr_1d_data.data_dim[0]);
     if (amr_1d_data.data_ptr == nullptr) {
       std::string error =
           std::string("Failed to allocate memory for (particle type, attribute, gid, "
                       "data_len) = (") +
           ptype + std::string(", ") + attr + std::string(", ") + std::to_string(kGid) +
-          std::string(", ") + std::to_string(amr_1d_data.data_len) +
+          std::string(", ") + std::to_string(amr_1d_data.data_dim[0]) +
           std::string(") on MPI rank ") + std::to_string(DataStructureAmr::mpi_rank_) +
           std::string(".\n");
       return {DataStructureStatus::kDataStructureFailed, error};
@@ -1814,7 +1859,7 @@ DataStructureOutput DataStructureAmr::GenerateLocalParticleData(
     long list_gid[1] = {kGid};
     yt_array data_array[1];
     data_array[0].gid = kGid;
-    data_array[0].data_length = amr_1d_data.data_len;
+    data_array[0].data_length = amr_1d_data.data_dim[0];
     data_array[0].data_ptr = amr_1d_data.data_ptr;
     (*get_par_attr)(list_len, list_gid, ptype, attr, data_array);
 
@@ -1831,6 +1876,7 @@ DataStructureOutput DataStructureAmr::GenerateLocalParticleData(
 //
 // Notes       :  1. Read the full hierarchy grid dimensions loaded in Python.
 //                2. Counterpart of BindAllHierarchyToPython().
+//                3. Even if it's a 2D/1D grid, it still fills in the extra dimensions.
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::GetPythonBoundFullHierarchyGridDimensions(
     long gid, int* dimensions) const {
@@ -1857,6 +1903,7 @@ DataStructureOutput DataStructureAmr::GetPythonBoundFullHierarchyGridDimensions(
 //
 // Notes       :  1. Read the full hierarchy grid left edge loaded in Python.
 //                2. Counterpart of BindAllHierarchyToPython().
+//                3. Even if it's a 2D/1D grid, it still fills in the extra dimensions.
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::GetPythonBoundFullHierarchyGridLeftEdge(
     long gid, double* left_edge) const {
@@ -1883,6 +1930,7 @@ DataStructureOutput DataStructureAmr::GetPythonBoundFullHierarchyGridLeftEdge(
 //
 // Notes       :  1. Read the full hierarchy grid right edge loaded in Python.
 //                2. Counterpart of BindAllHierarchyToPython().
+//                3. Even if it's a 2D/1D grid, it still fills in the extra dimensions.
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::GetPythonBoundFullHierarchyGridRightEdge(
     long gid, double* right_edge) const {
@@ -2032,6 +2080,7 @@ DataStructureOutput DataStructureAmr::GetPythonBoundFullHierarchyGridParticleCou
 //
 // Notes       :  1. Read the local field data bind to Python libyt.grid_data[gid][fname].
 //                2. Counterpart of BindLocalFieldDataToPython().
+//                3. If the data is 2D/1D, the extra dimensions will be filled with 1s.
 //-------------------------------------------------------------------------------------------------------
 DataStructureOutput DataStructureAmr::GetPythonBoundLocalFieldData(
     long gid, const char* field_name, yt_data* field_data) const {
@@ -2055,8 +2104,11 @@ DataStructureOutput DataStructureAmr::GetPythonBoundLocalFieldData(
   // Get NumPy array dimensions/data pointer/dtype
   NumPyArray py_data_info = numpy_controller::GetNumPyArrayInfo(
       PyDict_GetItem(PyDict_GetItem(py_grid_data_, py_grid_id), py_field));
-  for (int d = 0; d < 3; d++) {
+  for (int d = 0; d < dimensionality_; d++) {
     (*field_data).data_dimensions[d] = (int)py_data_info.data_dims[d];
+  }
+  for (int d = dimensionality_; d < 3; d++) {
+    (*field_data).data_dimensions[d] = 1;  // Fill extra dimensions with 1s
   }
   (*field_data).data_ptr = py_data_info.data_ptr;
   (*field_data).data_dtype = py_data_info.data_dtype;

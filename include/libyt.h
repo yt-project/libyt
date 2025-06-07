@@ -7,7 +7,7 @@
  */
 
 #define LIBYT_MAJOR_VERSION 0
-#define LIBYT_MINOR_VERSION 2
+#define LIBYT_MINOR_VERSION 3
 #define LIBYT_MICRO_VERSION 0
 
 // declare libyt data type

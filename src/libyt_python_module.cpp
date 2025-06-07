@@ -15,6 +15,45 @@
 #include <pybind11/pytypes.h>
 #endif
 
+#ifndef SERIAL_MODE
+template<typename DataClass, typename RmaDataClass>
+static std::string CallFieldRma(const std::string& fname,
+                                const std::vector<long>& prepare_id_list,
+                                const std::vector<CommMpiRmaQueryInfo>& fetch_data_list,
+                                RmaDataClass& rma) {
+  // Prepare data for each field on each MPI rank, fail fast if any process fails.
+  DataHubAmrField<DataClass> local_amr_data(false);
+  DataHubReturn<DataClass> prepared_data = local_amr_data.GetLocalFieldData(
+      LibytProcessControl::Get().data_structure_amr_, fname, prepare_id_list);
+
+  DataHubStatus all_status = static_cast<DataHubStatus>(
+      CommMpi::CheckAllStates(static_cast<int>(prepared_data.status),
+                              static_cast<int>(DataHubStatus::kDataHubSuccess),
+                              static_cast<int>(DataHubStatus::kDataHubSuccess),
+                              static_cast<int>(DataHubStatus::kDataHubFailed)));
+  if (all_status != DataHubStatus::kDataHubSuccess) {
+    if (prepared_data.status == DataHubStatus::kDataHubFailed) {
+      return local_amr_data.GetErrorStr();
+    } else {
+      return std::string("Error occurred in other MPI process.");
+    }
+  }
+
+  // Call MPI RMA operation
+  CommMpiRmaReturn<DataClass> rma_return =
+      rma.GetRemoteData(prepared_data.data_list, fetch_data_list);
+  if (rma_return.all_status != CommMpiRmaStatus::kMpiSuccess) {
+    if (rma_return.status != CommMpiRmaStatus::kMpiSuccess) {
+      return rma.GetErrorStr();
+    } else {
+      return std::string("Error occurred in other MPI process.");
+    }
+  }
+
+  return std::string("success");
+}
+#endif
+
 //-------------------------------------------------------------------------------------------------------
 // Description :  List of libyt C extension python methods built using Pybind11 API
 //
@@ -82,19 +121,21 @@ static pybind11::array AllocatePybind11Array(yt_dtype data_type,
 // then pass back
 //                to Python.
 //
-// Note        :  1. Support only grid dimension = 3 for now.
-//                2. This function only needs to deal with the local grids.
-//                3. The returned numpy array data type is according to field's
-//                field_dtype defined at
-//                   yt_field.
-//                4. Now, input from Python only contains gid and field name. In the
-//                future, when we
+// Note        :  1. Support dimension 1/2/3.
+//                2. The data returned is based on the dimensionality and the contiguous
+//                   in x property of the field. Assume array is C-contiguous.
+//                3. This function only needs to deal with the local grids.
+//                4. The returned numpy array data type is according to field's
+//                   field_dtype defined at yt_field.
+//                5. Now, input from Python only contains gid and field name. In the
+//                   future, when we
 //                   support hybrid OpenMP/MPI, it can accept list and a string.
-//                5. Due to the creation of pybind11::array_t using an existing pointer
-//                makes Python not owning
-//                   an array, we have to initialize a new buffer in array_t and copy the
-//                   generated data into the new buffer. (ref:
+//                6. Due to the creation of pybind11::array_t using an existing pointer
+//                   makes Python not owning an array, we have to initialize a new buffer
+//                   in array_t and copy the generated data into the new buffer. (ref:
 //                   https://stackoverflow.com/a/44682603/20413451)
+//                7. TODO: as you can see, there are duplicated code for different dim.
+//                         I'll single this out to a class later.
 //
 // Python Parameter     :          int : GID of the grid
 //                                 str : field name
@@ -106,45 +147,109 @@ static pybind11::array AllocatePybind11Array(yt_dtype data_type,
 pybind11::array DerivedFunc(long gid, const char* field_name) {
   SET_TIMER(__PRETTY_FUNCTION__);
 
-  // Generate data
+  // Basic info
   std::vector<long> gid_list = {gid};
-  std::vector<AmrDataArray3D> storage;
-  DataStructureOutput status =
-      LibytProcessControl::Get().data_structure_amr_.GenerateLocalFieldData(
-          gid_list, field_name, storage);
-  if (status.status != DataStructureStatus::kDataStructureSuccess) {
+  int dimensionality = LibytProcessControl::Get().data_structure_amr_.GetDimensionality();
+
+  // Generated data and wrap it based on the dimensionality
+  if (dimensionality == 3) {
+    std::vector<AmrDataArray3D> storage;
+    DataStructureOutput status =
+        LibytProcessControl::Get()
+            .data_structure_amr_.GenerateLocalFieldData<AmrDataArray3D>(
+                gid_list, field_name, storage);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+      for (const AmrDataArray3D& kData : storage) {
+        free(kData.data_ptr);
+      }
+      if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+        PyErr_SetString(PyExc_NotImplementedError, status.error.c_str());
+        throw pybind11::error_already_set();
+      } else {
+        throw pybind11::value_error(status.error.c_str());
+      }
+    }
+
+    // Allocate pybind11
+    // (We need this otherwise the array is not owned by python :()
+    int dtype_size = dtype_utilities::GetYtDtypeSize(storage[0].data_dtype);
+    std::vector<long> shape = {
+        storage[0].data_dim[0], storage[0].data_dim[1], storage[0].data_dim[2]};
+    std::vector<long> stride = {
+        dtype_size * shape[1] * shape[2], dtype_size * shape[2], dtype_size};
+    pybind11::array output = AllocatePybind11Array(storage[0].data_dtype, shape, stride);
+
+    // Copy data from storage to output and then free storage
+    memcpy(output.mutable_data(),
+           storage[0].data_ptr,
+           dtype_size * shape[0] * shape[1] * shape[2]);
     for (const AmrDataArray3D& kData : storage) {
       free(kData.data_ptr);
     }
-    if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
-      PyErr_SetString(PyExc_NotImplementedError, status.error.c_str());
-      throw pybind11::error_already_set();
-    } else {
-      throw pybind11::value_error(status.error.c_str());
+    return static_cast<pybind11::array>(output);
+  } else if (dimensionality == 2) {
+    std::vector<AmrDataArray2D> storage;
+    DataStructureOutput status =
+        LibytProcessControl::Get()
+            .data_structure_amr_.GenerateLocalFieldData<AmrDataArray2D>(
+                gid_list, field_name, storage);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+      for (const AmrDataArray2D& kData : storage) {
+        free(kData.data_ptr);
+      }
+      if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+        PyErr_SetString(PyExc_NotImplementedError, status.error.c_str());
+        throw pybind11::error_already_set();
+      } else {
+        throw pybind11::value_error(status.error.c_str());
+      }
     }
-  }
 
-  // Allocate pybind11
-  // (We need this otherwise the array is not owned by python :()
-  std::vector<long> shape, stride;
-  int dtype_size = dtype_utilities::GetYtDtypeSize(storage[0].data_dtype);
-  if (storage[0].contiguous_in_x) {
-    shape = {storage[0].data_dim[2], storage[0].data_dim[1], storage[0].data_dim[0]};
+    // Allocate pybind11
+    // (We need this otherwise the array is not owned by python :()
+    int dtype_size = dtype_utilities::GetYtDtypeSize(storage[0].data_dtype);
+    std::vector<long> shape = {storage[0].data_dim[0], storage[0].data_dim[1]};
+    std::vector<long> stride = {dtype_size * shape[1], dtype_size};
+    pybind11::array output = AllocatePybind11Array(storage[0].data_dtype, shape, stride);
+
+    // Copy data from storage to output and then free storage
+    memcpy(output.mutable_data(), storage[0].data_ptr, dtype_size * shape[0] * shape[1]);
+    for (const AmrDataArray2D& kData : storage) {
+      free(kData.data_ptr);
+    }
+    return static_cast<pybind11::array>(output);
   } else {
-    shape = {storage[0].data_dim[0], storage[0].data_dim[1], storage[0].data_dim[2]};
-  }
-  stride = {dtype_size * shape[1] * shape[2], dtype_size * shape[2], dtype_size};
-  pybind11::array output = AllocatePybind11Array(storage[0].data_dtype, shape, stride);
+    std::vector<AmrDataArray1D> storage;
+    DataStructureOutput status =
+        LibytProcessControl::Get()
+            .data_structure_amr_.GenerateLocalFieldData<AmrDataArray1D>(
+                gid_list, field_name, storage);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+      for (const AmrDataArray1D& kData : storage) {
+        free(kData.data_ptr);
+      }
+      if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+        PyErr_SetString(PyExc_NotImplementedError, status.error.c_str());
+        throw pybind11::error_already_set();
+      } else {
+        throw pybind11::value_error(status.error.c_str());
+      }
+    }
 
-  // Copy data from storage to output and then free storage
-  memcpy(output.mutable_data(),
-         storage[0].data_ptr,
-         dtype_size * shape[0] * shape[1] * shape[2]);
-  for (const AmrDataArray3D& kData : storage) {
-    free(kData.data_ptr);
-  }
+    // Allocate pybind11
+    // (We need this otherwise the array is not owned by python :()
+    int dtype_size = dtype_utilities::GetYtDtypeSize(storage[0].data_dtype);
+    std::vector<long> shape = {storage[0].data_dim[0]};
+    std::vector<long> stride = {dtype_size};
+    pybind11::array output = AllocatePybind11Array(storage[0].data_dtype, shape, stride);
 
-  return static_cast<pybind11::array>(output);
+    // Copy data from storage to output and then free storage
+    memcpy(output.mutable_data(), storage[0].data_ptr, dtype_size * shape[0]);
+    for (const AmrDataArray1D& kData : storage) {
+      free(kData.data_ptr);
+    }
+    return static_cast<pybind11::array>(output);
+  }
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -198,7 +303,7 @@ pybind11::array GetParticle(long gid, const char* ptype, const char* attr_name) 
   }
 
   // Return None if there is no particle
-  if (storage[0].data_len == 0) {
+  if (storage[0].data_dim[0] == 0) {
     // TODO: can I do this??? Even if I cannot, just return a dummy array, yt_libyt
     // filters particle 0 too. but should find a better solution too. It returns a
     // numpy.ndarray with () object
@@ -207,7 +312,7 @@ pybind11::array GetParticle(long gid, const char* ptype, const char* attr_name) 
     // Allocate pybind11
     // (We need this otherwise the array is not owned by python :()
     int dtype_size = dtype_utilities::GetYtDtypeSize(storage[0].data_dtype);
-    std::vector<long> shape({storage[0].data_len});
+    std::vector<long> shape({storage[0].data_dim[0]});
     std::vector<long> stride({dtype_size});
     pybind11::array output = AllocatePybind11Array(storage[0].data_dtype, shape, stride);
 
@@ -225,16 +330,18 @@ pybind11::array GetParticle(long gid, const char* ptype, const char* attr_name) 
 // Function    :  GetFieldRemote
 // Description :  Get non-local field data from remote ranks.
 //
-// Note        :  1. Support only grid dimension = 3 for now.
+// Note        :  1. Support dimension 1/2/3.
 //                2. We return in dictionary objects.
 //                3. We assume that the fname_list passed in has the same fname order in
-//                each rank.
+//                   each rank.
 //                4. This function will get all the fields and grids in combination.
 //                   So the total returned data get is len(fname_list) * len(nonlocal_id).
 //                5. Directly return None if it is in SERIAL_MODE.
 //                   TODO: Not sure if this would affect the performance. And do I even
 //                   need this?
-//                6. In Python, it is called like:
+//                6. The duplicated code also shows that I show singled out the method to
+//                   construct and bind the data under libyt.
+//                7. In Python, it is called like:
 //                   libyt.get_field_remote( fname_list,
 //                                           len(fname_list),
 //                                           to_prepare,
@@ -276,75 +383,94 @@ pybind11::object GetFieldRemote(const pybind11::list& py_fname_list, int len_fna
     prepare_id_list.emplace_back(py_gid.cast<long>());
   }
 
+  int dimensionality = LibytProcessControl::Get().data_structure_amr_.GetDimensionality();
+
   // Initialize one CommMpiRma at a time for a field.
   // TODO: Will support distributing multiple types of field after dealing with labeling
   // for each type of field.
   for (auto& py_fname : py_fname_list) {
-    // Prepare data for each field on each MPI rank.
     std::string fname = py_fname.cast<std::string>();
 
-    DataHubAmrDataArray3D local_amr_data(false);
-    DataHubReturn<AmrDataArray3D> prepared_data = local_amr_data.GetLocalFieldData(
-        LibytProcessControl::Get().data_structure_amr_, fname, prepare_id_list);
-
-    // Make sure every process can get the local field data correctly, otherwise fail
-    // fast.
-    DataHubStatus all_status = static_cast<DataHubStatus>(
-        CommMpi::CheckAllStates(static_cast<int>(prepared_data.status),
-                                static_cast<int>(DataHubStatus::kDataHubSuccess),
-                                static_cast<int>(DataHubStatus::kDataHubSuccess),
-                                static_cast<int>(DataHubStatus::kDataHubFailed)));
-    if (all_status != DataHubStatus::kDataHubSuccess) {
-      if (prepared_data.status == DataHubStatus::kDataHubFailed) {
-        PyErr_SetString(PyExc_RuntimeError, local_amr_data.GetErrorStr().c_str());
-      } else {
-        PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
+    if (dimensionality == 3) {
+      // RMA
+      CommMpiRmaAmrDataArray3D rma(fname, "amr_grid");
+      std::string rma_result_msg = CallFieldRma<AmrDataArray3D, CommMpiRmaAmrDataArray3D>(
+          fname, prepare_id_list, fetch_data_list, rma);
+      if (rma_result_msg != "success") {
+        PyErr_SetString(PyExc_RuntimeError, rma_result_msg.c_str());
+        throw pybind11::error_already_set();
       }
-      // local_amr_data.ClearCache();
-      throw pybind11::error_already_set();
+
+      // Wrap to Python dictionary
+      for (const AmrDataArray3D& fetched_data : rma.GetFetchedData()) {
+        npy_intp npy_dim[3];
+        for (int d = 0; d < 3; d++) {
+          npy_dim[d] = fetched_data.data_dim[d];
+        }
+        PyObject* py_data = numpy_controller::ArrayToNumPyArray(
+            3, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
+
+        if (!py_output.contains(pybind11::int_(fetched_data.id))) {
+          py_field = pybind11::dict();
+          py_output[pybind11::int_(fetched_data.id)] = py_field;
+        } else {
+          py_field = py_output[pybind11::int_(fetched_data.id)];
+        }
+        py_field[fname.c_str()] = py_data;
+        Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't
+                             // care it anymore.
+      }
+    } else if (dimensionality == 2) {
+      // RMA
+      CommMpiRmaAmrDataArray2D rma(fname, "amr_grid");
+      std::string rma_result_msg = CallFieldRma<AmrDataArray2D, CommMpiRmaAmrDataArray2D>(
+          fname, prepare_id_list, fetch_data_list, rma);
+      if (rma_result_msg != "success") {
+        PyErr_SetString(PyExc_RuntimeError, rma_result_msg.c_str());
+        throw pybind11::error_already_set();
+      }
+
+      for (const AmrDataArray2D& fetched_data : rma.GetFetchedData()) {
+        npy_intp npy_dim[2] = {fetched_data.data_dim[0], fetched_data.data_dim[1]};
+        PyObject* py_data = numpy_controller::ArrayToNumPyArray(
+            2, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
+
+        if (!py_output.contains(pybind11::int_(fetched_data.id))) {
+          py_field = pybind11::dict();
+          py_output[pybind11::int_(fetched_data.id)] = py_field;
+        } else {
+          py_field = py_output[pybind11::int_(fetched_data.id)];
+        }
+        py_field[fname.c_str()] = py_data;
+        Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't
+                             // care it anymore.
+      }
+    } else {
+      // RMA
+      CommMpiRmaAmrDataArray1D rma(fname, "amr_grid");
+      std::string rma_result_msg = CallFieldRma<AmrDataArray1D, CommMpiRmaAmrDataArray1D>(
+          fname, prepare_id_list, fetch_data_list, rma);
+      if (rma_result_msg != "success") {
+        PyErr_SetString(PyExc_RuntimeError, rma_result_msg.c_str());
+        throw pybind11::error_already_set();
+      }
+
+      for (const AmrDataArray1D& fetched_data : rma.GetFetchedData()) {
+        npy_intp npy_dim[1] = {fetched_data.data_dim[0]};
+        PyObject* py_data = numpy_controller::ArrayToNumPyArray(
+            1, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
+
+        if (!py_output.contains(pybind11::int_(fetched_data.id))) {
+          py_field = pybind11::dict();
+          py_output[pybind11::int_(fetched_data.id)] = py_field;
+        } else {
+          py_field = py_output[pybind11::int_(fetched_data.id)];
+        }
+        py_field[fname.c_str()] = py_data;
+        Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't
+                             // care it anymore.
+      }
     }
-
-    // Call MPI RMA operation
-    CommMpiRmaAmrDataArray3D comm_mpi_rma(fname, "amr_grid");
-    CommMpiRmaReturn<AmrDataArray3D> rma_return =
-        comm_mpi_rma.GetRemoteData(prepared_data.data_list, fetch_data_list);
-    if (rma_return.all_status != CommMpiRmaStatus::kMpiSuccess) {
-      if (rma_return.status != CommMpiRmaStatus::kMpiSuccess) {
-        PyErr_SetString(PyExc_RuntimeError, comm_mpi_rma.GetErrorStr().c_str());
-      } else {
-        PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
-      }
-      // local_amr_data.ClearCache();
-      throw pybind11::error_already_set();
-    }
-
-    // Wrap to Python dictionary
-    for (const AmrDataArray3D& fetched_data : rma_return.data_list) {
-      npy_intp npy_dim[3];
-      if (fetched_data.contiguous_in_x) {
-        npy_dim[0] = fetched_data.data_dim[2];
-        npy_dim[1] = fetched_data.data_dim[1];
-        npy_dim[2] = fetched_data.data_dim[0];
-      } else {
-        npy_dim[0] = fetched_data.data_dim[0];
-        npy_dim[1] = fetched_data.data_dim[1];
-        npy_dim[2] = fetched_data.data_dim[2];
-      }
-      PyObject* py_data = numpy_controller::ArrayToNumPyArray(
-          3, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
-
-      if (!py_output.contains(pybind11::int_(fetched_data.id))) {
-        py_field = pybind11::dict();
-        py_output[pybind11::int_(fetched_data.id)] = py_field;
-      } else {
-        py_field = py_output[pybind11::int_(fetched_data.id)];
-      }
-      py_field[fname.c_str()] = py_data;
-      Py_DECREF(py_data);  // Need to deref it, since it's owned by Python, and we don't
-                           // care it anymore.
-    }
-
-    // local_amr_data.ClearCache();
   }
 
   return py_output;
@@ -417,7 +543,7 @@ pybind11::object GetParticleRemote(const pybind11::dict& py_ptf,
         }
       }
 
-      DataHubAmrDataArray1D local_particle_data(false);
+      DataHubAmrParticle local_particle_data(false);
       DataHubReturn<AmrDataArray1D> prepared_data =
           local_particle_data.GetLocalParticleData(
               LibytProcessControl::Get().data_structure_amr_,
@@ -481,9 +607,9 @@ pybind11::object GetParticleRemote(const pybind11::dict& py_ptf,
           py_output[pybind11::int_(gid)][ptype.c_str()] = pybind11::dict();
         }
 
-        if (fetched_data.data_len > 0) {
+        if (fetched_data.data_dim[0] > 0) {
           PyObject* py_data;
-          npy_intp npy_dim[1] = {fetched_data.data_len};
+          npy_intp npy_dim[1] = {fetched_data.data_dim[0]};
           py_data = numpy_controller::ArrayToNumPyArray(
               1, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
 
@@ -568,23 +694,20 @@ PYBIND11_EMBEDDED_MODULE(libyt, m) {
 //-------------------------------------------------------------------------------------------------------
 // Function    :  libyt_field_derived_func
 // Description :  Use the derived function inside yt_field struct to generate the field,
-// then pass back
-//                to Python.
+//                then pass back  to Python.
 //
-// Note        :  1. Support only grid dimension = 3 for now.
+// Note        :  1. Support dimension 1/2/3.
 //                2. This function only needs to deal with the local grids.
 //                3. The returned numpy array data type is according to field's
-//                field_dtype defined at
-//                   yt_field.
-//                4. grid_dimensions[3] is in [x][y][z] coordinate.
-//                5. Now, input from Python only contains gid and field name. In the
-//                future, when we
-//                   support hybrid OpenMP/MPI, it can accept list and a string.
+//                   field_dtype defined at  yt_field.
+//                4. Now, input from Python only contains gid and field name. In the
+//                   future, when we support hybrid OpenMP/MPI, it can accept list and a
+//                   string.
 //
 // Parameter   :  int : GID of the grid
 //                str : field name
 //
-// Return      :  numpy.3darray
+// Return      :  numpy.3darray / numpy.2darray / numpy.1darray
 //-------------------------------------------------------------------------------------------------------
 static PyObject* LibytFieldDerivedFunc(PyObject* self, PyObject* args) {
   SET_TIMER(__PRETTY_FUNCTION__);
@@ -599,39 +722,79 @@ static PyObject* LibytFieldDerivedFunc(PyObject* self, PyObject* args) {
     return NULL;
   }
 
-  // Generate data
+  // Grid info
   std::vector<long> gid_list = {gid};
-  std::vector<AmrDataArray3D> storage;
-  DataStructureOutput status =
-      LibytProcessControl::Get().data_structure_amr_.GenerateLocalFieldData(
-          gid_list, field_name, storage);
-  if (status.status != DataStructureStatus::kDataStructureSuccess) {
-    if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
-      PyErr_Format(PyExc_NotImplementedError, status.error.c_str());
-      return NULL;
-    } else {
-      PyErr_Format(PyExc_ValueError, status.error.c_str());
-      return NULL;
+  int nd = LibytProcessControl::Get().data_structure_amr_.GetDimensionality();
+
+  // Generate and wrap the data based on the dimension
+  if (nd == 3) {
+    std::vector<AmrDataArray3D> storage;
+    DataStructureOutput status =
+        LibytProcessControl::Get()
+            .data_structure_amr_.GenerateLocalFieldData<AmrDataArray3D>(
+                gid_list, field_name, storage);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+      for (const AmrDataArray3D& kData : storage) {
+        free(kData.data_ptr);
+      }
+      if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+        PyErr_Format(PyExc_NotImplementedError, status.error.c_str());
+        return NULL;
+      } else {
+        PyErr_Format(PyExc_ValueError, status.error.c_str());
+        return NULL;
+      }
     }
-  }
-
-  // Wrapping the data to numpy array, for now, storage only contains one data
-  int nd = 3;
-  npy_intp dims[3];
-  if (storage[0].contiguous_in_x) {
-    dims[0] = storage[0].data_dim[2];
-    dims[1] = storage[0].data_dim[1];
-    dims[2] = storage[0].data_dim[0];
+    npy_intp dims[3] = {
+        storage[0].data_dim[0], storage[0].data_dim[1], storage[0].data_dim[2]};
+    PyObject* py_data = numpy_controller::ArrayToNumPyArray(
+        nd, dims, storage[0].data_dtype, storage[0].data_ptr, false, true);
+    return py_data;
+  } else if (nd == 2) {
+    std::vector<AmrDataArray2D> storage;
+    DataStructureOutput status =
+        LibytProcessControl::Get()
+            .data_structure_amr_.GenerateLocalFieldData<AmrDataArray2D>(
+                gid_list, field_name, storage);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+      for (const AmrDataArray2D& kData : storage) {
+        free(kData.data_ptr);
+      }
+      if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+        PyErr_Format(PyExc_NotImplementedError, status.error.c_str());
+        return NULL;
+      } else {
+        PyErr_Format(PyExc_ValueError, status.error.c_str());
+        return NULL;
+      }
+    }
+    npy_intp dims[2] = {storage[0].data_dim[0], storage[0].data_dim[1]};
+    PyObject* py_data = numpy_controller::ArrayToNumPyArray(
+        nd, dims, storage[0].data_dtype, storage[0].data_ptr, false, true);
+    return py_data;
   } else {
-    dims[0] = storage[0].data_dim[0];
-    dims[1] = storage[0].data_dim[1];
-    dims[2] = storage[0].data_dim[2];
+    std::vector<AmrDataArray1D> storage;
+    DataStructureOutput status =
+        LibytProcessControl::Get()
+            .data_structure_amr_.GenerateLocalFieldData<AmrDataArray1D>(
+                gid_list, field_name, storage);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+      for (const AmrDataArray1D& kData : storage) {
+        free(kData.data_ptr);
+      }
+      if (status.status == DataStructureStatus::kDataStructureNotImplemented) {
+        PyErr_Format(PyExc_NotImplementedError, status.error.c_str());
+        return NULL;
+      } else {
+        PyErr_Format(PyExc_ValueError, status.error.c_str());
+        return NULL;
+      }
+    }
+    npy_intp dims[1] = {storage[0].data_dim[0]};
+    PyObject* py_data = numpy_controller::ArrayToNumPyArray(
+        nd, dims, storage[0].data_dtype, storage[0].data_ptr, false, true);
+    return py_data;
   }
-
-  PyObject* py_data = numpy_controller::ArrayToNumPyArray(
-      nd, dims, storage[0].data_dtype, storage[0].data_ptr, false, true);
-
-  return py_data;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -687,12 +850,12 @@ static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
   }
 
   // Wrapping the data to numpy array, for now, storage only contains one data
-  if (storage[0].data_len == 0) {
+  if (storage[0].data_dim[0] == 0) {
     Py_INCREF(Py_None);
     return Py_None;
   } else {
     int nd = 1;
-    npy_intp dims[1] = {storage[0].data_len};
+    npy_intp dims[1] = {storage[0].data_dim[0]};
     PyObject* py_data = numpy_controller::ArrayToNumPyArray(
         nd, dims, storage[0].data_dtype, storage[0].data_ptr, false, true);
 
@@ -704,10 +867,10 @@ static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
 // Function    :  libyt_field_get_field_remote
 // Description :  Get non-local field data from remote ranks.
 //
-// Note        :  1. Support only grid dimension = 3 for now.
+// Note        :  1. Support dimension 1/2/3.
 //                2. We return in dictionary objects.
 //                3. We assume that the fname_list passed in has the same fname order in
-//                each rank.
+//                   each rank.
 //                4. This function will get all the fields and grids in combination.
 //                   So the total returned data get is len(fname_list) * len(nonlocal_id).
 //                5. Directly return None if it is in SERIAL_MODE.
@@ -725,7 +888,7 @@ static PyObject* LibytParticleGetParticle(PyObject* self, PyObject* args) {
 //                list obj : nonlocal_id  : nonlocal grid id that you want to get.
 //                list obj : nonlocal_rank: where to get those nonlocal grid.
 //
-// Return      :  dict obj data[grid id][field_name][:,:,:]
+// Return      :  dict obj data[grid id][field_name] = numpy array
 //-------------------------------------------------------------------------------------------------------
 static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
   SET_TIMER(__PRETTY_FUNCTION__);
@@ -776,6 +939,8 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
     prepare_id_list.push_back(PyLong_AsLong(py_prepare_grid_id));
   }
 
+  int dimensionality = LibytProcessControl::Get().data_structure_amr_.GetDimensionality();
+
   // Create fetch data list
   std::vector<CommMpiRmaQueryInfo> fetch_data_list;
   fetch_data_list.reserve(len_get_grid);
@@ -793,73 +958,108 @@ static PyObject* LibytFieldGetFieldRemote(PyObject* self, PyObject* args) {
   // Get all remote grid id in field name fname, get one field at a time.
   PyObject* py_fname;
   while ((py_fname = PyIter_Next(py_fname_list))) {
-    // Prepare local data
+    // RMA
     py_deref_list.push_back(py_fname);
     char* fname = PyBytes_AsString(py_fname);
-    DataHubAmrDataArray3D local_amr_data(false);
-    DataHubReturn<AmrDataArray3D> prepared_data = local_amr_data.GetLocalFieldData(
-        LibytProcessControl::Get().data_structure_amr_, fname, prepare_id_list);
-    DataHubStatus all_status = static_cast<DataHubStatus>(
-        CommMpi::CheckAllStates(static_cast<int>(prepared_data.status),
-                                static_cast<int>(DataHubStatus::kDataHubSuccess),
-                                static_cast<int>(DataHubStatus::kDataHubSuccess),
-                                static_cast<int>(DataHubStatus::kDataHubFailed)));
-    if (all_status != DataHubStatus::kDataHubSuccess) {
-      if (prepared_data.status == DataHubStatus::kDataHubFailed) {
-        PyErr_SetString(PyExc_RuntimeError, local_amr_data.GetErrorStr().c_str());
-      } else {
-        PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
+    if (dimensionality == 3) {
+      CommMpiRmaAmrDataArray3D rma(fname, "amr_grid");
+      std::string rma_result_msg = CallFieldRma<AmrDataArray3D>(
+          std::string(fname), prepare_id_list, fetch_data_list, rma);
+      if (rma_result_msg != "success") {
+        PyErr_SetString(PyExc_RuntimeError, rma_result_msg.c_str());
+        for (auto& py_item : py_deref_list) {
+          Py_DECREF(py_item);
+        }
+        return NULL;
       }
-      for (auto& py_item : py_deref_list) {
-        Py_DECREF(py_item);
-      }
-      return NULL;
-    }
 
-    // Call Mpi RMA operation
-    CommMpiRmaAmrDataArray3D comm_mpi_rma(fname, "amr_grid");
-    CommMpiRmaReturn<AmrDataArray3D> rma_return =
-        comm_mpi_rma.GetRemoteData(prepared_data.data_list, fetch_data_list);
-    if (rma_return.all_status != CommMpiRmaStatus::kMpiSuccess) {
-      if (rma_return.status != CommMpiRmaStatus::kMpiSuccess) {
-        PyErr_SetString(PyExc_RuntimeError, comm_mpi_rma.GetErrorStr().c_str());
-      } else {
-        PyErr_SetString(PyExc_RuntimeError, "Error occurred in other MPI process.");
-      }
-      for (auto& py_item : py_deref_list) {
-        Py_DECREF(py_item);
-      }
-      return NULL;
-    }
+      // Wrap the data to Python dictionary
+      for (const AmrDataArray3D& fetched_data : rma.GetFetchedData()) {
+        // Create dictionary output[grid id][field_name]
+        PyObject* py_grid_id = PyLong_FromLong(fetched_data.id);
+        PyObject* py_field_label;
+        if (PyDict_Contains(py_output, py_grid_id) == 0) {
+          py_field_label = PyDict_New();
+          PyDict_SetItem(py_output, py_grid_id, py_field_label);
+          Py_DECREF(py_field_label);
+        }
+        py_field_label = PyDict_GetItem(py_output, py_grid_id);
+        Py_DECREF(py_grid_id);
 
-    // Wrap to Python dictionary
-    for (const AmrDataArray3D& fetched_data : rma_return.data_list) {
-      // Create dictionary output[grid id][field_name]
-      PyObject* py_grid_id = PyLong_FromLong(fetched_data.id);
-      PyObject* py_field_label;
-      if (PyDict_Contains(py_output, py_grid_id) == 0) {
-        py_field_label = PyDict_New();
-        PyDict_SetItem(py_output, py_grid_id, py_field_label);
-        Py_DECREF(py_field_label);
+        // Wrap the data to NumPy array
+        npy_intp npy_dim[3];
+        for (int d = 0; d < 3; d++) {
+          npy_dim[d] = fetched_data.data_dim[d];
+        }
+        PyObject* py_field_data = numpy_controller::ArrayToNumPyArray(
+            3, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
+        PyDict_SetItemString(py_field_label, fname, py_field_data);
+        Py_DECREF(py_field_data);
       }
-      py_field_label = PyDict_GetItem(py_output, py_grid_id);
-      Py_DECREF(py_grid_id);
+    } else if (dimensionality == 2) {
+      CommMpiRmaAmrDataArray2D rma(fname, "amr_grid");
+      std::string rma_result_msg = CallFieldRma<AmrDataArray2D>(
+          std::string(fname), prepare_id_list, fetch_data_list, rma);
+      if (rma_result_msg != "success") {
+        PyErr_SetString(PyExc_RuntimeError, rma_result_msg.c_str());
+        for (auto& py_item : py_deref_list) {
+          Py_DECREF(py_item);
+        }
+        return NULL;
+      }
 
-      // Wrap the data to NumPy array
-      npy_intp npy_dim[3];
-      if (fetched_data.contiguous_in_x) {
-        npy_dim[0] = fetched_data.data_dim[2];
-        npy_dim[1] = fetched_data.data_dim[1];
-        npy_dim[2] = fetched_data.data_dim[0];
-      } else {
-        npy_dim[0] = fetched_data.data_dim[0];
-        npy_dim[1] = fetched_data.data_dim[1];
-        npy_dim[2] = fetched_data.data_dim[2];
+      // Wrap the data to Python dictionary
+      for (const AmrDataArray2D& fetched_data : rma.GetFetchedData()) {
+        // Create dictionary output[grid id][field_name]
+        PyObject* py_grid_id = PyLong_FromLong(fetched_data.id);
+        PyObject* py_field_label;
+        if (PyDict_Contains(py_output, py_grid_id) == 0) {
+          py_field_label = PyDict_New();
+          PyDict_SetItem(py_output, py_grid_id, py_field_label);
+          Py_DECREF(py_field_label);
+        }
+        py_field_label = PyDict_GetItem(py_output, py_grid_id);
+        Py_DECREF(py_grid_id);
+
+        // Wrap the data to NumPy array
+        npy_intp npy_dim[2] = {fetched_data.data_dim[0], fetched_data.data_dim[1]};
+        PyObject* py_field_data = numpy_controller::ArrayToNumPyArray(
+            2, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
+        PyDict_SetItemString(py_field_label, fname, py_field_data);
+        Py_DECREF(py_field_data);
       }
-      PyObject* py_field_data = numpy_controller::ArrayToNumPyArray(
-          3, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
-      PyDict_SetItemString(py_field_label, fname, py_field_data);
-      Py_DECREF(py_field_data);
+    } else {
+      CommMpiRmaAmrDataArray1D rma(fname, "amr_grid");
+      std::string rma_result_msg = CallFieldRma<AmrDataArray1D>(
+          std::string(fname), prepare_id_list, fetch_data_list, rma);
+      if (rma_result_msg != "success") {
+        PyErr_SetString(PyExc_RuntimeError, rma_result_msg.c_str());
+        for (auto& py_item : py_deref_list) {
+          Py_DECREF(py_item);
+        }
+        return NULL;
+      }
+
+      // Wrap the data to Python dictionary
+      for (const AmrDataArray1D& fetched_data : rma.GetFetchedData()) {
+        // Create dictionary output[grid id][field_name]
+        PyObject* py_grid_id = PyLong_FromLong(fetched_data.id);
+        PyObject* py_field_label;
+        if (PyDict_Contains(py_output, py_grid_id) == 0) {
+          py_field_label = PyDict_New();
+          PyDict_SetItem(py_output, py_grid_id, py_field_label);
+          Py_DECREF(py_field_label);
+        }
+        py_field_label = PyDict_GetItem(py_output, py_grid_id);
+        Py_DECREF(py_grid_id);
+
+        // Wrap the data to NumPy array
+        npy_intp npy_dim[1] = {fetched_data.data_dim[0]};
+        PyObject* py_field_data = numpy_controller::ArrayToNumPyArray(
+            1, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
+        PyDict_SetItemString(py_field_label, fname, py_field_data);
+        Py_DECREF(py_field_data);
+      }
     }
     Py_DECREF(py_fname);
     py_deref_list.pop_back();
@@ -973,7 +1173,7 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
           prepare_id_list.push_back(gid);
         }
       }
-      DataHubAmrDataArray1D local_particle_data(false);
+      DataHubAmrParticle local_particle_data(false);
       DataHubReturn<AmrDataArray1D> prepared_data =
           local_particle_data.GetLocalParticleData(
               LibytProcessControl::Get().data_structure_amr_,
@@ -1058,8 +1258,8 @@ static PyObject* LibytParticleGetParticleRemote(PyObject* self, PyObject* args) 
         Py_DECREF(py_ptype_key);
 
         // Wrap and bind to py_attribute_dict
-        if (fetched_data.data_len > 0) {
-          npy_intp npy_dim[1] = {fetched_data.data_len};
+        if (fetched_data.data_dim[0] > 0) {
+          npy_intp npy_dim[1] = {fetched_data.data_dim[0]};
           PyObject* py_data = numpy_controller::ArrayToNumPyArray(
               1, npy_dim, fetched_data.data_dtype, fetched_data.data_ptr, false, true);
           PyDict_SetItemString(py_attribute_dict, attr, py_data);
