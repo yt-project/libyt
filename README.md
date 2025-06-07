@@ -26,6 +26,8 @@ See the [how to install](https://libyt.readthedocs.io/en/latest/how-to-install/h
 
 We welcome contributions of all kinds! Whether you're fixing a bug, adding a feature, improving documentation, or reporting an issue -- thank you for helping improve this project.
 
+Please follow the coding style when committing to the git history using `pre-commit` hooks. 
+
 ### Code of Conduct
 
 We are committed to fostering a welcoming, respectful, and inclusive environment for everyone involved in this project.
