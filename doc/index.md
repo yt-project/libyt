@@ -3,7 +3,7 @@ hide-toc: true
 ---
 
 # libyt Documents
-{bdg-primary}`version 0.2.0`
+{bdg-primary}`version 0.3.0`
 
 `libyt` is an open source C library for simulation. 
 It is an in situ analysis tool that allows researchers to analyze and visualize data using [`yt`](https://yt-project.org/) or other Python packages in parallel during simulation runtime.
