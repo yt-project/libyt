@@ -12,7 +12,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
 
 ### Hierarchy
 - `double left_edge[3], right_edge[3]` (Default=`DBL_UNDEFINED`)
-  - Usage: Grid left and right edge in code units.
+  - Usage: Grid left and right edge in code units. If it's a 2D/1D-simulation, fill the extra dimension with `0.0` and `1.0` for left and right edge respectively.
 - `long id` (Default=`LNG_UNDEFINED`)
   - Usage: Grid global id.
   - Valid Value: It should be contiguous starting from [`index_offset`](./yt_set_parameters.md#yt_param_yt).
@@ -22,7 +22,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
     - Should be in between `0` and `num_grids - 1`.
     - If the grid does not have parent grid, set to `-1`.
 - `int grid_dimensions[3]` (Default=`INT_UNDEFINED`)
-  - Usage: Number of cells along each direction in [x][y][z] <--> [0][1][2] order excluding ghost cells.
+  - Usage: Number of cells along each direction in [x][y][z] <--> [0][1][2] order excluding ghost cells. If it's a 2D/1D-simulation, fill the extra dimension with `1`.
 - `int level` (Default=`INT_UNDEFINED`)
   - Usage: AMR level of the grid.
   - Valid Value:
@@ -43,7 +43,7 @@ One `yt_grid` contains the hierarchy of the grid, particle counts, and field dat
   - Usage: a struct used for wrapping existing data pointers.
   - Data member:
     - `void* data_ptr`: Data pointer.
-    - `int data_dimensions[3]`: Dimension of `data_ptr`, which is the actual dimension of this pointer. If `data_ptr` is a 1-dim array, set the last two elements to 0. (This only happens in particle data, and we aren't rely on this value to wrap the data.)
+    - `int data_dimensions[3]`: Dimension of `data_ptr`, which is the actual dimension of this pointer. If `data_ptr` is a 2/1-dim array, the extra dimension is not in use. (This happens in particle data and 2/1-dimensional simulation, and we aren't rely on this value to wrap the data.)
     - `yt_dtype data_dtype`: Data type of `data_ptr`. We only need to set `data_dtype` when this grid's data type is different from the one set in fields'.
       - Valid Value: [`yt_dtype`](./data-type.md#yt_dtype)
 

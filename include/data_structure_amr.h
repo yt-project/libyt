@@ -42,6 +42,7 @@ struct yt_hierarchy {
 // Description :  Data structure for 3d / 1d data array.
 //
 // Notes       :  1. Must have data_ptr.
+//                2. TODO: do I even need contiguous_in_x in the array element?
 //-------------------------------------------------------------------------------------------------------
 struct AmrDataArray3D {
   long id = -1;
@@ -51,11 +52,20 @@ struct AmrDataArray3D {
   bool contiguous_in_x = false;
 };
 
+struct AmrDataArray2D {
+  long id = -1;
+  yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
+  int data_dim[2]{0, 0};
+  void* data_ptr = nullptr;
+  bool contiguous_in_x = false;
+};
+
 struct AmrDataArray1D {
   long id = -1;
   yt_dtype data_dtype = YT_DTYPE_UNKNOWN;
+  long data_dim[1] = {0};
   void* data_ptr = nullptr;
-  long data_len = 0;
+  bool contiguous_in_x = true;  // not in use, keep it only for consistency with 3D/2D
 };
 
 enum class DataStructureStatus : int {
@@ -99,6 +109,7 @@ class DataStructureAmr {
   bool has_particle_;  // This is for tracking particle count column num in hierarchy
                        // Python binding.
   int index_offset_;
+  int dimensionality_;  // Dimensionality of the simulation
 
   double* grid_left_edge_;
   double* grid_right_edge_;
@@ -169,13 +180,17 @@ class DataStructureAmr {
   // Process of setting up the data structure
   DataStructureOutput AllocateStorage(long num_grids, int num_grids_local, int num_fields,
                                       int num_par_types, yt_par_type* par_type_list,
-                                      int index_offset, bool check_data);
+                                      int index_offset, int dimensionality,
+                                      bool check_data);
   DataStructureOutput BindInfoToPython(const std::string& py_dict_name,
                                        PyObject* py_dict);
   DataStructureOutput BindAllHierarchyToPython(int mpi_root);
   DataStructureOutput BindLocalDataToPython() const;
   void CleanUpGridsLocal();  // This method is public due to bad API design :(
   void CleanUp();
+
+  // Get basic info
+  int GetDimensionality() const { return dimensionality_; }
 
   // Look up field/particle info method.
   yt_grid* GetGridsLocal() const { return grids_local_; }
@@ -186,9 +201,10 @@ class DataStructureAmr {
   int GetParticleAttributeIndex(int particle_type_index, const char* attr_name) const;
 
   // Generate data array
+  template<typename DataClass>
   DataStructureOutput GenerateLocalFieldData(const std::vector<long>& gid_list,
                                              const char* field_name,
-                                             std::vector<AmrDataArray3D>& storage) const;
+                                             std::vector<DataClass>& storage) const;
   DataStructureOutput GenerateLocalParticleData(
       const std::vector<long>& gid_list, const char* ptype, const char* attr,
       std::vector<AmrDataArray1D>& storage) const;

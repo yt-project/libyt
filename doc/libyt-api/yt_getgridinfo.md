@@ -9,21 +9,21 @@
 ```cpp
 int yt_getGridInfo_Dimensions( const long gid, int (*dimensions)[3] );
 ```
-- Usage: Get dimension of grid `gid`. `dimensions[0]` corresponds to dimension in x-axis, `dimensions[1]` corresponds to dimension in y-axis, and `dimensions[2]` corresponds to dimension in z-axis, excluding ghost cells.
+- Usage: Get dimension of grid `gid`. `dimensions[0]` corresponds to dimension in x-axis, `dimensions[1]` corresponds to dimension in y-axis, and `dimensions[2]` corresponds to dimension in z-axis, excluding ghost cells. This also works with 2/1-dimensional simulation. The extra dimension will be filled with `1`.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## `yt_getGridInfo_LeftEdge`
 ```cpp
 int yt_getGridInfo_LeftEdge(const long gid, double (*left_edge)[3]);
 ```
-- Usage: Get left edge of grid `gid`. `left_edge[0]` is left edge of the grid in x-axis in code length, `left_edge[1]` for y-axis, and `left_edge[2]` for z-axis.
+- Usage: Get left edge of grid `gid`. `left_edge[0]` is left edge of the grid in x-axis in code length, `left_edge[1]` for y-axis, and `left_edge[2]` for z-axis. This also works with 2/1-dimensional simulation. The extra dimension will be filled with `0.0`.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## `yt_getGridInfo_RightEdge`
 ```cpp
 int yt_getGridInfo_RightEdge(const long gid, double (*right_edge)[3]);
 ```
-- Usage: Get right edge of grid `gid`. `right_edge[0]` is right edge of the grid in x-axis in code length, `right_edge[1]` for y-axis, and `right_edge[2]` for z-axis.
+- Usage: Get right edge of grid `gid`. `right_edge[0]` is right edge of the grid in x-axis in code length, `right_edge[1]` for y-axis, and `right_edge[2]` for z-axis. This also works with 2/1-dimensional simulation. The extra dimension will be filled with `1.0`.
 - Return: `YT_SUCCESS` or `YT_FAIL`
 
 ## `yt_getGridInfo_ParentId`
@@ -63,7 +63,7 @@ int yt_getGridInfo_FieldData(const long gid, const char *field_name, yt_data *fi
 - Return: `YT_SUCCESS` or `YT_FAIL` if it cannot get data.
 - `yt_data`
     - `data_ptr`: Data pointer.
-    - `data_dimensions[3]`: Dimension of the `data_ptr` array, in the point of view of itself.
+    - `data_dimensions[3]`: Dimension of the `data_ptr` array, in the point of view of itself. If it's a 2/1-dim array, the extra dimension will be `1`.
     - `data_dtype`: Data type of the array.
 
 > {octicon}`info;1em;sd-text-info;` Field name `field_name` should be same as what you passed in [`yt_get_FieldsPtr`](./field/yt_get_fieldsptr.md#yt_get_fieldsptr).
