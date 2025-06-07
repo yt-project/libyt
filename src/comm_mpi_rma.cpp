@@ -508,8 +508,10 @@ CommMpiRmaStatus CommMpiRma<DataClass>::CleanUp(
 }
 
 template class CommMpiRma<AmrDataArray3D>;
+template class CommMpiRma<AmrDataArray2D>;
 template class CommMpiRma<AmrDataArray1D>;
 MPI_Datatype CommMpiRmaAmrDataArray3D::mpi_data_type_ = 0;
+MPI_Datatype CommMpiRmaAmrDataArray2D::mpi_data_type_ = 0;
 MPI_Datatype CommMpiRmaAmrDataArray1D::mpi_data_type_ = 0;
 
 //-------------------------------------------------------------------------------------------------------
@@ -586,6 +588,52 @@ void CommMpiRmaAmrDataArray3D::InitializeMpiDataType() {
   MPI_Type_commit(&mpi_data_type_);
 }
 
+long CommMpiRmaAmrDataArray2D::GetDataSize(const AmrDataArray2D& data) {
+  for (int i = 0; i < 2; i++) {
+    if (data.data_dim[i] < 0) {
+      return -1;
+    }
+  }
+  if (data.data_dtype == YT_DTYPE_UNKNOWN) {
+    return -1;
+  }
+
+  int dtype_size = dtype_utilities::GetYtDtypeSize(data.data_dtype);
+  return data.data_dim[0] * data.data_dim[1] * dtype_size;
+}
+
+long CommMpiRmaAmrDataArray2D::GetDataLen(const AmrDataArray2D& data) {
+  for (int i = 0; i < 2; i++) {
+    if (data.data_dim[i] < 0) {
+      return -1;
+    }
+  }
+  return data.data_dim[0] * data.data_dim[1];
+}
+
+CommMpiRmaAmrDataArray2D::CommMpiRmaAmrDataArray2D(const std::string& data_group_name,
+                                                   const std::string& data_format)
+    : CommMpiRma<AmrDataArray2D>(data_group_name, data_format) {
+  InitializeMpiDataType();
+}
+
+void CommMpiRmaAmrDataArray2D::InitializeMpiDataType() {
+  if (mpi_data_type_ != 0) {
+    return;
+  }
+
+  int lengths[5] = {1, 1, 2, 1, 1};
+  MPI_Aint displacements[5];
+  displacements[0] = offsetof(AmrDataArray2D, id);
+  displacements[1] = offsetof(AmrDataArray2D, data_dtype);
+  displacements[2] = offsetof(AmrDataArray2D, data_dim);
+  displacements[3] = offsetof(AmrDataArray2D, data_ptr);
+  displacements[4] = offsetof(AmrDataArray2D, contiguous_in_x);
+  MPI_Datatype types[5] = {MPI_LONG, MPI_INT, MPI_INT, MPI_AINT, MPI_CXX_BOOL};
+  MPI_Type_create_struct(5, lengths, displacements, types, &mpi_data_type_);
+  MPI_Type_commit(&mpi_data_type_);
+}
+
 //-------------------------------------------------------------------------------------------------------
 // Class          :  CommMpiRmaAmrDataArray1D
 // Private Method :  GetDataSize
@@ -595,12 +643,12 @@ void CommMpiRmaAmrDataArray3D::InitializeMpiDataType() {
 //                   2. For invalid data, return value < 0.
 //-------------------------------------------------------------------------------------------------------
 long CommMpiRmaAmrDataArray1D::GetDataSize(const AmrDataArray1D& data) {
-  if (data.data_len < 0 || data.data_dtype == YT_DTYPE_UNKNOWN) {
+  if (data.data_dim[0] < 0 || data.data_dtype == YT_DTYPE_UNKNOWN) {
     return -1;
   }
 
   int dtype_size = dtype_utilities::GetYtDtypeSize(data.data_dtype);
-  return data.data_len * dtype_size;
+  return data.data_dim[0] * dtype_size;
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -612,10 +660,10 @@ long CommMpiRmaAmrDataArray1D::GetDataSize(const AmrDataArray1D& data) {
 //                   2. For invalid data, return value < 0.
 //-------------------------------------------------------------------------------------------------------
 long CommMpiRmaAmrDataArray1D::GetDataLen(const AmrDataArray1D& data) {
-  if (data.data_len < 0) {
+  if (data.data_dim[0] < 0) {
     return -1;
   }
-  return data.data_len;
+  return data.data_dim[0];
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -641,14 +689,15 @@ void CommMpiRmaAmrDataArray1D::InitializeMpiDataType() {
     return;
   }
 
-  int lengths[4] = {1, 1, 1, 1};
-  MPI_Aint displacements[4];
+  int lengths[5] = {1, 1, 1, 1, 1};
+  MPI_Aint displacements[5];
   displacements[0] = offsetof(AmrDataArray1D, id);
   displacements[1] = offsetof(AmrDataArray1D, data_dtype);
-  displacements[2] = offsetof(AmrDataArray1D, data_ptr);
-  displacements[3] = offsetof(AmrDataArray1D, data_len);
-  MPI_Datatype types[4] = {MPI_LONG, MPI_INT, MPI_AINT, MPI_LONG};
-  MPI_Type_create_struct(4, lengths, displacements, types, &mpi_data_type_);
+  displacements[2] = offsetof(AmrDataArray1D, data_dim);
+  displacements[3] = offsetof(AmrDataArray1D, data_ptr);
+  displacements[4] = offsetof(AmrDataArray1D, contiguous_in_x);
+  MPI_Datatype types[5] = {MPI_LONG, MPI_INT, MPI_LONG, MPI_AINT, MPI_CXX_BOOL};
+  MPI_Type_create_struct(5, lengths, displacements, types, &mpi_data_type_);
   MPI_Type_commit(&mpi_data_type_);
 }
 

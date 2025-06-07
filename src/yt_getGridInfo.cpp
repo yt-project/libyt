@@ -18,6 +18,7 @@
  *    occurs.
  * 2. grid_dimensions is defined in `[x][y][z]` <-> `[0][1][2]` coordinate.
  * 3. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+ * 4. If it's a 2D/1D simulation, we still need to pass in `dim[3]`.
  *
  * @param gid[in] grid id
  * @param dimensions[out] grid dimensions
@@ -60,6 +61,7 @@ int yt_getGridInfo_Dimensions(const long gid, int (*dimensions)[3]) {
  *    occurs.
  * 2. Returned left edge is defined in `[x][y][z]` <-> `[0][1][2]` coordinate.
  * 3. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+ * 4. If it's a 2D/1D simulation, we still need to pass in `left_edge[3]`.
  *
  * @param gid[in] grid id
  * @param left_edge[out] grid left edge
@@ -102,6 +104,7 @@ int yt_getGridInfo_LeftEdge(const long gid, double (*left_edge)[3]) {
  *    occurs.
  * 2. Returned right edge is defined in `[x][y][z]` <-> `[0][1][2]` coordinate.
  * 3. gid is grid id passed in by user, it doesn't need to be 0-indexed.
+ * 4. If it's a 2D/1D simulation, we still need to pass in `right_edge[3]`.
  *
  * @param gid[in] grid id
  * @param right_edge[out] grid right edge
@@ -305,7 +308,7 @@ int yt_getGridInfo_ParticleCount(const long gid, const char* ptype, long* par_co
  * 3. User should cast to their own datatype after receiving the pointer.
  * 4. Returns an existing data pointer and data dimensions user passed in,
  *    and does not make a copy of it!!
- * 5. Works only for 3-dim data.
+ * 5. For 2/1-dim data, only [0][1]/[0] is used, and the higher dimensions are set to 1.
  *
  * @param gid[in] grid id
  * @param field_name[in] queried field name
