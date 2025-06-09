@@ -1,4 +1,5 @@
 # Since some of the classes is still coupled to MPI, we need to run the unit tests with/without MPI.
+# Also upload the code coverage report to codecov
 
 name: unit test
 
@@ -27,8 +28,8 @@ jobs:
         mpi_compiler: ['openmpi', 'mpich']
         python_version: ['3.10']
         build_options:
-          - "-DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=ON"
-          - "-DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=OFF"
+          - "-DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DCODE_COVERAGE=ON -DUSE_PYBIND11=ON"
+          - "-DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DCODE_COVERAGE=ON -DUSE_PYBIND11=OFF"
 
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +59,7 @@ jobs:
 
       - name: Install other dependencies
         run: |
-          sudo apt-get install -y libreadline-dev
+          sudo apt-get install -y libreadline-dev lcov
 
       - name: Set reusable strings
         id: strings
@@ -92,6 +93,19 @@ jobs:
         run: |
           OMPI_MCA_osc=sm,pt2pt mpirun -np 3 ./TestDataStructureAmrWithCommMpi
 
+      - name: Generate code coverage report
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}/src/CMakeFiles/yt.dir
+        run: |
+          lcov --directory . --capture --output-file coverage.info
+          lcov --extract coverage.info "*/libyt/src/*" "*/libyt/include/*" -o coverage-project-only.info
+
+      - name: Upload code coverage report to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ steps.strings.outputs.build-output-dir }}/src/CMakeFiles/yt.dir/coverage-project-only.info
+          verbose: true
+
   unit-test:
     name: serial
     runs-on: ${{ matrix.os }}
@@ -102,15 +116,15 @@ jobs:
         os: ['ubuntu-latest']
         python_version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
         build_options:
-          - "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=ON"
-          - "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=OFF"
+          - "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DCODE_COVERAGE=ON -DUSE_PYBIND11=ON"
+          - "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DCODE_COVERAGE=ON -DUSE_PYBIND11=OFF"
         include:
           - os: ubuntu-22.04
             python_version: '3.7'
-            build_options: "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=ON"
+            build_options: "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DCODE_COVERAGE=ON -DUSE_PYBIND11=ON"
           - os: ubuntu-22.04
             python_version: '3.7'
-            build_options: "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DUSE_PYBIND11=OFF"
+            build_options: "-DSERIAL_MODE=ON -DINTERACTIVE_MODE=ON -DLIBYT_RUN_TEST=ON -DCODE_COVERAGE=ON -DUSE_PYBIND11=OFF"
 
     steps:
       - uses: actions/checkout@v4
@@ -127,7 +141,7 @@ jobs:
 
       - name: Install other dependencies
         run: |
-          sudo apt-get install -y libreadline-dev
+          sudo apt-get install -y libreadline-dev lcov
 
       - name: Set reusable strings
         id: strings
@@ -160,3 +174,16 @@ jobs:
         working-directory: ${{ steps.strings.outputs.build-output-dir }}/test/unit_test
         run: |
           ./TestDataStructureAmr
+
+      - name: Generate code coverage report
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}/src/CMakeFiles/yt.dir
+        run: |
+          lcov --directory . --capture --output-file coverage.info
+          lcov --extract coverage.info "*/libyt/src/*" "*/libyt/include/*" -o coverage-project-only.info
+
+      - name: Upload code coverage report to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ steps.strings.outputs.build-output-dir }}/src/CMakeFiles/yt.dir/coverage-project-only.info
+          verbose: true
