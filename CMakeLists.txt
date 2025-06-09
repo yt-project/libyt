@@ -44,6 +44,7 @@ set(VALGRIND_PATH     "" CACHE PATH "Path to valgrind installation prefix (-DLIB
 
 option(LIBYT_RUN_TEST                "Run unit test"                                 OFF)
 option(LIBYT_RUN_MEMORY_PROFILE      "Run memory profile"                            OFF)
+option(CODE_COVERAGE                 "Enable coverage reporting"                     OFF)
 
 ## set path for dependencies ##
 set(Python_ROOT_DIR ${PYTHON_PATH})
