@@ -1,6 +1,6 @@
 # Security Policy
 
-The following includes the supported versions in case security issues occur in `libyt`.
+The following includes the supported versions in case security issues occur in `libyt` and provides instructions on how to report them.
 
 ## Supported Versions
 
