@@ -12,18 +12,19 @@ The following includes the supported versions in case security issues occur in `
 
 If you discover a security vulnerability, please report it responsibly. **Do not create a public GitHub issue.**
 
-Include the following in the report:
-```txt
-- Description of the vulnerability
+### Contact
 
-- Steps to reproduce
+- Email: `turquoisea.tsai@gmail.com`
+- Title: `[libyt vulnerability] Title`
 
-- Affected versions or components
-
-- Does it impact the HPC clusters
-
-- Any known exploits or impacts
-```
+- Include the following in the report:
+  ```txt
+  - Description of the vulnerability
+  - Steps to reproduce
+  - Affected versions or components
+  - Does it impact the HPC clusters
+  - Any known exploits or impacts
+  ```
 
 ### Response Expectations
 
