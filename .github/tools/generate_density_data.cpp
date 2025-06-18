@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
   const int num_fields = 1;                                // number of fields
   const int num_grids = CUBE(NGRID_1D) + CUBE(REFINE_BY);  // number of grids
   double time = 0.0;
-  double(*field_data)[num_fields][CUBE(GRID_DIM + GHOST_CELL * 2)] =
+  double (*field_data)[num_fields][CUBE(GRID_DIM + GHOST_CELL * 2)] =
       new double[num_grids][num_fields][CUBE(GRID_DIM + GHOST_CELL * 2)];
 
   for (int step = 0; step < total_steps; step++) {
