@@ -4,6 +4,7 @@
 [![unit test](https://github.com/yt-project/libyt/actions/workflows/unit-test.yml/badge.svg?branch=main)](https://github.com/yt-project/libyt/actions/workflows/unit-test.yml)
 [![memory profile](https://github.com/yt-project/libyt/actions/workflows/memory-profile.yml/badge.svg?branch=main)](https://github.com/yt-project/libyt/actions/workflows/memory-profile.yml)
 [![Documentation Status](https://readthedocs.org/projects/libyt/badge/?version=latest)](https://libyt.readthedocs.io/en/latest/?badge=latest)
+[![codecov](https://codecov.io/gh/yt-project/libyt/graph/badge.svg?token=NRYLAipewN)](https://codecov.io/gh/yt-project/libyt)
 
 `libyt` is an open source C library for simulation, that allows researchers to analyze and visualize data using [`yt`](https://yt-project.org/) or other Python packages in parallel during simulation runtime. 
 
