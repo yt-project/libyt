@@ -1,7 +1,8 @@
 # Test if example can run on multiplatform and both in serial (gcc) and parallel (openmpi)
 
 name: amr example
-
+permissions:
+  contents: read
 on:
   push:
     branches: [ main ]

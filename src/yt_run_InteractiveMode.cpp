@@ -6,6 +6,7 @@
 #include <readline/readline.h>
 
 #include <cctype>
+#include <cstdio>
 #include <iostream>
 #include <string>
 
