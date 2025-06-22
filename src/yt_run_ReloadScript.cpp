@@ -3,6 +3,7 @@
 #include "timer.h"
 
 #ifdef INTERACTIVE_MODE
+#include <cstdio>
 #include <readline/readline.h>
 
 #include <chrono>
