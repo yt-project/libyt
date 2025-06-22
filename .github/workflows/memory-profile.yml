@@ -1,5 +1,6 @@
 name: memory profile
-
+permissions:
+  contents: read
 on:
   push:
     branches: [ "main" ]

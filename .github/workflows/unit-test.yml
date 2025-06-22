@@ -2,7 +2,8 @@
 # Also upload the code coverage report to codecov
 
 name: unit test
-
+permissions:
+  contents: read
 on:
   push:
     branches: [ "main" ]

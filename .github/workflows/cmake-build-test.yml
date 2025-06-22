@@ -1,7 +1,8 @@
 # Test if libyt can build with different options, download dependencies, and install and link correctly.
 
 name: build test
-
+permissions:
+  contents: read
 on:
   push:
     branches: [ main ]

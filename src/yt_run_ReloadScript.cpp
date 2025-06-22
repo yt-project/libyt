@@ -6,6 +6,7 @@
 #include <readline/readline.h>
 
 #include <chrono>
+#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <sstream>
