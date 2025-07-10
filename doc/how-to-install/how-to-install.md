@@ -69,6 +69,18 @@ To turn off some of the features, go to [Details](./details.md).
                          -DPYTHON_PATH=<your-python-prefix> \
                          -DMPI_PATH=<your-mpi-prefix>
      ```
+
+  ```{eval-rst}
+  .. seealso::
+     If you encounter errors like:
+  
+     .. code-block:: text
+        
+        Could NOT find LibUUID (missing: LibUUID_LIBRARY LibUUID_INCLUDE_DIR)
+
+     These are caused by missing dependencies and can be installed by system package manager.
+  ```
+
 4. Build project and install `libyt`:
    ```bash
    cmake --build build 
