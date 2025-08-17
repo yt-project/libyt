@@ -3,9 +3,6 @@
 #include "timer.h"
 
 #ifdef INTERACTIVE_MODE
-#include <cstdio>
-#include <readline/readline.h>
-
 #include <chrono>
 #include <cstdio>
 #include <fstream>
@@ -17,6 +14,7 @@
 #include "libyt_process_control.h"
 #include "libyt_utilities.h"
 #include "magic_command.h"
+#include "readline/readline.h"
 #endif
 
 /**

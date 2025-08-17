@@ -136,7 +136,7 @@ DataHubReturn<AmrDataArray1D> DataHubAmrParticle::GetLocalParticleData(
     const DataStructureAmr& ds_amr, const std::string& ptype, const std::string& pattr,
     const std::vector<long>& grid_id_list) {
   // Free cache before doing new query
-  ClearCache();
+  this->ClearCache();
 
   // Get particle type index and attribute index
   int ptype_index = ds_amr.GetParticleIndex(ptype.c_str());
@@ -171,12 +171,16 @@ DataHubReturn<AmrDataArray1D> DataHubAmrParticle::GetLocalParticleData(
   }
 
   // Get data from get particle attribute function
-  DataStructureOutput status = ds_amr.GenerateLocalParticleData(
-      generate_gid_list, ptype.c_str(), pattr.c_str(), data_array_list_);
-  is_new_allocation_list_.assign(data_array_list_.size(), true);
-  if (status.status != DataStructureStatus::kDataStructureSuccess) {
-    error_str_ = std::move(status.error);
-    return {DataHubStatus::kDataHubFailed, data_array_list_};
+  if (!generate_gid_list.empty()) {
+    unsigned long ori_data_len = data_array_list_.size();
+    DataStructureOutput status = ds_amr.GenerateLocalParticleData(
+        generate_gid_list, ptype.c_str(), pattr.c_str(), data_array_list_);
+    is_new_allocation_list_.insert(
+        is_new_allocation_list_.end(), data_array_list_.size() - ori_data_len, true);
+    if (status.status != DataStructureStatus::kDataStructureSuccess) {
+      error_str_ = std::move(status.error);
+      return {DataHubStatus::kDataHubFailed, data_array_list_};
+    }
   }
 
   return {DataHubStatus::kDataHubSuccess, data_array_list_};
