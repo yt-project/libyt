@@ -22,17 +22,42 @@ We can skip the intermediate step of writing data to a hard disk before doing an
 
 ### Installation
 
-See the [how to install](https://libyt.readthedocs.io/en/latest/how-to-install/how-to-install.html).
+More details in [how to install](https://libyt.readthedocs.io/en/latest/how-to-install/how-to-install.html).
 
-### Contributing
+##### Serial 
 
-We welcome contributions of all kinds! Whether you're fixing a bug, adding a feature, improving documentation, or reporting an issue -- thank you for helping improve this project.
+```bash
+cmake -S . -B build -DSERIAL_MODE=ON \
+                    -DINTERACTIVE_MODE=ON \
+                    -DJUPYTER_KERNEL=ON \
+                    -DPYTHON_PATH=<your-python-prefix>
+```
 
-Please follow the coding style when committing to the git history using `pre-commit` hooks. 
+##### Parallel with MPI
+
+```bash
+cmake -S . -B build -DINTERACTIVE_MODE=ON \
+                    -DJUPYTER_KERNEL=ON \
+                    -DPYTHON_PATH=<your-python-prefix> \
+                    -DMPI_PATH=<your-mpi-prefix>
+```
+
+
+### Develop and Contributing
+
+This project is currently in an active development stage. Some of its cores and architectures are subject to change to make it more efficient, extendable, and easy to use.
+
+We encourage and welcome the submission of issues, feature requests, and suggestions. 
+Such contributions are invaluable to the continued improvement of this project, and we appreciate the time and effort taken to help us grow and better serve the community.
+
+
 
 ### Code of Conduct
 
-We are committed to fostering a welcoming, respectful, and inclusive environment for everyone involved in this project.
+We are committed to fostering a respectful, inclusive, and harassment-free environment for everyone. 
+All participants are expected to treat one another with kindness, regardless of their background, identity, or experience. 
+Harassment, discrimination, personal attacks, or any other disruptive behavior will not be tolerated. 
+By participating in this community, you agree to uphold these standards and contribute to creating a welcoming space.
 
 ### License
 
