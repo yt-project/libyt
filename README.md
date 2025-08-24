@@ -16,17 +16,17 @@ Converting the post-processing analysis Python script using `yt` to an inline Py
 
 - **Documents**: https://libyt.readthedocs.io/
 
-### Related Projects
+## Related Projects
 
 - [`yt`](https://github.com/yt-project/yt): a Python package for analyzing and visualizing volumetric data. It is the core method that `libyt` uses to provide data analysis pipeline for simulations.
 - [`yt_libyt`](https://github.com/data-exp-lab/yt_libyt): a Python package that provides a `yt` frontend. It makes converting post-processing scripts using `yt` into inline scripts a two-line change.
 - [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt): a JupyterLab frontend for `libyt`. It provides methods to connect to simulations.
 
-### Installation
+## Installation
 
 More details in [how to install](https://libyt.readthedocs.io/en/latest/how-to-install/how-to-install.html).
 
-##### Serial 
+#### Serial 
 
 ```bash
 cmake -S . -B build -DSERIAL_MODE=ON \
@@ -35,7 +35,7 @@ cmake -S . -B build -DSERIAL_MODE=ON \
                     -DPYTHON_PATH=<your-python-prefix>
 ```
 
-##### Parallel with MPI
+#### Parallel with MPI
 
 ```bash
 cmake -S . -B build -DINTERACTIVE_MODE=ON \
@@ -45,7 +45,7 @@ cmake -S . -B build -DINTERACTIVE_MODE=ON \
 ```
 
 
-### Develop and Contributing
+## Develop and Contributing
 
 This project is currently in an active development stage. Some of its cores and architectures are subject to change to make it more efficient, extendable, and easy to use.
 
@@ -54,13 +54,13 @@ Such contributions are invaluable to the continued improvement of this project, 
 
 
 
-### Code of Conduct
+## Code of Conduct
 
 We are committed to fostering a respectful, inclusive, and harassment-free environment for everyone. 
 All participants are expected to treat one another with kindness, regardless of their background, identity, or experience. 
 Harassment, discrimination, personal attacks, or any other disruptive behavior will not be tolerated. 
 By participating in this community, you agree to uphold these standards and contribute to creating a welcoming space.
 
-### License
+## License
 
 BSD 3-Clause License
