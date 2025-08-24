@@ -6,11 +6,13 @@
 [![Documentation Status](https://readthedocs.org/projects/libyt/badge/?version=latest)](https://libyt.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/yt-project/libyt/graph/badge.svg?token=NRYLAipewN)](https://codecov.io/gh/yt-project/libyt)
 
-`libyt` is an open source C library for simulation, that allows researchers to analyze and visualize data using [`yt`](https://yt-project.org/) or other Python packages in parallel during simulation runtime. 
+`libyt` is an open-source C library for simulation that enables researchers to analyze and visualize data using [`yt`](https://yt-project.org/) or other Python packages in parallel during simulation runtime. 
 
-We can skip the intermediate step of writing data to a hard disk before doing analysis using Python. This greatly reduce the disk usage, and increase the temporal resolution. Converting post-processing analysis Python script using `yt` to inline Python script is a two-line change.
+We can skip the intermediate step of writing data to a hard disk before doing analysis using Python. 
+This significantly reduces the disk usage and increases the temporal resolution. 
+Converting the post-processing analysis Python script using `yt` to an inline Python script is a two-line change.
 
-`libyt` also provides a Python interface (Python prompt, file-base prompt, and JupyterLab frontend) to access the data in simulations running in an HPC cluster, which can be used to visualize and debug the data in real-time.
+`libyt` also provides a Python interface (Python prompt, file-based prompt, and JupyterLab frontend) to access simulation data running on an HPC cluster, enabling real-time visualization and sampling of the data.
 
 - **Documents**: https://libyt.readthedocs.io/
 
