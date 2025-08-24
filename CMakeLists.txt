@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 # cmake-format: off
 ###### PROJECT Info #####################################################################
 project(LIBYT_PROJECT
-        VERSION 0.3.0
+        VERSION 0.4.0
         DESCRIPTION "In situ Python analysis tool using yt and Python"
 )
 

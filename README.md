@@ -6,34 +6,61 @@
 [![Documentation Status](https://readthedocs.org/projects/libyt/badge/?version=latest)](https://libyt.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/yt-project/libyt/graph/badge.svg?token=NRYLAipewN)](https://codecov.io/gh/yt-project/libyt)
 
-`libyt` is an open source C library for simulation, that allows researchers to analyze and visualize data using [`yt`](https://yt-project.org/) or other Python packages in parallel during simulation runtime. 
+`libyt` is an open-source C library for simulation that enables researchers to analyze and visualize data using [`yt`](https://yt-project.org/) or other Python packages in parallel during simulation runtime. 
 
-We can skip the intermediate step of writing data to a hard disk before doing analysis using Python. This greatly reduce the disk usage, and increase the temporal resolution. Converting post-processing analysis Python script using `yt` to inline Python script is a two-line change.
+We can skip the intermediate step of writing data to a hard disk before doing analysis using Python. 
+This significantly reduces the disk usage and increases the temporal resolution. 
+Converting the post-processing analysis Python script using `yt` to an inline Python script is a two-line change.
 
-`libyt` also provides a Python interface (Python prompt, file-base prompt, and JupyterLab frontend) to access the data in simulations running in an HPC cluster, which can be used to visualize and debug the data in real-time.
+`libyt` also provides a Python interface (Python prompt, file-based prompt, and JupyterLab frontend) to access simulation data running on an HPC cluster, enabling real-time visualization and sampling of the data.
 
 - **Documents**: https://libyt.readthedocs.io/
 
-### Related Projects
+## Related Projects
 
 - [`yt`](https://github.com/yt-project/yt): a Python package for analyzing and visualizing volumetric data. It is the core method that `libyt` uses to provide data analysis pipeline for simulations.
 - [`yt_libyt`](https://github.com/data-exp-lab/yt_libyt): a Python package that provides a `yt` frontend. It makes converting post-processing scripts using `yt` into inline scripts a two-line change.
 - [`jupyter_libyt`](https://github.com/yt-project/jupyter_libyt): a JupyterLab frontend for `libyt`. It provides methods to connect to simulations.
 
-### Installation
+## Installation
 
-See the [how to install](https://libyt.readthedocs.io/en/latest/how-to-install/how-to-install.html).
+More details in [how to install](https://libyt.readthedocs.io/en/latest/how-to-install/how-to-install.html).
 
-### Contributing
+#### Serial 
 
-We welcome contributions of all kinds! Whether you're fixing a bug, adding a feature, improving documentation, or reporting an issue -- thank you for helping improve this project.
+```bash
+cmake -S . -B build -DSERIAL_MODE=ON \
+                    -DINTERACTIVE_MODE=ON \
+                    -DJUPYTER_KERNEL=ON \
+                    -DPYTHON_PATH=<your-python-prefix>
+```
 
-Please follow the coding style when committing to the git history using `pre-commit` hooks. 
+#### Parallel with MPI
 
-### Code of Conduct
+```bash
+cmake -S . -B build -DINTERACTIVE_MODE=ON \
+                    -DJUPYTER_KERNEL=ON \
+                    -DPYTHON_PATH=<your-python-prefix> \
+                    -DMPI_PATH=<your-mpi-prefix>
+```
 
-We are committed to fostering a welcoming, respectful, and inclusive environment for everyone involved in this project.
 
-### License
+## Develop and Contributing
+
+This project is currently in an active development stage. Some of its cores and architectures are subject to change to make it more efficient, extendable, and easy to use.
+
+We encourage and welcome the submission of issues, feature requests, and suggestions. 
+Such contributions are invaluable to the continued improvement of this project, and we appreciate the time and effort taken to help us grow and better serve the community.
+
+
+
+## Code of Conduct
+
+We are committed to fostering a respectful, inclusive, and harassment-free environment for everyone. 
+All participants are expected to treat one another with kindness, regardless of their background, identity, or experience. 
+Harassment, discrimination, personal attacks, or any other disruptive behavior will not be tolerated. 
+By participating in this community, you agree to uphold these standards and contribute to creating a welcoming space.
+
+## License
 
 BSD 3-Clause License

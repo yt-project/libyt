@@ -12,8 +12,8 @@ project = 'libyt'
 copyright = '2024, Shin-Rong Tsai, Hsi-Yu Schive, Matthew Turk'
 author = 'Shin-Rong Tsai, Hsi-Yu Schive, Matthew Turk'
 
-version = "0.3.0"
-release = "0.3.0"
+version = "0.4.0"
+release = "0.4.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
