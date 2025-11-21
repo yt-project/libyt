@@ -53,13 +53,25 @@ We encourage and welcome the submission of issues, feature requests, and suggest
 Such contributions are invaluable to the continued improvement of this project, and we appreciate the time and effort taken to help us grow and better serve the community.
 
 
-
 ## Code of Conduct
 
 We are committed to fostering a respectful, inclusive, and harassment-free environment for everyone. 
 All participants are expected to treat one another with kindness, regardless of their background, identity, or experience. 
 Harassment, discrimination, personal attacks, or any other disruptive behavior will not be tolerated. 
 By participating in this community, you agree to uphold these standards and contribute to creating a welcoming space.
+
+
+## Acknowledgement
+
+We thank [GitHub Secure Open Source Fund](https://github.blog/open-source/maintainers/securing-the-supply-chain-at-scale-starting-with-71-important-open-source-projects) for supporting us.
+
+<p align="left">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="./doc/_static/svg/GitHub_Invertocat_Light.svg" width="60">
+      <source media="(prefers-color-scheme: light)" srcset="./doc/_static/svg/GitHub_Invertocat_Dark.svg" width="60">
+      <img alt="GitHub Secure Open Source Fund">
+    </picture>
+</p>
 
 ## License
 
